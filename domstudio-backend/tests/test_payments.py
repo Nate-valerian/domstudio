@@ -1,6 +1,8 @@
 import hashlib
 import unittest
-from unittest.mock import patch
+import uuid
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -10,20 +12,24 @@ from routers import payments
 
 
 class FakeDb:
+    def __init__(self, payment=None):
+        self.payment = payment
+
     async def scalar(self, statement):
-        return None
+        return self.payment
 
 
 class TinkoffWebhookTests(unittest.TestCase):
-    def make_client(self):
+    def make_client(self, payment=None):
         app = FastAPI()
         app.include_router(payments.router, prefix="/payments")
+        db = FakeDb(payment)
 
         async def override_db():
-            yield FakeDb()
+            yield db
 
         app.dependency_overrides[get_db] = override_db
-        return TestClient(app)
+        return TestClient(app), db
 
     def test_signs_all_scalar_root_fields(self):
         payload = {
@@ -55,7 +61,8 @@ class TinkoffWebhookTests(unittest.TestCase):
 
         with patch.object(payments, "TINKOFF_SECRET", "secret"):
             payload["Token"] = payments.tinkoff_sign(payload)
-            response = self.make_client().post("/payments/tinkoff/webhook", json=payload)
+            client, _ = self.make_client()
+            response = client.post("/payments/tinkoff/webhook", json=payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.text, "OK")
@@ -71,10 +78,37 @@ class TinkoffWebhookTests(unittest.TestCase):
             "Token": "invalid",
         }
 
-        response = self.make_client().post("/payments/tinkoff/webhook", json=payload)
+        client, _ = self.make_client()
+        response = client.post("/payments/tinkoff/webhook", json=payload)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {"detail": "Invalid signature"})
+
+    def test_activates_subscription_before_acknowledging_payment(self):
+        payment = SimpleNamespace(
+            status=payments.PaymentStatus.pending,
+            user_id=uuid.uuid4(),
+            plan=payments.PlanName.pro,
+        )
+        payload = {
+            "TerminalKey": "terminal",
+            "OrderId": "order-1",
+            "PaymentId": "payment-1",
+            "Status": "CONFIRMED",
+            "Amount": 1000,
+        }
+
+        with (
+            patch.object(payments, "TINKOFF_SECRET", "secret"),
+            patch.object(payments, "activate_subscription", new_callable=AsyncMock) as activate,
+        ):
+            payload["Token"] = payments.tinkoff_sign(payload)
+            client, db = self.make_client(payment)
+            response = client.post("/payments/tinkoff/webhook", json=payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payment.status, payments.PaymentStatus.succeeded)
+        activate.assert_awaited_once_with(payment.user_id, payment.plan, db)
 
 
 if __name__ == "__main__":

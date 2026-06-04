@@ -12,7 +12,7 @@ import hmac
 import hashlib
 import json
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -135,7 +135,6 @@ async def tinkoff_init(
 @router.post("/tinkoff/webhook")
 async def tinkoff_webhook(
     request: Request,
-    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     payload = await request.json()
@@ -157,7 +156,7 @@ async def tinkoff_webhook(
 
     if webhook.Status == "CONFIRMED" and payment.status != PaymentStatus.succeeded:
         payment.status = PaymentStatus.succeeded
-        background.add_task(activate_subscription, payment.user_id, payment.plan, db)
+        await activate_subscription(payment.user_id, payment.plan, db)
 
     elif webhook.Status in ("CANCELED", "REJECTED", "DEADLINE_EXPIRED"):
         payment.status = PaymentStatus.failed
@@ -237,7 +236,6 @@ async def yandex_init(
 @router.post("/yandex/webhook")
 async def yandex_webhook(
     request: Request,
-    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     body = await request.body()
@@ -257,7 +255,7 @@ async def yandex_webhook(
 
     if event == "ORDER_PAID" and payment.status != PaymentStatus.succeeded:
         payment.status = PaymentStatus.succeeded
-        background.add_task(activate_subscription, payment.user_id, payment.plan, db)
+        await activate_subscription(payment.user_id, payment.plan, db)
     elif event in ("ORDER_FAILED", "ORDER_CANCELLED"):
         payment.status = PaymentStatus.failed
 
@@ -314,5 +312,3 @@ async def activate_subscription(user_id, plan: PlanName, db: AsyncSession):
     # Top up tokens
     if user.token_balance:
         user.token_balance.balance += plan_cfg["tokens"]
-
-    await db.commit()
