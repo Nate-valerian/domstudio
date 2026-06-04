@@ -11,9 +11,10 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 import enum
-import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://domstudio:password@localhost/domstudio")
+from config import required_env
+
+DATABASE_URL = required_env("DATABASE_URL")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

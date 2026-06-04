@@ -12,9 +12,10 @@ from typing import Optional
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from config import required_env
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
-JWT_SECRET      = os.getenv("JWT_SECRET", "change-this-secret-in-production")
+JWT_SECRET      = required_env("JWT_SECRET")
 JWT_ALGORITHM   = "HS256"
 ACCESS_TTL_MIN  = 30        # 30 minutes
 REFRESH_TTL_DAYS= 30        # 30 days
