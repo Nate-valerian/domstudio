@@ -14,9 +14,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+import os
 
 from database import engine, Base
-from routers import auth, users, payments, subscriptions, tokens
+from routers import auth, generation, users, payments, subscriptions, tokens
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("domstudio")
@@ -36,9 +37,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten in production
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +56,7 @@ app.include_router(users.router,         prefix="/users",         tags=["Users"]
 app.include_router(payments.router,      prefix="/payments",      tags=["Payments"])
 app.include_router(subscriptions.router, prefix="/subscriptions", tags=["Subscriptions"])
 app.include_router(tokens.router,        prefix="/tokens",        tags=["Tokens"])
+app.include_router(generation.router,    prefix="/generation",    tags=["Generation"])
 
 @app.get("/health")
 def health():
