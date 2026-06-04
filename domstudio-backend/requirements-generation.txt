@@ -1,0 +1,11 @@
+-r requirements.txt
+
+# Generation worker
+torch==2.11.0
+torchvision==0.26.0
+diffusers==0.38.0
+transformers==5.8.0
+accelerate==1.13.0
+Pillow==12.2.0
+sentencepiece==0.2.1
+runpod==1.9.1

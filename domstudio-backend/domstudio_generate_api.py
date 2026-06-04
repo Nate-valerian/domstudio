@@ -15,13 +15,10 @@ import logging
 from typing import Optional
 
 import torch
-import runpod
 from PIL import Image
 from fastapi import FastAPI
 from pydantic import BaseModel
 from diffusers import FluxPipeline, FluxImg2ImgPipeline
-from basicsr.archs.rrdbnet_arch import RRDBNet
-from realesrgan import RealESRGANer
 
 # ─── LOGGING ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -165,7 +162,8 @@ MODES = {
 log.info("Loading FLUX pipeline...")
 _flux_txt2img: Optional[FluxPipeline] = None
 _flux_img2img: Optional[FluxImg2ImgPipeline] = None
-_upsampler: Optional[RealESRGANer] = None
+_upsampler: Optional[object] = None
+_upsampler_checked = False
 
 def get_flux_txt2img() -> FluxPipeline:
     global _flux_txt2img
@@ -195,9 +193,20 @@ def get_flux_img2img() -> FluxImg2ImgPipeline:
         ).to(DEVICE)
     return _flux_img2img
 
-def get_upsampler() -> RealESRGANer:
-    global _upsampler
-    if _upsampler is None and os.path.exists(ESRGAN_MODEL):
+def get_upsampler() -> Optional[object]:
+    global _upsampler, _upsampler_checked
+    if _upsampler_checked:
+        return _upsampler
+
+    _upsampler_checked = True
+    if os.path.exists(ESRGAN_MODEL):
+        try:
+            from basicsr.archs.rrdbnet_arch import RRDBNet
+            from realesrgan import RealESRGANer
+        except ImportError:
+            log.warning("Real-ESRGAN dependencies unavailable; using Lanczos fallback")
+            return None
+
         log.info("Loading Real-ESRGAN upsampler...")
         model = RRDBNet(
             num_in_ch=3, num_out_ch=3,
@@ -419,6 +428,7 @@ if __name__ == "__main__":
     # Detect environment: RunPod vs local
     if os.getenv("RUNPOD_POD_ID"):
         log.info("Starting RunPod serverless handler...")
+        import runpod
         runpod.serverless.start({"handler": runpod_handler})
     else:
         import uvicorn
