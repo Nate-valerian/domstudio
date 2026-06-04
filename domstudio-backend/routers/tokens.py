@@ -1,7 +1,9 @@
 """DomStudio — Tokens Router"""
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from database import get_db, User, TokenBalance
 from dependencies import get_current_user
 
@@ -17,13 +19,21 @@ async def token_balance(
 
 @router.post("/deduct")
 async def deduct_tokens(
-    amount: int,
+    amount: Annotated[int, Query(gt=0)],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Called internally by generation service before each job."""
-    bal = await db.scalar(select(TokenBalance).where(TokenBalance.user_id == current_user.id))
-    if not bal or bal.balance < amount:
+    result = await db.execute(
+        update(TokenBalance)
+        .where(
+            TokenBalance.user_id == current_user.id,
+            TokenBalance.balance >= amount,
+        )
+        .values(balance=TokenBalance.balance - amount)
+        .returning(TokenBalance.balance)
+    )
+    balance = result.scalar_one_or_none()
+    if balance is None:
         raise HTTPException(402, "Insufficient tokens")
-    bal.balance -= amount
-    return {"balance": bal.balance, "deducted": amount}
+    return {"balance": balance, "deducted": amount}
