@@ -13,6 +13,7 @@ import hashlib
 import json
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
@@ -37,11 +38,16 @@ YANDEX_BASE        = "https://pay.yandex.ru/api/merchant/v1"
 # ─── TINKOFF HELPERS ─────────────────────────────────────────────────────────
 def tinkoff_sign(params: dict) -> str:
     """
-    Tinkoff signature: sort keys alphabetically, concat values, SHA256 with TerminalKey.
-    Exclude: Shops, Receipt, DATA, Token fields.
+    T-Bank signature: sort scalar root fields alphabetically, concat values,
+    then SHA256. Token, null values, and nested objects are excluded.
     """
-    exclude = {"Shops", "Receipt", "DATA", "Token"}
-    filtered = {k: str(v) for k, v in params.items() if k not in exclude}
+    filtered = {
+        key: str(value).lower() if isinstance(value, bool) else str(value)
+        for key, value in params.items()
+        if key != "Token"
+        and value is not None
+        and not isinstance(value, (dict, list))
+    }
     filtered["Password"] = TINKOFF_SECRET
     sorted_vals = "".join(filtered[k] for k in sorted(filtered.keys()))
     return hashlib.sha256(sorted_vals.encode()).hexdigest()
@@ -128,12 +134,18 @@ async def tinkoff_init(
 
 @router.post("/tinkoff/webhook")
 async def tinkoff_webhook(
-    webhook: TinkoffWebhook,
+    request: Request,
     background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
+    payload = await request.json()
+    if not isinstance(payload, dict):
+        raise HTTPException(400, "Invalid payload")
+
+    webhook = TinkoffWebhook.model_validate(payload)
+
     # Verify signature
-    expected = tinkoff_sign(webhook.model_dump())
+    expected = tinkoff_sign(payload)
     if not hmac.compare_digest(expected, webhook.Token):
         raise HTTPException(400, "Invalid signature")
 
@@ -141,7 +153,7 @@ async def tinkoff_webhook(
         select(Payment).where(Payment.provider_order_id == webhook.PaymentId)
     )
     if not payment:
-        return {"ok": True}  # ignore unknown payments
+        return PlainTextResponse("OK")  # acknowledge unknown payments
 
     if webhook.Status == "CONFIRMED" and payment.status != PaymentStatus.succeeded:
         payment.status = PaymentStatus.succeeded
@@ -150,7 +162,7 @@ async def tinkoff_webhook(
     elif webhook.Status in ("CANCELED", "REJECTED", "DEADLINE_EXPIRED"):
         payment.status = PaymentStatus.failed
 
-    return {"ok": True}
+    return PlainTextResponse("OK")
 
 
 # ─── YANDEX PAY ROUTES ───────────────────────────────────────────────────────
