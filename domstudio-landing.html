@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DomStudio — Студийные фото без студии</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;700;900&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0a0a0f;--ink2:#1a1a24;--surface:#f5f3ef;--warm:#f0ebe2;
+  --accent:#c8a96e;--accent2:#e8c98a;--text:#0a0a0f;--muted:#6b6760;
+  --border:rgba(10,10,15,0.1);
+  --font-display:'Unbounded',sans-serif;--font-body:'Onest',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--surface);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6;overflow-x:hidden}
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;align-items:center;gap:0;background:var(--warm);border:1px solid var(--border);border-radius:100px;overflow:hidden;flex-shrink:0}
+.lang-btn{padding:0.35rem 0.85rem;font-size:0.75rem;font-weight:700;font-family:var(--font-display);cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s;letter-spacing:0.02em}
+.lang-btn.active{background:var(--ink);color:#fff;border-radius:100px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.25rem 4rem;background:rgba(245,243,239,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:var(--font-display);font-weight:700;font-size:1.1rem;letter-spacing:-0.02em;color:var(--ink)}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:0.875rem;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:var(--ink)}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.nav-cta{background:var(--ink);color:#fff;padding:0.6rem 1.5rem;border-radius:100px;font-size:0.875rem;font-weight:500;text-decoration:none;transition:background 0.2s,transform 0.15s}
+.nav-cta:hover{background:var(--ink2);transform:translateY(-1px)}
+
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;gap:0;padding-top:5rem;overflow:hidden}
+.hero-left{padding:6rem 3rem 4rem 4rem;display:flex;flex-direction:column;justify-content:center}
+.hero-tag{display:inline-flex;align-items:center;gap:0.5rem;background:var(--warm);border:1px solid var(--border);border-radius:100px;padding:0.35rem 1rem;font-size:0.8rem;color:var(--muted);margin-bottom:2rem;width:fit-content}
+.hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
+.hero-title{font-family:var(--font-display);font-size:clamp(2.2rem,4vw,3.5rem);font-weight:900;line-height:1.05;letter-spacing:-0.04em;color:var(--ink);margin-bottom:1.5rem}
+.hero-title em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:480px;margin-bottom:2.5rem;font-weight:300;line-height:1.7}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3rem}
+.btn-primary{background:var(--ink);color:#fff;padding:0.9rem 2rem;border-radius:100px;font-size:0.95rem;font-weight:500;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:0.5rem}
+.btn-primary:hover{background:var(--ink2);transform:translateY(-2px)}
+.btn-secondary{background:transparent;color:var(--ink);padding:0.9rem 2rem;border-radius:100px;font-size:0.95rem;font-weight:500;text-decoration:none;border:1px solid var(--border);transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem}
+.btn-secondary:hover{border-color:var(--ink);background:var(--warm)}
+.hero-stat-row{display:flex;gap:2rem}
+.hero-stat{display:flex;flex-direction:column}
+.hero-stat strong{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--ink);letter-spacing:-0.03em}
+.hero-stat span{font-size:0.78rem;color:var(--muted)}
+.hero-right{position:relative;overflow:hidden;background:var(--ink)}
+.hero-image-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;gap:2px}
+.hero-img-cell{background:var(--ink2);overflow:hidden;position:relative}
+.hero-img-label{position:absolute;bottom:0.75rem;left:0.75rem;background:rgba(10,10,15,0.75);backdrop-filter:blur(6px);color:#fff;font-size:0.7rem;padding:0.3rem 0.6rem;border-radius:4px;letter-spacing:0.05em;text-transform:uppercase}
+.hero-img-cell:first-child{grid-row:1/3}
+
+/* SAVINGS BANNER */
+.savings-banner{background:var(--ink);color:#fff;padding:1.5rem 4rem;display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap}
+.savings-item{display:flex;align-items:center;gap:1rem;font-size:0.9rem}
+.savings-item strong{font-family:var(--font-display);font-size:1.4rem;font-weight:700;letter-spacing:-0.03em}
+.savings-divider{width:1px;height:40px;background:rgba(255,255,255,0.15)}
+
+/* SECTIONS */
+.section{padding:6rem 4rem}
+.section-label{font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:1rem}
+.section-title{font-family:var(--font-display);font-size:clamp(1.8rem,3vw,2.8rem);font-weight:700;letter-spacing:-0.04em;color:var(--ink);margin-bottom:1rem;max-width:600px;line-height:1.1}
+.section-sub{color:var(--muted);font-size:1rem;max-width:520px;margin-bottom:3rem;font-weight:300}
+.modes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5px;background:var(--border)}
+.mode-card{background:var(--surface);padding:2rem 1.75rem;cursor:pointer;transition:background 0.25s}
+.mode-card:hover{background:var(--warm)}
+.mode-num{font-family:var(--font-display);font-size:0.7rem;font-weight:700;color:var(--accent);letter-spacing:0.1em;margin-bottom:1.5rem}
+.mode-icon{width:44px;height:44px;border-radius:10px;background:var(--warm);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;font-size:1.25rem}
+.mode-title{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:0.5rem;letter-spacing:-0.02em}
+.mode-desc{font-size:0.875rem;color:var(--muted);line-height:1.55;font-weight:300}
+
+/* HOW */
+.how-section{background:var(--ink);color:#fff;padding:6rem 4rem}
+.how-section .section-label{color:var(--accent2)}
+.how-section .section-title{color:#fff}
+.how-section .section-sub{color:rgba(255,255,255,0.5)}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.06);margin-top:3rem}
+.step-card{background:var(--ink);padding:2.5rem 2rem;position:relative}
+.step-card::before{content:attr(data-step);font-family:var(--font-display);font-size:5rem;font-weight:900;color:rgba(255,255,255,0.04);position:absolute;top:1rem;right:1.5rem;line-height:1;letter-spacing:-0.05em}
+.step-dot{width:40px;height:40px;border-radius:50%;border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:0.8rem;font-weight:700;color:var(--accent);margin-bottom:1.5rem}
+.step-title{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:0.75rem;letter-spacing:-0.02em}
+.step-desc{font-size:0.875rem;color:rgba(255,255,255,0.5);line-height:1.6;font-weight:300}
+
+/* BA */
+.ba-section{padding:6rem 4rem;background:var(--warm)}
+.ba-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2rem;margin-top:3rem}
+.ba-card{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.ba-images{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border)}
+.ba-img{aspect-ratio:1;overflow:hidden;position:relative}
+.ba-img-label{position:absolute;top:0.5rem;left:0.5rem;background:rgba(10,10,15,0.7);color:#fff;font-size:0.68rem;padding:0.2rem 0.5rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em}
+.ba-meta{padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.ba-mode{font-size:0.75rem;color:var(--accent);font-weight:500;text-transform:uppercase;letter-spacing:0.08em}
+.ba-name{font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em}
+.ba-time{font-size:0.78rem;color:var(--muted)}
+
+/* PRICING */
+.pricing-section{padding:6rem 4rem}
+.pricing-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1.5px;background:var(--border);margin-top:3rem}
+.price-card{background:var(--surface);padding:2rem 1.5rem;transition:background 0.2s}
+.price-card.featured{background:var(--ink);color:#fff}
+.price-badge{font-size:0.7rem;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;padding:0.25rem 0.75rem;border-radius:100px;background:var(--accent);color:var(--ink);width:fit-content;margin-bottom:1.5rem}
+.price-tier{font-family:var(--font-display);font-size:0.8rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem}
+.price-card.featured .price-tier{color:rgba(255,255,255,0.5)}
+.price-amount{font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:var(--ink);letter-spacing:-0.04em;line-height:1;margin-bottom:0.25rem}
+.price-card.featured .price-amount{color:#fff}
+.price-period{font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem}
+.price-card.featured .price-period{color:rgba(255,255,255,0.4)}
+.price-photos{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:1rem;letter-spacing:-0.02em}
+.price-features{list-style:none;font-size:0.82rem;color:var(--muted);display:flex;flex-direction:column;gap:0.5rem}
+.price-card.featured .price-features{color:rgba(255,255,255,0.55)}
+.price-features li{display:flex;align-items:flex-start;gap:0.5rem}
+.price-features li::before{content:'✓';color:var(--accent);font-weight:700;flex-shrink:0}
+.price-cta{display:block;margin-top:1.75rem;text-align:center;padding:0.7rem;border-radius:100px;font-size:0.85rem;font-weight:500;text-decoration:none;transition:all 0.2s}
+.price-card:not(.featured) .price-cta{background:var(--warm);color:var(--ink);border:1px solid var(--border)}
+.price-card:not(.featured) .price-cta:hover{background:var(--ink);color:#fff}
+.price-card.featured .price-cta{background:#fff;color:var(--ink)}
+.price-card.featured .price-cta:hover{background:var(--accent2);color:var(--ink)}
+
+/* FAQ */
+.faq-section{padding:6rem 4rem;background:var(--warm)}
+.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem}
+.faq-item{border-bottom:1px solid var(--border);padding-bottom:1.5rem}
+.faq-q{font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:var(--ink);margin-bottom:0.75rem;letter-spacing:-0.02em;line-height:1.3}
+.faq-a{font-size:0.875rem;color:var(--muted);line-height:1.65;font-weight:300}
+
+/* CTA FOOTER */
+.cta-section{background:var(--ink);color:#fff;padding:8rem 4rem;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;top:-50%;left:50%;transform:translateX(-50%);width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(200,169,110,0.08) 0%,transparent 70%);pointer-events:none}
+.cta-title{font-family:var(--font-display);font-size:clamp(2rem,5vw,4rem);font-weight:900;letter-spacing:-0.04em;margin-bottom:1.5rem;line-height:1.05}
+.cta-title em{font-style:normal;color:var(--accent2)}
+.cta-sub{color:rgba(255,255,255,0.5);font-size:1.1rem;margin-bottom:3rem;font-weight:300}
+.cta-free-tag{display:inline-flex;align-items:center;gap:0.5rem;border:1px solid rgba(200,169,110,0.3);border-radius:100px;padding:0.4rem 1.25rem;font-size:0.8rem;color:var(--accent2);margin-bottom:2rem}
+footer{background:var(--ink);border-top:1px solid rgba(255,255,255,0.08);padding:2rem 4rem;display:flex;align-items:center;justify-content:space-between}
+.footer-logo{font-family:var(--font-display);font-size:0.95rem;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:-0.02em}
+.footer-logo span{color:var(--accent)}
+.footer-links{display:flex;gap:2rem}
+.footer-links a{font-size:0.8rem;color:rgba(255,255,255,0.35);text-decoration:none;transition:color 0.2s}
+.footer-links a:hover{color:rgba(255,255,255,0.7)}
+.footer-copy{font-size:0.78rem;color:rgba(255,255,255,0.2)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-tag{animation:fadeUp 0.5s ease forwards}
+.hero-title{animation:fadeUp 0.6s 0.1s ease both}
+.hero-sub{animation:fadeUp 0.6s 0.2s ease both}
+.hero-actions{animation:fadeUp 0.6s 0.3s ease both}
+.hero-stat-row{animation:fadeUp 0.6s 0.4s ease both}
+
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}
+  .hero{grid-template-columns:1fr;min-height:auto}
+  .hero-right{height:400px}
+  .hero-left{padding:5rem 2rem 3rem}
+  .section,.how-section,.ba-section,.pricing-section,.faq-section,.cta-section{padding:4rem 2rem}
+  .modes-grid,.steps-grid{grid-template-columns:1fr 1fr}
+  .pricing-grid{grid-template-columns:1fr 1fr}
+  .ba-grid,.faq-grid{grid-template-columns:1fr}
+  .savings-banner{padding:1.5rem 2rem;gap:1.5rem}
+  footer{flex-direction:column;gap:1rem;text-align:center;padding:2rem}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Dom<span>Studio</span></div>
+  <ul class="nav-links">
+    <li><a href="#modes" data-ru="Режимы" data-en="Modes">Режимы</a></li>
+    <li><a href="#how" data-ru="Как работает" data-en="How it works">Как работает</a></li>
+    <li><a href="#pricing" data-ru="Тарифы" data-en="Pricing">Тарифы</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+    <a href="#pricing" class="nav-cta" data-ru="Начать бесплатно" data-en="Start for free">Начать бесплатно</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag" data-ru="ИИ-фотосъёмка нового поколения" data-en="Next-generation AI photography">ИИ-фотосъёмка нового поколения</div>
+    <h1 class="hero-title" data-ru="Студийные фото.<br>Снято <em>дома.</em>" data-en="Studio photos.<br>Shot <em>at home.</em>">Студийные фото.<br>Снято <em>дома.</em></h1>
+    <p class="hero-sub" data-ru="Сфотографируйте товар на телефон — ИИ превратит снимок в профессиональный студийный кадр за 5 минут. Ювелирные украшения, одежда, обувь, бельё — любые товары." data-en="Shoot your product with your phone — AI turns it into a professional studio photo in 5 minutes. Jewelry, clothing, shoes, lingerie — any product.">Сфотографируйте товар на телефон — ИИ превратит снимок в профессиональный студийный кадр за 5 минут. Ювелирные украшения, одежда, обувь, бельё — любые товары.</p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-primary" data-ru="Попробовать бесплатно →" data-en="Try for free →">Попробовать бесплатно →</a>
+      <a href="#modes" class="btn-secondary" data-ru="Посмотреть режимы" data-en="See all modes">Посмотреть режимы</a>
+    </div>
+    <div class="hero-stat-row">
+      <div class="hero-stat">
+        <strong>−95%</strong>
+        <span data-ru="Экономия на съёмке" data-en="Savings vs studio">Экономия на съёмке</span>
+      </div>
+      <div class="hero-stat">
+        <strong>5 min</strong>
+        <span data-ru="Время генерации" data-en="Generation time">Время генерации</span>
+      </div>
+      <div class="hero-stat">
+        <strong>6</strong>
+        <span data-ru="Режимов съёмки" data-en="Shooting modes">Режимов съёмки</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-image-grid">
+      <div class="hero-img-cell" style="background:linear-gradient(135deg,#1a1a24 0%,#2a2420 100%)">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.6">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none"><rect x="10" y="20" width="60" height="45" rx="4" stroke="#c8a96e" stroke-width="1.5"/><circle cx="40" cy="42" r="14" stroke="#c8a96e" stroke-width="1.5"/><circle cx="40" cy="42" r="7" fill="#c8a96e" opacity="0.4"/><path d="M28 20 L32 12 L48 12 L52 20" stroke="#c8a96e" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="hero-img-label" data-ru="Каталожная" data-en="Catalog">Каталожная</div>
+      </div>
+      <div class="hero-img-cell" style="background:linear-gradient(135deg,#241a1a 0%,#1a2420 100%)">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.5">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="22" stroke="#c8a96e" stroke-width="1.5" stroke-dasharray="4 3"/><circle cx="30" cy="30" r="10" stroke="#c8a96e" stroke-width="1.5"/><path d="M30 8 L30 52M8 30 L52 30" stroke="#c8a96e" stroke-width="1" opacity="0.4"/></svg>
+        </div>
+        <div class="hero-img-label" data-ru="Продуктовая" data-en="Product">Продуктовая</div>
+      </div>
+      <div class="hero-img-cell" style="background:linear-gradient(135deg,#1a241a 0%,#24201a 100%)">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0.5">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><path d="M10 50 Q20 20 30 30 Q40 40 50 10" stroke="#c8a96e" stroke-width="1.5" fill="none"/><circle cx="30" cy="30" r="6" fill="#c8a96e" opacity="0.5"/></svg>
+        </div>
+        <div class="hero-img-label" data-ru="Креативная" data-en="Creative">Креативная</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SAVINGS BANNER -->
+<div class="savings-banner">
+  <div class="savings-item">
+    <span data-ru="Фотограф в месяц:" data-en="Photographer/mo:">Фотограф в месяц:</span>
+    <strong style="text-decoration:line-through;opacity:0.4">₽150 000–200 000</strong>
+  </div>
+  <div class="savings-divider"></div>
+  <div class="savings-item">
+    <span data-ru="DomStudio Про:" data-en="DomStudio Pro:">DomStudio Про:</span>
+    <strong style="color:#c8a96e" data-ru="от ₽3 750/мес" data-en="from ₽3,750/mo">от ₽3 750/мес</strong>
+  </div>
+  <div class="savings-divider"></div>
+  <div class="savings-item">
+    <span data-ru="Экономия:" data-en="You save:">Экономия:</span>
+    <strong style="color:#c8a96e" data-ru="до ₽196 250" data-en="up to ₽196,250">до ₽196 250</strong>
+  </div>
+</div>
+
+<!-- MODES -->
+<section class="section" id="modes">
+  <div class="section-label" data-ru="Режимы генерации" data-en="Generation modes">Режимы генерации</div>
+  <h2 class="section-title" data-ru="Шесть режимов. Один инструмент." data-en="Six modes. One tool.">Шесть режимов. Один инструмент.</h2>
+  <p class="section-sub" data-ru="Всё — от каталожной съёмки для маркетплейсов до имиджевых кадров для рекламных кампаний." data-en="Everything from catalog shots for marketplaces to editorial images for ad campaigns.">Всё — от каталожной съёмки для маркетплейсов до имиджевых кадров для рекламных кампаний.</p>
+  <div class="modes-grid">
+    <div class="mode-card">
+      <div class="mode-num">01</div>
+      <div class="mode-icon">📦</div>
+      <div class="mode-title" data-ru="Каталожная съёмка" data-en="Catalog shoot">Каталожная съёмка</div>
+      <p class="mode-desc" data-ru="Чистый белый или кремовый фон. Для Wildberries, Ozon, Яндекс Маркет. Единый стиль всего каталога." data-en="Clean white or cream background. For marketplaces and e-commerce stores. Consistent style across your whole catalog.">Чистый белый или кремовый фон. Для Wildberries, Ozon, Яндекс Маркет. Единый стиль всего каталога.</p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-num">02</div>
+      <div class="mode-icon">✨</div>
+      <div class="mode-title" data-ru="Продуктовая съёмка" data-en="Product shoot">Продуктовая съёмка</div>
+      <p class="mode-desc" data-ru="Студийная композиция, продуманный свет, фактуры и тени. Для премиум-карточек и B2B-презентаций." data-en="Studio composition, dramatic lighting, textures and shadows. For premium product cards and B2B presentations.">Студийная композиция, продуманный свет, фактуры и тени. Для премиум-карточек и B2B-презентаций.</p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-num">03</div>
+      <div class="mode-icon">🎨</div>
+      <div class="mode-title" data-ru="Креативная съёмка" data-en="Creative shoot">Креативная съёмка</div>
+      <p class="mode-desc" data-ru="Имиджевые кадры для Instagram, Telegram, ВКонтакте и перформанс-рекламы. Месяц контента за вечер." data-en="Editorial shots for Instagram, TikTok, and performance ads. A month of content in one evening.">Имиджевые кадры для Instagram, Telegram, ВКонтакте и перформанс-рекламы. Месяц контента за вечер.</p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-num">04</div>
+      <div class="mode-icon">👤</div>
+      <div class="mode-title" data-ru="Имиджевая съёмка" data-en="Image shoot">Имиджевая съёмка</div>
+      <p class="mode-desc" data-ru="Лайфстайл-сцены и редакционные портреты с ИИ-моделями. Товар в жизни, в вашем фирменном стиле." data-en="Lifestyle scenes and editorial portraits with AI models. Your product in real-life context, in your brand style.">Лайфстайл-сцены и редакционные портреты с ИИ-моделями. Товар в жизни, в вашем фирменном стиле.</p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-num">05</div>
+      <div class="mode-icon">👗</div>
+      <div class="mode-title" data-ru="ИИ-примерка" data-en="AI fitting">ИИ-примерка</div>
+      <p class="mode-desc" data-ru="Виртуальная примерка украшений, одежды и аксессуаров на ИИ-моделях или ваших фотографиях." data-en="Virtual try-on for jewelry, clothing and accessories — on AI models or your own photos.">Виртуальная примерка украшений, одежды и аксессуаров на ИИ-моделях или ваших фотографиях.</p>
+    </div>
+    <div class="mode-card">
+      <div class="mode-num">06</div>
+      <div class="mode-icon">📱</div>
+      <div class="mode-title" data-ru="Мобильная съёмка" data-en="Mobile shoot">Мобильная съёмка</div>
+      <p class="mode-desc" data-ru="Вертикальные кадры 9:16 для Stories и мобильных лент. UGC-стиль в студийном качестве." data-en="Vertical 9:16 frames for Stories and mobile feeds. UGC style at studio quality.">Вертикальные кадры 9:16 для Stories и мобильных лент. UGC-стиль в студийном качестве.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-label" data-ru="Как это работает" data-en="How it works">Как это работает</div>
+  <h2 class="section-title" style="color:#fff" data-ru="Три шага. Пять минут." data-en="Three steps. Five minutes.">Три шага. Пять минут.</h2>
+  <p class="section-sub" data-ru="Никаких специальных навыков. Никакого оборудования. Просто сфотографируйте товар." data-en="No special skills. No equipment. Just photograph your product.">Никаких специальных навыков. Никакого оборудования. Просто сфотографируйте товар.</p>
+  <div class="steps-grid">
+    <div class="step-card" data-step="01">
+      <div class="step-dot">01</div>
+      <div class="step-title" data-ru="Снимите на телефон" data-en="Shoot with your phone">Снимите на телефон</div>
+      <p class="step-desc" data-ru="Любой кадр товара — на столе, в руке, при дневном свете. JPEG, PNG, HEIC. Качество съёмки не важно — ИИ сделает всё сам." data-en="Any photo of your product — on a table, in hand, in daylight. JPEG, PNG, HEIC. Photo quality doesn't matter — AI handles everything.">Любой кадр товара — на столе, в руке, при дневном свете. JPEG, PNG, HEIC. Качество съёмки не важно — ИИ сделает всё сам.</p>
+    </div>
+    <div class="step-card" data-step="02">
+      <div class="step-dot">02</div>
+      <div class="step-title" data-ru="Выберите режим" data-en="Choose a mode">Выберите режим</div>
+      <p class="step-desc" data-ru="Один из шести режимов. Добавьте референс своего фирменного стиля и промпт-инструкцию, если нужно." data-en="Pick one of six modes. Add a brand style reference or prompt instruction if needed.">Один из шести режимов. Добавьте референс своего фирменного стиля и промпт-инструкцию, если нужно.</p>
+    </div>
+    <div class="step-card" data-step="03">
+      <div class="step-dot">03</div>
+      <div class="step-title" data-ru="Получите фотосессию" data-en="Get your photo set">Получите фотосессию</div>
+      <p class="step-desc" data-ru="Полный комплект студийных кадров с единым светом и стилем. Скачайте и сразу публикуйте." data-en="A full set of studio-quality photos with consistent light and style. Download and publish instantly.">Полный комплект студийных кадров с единым светом и стилем. Скачайте и сразу публикуйте.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BEFORE AFTER -->
+<section class="ba-section" id="examples">
+  <div class="section-label" data-ru="Примеры работ" data-en="Before & After">Примеры работ</div>
+  <h2 class="section-title" data-ru="До и после." data-en="Before and after.">До и после.</h2>
+  <p class="section-sub" data-ru="Каждое «до» — обычный снимок на телефон. Каждое «после» сгенерировано DomStudio за 5 минут." data-en="Every 'before' is a regular phone photo. Every 'after' was generated by DomStudio in 5 minutes.">Каждое «до» — обычный снимок на телефон. Каждое «после» сгенерировано DomStudio за 5 минут.</p>
+  <div class="ba-grid">
+    <div class="ba-card">
+      <div class="ba-images">
+        <div class="ba-img" style="background:#e8e4df">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="50" height="50" viewBox="0 0 50 50" fill="none"><circle cx="25" cy="25" r="18" stroke="#888" stroke-width="1.5"/><circle cx="25" cy="25" r="8" stroke="#888" stroke-width="1.5"/></svg></div>
+          <div class="ba-img-label" data-ru="До" data-en="Before">До</div>
+        </div>
+        <div class="ba-img" style="background:#f5f0e8">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="50" height="50" viewBox="0 0 50 50" fill="none"><circle cx="25" cy="25" r="18" stroke="#c8a96e" stroke-width="2"/><circle cx="25" cy="25" r="8" fill="#c8a96e" opacity="0.3"/><circle cx="25" cy="25" r="8" stroke="#c8a96e" stroke-width="2"/></svg></div>
+          <div class="ba-img-label" data-ru="После" data-en="After">После</div>
+        </div>
+      </div>
+      <div class="ba-meta">
+        <div>
+          <div class="ba-mode" data-ru="Режим 01" data-en="Mode 01">Режим 01</div>
+          <div class="ba-name" data-ru="Каталожная съёмка" data-en="Catalog shoot">Каталожная съёмка</div>
+        </div>
+        <div class="ba-time">~3:20</div>
+      </div>
+    </div>
+    <div class="ba-card">
+      <div class="ba-images">
+        <div class="ba-img" style="background:#dde4e8">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="40" height="55" viewBox="0 0 40 55" fill="none"><rect x="5" y="5" width="30" height="45" rx="4" stroke="#888" stroke-width="1.5"/><path d="M12 20 H28M12 28 H22" stroke="#888" stroke-width="1.5"/></svg></div>
+          <div class="ba-img-label" data-ru="До" data-en="Before">До</div>
+        </div>
+        <div class="ba-img" style="background:#2a2420">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="40" height="55" viewBox="0 0 40 55" fill="none"><rect x="5" y="5" width="30" height="45" rx="4" stroke="#c8a96e" stroke-width="1.5"/><path d="M12 20 H28M12 28 H22" stroke="#c8a96e" stroke-width="1.5"/></svg></div>
+          <div class="ba-img-label" data-ru="После" data-en="After">После</div>
+        </div>
+      </div>
+      <div class="ba-meta">
+        <div>
+          <div class="ba-mode" data-ru="Режим 04" data-en="Mode 04">Режим 04</div>
+          <div class="ba-name" data-ru="Имиджевая съёмка" data-en="Image shoot">Имиджевая съёмка</div>
+        </div>
+        <div class="ba-time">~4:45</div>
+      </div>
+    </div>
+    <div class="ba-card">
+      <div class="ba-images">
+        <div class="ba-img" style="background:#e4e0dc">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="55" height="40" viewBox="0 0 55 40" fill="none"><path d="M5 35 Q15 5 27 20 Q40 35 50 5" stroke="#888" stroke-width="2" fill="none"/></svg></div>
+          <div class="ba-img-label" data-ru="До" data-en="Before">До</div>
+        </div>
+        <div class="ba-img" style="background:#1a2420">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="55" height="40" viewBox="0 0 55 40" fill="none"><path d="M5 35 Q15 5 27 20 Q40 35 50 5" stroke="#c8a96e" stroke-width="2.5" fill="none"/><circle cx="27" cy="20" r="5" fill="#c8a96e" opacity="0.5"/></svg></div>
+          <div class="ba-img-label" data-ru="После" data-en="After">После</div>
+        </div>
+      </div>
+      <div class="ba-meta">
+        <div>
+          <div class="ba-mode" data-ru="Режим 03" data-en="Mode 03">Режим 03</div>
+          <div class="ba-name" data-ru="Креативная съёмка" data-en="Creative shoot">Креативная съёмка</div>
+        </div>
+        <div class="ba-time">~5:00</div>
+      </div>
+    </div>
+    <div class="ba-card">
+      <div class="ba-images">
+        <div class="ba-img" style="background:#ece8e0">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="45" height="45" viewBox="0 0 45 45" fill="none"><rect x="8" y="8" width="29" height="29" rx="3" stroke="#888" stroke-width="1.5"/><circle cx="22" cy="22" r="7" stroke="#888" stroke-width="1.5"/></svg></div>
+          <div class="ba-img-label" data-ru="До" data-en="Before">До</div>
+        </div>
+        <div class="ba-img" style="background:#f0ebe2">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><svg width="45" height="45" viewBox="0 0 45 45" fill="none"><rect x="8" y="8" width="29" height="29" rx="3" stroke="#c8a96e" stroke-width="1.5"/><circle cx="22" cy="22" r="7" fill="#c8a96e" opacity="0.25"/><circle cx="22" cy="22" r="7" stroke="#c8a96e" stroke-width="1.5"/></svg></div>
+          <div class="ba-img-label" data-ru="После" data-en="After">После</div>
+        </div>
+      </div>
+      <div class="ba-meta">
+        <div>
+          <div class="ba-mode" data-ru="Режим 02" data-en="Mode 02">Режим 02</div>
+          <div class="ba-name" data-ru="Продуктовая съёмка" data-en="Product shoot">Продуктовая съёмка</div>
+        </div>
+        <div class="ba-time">~2:55</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="section-label" data-ru="Тарифы" data-en="Pricing">Тарифы</div>
+  <h2 class="section-title" data-ru="Фото по цене кофе." data-en="Photos at the price of coffee.">Фото по цене кофе.</h2>
+  <p class="section-sub" data-ru="Начните бесплатно. Масштабируйтесь без болезненных счетов за фотостудию." data-en="Start for free. Scale without painful studio bills.">Начните бесплатно. Масштабируйтесь без болезненных счетов за фотостудию.</p>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-tier" data-ru="Старт" data-en="Free">Старт</div>
+      <div class="price-amount">₽0</div>
+      <div class="price-period" data-ru="навсегда бесплатно" data-en="forever free">навсегда бесплатно</div>
+      <div class="price-photos" data-ru="5 фото" data-en="5 photos">5 фото</div>
+      <ul class="price-features">
+        <li data-ru="Все 6 режимов" data-en="All 6 modes">Все 6 режимов</li>
+        <li data-ru="Без карты" data-en="No card required">Без карты</li>
+        <li data-ru="Личная лицензия" data-en="Personal license">Личная лицензия</li>
+      </ul>
+      <a href="#" class="price-cta" data-ru="Начать бесплатно" data-en="Start for free">Начать бесплатно</a>
+    </div>
+    <div class="price-card">
+      <div class="price-tier" data-ru="Базовый" data-en="Basic">Базовый</div>
+      <div class="price-amount">₽1 750</div>
+      <div class="price-period" data-ru="в месяц" data-en="per month">в месяц</div>
+      <div class="price-photos" data-ru="25 фото" data-en="25 photos">25 фото</div>
+      <ul class="price-features">
+        <li data-ru="Все 6 режимов" data-en="All 6 modes">Все 6 режимов</li>
+        <li data-ru="Коммерческая лицензия" data-en="Commercial license">Коммерческая лицензия</li>
+        <li data-ru="История генераций" data-en="Generation history">История генераций</li>
+      </ul>
+      <a href="#" class="price-cta" data-ru="Выбрать" data-en="Get started">Выбрать</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge" data-ru="Популярный" data-en="Popular">Популярный</div>
+      <div class="price-tier" data-ru="Про" data-en="Pro">Про</div>
+      <div class="price-amount">₽3 750</div>
+      <div class="price-period" data-ru="в месяц" data-en="per month">в месяц</div>
+      <div class="price-photos" data-ru="60 фото" data-en="60 photos">60 фото</div>
+      <ul class="price-features">
+        <li data-ru="Всё из Базового" data-en="Everything in Basic">Всё из Базового</li>
+        <li data-ru="Приоритетная очередь" data-en="Priority queue">Приоритетная очередь</li>
+        <li data-ru="Пресеты бренда" data-en="Brand presets">Пресеты бренда</li>
+        <li data-ru="Референс-стиль" data-en="Style reference">Референс-стиль</li>
+      </ul>
+      <a href="#" class="price-cta" data-ru="Выбрать" data-en="Get started">Выбрать</a>
+    </div>
+    <div class="price-card">
+      <div class="price-tier" data-ru="Бизнес" data-en="Business">Бизнес</div>
+      <div class="price-amount">₽8 250</div>
+      <div class="price-period" data-ru="в месяц" data-en="per month">в месяц</div>
+      <div class="price-photos" data-ru="150 фото" data-en="150 photos">150 фото</div>
+      <ul class="price-features">
+        <li data-ru="Всё из Про" data-en="Everything in Pro">Всё из Про</li>
+        <li>White-label</li>
+        <li data-ru="Персональный менеджер" data-en="Personal manager">Персональный менеджер</li>
+        <li data-ru="Несколько брендов" data-en="Multi-brand">Несколько брендов</li>
+      </ul>
+      <a href="#" class="price-cta" data-ru="Выбрать" data-en="Get started">Выбрать</a>
+    </div>
+    <div class="price-card">
+      <div class="price-tier" data-ru="Агентство" data-en="Agency">Агентство</div>
+      <div class="price-amount">₽17 500</div>
+      <div class="price-period" data-ru="в месяц" data-en="per month">в месяц</div>
+      <div class="price-photos" data-ru="400 фото" data-en="400 photos">400 фото</div>
+      <ul class="price-features">
+        <li data-ru="Всё из Бизнеса" data-en="Everything in Business">Всё из Бизнеса</li>
+        <li data-ru="API-доступ" data-en="API access">API-доступ</li>
+        <li data-ru="Мультипользователь" data-en="Multi-user">Мультипользователь</li>
+        <li data-ru="SLA поддержка" data-en="SLA support">SLA поддержка</li>
+      </ul>
+      <a href="#" class="price-cta" data-ru="Выбрать" data-en="Get started">Выбрать</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="section-label" data-ru="Вопросы и ответы" data-en="FAQ">Вопросы и ответы</div>
+  <h2 class="section-title" data-ru="Коротко о главном." data-en="Quick answers.">Коротко о главном.</h2>
+  <div class="faq-grid">
+    <div class="faq-item">
+      <div class="faq-q" data-ru="Какие товары поддерживаются?" data-en="What products are supported?">Какие товары поддерживаются?</div>
+      <p class="faq-a" data-ru="Ювелирные украшения, одежда, обувь, бельё, сумки, аксессуары, часы и большинство других товаров e-commerce. Лучший результат — для небольших предметов с чёткими деталями." data-en="Jewelry, clothing, shoes, lingerie, bags, accessories, watches, and most other e-commerce products. Best results for smaller items with clear details.">Ювелирные украшения, одежда, обувь, бельё, сумки, аксессуары, часы и большинство других товаров e-commerce. Лучший результат — для небольших предметов с чёткими деталями.</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ru="Как качество исходного фото влияет на результат?" data-en="Does the quality of my original photo matter?">Как качество исходного фото влияет на результат?</div>
+      <p class="faq-a" data-ru="Достаточно обычного кадра на телефон при дневном свете. ИИ самостоятельно анализирует детали и воссоздаёт товар в студийной сцене." data-en="A regular phone photo in daylight is enough. The AI analyzes the product details and recreates it in a studio scene on its own.">Достаточно обычного кадра на телефон при дневном свете. ИИ самостоятельно анализирует детали и воссоздаёт товар в студийной сцене.</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ru="Кому принадлежат сгенерированные фото?" data-en="Who owns the generated photos?">Кому принадлежат сгенерированные фото?</div>
+      <p class="faq-a" data-ru="Вам. Все платные тарифы включают полные коммерческие права — для продажи, рекламы, публикаций и партнёрских материалов." data-en="You do. All paid plans include full commercial rights — for sales, advertising, publications, and partner materials.">Вам. Все платные тарифы включают полные коммерческие права — для продажи, рекламы, публикаций и партнёрских материалов.</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ru="Можно ли сохранить фирменный стиль бренда?" data-en="Can I preserve my brand style?">Можно ли сохранить фирменный стиль бренда?</div>
+      <p class="faq-a" data-ru="Да. Загрузите референсное фото, и ИИ возьмёт его свет, настроение и стиль. Тарифы от Про включают сохранённые пресеты бренда." data-en="Yes. Upload a reference photo and the AI will match its light, mood and style. Pro plans and above include saved brand presets.">Да. Загрузите референсное фото, и ИИ возьмёт его свет, настроение и стиль. Тарифы от Про включают сохранённые пресеты бренда.</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ru="Как насчёт маркетплейсов — Wildberries, Ozon?" data-en="Does it work for Wildberries, Ozon marketplaces?">Как насчёт маркетплейсов — Wildberries, Ozon?</div>
+      <p class="faq-a" data-ru="Режим «Каталожная съёмка» специально оптимизирован под требования WB, Ozon и Яндекс Маркет: правильное соотношение сторон, чистый фон и нейтральное освещение." data-en="The Catalog shoot mode is specifically optimized for WB, Ozon, and Yandex Market requirements: correct aspect ratios, clean background, and neutral lighting.">Режим «Каталожная съёмка» специально оптимизирован под требования WB, Ozon и Яндекс Маркет: правильное соотношение сторон, чистый фон и нейтральное освещение.</p>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ru="Есть ли API для агентств и интеграций?" data-en="Is there an API for agencies and integrations?">Есть ли API для агентств и интеграций?</div>
+      <p class="faq-a" data-ru="Да, API-доступ включён в тариф «Агентство». Позволяет автоматизировать генерацию для больших каталогов и встраивать DomStudio в собственные инструменты." data-en="Yes, API access is included in the Agency plan. It lets you automate generation for large catalogs and embed DomStudio into your own tools.">Да, API-доступ включён в тариф «Агентство». Позволяет автоматизировать генерацию для больших каталогов и встраивать DomStudio в собственные инструменты.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-free-tag" data-ru="✦ 5 фото бесплатно · Без карты" data-en="✦ 5 photos free · No card required">✦ 5 фото бесплатно · Без карты</div>
+  <h2 class="cta-title" data-ru="Снимайте дома.<br>Продавайте <em>как студия.</em>" data-en="Shoot at home.<br>Sell <em>like a studio.</em>">Снимайте дома.<br>Продавайте <em>как студия.</em></h2>
+  <p class="cta-sub" data-ru="Зарегистрируйтесь и получите 5 бесплатных фото прямо сейчас." data-en="Sign up and get 5 free photos right now.">Зарегистрируйтесь и получите 5 бесплатных фото прямо сейчас.</p>
+  <a href="#" class="btn-primary" style="font-size:1.05rem;padding:1rem 2.5rem" data-ru="Создать первое фото →" data-en="Create your first photo →">Создать первое фото →</a>
+</section>
+
+<footer>
+  <div class="footer-logo">Dom<span>Studio</span></div>
+  <div class="footer-links">
+    <a href="#" data-ru="Политика конфиденциальности" data-en="Privacy policy">Политика конфиденциальности</a>
+    <a href="#" data-ru="Оферта" data-en="Terms">Оферта</a>
+    <a href="#" data-ru="Поддержка" data-en="Support">Поддержка</a>
+    <a href="#">Telegram</a>
+  </div>
+  <div class="footer-copy" data-ru="© 2026 DomStudio. Все права защищены." data-en="© 2026 DomStudio. All rights reserved.">© 2026 DomStudio. Все права защищены.</div>
+</footer>
+
+<script>
+let currentLang = 'ru';
+
+function setLang(lang) {
+  currentLang = lang;
+
+  // toggle button states
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === lang);
+  });
+
+  // update html lang attr
+  document.documentElement.lang = lang === 'ru' ? 'ru' : 'en';
+
+  // update all elements with data-ru / data-en
+  document.querySelectorAll('[data-ru]').forEach(el => {
+    const val = el.getAttribute('data-' + lang);
+    if (!val) return;
+    // check if content has HTML tags
+    if (val.includes('<')) {
+      el.innerHTML = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+
+  // update page title
+  document.title = lang === 'ru'
+    ? 'DomStudio — Студийные фото без студии'
+    : 'DomStudio — Studio photos without a studio';
+}
+</script>
+</body>
+</html>
