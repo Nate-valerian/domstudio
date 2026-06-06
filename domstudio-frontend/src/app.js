@@ -599,7 +599,7 @@ function homePage() {
         </div>
       </section>
 
-      <section class="section">
+      <section class="section modes-section">
         <div class="section-head">
           <h2>Одна студия. Шесть способов показать товар.</h2>
           <p>Выберите задачу, добавьте описание и получите визуал в нужном формате.</p>
@@ -622,7 +622,7 @@ function homePage() {
         </div>
       </section>
 
-      <section class="section dark">
+      <section class="section dark workflow-section">
         <div class="section-head"><h2>От снимка до готового контента</h2><p>Без аренды, команды и недель ожидания.</p></div>
         <div class="steps">
           <article class="step"><b>01</b><h3>Загрузите</h3><p>Сфотографируйте товар на телефон или начните с текстового описания.</p></article>
