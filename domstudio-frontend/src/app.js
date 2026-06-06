@@ -37,10 +37,10 @@ const MARKETPLACE_PRESETS = [
   },
   {
     id: "instagram",
-    label: "Instagram Post",
+    label: "VK / Social Post",
     mode: "creative",
-    hint: "Instagram 4:5 feed creative, editorial composition, scroll-stopping but realistic, tasteful brand mood.",
-    subjectInstruction: "Make it work as an Instagram feed post.",
+    hint: "VK and social feed creative, 4:5 or square-safe composition, scroll-stopping but realistic, tasteful brand mood.",
+    subjectInstruction: "Make it work as a VK or social feed post.",
   },
   {
     id: "story",
@@ -90,6 +90,20 @@ const HISTORY_STORE = "results";
 const HISTORY_LIMIT = 5;
 const BRAND_PREFS_KEY = "domstudio_brand_preferences";
 
+const PLAN_LABELS = {
+  free: "Free",
+  basic: "Старт",
+  pro: "Селлер",
+  business: "Рост",
+};
+
+const PLAN_DESCRIPTIONS = {
+  free: "Первые 5 фото бесплатно",
+  basic: "Проверить карточки товара",
+  pro: "Регулярный контент для продаж",
+  business: "Для магазина и маркетплейсов",
+};
+
 const DEFAULT_BRAND_PREFS = {
   brand_colors: "",
   preferred_background: "",
@@ -126,6 +140,9 @@ const state = {
   authChannel: "email",
   authLoading: false,
   passwordVisible: false,
+  navMenuOpen: false,
+  presetsOpen: false,
+  navCompact: window.scrollY > 24,
   verificationContact: null,
   verificationKind: "email",
   verificationReturnMode: "register",
@@ -149,8 +166,11 @@ const state = {
 };
 
 const app = document.querySelector("#app");
+let lastMotionKey = "";
 
 function navigate(route) {
+  state.navMenuOpen = false;
+  state.presetsOpen = false;
   location.hash = route;
 }
 
@@ -227,8 +247,9 @@ async function loadPlans() {
   } catch {
     state.plans = [
       { name: "free", price_rub: 0, photos: 5, tokens: 500 },
-      { name: "basic", price_rub: 500, photos: 25, tokens: 2500 },
-      { name: "pro", price_rub: 1400, photos: 60, tokens: 6000 },
+      { name: "basic", price_rub: 500, photos: 30, tokens: 3000 },
+      { name: "pro", price_rub: 1400, photos: 120, tokens: 12000 },
+      { name: "business", price_rub: 2700, photos: 300, tokens: 30000 },
     ];
   }
 }
@@ -257,6 +278,23 @@ function selectedAttr(value, expected) {
 
 function checkedAttr(value) {
   return value ? "checked" : "";
+}
+
+function planLabel(planName) {
+  return PLAN_LABELS[planName] || planName;
+}
+
+function planDescription(planName) {
+  return PLAN_DESCRIPTIONS[planName] || "Готовый контент для продаж";
+}
+
+function pricePerPhoto(plan) {
+  if (!plan.price_rub) return "0 ₽ / фото";
+  return `${Math.round(plan.price_rub / plan.photos)} ₽ / фото`;
+}
+
+function planPhotos(plan) {
+  return plan.name === "business" ? "300+ фото" : `${plan.photos} фото`;
 }
 
 function truncate(value, maxLength = 500) {
@@ -459,21 +497,39 @@ function comparisonPanel() {
 
 function nav() {
   const logged = Boolean(state.user);
+  const navItems = [
+    ["home", "Главная"],
+    ["studio", "Студия"],
+    ["pricing", "Тарифы"],
+    ...(logged ? [["account", "Аккаунт"]] : []),
+  ];
+  const initials = logged ? String(state.user.email || state.user.phone || "DS").slice(0, 2).toUpperCase() : "";
   return `
-    <nav class="nav">
-      <button class="brand" data-route="home">Dom<span>Studio</span></button>
-      <div class="nav-links">
-        <button class="nav-link ${state.route === "home" ? "active" : ""}" data-route="home">Главная</button>
-        <button class="nav-link ${state.route === "studio" ? "active" : ""}" data-route="studio">Студия</button>
-        <button class="nav-link ${state.route === "pricing" ? "active" : ""}" data-route="pricing">Тарифы</button>
-        ${logged ? `<button class="nav-link ${state.route === "account" ? "active" : ""}" data-route="account">Аккаунт</button>` : ""}
+    <nav class="nav ${state.navCompact ? "compact" : ""}">
+      <div class="nav-inner">
+      <button class="brand" data-route="home"><span class="brand-mark">DS</span><span class="brand-word">Dom<span>Studio</span></span></button>
+      <div class="nav-links ${state.navMenuOpen ? "open" : ""}">
+        ${navItems.map(([route, label]) => `<button class="nav-link ${state.route === route ? "active" : ""}" data-route="${route}">${label}</button>`).join("")}
+        <div class="nav-dropdown ${state.presetsOpen ? "open" : ""}">
+          <button class="nav-link dropdown-trigger" type="button" data-toggle-presets>Пресеты <span>⌄</span></button>
+          <div class="preset-menu">
+            ${MARKETPLACE_PRESETS.map((preset) => `
+              <button type="button" data-preset-route="${preset.id}">
+                <b>${preset.label}</b>
+                <span>${preset.mode === "mobile" ? "9:16 social" : preset.mode === "creative" ? "4:5 creative" : preset.mode === "product" ? "banner / premium" : "marketplace card"}</span>
+              </button>`).join("")}
+          </div>
+        </div>
       </div>
       <div class="nav-actions">
         ${logged
-          ? `<button class="button secondary" data-route="account">${state.user.email || state.user.phone || "Аккаунт"}</button>
-             <button class="button" data-route="studio">Создать фото</button>`
+          ? `<button class="token-pill" data-route="account"><span>${state.user.tokens}</span> токенов</button>
+             <button class="profile-pill" data-route="account"><span>${escapeHtml(initials)}</span></button>
+             <button class="button gold nav-cta" data-route="studio">Создать фото</button>`
           : `<button class="button secondary" data-auth="login">Войти</button>
-             <button class="button" data-auth="register">Начать бесплатно</button>`}
+             <button class="button gold nav-cta" data-auth="register">Создать бесплатно</button>`}
+        <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Открыть меню"><span></span><span></span></button>
+      </div>
       </div>
     </nav>`;
 }
@@ -494,7 +550,7 @@ function homePage() {
             <button class="button gold" data-route="studio">Создать первое фото</button>
             <button class="button secondary" data-route="pricing">Посмотреть тарифы</button>
           </div>
-          <div class="trust-row"><span>5 фото бесплатно</span><span>25 фото за 500 ₽</span><span>Экспорт под площадки</span></div>
+          <div class="trust-row"><span>5 фото бесплатно</span><span>30 фото за 500 ₽</span><span>Экспорт под площадки</span></div>
         </div>
         <div class="hero-visual">
           <div class="hero-studio-card">
@@ -522,7 +578,7 @@ function homePage() {
         <div class="proof-grid">
           <article class="proof-visual"><img src="${productProofUrl}" alt="До и после AI-обработки товарного фото" /></article>
           <div class="proof-copy">
-            <div class="proof-stat"><b>25</b><span>фото в первом платном пакете</span></div>
+            <div class="proof-stat"><b>30</b><span>фото в первом платном пакете</span></div>
             <div class="proof-stat"><b>500 ₽</b><span>низкий вход после бесплатных 5</span></div>
             <div class="proof-stat"><b>3 формата</b><span>карточка, пост, сторис и widescreen export</span></div>
           </div>
@@ -642,7 +698,7 @@ function accountPage() {
 }
 
 function pricingPage() {
-  const cards = state.plans.filter(plan => ["free", "basic", "pro", "business", "agency"].includes(plan.name));
+  const cards = state.plans.filter(plan => ["free", "basic", "pro", "business"].includes(plan.name));
   return `<main class="${state.user ? "app-layout" : "page"}">
     ${state.user ? appSidebar("pricing") : ""}
     <section class="${state.user ? "workspace" : "section"}">
@@ -650,9 +706,10 @@ function pricingPage() {
       <div class="price-grid">
         ${cards.map(plan => `
           <article class="price-card ${plan.name === "pro" ? "featured" : ""}">
-            <h3>${plan.name}</h3>
+            <div class="plan-kicker">${planDescription(plan.name)}</div>
+            <h3>${planLabel(plan.name)}</h3>
             <div class="price">${plan.price_rub.toLocaleString("ru-RU")} ₽ <small>/ месяц</small></div>
-            <ul class="price-list"><li>${plan.photos} фото</li><li>${plan.tokens.toLocaleString("ru-RU")} токенов</li><li>Все режимы съёмки</li></ul>
+            <ul class="price-list"><li>${planPhotos(plan)}</li><li>${pricePerPhoto(plan)}</li><li>${plan.tokens.toLocaleString("ru-RU")} токенов</li><li>Все режимы съёмки</li></ul>
             <button class="button ${plan.name === "pro" ? "gold" : ""}" data-plan="${plan.name}">${plan.price_rub ? "Выбрать тариф" : "Начать бесплатно"}</button>
           </article>`).join("")}
       </div>
@@ -706,21 +763,34 @@ function authModal() {
   </div>`;
 }
 
-function render() {
+function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
     : state.route === "pricing" ? pricingPage()
     : state.route === "account" ? accountPage()
     : homePage();
+  const motionKey = `${state.route}:${state.authMode || "none"}`;
+  const shouldAnimateEntrance = options.motion ?? motionKey !== lastMotionKey;
   app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${authModal()}</div>`;
   bind();
-  runMotion();
+  runMotion({ entrance: shouldAnimateEntrance });
+  lastMotionKey = motionKey;
 }
 
 function bind() {
   document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => navigate(el.dataset.route)));
+  document.querySelectorAll("[data-toggle-presets]").forEach(el => el.addEventListener("click", togglePresetsMenu));
+  document.querySelectorAll("[data-toggle-menu]").forEach(el => el.addEventListener("click", toggleNavMenu));
+  document.querySelectorAll("[data-preset-route]").forEach(el => el.addEventListener("click", () => {
+    const preset = MARKETPLACE_PRESETS.find((item) => item.id === el.dataset.presetRoute);
+    if (preset) {
+      state.formDraft.marketplace = preset.id;
+      state.formDraft.mode = preset.mode;
+    }
+    navigate("studio");
+  }));
   document.querySelectorAll("[data-auth]").forEach(el => el.addEventListener("click", () => { state.authMode = el.dataset.auth; state.authLoading = false; render(); }));
-  document.querySelectorAll("[data-auth-channel]").forEach(el => el.addEventListener("click", () => { state.authChannel = el.dataset.authChannel; render(); }));
-  document.querySelectorAll("[data-toggle-password]").forEach(el => el.addEventListener("click", () => { state.passwordVisible = !state.passwordVisible; render(); }));
+  document.querySelectorAll("[data-auth-channel]").forEach(el => el.addEventListener("click", () => { state.authChannel = el.dataset.authChannel; render({ motion: false }); }));
+  document.querySelectorAll("[data-toggle-password]").forEach(el => el.addEventListener("click", () => togglePasswordVisibility(el)));
   document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => { state.authMode = null; state.authLoading = false; render(); }));
   document.querySelectorAll("[data-logout]").forEach(el => el.addEventListener("click", () => logout()));
   document.querySelectorAll("[data-plan]").forEach(el => el.addEventListener("click", () => choosePlan(el.dataset.plan)));
@@ -743,7 +813,40 @@ function bind() {
   document.querySelector("#image")?.addEventListener("change", selectImage);
 }
 
-function runMotion() {
+function togglePresetsMenu() {
+  state.presetsOpen = !state.presetsOpen;
+  const dropdown = document.querySelector(".nav-dropdown");
+  dropdown?.classList.toggle("open", state.presetsOpen);
+  if (state.presetsOpen && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    gsap.from(".nav-dropdown.open .preset-menu", { y: 8, opacity: 0, scale: 0.98, duration: 0.2, ease: "power2.out" });
+  }
+}
+
+function toggleNavMenu() {
+  state.navMenuOpen = !state.navMenuOpen;
+  if (!state.navMenuOpen) state.presetsOpen = false;
+  document.querySelector(".nav-links")?.classList.toggle("open", state.navMenuOpen);
+  document.querySelector(".nav-menu-button")?.classList.toggle("open", state.navMenuOpen);
+  document.querySelector(".nav-dropdown")?.classList.toggle("open", state.presetsOpen);
+}
+
+function togglePasswordVisibility(button) {
+  state.passwordVisible = !state.passwordVisible;
+  const input = button.closest(".password-wrap")?.querySelector("input");
+  if (!input) return;
+  input.type = state.passwordVisible ? "text" : "password";
+  button.textContent = state.passwordVisible ? "Скрыть" : "Показать";
+  input.focus({ preventScroll: true });
+}
+
+function handleScroll() {
+  const compact = window.scrollY > 24;
+  if (compact === state.navCompact) return;
+  state.navCompact = compact;
+  document.querySelector(".nav")?.classList.toggle("compact", compact);
+}
+
+function runMotion({ entrance = true } = {}) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   const q = (selector) => gsap.utils.toArray(selector);
@@ -763,12 +866,15 @@ function runMotion() {
     ".price-card",
     ".modal-backdrop",
     ".modal",
+    ".preset-menu",
     ".motion-shimmer",
   ]);
 
-  gsap.from(".nav", { y: -18, opacity: 0, duration: 0.45, ease: "power2.out" });
+  if (entrance) {
+    gsap.from(".nav-inner", { y: -18, opacity: 0, scale: 0.98, duration: 0.45, ease: "power2.out" });
+  }
 
-  if (state.route === "home") {
+  if (entrance && state.route === "home") {
     gsap.from(".hero-copy > *", {
       y: 24,
       opacity: 0,
@@ -787,7 +893,7 @@ function runMotion() {
       ease: "power2.out",
       delay: 0.16,
     });
-  } else {
+  } else if (entrance) {
     gsap.from(".workspace-head, .panel, .stat, .price-card", {
       y: 18,
       opacity: 0,
@@ -797,17 +903,20 @@ function runMotion() {
     });
   }
 
-  if (document.querySelector(".modal-backdrop")) {
+  if (entrance && document.querySelector(".modal-backdrop")) {
     gsap.from(".modal-backdrop", { opacity: 0, duration: 0.22, ease: "power2.out" });
     gsap.from(".modal", { y: 24, opacity: 0, scale: 0.97, duration: 0.34, ease: "back.out(1.4)" });
   }
+  if (document.querySelector(".nav-dropdown.open .preset-menu")) {
+    gsap.from(".nav-dropdown.open .preset-menu", { y: 10, opacity: 0, scale: 0.98, duration: 0.24, ease: "power2.out" });
+  }
 
-  q(".button, .mode-card, .price-card, .chip, .history-thumb").forEach((el) => {
-    el.addEventListener("mouseenter", () => gsap.to(el, { y: -3, duration: 0.18, ease: "power2.out" }));
-    el.addEventListener("mouseleave", () => gsap.to(el, { y: 0, duration: 0.2, ease: "power2.out" }));
+  q(".button, .mode-card, .price-card, .chip, .history-thumb, .nav-link, .token-pill, .profile-pill").forEach((el) => {
+    el.addEventListener("mouseenter", () => gsap.to(el, { y: -1, duration: 0.16, ease: "power2.out" }));
+    el.addEventListener("mouseleave", () => gsap.to(el, { y: 0, duration: 0.18, ease: "power2.out" }));
   });
 
-  q(".button.gold, .balance, .featured").forEach((el) => {
+  q(".button.gold, .balance, .featured, .token-pill, .brand-mark").forEach((el) => {
     if (!el.querySelector(".motion-shimmer")) {
       const shimmer = document.createElement("span");
       shimmer.className = "motion-shimmer";
@@ -1111,8 +1220,11 @@ async function choosePlan(plan) {
 
 window.addEventListener("hashchange", () => {
   state.route = location.hash.slice(1) || "home";
+  state.navMenuOpen = false;
+  state.presetsOpen = false;
   render();
 });
+window.addEventListener("scroll", handleScroll, { passive: true });
 
 await Promise.all([loadUser(), loadPlans(), loadHistory()]);
 render();

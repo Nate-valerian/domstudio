@@ -84,6 +84,8 @@ async def tinkoff_init(
 ):
     if req.plan == PlanName.free:
         raise HTTPException(400, "Cannot pay for free plan")
+    if req.plan not in PLANS:
+        raise HTTPException(400, "Plan is not available")
 
     plan_cfg   = PLANS[req.plan]
     amount_kop = int(plan_cfg["price_rub"] * 100)  # Tinkoff uses kopecks
@@ -173,6 +175,8 @@ async def yandex_init(
 ):
     if req.plan == PlanName.free:
         raise HTTPException(400, "Cannot pay for free plan")
+    if req.plan not in PLANS:
+        raise HTTPException(400, "Plan is not available")
 
     plan_cfg = PLANS[req.plan]
 
