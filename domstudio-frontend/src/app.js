@@ -1,4 +1,5 @@
 import "./styles.css";
+import { gsap } from "gsap";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -121,13 +122,20 @@ const state = {
   user: null,
   plans: [],
   authMode: null,
+  authChannel: "email",
+  authLoading: false,
+  passwordVisible: false,
   verificationContact: null,
   verificationKind: "email",
+  verificationReturnMode: "register",
   selectedImage: null,
   selectedImageName: null,
   generatedImage: null,
   generatedMeta: null,
+  previousGeneratedImage: null,
+  previousGeneratedMeta: null,
   lastGenerationPayload: null,
+  generationLabel: "",
   history: [],
   brandPrefs: initialBrandPrefs,
   generating: false,
@@ -378,6 +386,7 @@ async function rememberResult(result, dataUrl, payload) {
       mode: payload.mode,
       subject: payload.subject,
       style_hint: payload.style_hint,
+      variation_label: result.variation_label || "",
       width: result.width,
       height: result.height,
       format: result.format || "PNG",
@@ -400,7 +409,7 @@ function historyPanel() {
           </button>
           <div>
             <b>${escapeHtml(item.subject)}</b>
-            <span>${escapeHtml(item.mode)} ${item.width && item.height ? `· ${item.width}×${item.height}` : ""}</span>
+            <span>${item.variation_label ? `${escapeHtml(item.variation_label)} · ` : ""}${escapeHtml(item.mode)} ${item.width && item.height ? `· ${item.width}×${item.height}` : ""}</span>
           </div>
           <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
         </article>`).join("")}
@@ -429,9 +438,20 @@ function exportTools() {
 function variationTools() {
   if (!state.generatedImage || !state.lastGenerationPayload) return "";
   return `<div class="variation-tools">
-    <div class="mini-head"><h3>Вариации</h3><span>100 токенов при клике</span></div>
+    <div class="mini-head"><h3>Вариации</h3><span>${state.generating && state.generationLabel ? escapeHtml(state.generationLabel) : "100 токенов при клике"}</span></div>
     <div class="chip-row">
       ${VARIATIONS.map((variation) => `<button class="chip" type="button" data-variation="${variation.id}" ${state.generating ? "disabled" : ""}>${variation.label}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function comparisonPanel() {
+  if (!state.previousGeneratedImage || !state.generatedImage || state.generating) return "";
+  return `<div class="compare-panel">
+    <div class="mini-head"><h3>Сравнение</h3><span>предыдущий и текущий кадр</span></div>
+    <div class="compare-grid">
+      <figure><img src="${state.previousGeneratedImage}" alt="Предыдущий результат" /><figcaption>Previous</figcaption></figure>
+      <figure><img src="${state.generatedImage}" alt="Текущий результат" /><figcaption>Current${state.generatedMeta?.variation_label ? ` · ${escapeHtml(state.generatedMeta.variation_label)}` : ""}</figcaption></figure>
     </div>
   </div>`;
 }
@@ -560,13 +580,14 @@ function studioPage() {
           <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? "Создаём кадр…" : "Создать фото · 100 токенов"}</button>
         </form>
         <div class="panel">
-          <div class="result ${state.generating ? "loading" : ""}">
+          <div class="result ${state.generating && !state.generatedImage ? "loading" : ""}">
             ${state.generatedImage
-              ? `<img src="${state.generatedImage}" alt="Сгенерированный результат" />`
+              ? `<img src="${state.generatedImage}" alt="Сгенерированный результат" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || "Создаём новый кадр…")}</div>` : ""}`
               : `<div class="result-empty"><b>${state.generating ? "Собираем студию…" : "Здесь появится результат"}</b>${state.generating ? "Генерация может занять несколько минут." : "Заполните описание, выберите режим и запустите генерацию."}</div>`}
           </div>
-          ${state.generatedMeta ? `<p class="result-meta">${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
+          ${state.generatedMeta ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
           ${exportTools()}
+          ${comparisonPanel()}
           ${variationTools()}
           ${historyPanel()}
         </div>
@@ -613,11 +634,48 @@ function pricingPage() {
 
 function authModal() {
   if (!state.authMode) return "";
+  const isPhone = state.authChannel === "phone";
   if (state.authMode === "verify") {
-    return `<div class="modal-backdrop"><form class="modal" id="verify-form"><div class="modal-top"><div><div class="eyebrow">Подтверждение</div><h2>Введите код</h2></div><button class="close" type="button" data-close>×</button></div><div class="notice">Код отправлен на ${state.verificationContact}</div><div class="field"><label>Код из письма</label><input class="input" name="code" required maxlength="6" /></div><button class="button block" type="submit">Подтвердить</button></form></div>`;
+    return `<div class="modal-backdrop">
+      <form class="modal auth-modal compact" id="verify-form">
+        <div class="modal-top"><div><div class="eyebrow">Подтверждение</div><h2>Проверьте ${state.verificationKind === "phone" ? "телефон" : "почту"}</h2></div><button class="close" type="button" data-close>×</button></div>
+        <div class="notice">Код отправлен на <b>${escapeHtml(state.verificationContact)}</b>. Введите 6 цифр, чтобы открыть студию.</div>
+        <div class="code-field"><input class="input" name="code" inputmode="numeric" autocomplete="one-time-code" required maxlength="6" placeholder="000000" /></div>
+        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? "Проверяем…" : "Подтвердить и войти"}</button>
+        <button class="text-button auth-back" type="button" data-auth="${state.verificationReturnMode}">Изменить контакт</button>
+      </form>
+    </div>`;
   }
   const register = state.authMode === "register";
-  return `<div class="modal-backdrop"><form class="modal" id="auth-form"><div class="modal-top"><div><div class="eyebrow">DomStudio</div><h2>${register ? "Создать аккаунт" : "Войти"}</h2></div><button class="close" type="button" data-close>×</button></div><div class="field"><label>Email</label><input class="input" type="email" name="email" required /></div><div class="field"><label>Пароль</label><input class="input" type="password" name="password" minlength="8" required /></div><button class="button gold block" type="submit">${register ? "Создать аккаунт" : "Войти"}</button><p class="auth-switch">${register ? "Уже есть аккаунт?" : "Ещё нет аккаунта?"} <button class="text-button" type="button" data-auth="${register ? "login" : "register"}">${register ? "Войти" : "Создать"}</button></p></form></div>`;
+  return `<div class="modal-backdrop">
+    <form class="modal auth-modal" id="auth-form">
+      <div class="auth-side">
+        <div class="brand auth-brand">Dom<span>Studio</span></div>
+        <h2>${register ? "Создайте студию за минуту" : "Добро пожаловать обратно"}</h2>
+        <p>${register ? "Бесплатный старт включает токены, пресеты маркетплейсов и браузерную историю без облачного хранения изображений." : "Продолжите работу с токенами, брендом, историей и готовыми экспортами."}</p>
+        <ul class="auth-benefits">
+          <li>5 фото на бесплатном старте</li>
+          <li>История хранится только в браузере</li>
+          <li>Пресеты WB, Ozon, Yandex и соцсетей</li>
+        </ul>
+      </div>
+      <div class="auth-main">
+        <div class="modal-top"><div><div class="eyebrow">Аккаунт</div><h2>${register ? "Регистрация" : "Вход"}</h2></div><button class="close" type="button" data-close>×</button></div>
+        <div class="auth-tabs">
+          <button class="${state.authChannel === "email" ? "active" : ""}" type="button" data-auth-channel="email">Email</button>
+          <button class="${state.authChannel === "phone" ? "active" : ""}" type="button" data-auth-channel="phone">Телефон</button>
+        </div>
+        ${isPhone
+          ? `<div class="field"><label>Телефон</label><input class="input" type="tel" name="phone" autocomplete="tel" required placeholder="+7 999 123-45-67" /></div>
+             <div class="notice muted">${register ? "Мы отправим код подтверждения по SMS." : "Для входа отправим одноразовый SMS-код."}</div>`
+          : `<div class="field"><label>Email</label><input class="input" type="email" name="email" autocomplete="email" required placeholder="you@brand.com" /></div>
+             <div class="field"><label>Пароль</label><div class="password-wrap"><input class="input" type="${state.passwordVisible ? "text" : "password"}" name="password" autocomplete="${register ? "new-password" : "current-password"}" minlength="8" required placeholder="Минимум 8 символов" /><button type="button" data-toggle-password>${state.passwordVisible ? "Скрыть" : "Показать"}</button></div></div>`}
+        ${register ? `<label class="check compact"><input type="checkbox" required /> Я понимаю, что первые результаты сохраняются только в этом браузере</label>` : ""}
+        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? "Подождите…" : register ? (isPhone ? "Получить код" : "Создать аккаунт") : (isPhone ? "Войти по SMS" : "Войти")}</button>
+        <p class="auth-switch">${register ? "Уже есть аккаунт?" : "Ещё нет аккаунта?"} <button class="text-button" type="button" data-auth="${register ? "login" : "register"}">${register ? "Войти" : "Создать аккаунт"}</button></p>
+      </div>
+    </form>
+  </div>`;
 }
 
 function render() {
@@ -627,12 +685,15 @@ function render() {
     : homePage();
   app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${authModal()}</div>`;
   bind();
+  runMotion();
 }
 
 function bind() {
   document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => navigate(el.dataset.route)));
-  document.querySelectorAll("[data-auth]").forEach(el => el.addEventListener("click", () => { state.authMode = el.dataset.auth; render(); }));
-  document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => { state.authMode = null; render(); }));
+  document.querySelectorAll("[data-auth]").forEach(el => el.addEventListener("click", () => { state.authMode = el.dataset.auth; state.authLoading = false; render(); }));
+  document.querySelectorAll("[data-auth-channel]").forEach(el => el.addEventListener("click", () => { state.authChannel = el.dataset.authChannel; render(); }));
+  document.querySelectorAll("[data-toggle-password]").forEach(el => el.addEventListener("click", () => { state.passwordVisible = !state.passwordVisible; render(); }));
+  document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => { state.authMode = null; state.authLoading = false; render(); }));
   document.querySelectorAll("[data-logout]").forEach(el => el.addEventListener("click", () => logout()));
   document.querySelectorAll("[data-plan]").forEach(el => el.addEventListener("click", () => choosePlan(el.dataset.plan)));
   document.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
@@ -652,6 +713,84 @@ function bind() {
   document.querySelectorAll("[data-history-id]").forEach(el => el.addEventListener("click", () => restoreHistoryItem(el.dataset.historyId)));
   document.querySelectorAll("[data-delete-history]").forEach(el => el.addEventListener("click", () => removeHistoryItem(el.dataset.deleteHistory)));
   document.querySelector("#image")?.addEventListener("change", selectImage);
+}
+
+function runMotion() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const q = (selector) => gsap.utils.toArray(selector);
+  gsap.killTweensOf([
+    ".nav",
+    ".hero-copy > *",
+    ".hero-visual",
+    ".product-stage",
+    ".float-card",
+    ".mode-card",
+    ".step",
+    ".workspace-head",
+    ".panel",
+    ".stat",
+    ".price-card",
+    ".modal-backdrop",
+    ".modal",
+    ".motion-shimmer",
+  ]);
+
+  gsap.from(".nav", { y: -18, opacity: 0, duration: 0.45, ease: "power2.out" });
+
+  if (state.route === "home") {
+    gsap.from(".hero-copy > *", {
+      y: 24,
+      opacity: 0,
+      duration: 0.7,
+      stagger: 0.07,
+      ease: "power3.out",
+    });
+    gsap.from(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
+    gsap.to(".product-stage", { y: -10, rotation: 0.6, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(".float-card", { y: 12, duration: 3.7, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.from(".mode-card, .step", {
+      y: 26,
+      opacity: 0,
+      duration: 0.55,
+      stagger: 0.06,
+      ease: "power2.out",
+      delay: 0.16,
+    });
+  } else {
+    gsap.from(".workspace-head, .panel, .stat, .price-card", {
+      y: 18,
+      opacity: 0,
+      duration: 0.45,
+      stagger: 0.045,
+      ease: "power2.out",
+    });
+  }
+
+  if (document.querySelector(".modal-backdrop")) {
+    gsap.from(".modal-backdrop", { opacity: 0, duration: 0.22, ease: "power2.out" });
+    gsap.from(".modal", { y: 24, opacity: 0, scale: 0.97, duration: 0.34, ease: "back.out(1.4)" });
+  }
+
+  q(".button, .mode-card, .price-card, .chip, .history-thumb").forEach((el) => {
+    el.addEventListener("mouseenter", () => gsap.to(el, { y: -3, duration: 0.18, ease: "power2.out" }));
+    el.addEventListener("mouseleave", () => gsap.to(el, { y: 0, duration: 0.2, ease: "power2.out" }));
+  });
+
+  q(".button.gold, .balance, .featured").forEach((el) => {
+    if (!el.querySelector(".motion-shimmer")) {
+      const shimmer = document.createElement("span");
+      shimmer.className = "motion-shimmer";
+      el.append(shimmer);
+    }
+  });
+  gsap.fromTo(".motion-shimmer", { xPercent: -160 }, {
+    xPercent: 160,
+    duration: 1.35,
+    repeat: -1,
+    repeatDelay: 3.2,
+    ease: "power2.inOut",
+  });
 }
 
 function selectMarketplacePreset(event) {
@@ -724,6 +863,9 @@ async function regenerateVariation(variationId) {
     ...state.lastGenerationPayload,
     style_hint: truncate(`${state.lastGenerationPayload.style_hint}, ${variation.hint}`),
     seed: -1,
+  }, {
+    keepCurrentImage: true,
+    label: variation.label,
   });
 }
 
@@ -777,6 +919,8 @@ function restoreHistoryItem(id) {
   if (!item) return;
   state.generatedImage = item.dataUrl;
   state.generatedMeta = item;
+  state.previousGeneratedImage = null;
+  state.previousGeneratedMeta = null;
   state.lastGenerationPayload = {
     mode: item.mode || "catalog",
     subject: item.subject || "product",
@@ -799,15 +943,34 @@ async function removeHistoryItem(id) {
 
 async function submitAuth(event) {
   event.preventDefault();
-  const button = event.currentTarget.querySelector("button[type=submit]");
-  button.disabled = true;
   const body = Object.fromEntries(new FormData(event.currentTarget));
+  state.authLoading = true;
+  render();
   try {
+    if (state.authChannel === "phone") {
+      const phoneBody = { phone: body.phone };
+      if (state.authMode === "register") {
+        await api("/auth/register/phone", { method: "POST", body: JSON.stringify(phoneBody) });
+      } else {
+        await api("/auth/login/phone", { method: "POST", body: JSON.stringify(phoneBody) });
+      }
+      state.verificationContact = body.phone;
+      state.verificationKind = "phone";
+      state.verificationReturnMode = state.authMode;
+      state.authMode = "verify";
+      state.authLoading = false;
+      toast("Код отправлен");
+      render();
+      return;
+    }
+
     if (state.authMode === "register") {
       await api("/auth/register/email", { method: "POST", body: JSON.stringify(body) });
       state.verificationContact = body.email;
       state.verificationKind = "email";
+      state.verificationReturnMode = "register";
       state.authMode = "verify";
+      state.authLoading = false;
       render();
     } else {
       saveTokens(await api("/auth/login/email", { method: "POST", body: JSON.stringify(body) }));
@@ -818,21 +981,27 @@ async function submitAuth(event) {
     }
   } catch (error) {
     toast(error.message);
-    button.disabled = false;
+    state.authLoading = false;
+    render();
   }
 }
 
 async function submitVerification(event) {
   event.preventDefault();
   const body = { contact: state.verificationContact, code: new FormData(event.currentTarget).get("code") };
+  state.authLoading = true;
+  render();
   try {
     saveTokens(await api(`/auth/verify/${state.verificationKind}`, { method: "POST", body: JSON.stringify(body) }));
     state.authMode = null;
+    state.authLoading = false;
     await loadUser();
     navigate("studio");
     render();
   } catch (error) {
     toast(error.message);
+    state.authLoading = false;
+    render();
   }
 }
 
@@ -858,10 +1027,17 @@ async function submitGeneration(event) {
   await generateWithPayload(payload);
 }
 
-async function generateWithPayload(payload) {
+async function generateWithPayload(payload, options = {}) {
+  const previousImage = options.keepCurrentImage ? state.generatedImage : null;
+  const previousMeta = options.keepCurrentImage ? state.generatedMeta : null;
   state.generating = true;
-  state.generatedImage = null;
-  state.generatedMeta = null;
+  state.generationLabel = options.label ? `Создаём вариацию: ${options.label}…` : "Создаём кадр…";
+  if (!options.keepCurrentImage) {
+    state.generatedImage = null;
+    state.generatedMeta = null;
+    state.previousGeneratedImage = null;
+    state.previousGeneratedMeta = null;
+  }
   state.lastGenerationPayload = payload;
   render();
   try {
@@ -870,15 +1046,21 @@ async function generateWithPayload(payload) {
       body: JSON.stringify(payload),
     });
     const dataUrl = `data:image/${String(result.format || "png").toLowerCase()};base64,${result.image}`;
+    const resultMeta = { ...result, variation_label: options.label || "" };
+    if (options.keepCurrentImage) {
+      state.previousGeneratedImage = previousImage;
+      state.previousGeneratedMeta = previousMeta;
+    }
     state.generatedImage = dataUrl;
-    state.generatedMeta = result;
-    await rememberResult(result, dataUrl, payload);
+    state.generatedMeta = resultMeta;
+    await rememberResult(resultMeta, dataUrl, payload);
     await loadUser();
-    toast("Фото готово");
+    toast(options.label ? `Вариация готова: ${options.label}` : "Фото готово");
   } catch (error) {
     toast(error.message);
   } finally {
     state.generating = false;
+    state.generationLabel = "";
     render();
   }
 }
