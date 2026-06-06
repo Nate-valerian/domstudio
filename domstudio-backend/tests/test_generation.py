@@ -70,6 +70,25 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["token_balance"], 900)
         self.assertEqual(len(db.statements), 1)
 
+    async def test_can_use_comfy_provider(self):
+        db = FakeDb([900])
+        user = SimpleNamespace(id=uuid.uuid4())
+
+        async def fake_comfy(req):
+            return {"status": "success", "image": "base64", "format": "PNG", "prompt_id": "abc"}
+
+        with patch.object(generation, "GENERATION_PROVIDER", "comfy"):
+            with patch.object(generation, "generate_image_with_comfy", fake_comfy):
+                result = await generation.generate(
+                    generation.GenerateRequest(subject="gold earrings"),
+                    db,
+                    user,
+                )
+
+        self.assertEqual(result["prompt_id"], "abc")
+        self.assertEqual(result["tokens_charged"], generation.GENERATION_TOKEN_COST)
+        self.assertEqual(len(db.statements), 1)
+
     async def test_refunds_tokens_when_worker_fails(self):
         db = FakeDb([900, 1000])
         user = SimpleNamespace(id=uuid.uuid4())

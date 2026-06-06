@@ -1,0 +1,10 @@
+{
+  "_comment": "Replace this placeholder with an exported ComfyUI API workflow. The backend replaces {{prompt}}, {{subject}}, {{style_hint}}, {{seed}}, {{image_base64}}, {{upscale_4k}}, and {{mode}} anywhere in the JSON before queueing it.",
+  "1": {
+    "class_type": "DomStudioPlaceholder",
+    "inputs": {
+      "prompt": "{{prompt}}",
+      "seed": "{{seed}}"
+    }
+  }
+}

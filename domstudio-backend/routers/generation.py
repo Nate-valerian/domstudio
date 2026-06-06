@@ -10,10 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import TokenBalance, User, get_db
 from dependencies import get_current_user
+from services.comfy_client import generate_image_with_comfy
 
 
 router = APIRouter()
 GENERATION_API_URL = os.getenv("GENERATION_API_URL", "http://localhost:8001").rstrip("/")
+GENERATION_PROVIDER = os.getenv("GENERATION_PROVIDER", "worker").lower()
 GENERATION_TOKEN_COST = 100
 
 
@@ -56,13 +58,16 @@ async def generate(
         raise HTTPException(402, "Insufficient tokens")
 
     try:
-        async with httpx.AsyncClient(timeout=600) as client:
-            response = await client.post(
-                f"{GENERATION_API_URL}/generate",
-                json=req.model_dump(),
-            )
-            response.raise_for_status()
-            result = response.json()
+        if GENERATION_PROVIDER == "comfy":
+            result = await generate_image_with_comfy(req)
+        else:
+            async with httpx.AsyncClient(timeout=600) as client:
+                response = await client.post(
+                    f"{GENERATION_API_URL}/generate",
+                    json=req.model_dump(),
+                )
+                response.raise_for_status()
+                result = response.json()
 
         if result.get("status") != "success":
             raise RuntimeError(result.get("error") or "Generation worker failed")
