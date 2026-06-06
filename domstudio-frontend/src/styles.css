@@ -146,10 +146,34 @@ h1 em { color: var(--gold); font-style: normal; }
 .proof-stat b { color: var(--gold); font: 700 38px "Unbounded"; }
 .proof-stat span { margin-top: 8px; color: var(--muted); font-weight: 700; line-height: 1.5; }
 .mode-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.mode-card { min-height: 230px; padding: 24px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); }
+.mode-card {
+  min-height: 390px; overflow: hidden; border: 1px solid var(--line); border-radius: 22px;
+  background: var(--card); box-shadow: 0 18px 55px rgba(32,25,14,.08);
+}
+.mode-visual { position: relative; margin: 0 0 18px; overflow: hidden; background: #f4f0e8; }
+.mode-visual img { display: block; width: 100%; object-fit: cover; }
+.proof-compare { aspect-ratio: 16 / 10.5; }
+.proof-after { height: 100%; }
+.proof-before {
+  position: absolute; left: 12px; bottom: 12px; width: min(43%, 190px); overflow: hidden;
+  border: 2px solid rgba(255,253,248,.9); border-radius: 14px; background: #f4f0e8;
+  box-shadow: 0 18px 44px rgba(17,17,15,.25);
+}
+.proof-before img { aspect-ratio: 4 / 3; }
+.proof-before span, .proof-after-label {
+  position: absolute; padding: 5px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; backdrop-filter: blur(8px);
+}
+.proof-before span { left: 8px; top: 8px; background: rgba(17,17,15,.72); color: white; }
+.proof-after-label { right: 12px; top: 12px; background: rgba(215,182,106,.92); color: var(--ink); }
+.mode-card-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 20px 12px; }
+.mode-card-topline > span:last-child {
+  padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+  background: #faf7f0; font-size: 11px; font-weight: 900;
+}
 .mode-card .number { color: var(--gold); font: 700 12px "Unbounded"; }
-.mode-card h3 { margin: 56px 0 12px; font-size: 20px; }
+.mode-card h3 { margin: 0 20px 12px; font-size: 20px; }
 .mode-card p { margin: 0; color: var(--muted); line-height: 1.6; }
+.mode-card p { margin-left: 20px; margin-right: 20px; }
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.15); }
 .step { padding: 42px 30px; background: var(--ink); }
 .step b { color: var(--gold); font: 700 42px "Unbounded"; }

@@ -1,16 +1,28 @@
 import "./styles.css";
 import { gsap } from "gsap";
 import productProofUrl from "./assets/product-proof.webp";
+import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
+import modeProductUrl from "./assets/mode-product-real-v3.webp";
+import modeCreativeUrl from "./assets/mode-creative-real-v3.webp";
+import modeLifestyleUrl from "./assets/mode-lifestyle-real-v3.webp";
+import modeFittingUrl from "./assets/mode-fitting-real-v2.webp";
+import modeStoriesUrl from "./assets/mode-stories-real-v3.webp";
+import modeCatalogBeforeUrl from "./assets/mode-catalog-before.webp";
+import modeProductBeforeUrl from "./assets/mode-product-before.webp";
+import modeCreativeBeforeUrl from "./assets/mode-creative-before.webp";
+import modeLifestyleBeforeUrl from "./assets/mode-lifestyle-before.webp";
+import modeFittingBeforeUrl from "./assets/mode-fitting-before.webp";
+import modeStoriesBeforeUrl from "./assets/mode-stories-before.webp";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const MODES = [
-  ["catalog", "Каталог", "Чистый фон и точная подача для маркетплейсов."],
-  ["product", "Предметная", "Премиальный свет, фактуры и рекламный кадр."],
-  ["creative", "Креатив", "Выразительный контент для соцсетей и кампаний."],
-  ["image", "Lifestyle", "Товар в естественной сцене с AI-моделью."],
-  ["fitting", "Примерка", "Виртуальная примерка одежды и аксессуаров."],
-  ["mobile", "Stories", "Вертикальный UGC-контент в формате 9:16."],
+  ["catalog", "Каталог", "Чистый фон и точная подача для маркетплейсов.", modeCatalogUrl, "Пример чистой карточки товара для маркетплейса", modeCatalogBeforeUrl, "Фон + тени"],
+  ["product", "Предметная", "Премиальный свет, фактуры и рекламный кадр.", modeProductUrl, "Пример премиальной предметной съёмки", modeProductBeforeUrl, "Свет + сет"],
+  ["creative", "Креатив", "Выразительный контент для соцсетей и кампаний.", modeCreativeUrl, "Пример креативного рекламного визуала", modeCreativeBeforeUrl, "Кампания"],
+  ["image", "Lifestyle", "Товар в естественной сцене с AI-моделью.", modeLifestyleUrl, "Пример lifestyle-кадра с товаром", modeLifestyleBeforeUrl, "Сцена"],
+  ["fitting", "Примерка", "Виртуальная примерка одежды и аксессуаров.", modeFittingUrl, "Пример виртуальной примерки", modeFittingBeforeUrl, "Примерка"],
+  ["mobile", "Stories", "Вертикальный UGC-контент в формате 9:16.", modeStoriesUrl, "Пример вертикального story-контента", modeStoriesBeforeUrl, "9:16"],
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -104,6 +116,13 @@ const PLAN_DESCRIPTIONS = {
   business: "Для магазина и маркетплейсов",
 };
 
+const FALLBACK_PLANS = [
+  { name: "free", price_rub: 0, photos: 5, tokens: 500 },
+  { name: "basic", price_rub: 500, photos: 30, tokens: 3000 },
+  { name: "pro", price_rub: 1400, photos: 120, tokens: 12000 },
+  { name: "business", price_rub: 2700, photos: 300, tokens: 30000 },
+];
+
 const DEFAULT_BRAND_PREFS = {
   brand_colors: "",
   preferred_background: "",
@@ -135,7 +154,7 @@ const state = {
   accessToken: localStorage.getItem("domstudio_access"),
   refreshToken: localStorage.getItem("domstudio_refresh"),
   user: null,
-  plans: [],
+  plans: [...FALLBACK_PLANS],
   authMode: null,
   authChannel: "email",
   authLoading: false,
@@ -245,12 +264,7 @@ async function loadPlans() {
   try {
     state.plans = await api("/subscriptions/plans");
   } catch {
-    state.plans = [
-      { name: "free", price_rub: 0, photos: 5, tokens: 500 },
-      { name: "basic", price_rub: 500, photos: 30, tokens: 3000 },
-      { name: "pro", price_rub: 1400, photos: 120, tokens: 12000 },
-      { name: "business", price_rub: 2700, photos: 300, tokens: 30000 },
-    ];
+    state.plans = [...FALLBACK_PLANS];
   }
 }
 
@@ -593,7 +607,15 @@ function homePage() {
         <div class="mode-grid">
           ${MODES.map((mode, index) => `
             <article class="mode-card">
-              <span class="number">0${index + 1}</span>
+              <figure class="mode-visual proof-compare">
+                <img class="proof-after" src="${mode[3]}" alt="${mode[4]}" loading="lazy" />
+                <div class="proof-before">
+                  <img src="${mode[5]}" alt="Обычный исходный кадр для режима ${mode[1]}" loading="lazy" />
+                  <span>До</span>
+                </div>
+                <span class="proof-after-label">После</span>
+              </figure>
+              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${mode[6]}</span></div>
               <h3>${mode[1]}</h3>
               <p>${mode[2]}</p>
             </article>`).join("")}
@@ -818,7 +840,8 @@ function togglePresetsMenu() {
   const dropdown = document.querySelector(".nav-dropdown");
   dropdown?.classList.toggle("open", state.presetsOpen);
   if (state.presetsOpen && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    gsap.from(".nav-dropdown.open .preset-menu", { y: 8, opacity: 0, scale: 0.98, duration: 0.2, ease: "power2.out" });
+    const menu = gsap.utils.toArray(".nav-dropdown.open .preset-menu");
+    if (menu.length) gsap.from(menu, { y: 8, opacity: 0, scale: 0.98, duration: 0.2, ease: "power2.out" });
   }
 }
 
@@ -850,7 +873,19 @@ function runMotion({ entrance = true } = {}) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   const q = (selector) => gsap.utils.toArray(selector);
-  gsap.killTweensOf([
+  const animateFrom = (selector, vars) => {
+    const targets = q(selector);
+    if (targets.length) gsap.from(targets, vars);
+  };
+  const animateTo = (selector, vars) => {
+    const targets = q(selector);
+    if (targets.length) gsap.to(targets, vars);
+  };
+  const animateFromTo = (selector, fromVars, toVars) => {
+    const targets = q(selector);
+    if (targets.length) gsap.fromTo(targets, fromVars, toVars);
+  };
+  const motionTargets = [
     ".nav",
     ".hero-copy > *",
     ".hero-visual",
@@ -868,24 +903,25 @@ function runMotion({ entrance = true } = {}) {
     ".modal",
     ".preset-menu",
     ".motion-shimmer",
-  ]);
+  ].flatMap(q);
+  if (motionTargets.length) gsap.killTweensOf(motionTargets);
 
   if (entrance) {
-    gsap.from(".nav-inner", { y: -18, opacity: 0, scale: 0.98, duration: 0.45, ease: "power2.out" });
+    animateFrom(".nav-inner", { y: -18, opacity: 0, scale: 0.98, duration: 0.45, ease: "power2.out" });
   }
 
   if (entrance && state.route === "home") {
-    gsap.from(".hero-copy > *", {
+    animateFrom(".hero-copy > *", {
       y: 24,
       opacity: 0,
       duration: 0.7,
       stagger: 0.07,
       ease: "power3.out",
     });
-    gsap.from(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
-    gsap.to(".hero-studio-card", { y: -10, rotation: 0.4, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(".float-card", { y: 12, duration: 3.7, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.from(".proof-visual, .proof-stat, .mode-card, .step", {
+    animateFrom(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
+    animateTo(".hero-studio-card", { y: -10, rotation: 0.4, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    animateTo(".float-card", { y: 12, duration: 3.7, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    animateFrom(".proof-visual, .proof-stat, .mode-card, .step", {
       y: 26,
       opacity: 0,
       duration: 0.55,
@@ -894,7 +930,7 @@ function runMotion({ entrance = true } = {}) {
       delay: 0.16,
     });
   } else if (entrance) {
-    gsap.from(".workspace-head, .panel, .stat, .price-card", {
+    animateFrom(".workspace-head, .panel, .stat, .price-card", {
       y: 18,
       opacity: 0,
       duration: 0.45,
@@ -904,11 +940,11 @@ function runMotion({ entrance = true } = {}) {
   }
 
   if (entrance && document.querySelector(".modal-backdrop")) {
-    gsap.from(".modal-backdrop", { opacity: 0, duration: 0.22, ease: "power2.out" });
-    gsap.from(".modal", { y: 24, opacity: 0, scale: 0.97, duration: 0.34, ease: "back.out(1.4)" });
+    animateFrom(".modal-backdrop", { opacity: 0, duration: 0.22, ease: "power2.out" });
+    animateFrom(".modal", { y: 24, opacity: 0, scale: 0.97, duration: 0.34, ease: "back.out(1.4)" });
   }
   if (document.querySelector(".nav-dropdown.open .preset-menu")) {
-    gsap.from(".nav-dropdown.open .preset-menu", { y: 10, opacity: 0, scale: 0.98, duration: 0.24, ease: "power2.out" });
+    animateFrom(".nav-dropdown.open .preset-menu", { y: 10, opacity: 0, scale: 0.98, duration: 0.24, ease: "power2.out" });
   }
 
   q(".button, .mode-card, .price-card, .chip, .history-thumb, .nav-link, .token-pill, .profile-pill").forEach((el) => {
@@ -923,7 +959,7 @@ function runMotion({ entrance = true } = {}) {
       el.append(shimmer);
     }
   });
-  gsap.fromTo(".motion-shimmer", { xPercent: -160 }, {
+  animateFromTo(".motion-shimmer", { xPercent: -160 }, {
     xPercent: 160,
     duration: 1.35,
     repeat: -1,
