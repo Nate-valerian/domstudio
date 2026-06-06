@@ -1,5 +1,6 @@
 import "./styles.css";
 import { gsap } from "gsap";
+import productProofUrl from "./assets/product-proof.webp";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -226,8 +227,8 @@ async function loadPlans() {
   } catch {
     state.plans = [
       { name: "free", price_rub: 0, photos: 5, tokens: 500 },
-      { name: "basic", price_rub: 1750, photos: 25, tokens: 2500 },
-      { name: "pro", price_rub: 3750, photos: 60, tokens: 6000 },
+      { name: "basic", price_rub: 500, photos: 25, tokens: 2500 },
+      { name: "pro", price_rub: 1400, photos: 60, tokens: 6000 },
     ];
   }
 }
@@ -488,16 +489,43 @@ function homePage() {
         <div class="hero-copy">
           <div class="eyebrow">AI-фотостудия для товаров</div>
           <h1>Контент, который <em>продаёт</em></h1>
-          <p>Загрузите обычное фото товара и получите готовую студийную съёмку для маркетплейсов, рекламы и социальных сетей.</p>
+          <p>Загрузите обычное фото товара, выберите площадку и получите готовую студийную съёмку для маркетплейсов, рекламы и социальных сетей.</p>
           <div class="hero-actions">
             <button class="button gold" data-route="studio">Создать первое фото</button>
             <button class="button secondary" data-route="pricing">Посмотреть тарифы</button>
           </div>
-          <div class="trust-row"><span>5 фото бесплатно</span><span>6 режимов съёмки</span><span>Результат за минуты</span></div>
+          <div class="trust-row"><span>5 фото бесплатно</span><span>25 фото за 500 ₽</span><span>Экспорт под площадки</span></div>
         </div>
         <div class="hero-visual">
-          <div class="product-stage"></div>
-          <div class="float-card"><b>4K</b><span>готово для карточки товара</span></div>
+          <div class="hero-studio-card">
+            <div class="studio-card-top">
+              <span>Mini studio</span>
+              <b>WB · Ozon · Stories</b>
+            </div>
+            <div class="hero-proof-frame"><img src="${productProofUrl}" alt="Пример улучшения товарного фото в DomStudio" /></div>
+            <div class="mini-studio-controls">
+              <label><span>Фото товара</span><button type="button" data-route="studio">Загрузить</button></label>
+              <label><span>Промпт</span><input value="сыворотка на светлом фоне" readonly /></label>
+              <div class="preset-pills"><span>Wildberries</span><span>Clean catalog</span><span>1080×1080</span></div>
+              <button class="button gold block" type="button" data-route="studio">Создать бесплатно</button>
+            </div>
+          </div>
+          <div class="float-card"><b>AI</b><span>обычный снимок → готовый кадр</span></div>
+        </div>
+      </section>
+
+      <section class="section proof-section">
+        <div class="section-head">
+          <h2>Сначала покажите результат. Потом объясняйте.</h2>
+          <p>DomStudio должен сразу доказывать ценность: обычный снимок превращается в карточку товара, баннер или social creative без тяжёлого хранения на сервере.</p>
+        </div>
+        <div class="proof-grid">
+          <article class="proof-visual"><img src="${productProofUrl}" alt="До и после AI-обработки товарного фото" /></article>
+          <div class="proof-copy">
+            <div class="proof-stat"><b>25</b><span>фото в первом платном пакете</span></div>
+            <div class="proof-stat"><b>500 ₽</b><span>низкий вход после бесплатных 5</span></div>
+            <div class="proof-stat"><b>3 формата</b><span>карточка, пост, сторис и widescreen export</span></div>
+          </div>
         </div>
       </section>
 
@@ -723,8 +751,10 @@ function runMotion() {
     ".nav",
     ".hero-copy > *",
     ".hero-visual",
-    ".product-stage",
+    ".hero-studio-card",
     ".float-card",
+    ".proof-visual",
+    ".proof-stat",
     ".mode-card",
     ".step",
     ".workspace-head",
@@ -747,9 +777,9 @@ function runMotion() {
       ease: "power3.out",
     });
     gsap.from(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
-    gsap.to(".product-stage", { y: -10, rotation: 0.6, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(".hero-studio-card", { y: -10, rotation: 0.4, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
     gsap.to(".float-card", { y: 12, duration: 3.7, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.from(".mode-card, .step", {
+    gsap.from(".proof-visual, .proof-stat, .mode-card, .step", {
       y: 26,
       opacity: 0,
       duration: 0.55,
