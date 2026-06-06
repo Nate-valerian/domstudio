@@ -11,6 +11,109 @@ const MODES = [
   ["mobile", "Stories", "Вертикальный UGC-контент в формате 9:16."],
 ];
 
+const MARKETPLACE_PRESETS = [
+  {
+    id: "wildberries",
+    label: "Wildberries",
+    mode: "catalog",
+    hint: "Wildberries-ready catalog photo, centered product, clean light background, no text, no logos, enough margin for marketplace card.",
+    subjectInstruction: "Prepare it as a marketplace hero image for Wildberries.",
+  },
+  {
+    id: "ozon",
+    label: "Ozon",
+    mode: "catalog",
+    hint: "Ozon product card style, white or very light background, natural shadow, clear shape, crop safe for a square listing.",
+    subjectInstruction: "Prepare it for an Ozon product card.",
+  },
+  {
+    id: "yandex",
+    label: "Yandex Market",
+    mode: "catalog",
+    hint: "Yandex Market listing photo, clean commercial e-commerce lighting, centered composition, realistic color and material.",
+    subjectInstruction: "Prepare it for Yandex Market.",
+  },
+  {
+    id: "instagram",
+    label: "Instagram Post",
+    mode: "creative",
+    hint: "Instagram 4:5 feed creative, editorial composition, scroll-stopping but realistic, tasteful brand mood.",
+    subjectInstruction: "Make it work as an Instagram feed post.",
+  },
+  {
+    id: "story",
+    label: "Story 9:16",
+    mode: "mobile",
+    hint: "Vertical 9:16 story composition, product clearly visible in the safe center area, mobile-first social creative.",
+    subjectInstruction: "Make it work as a vertical story creative.",
+  },
+  {
+    id: "banner",
+    label: "Website Banner",
+    mode: "product",
+    hint: "Website banner composition, product on one side, clean negative space for headline and call to action, premium campaign lighting.",
+    subjectInstruction: "Make it work as a website banner visual.",
+  },
+];
+
+const STYLE_TEMPLATES = [
+  { id: "clean", label: "Clean catalog", hint: "clean catalog style, accurate color, soft shadow, minimal background" },
+  { id: "jewelry", label: "Premium jewelry", hint: "premium jewelry macro, precise reflections, elegant highlights, luxury retail finish" },
+  { id: "cosmetics", label: "Cosmetics macro", hint: "cosmetics macro photography, glossy surfaces, soft gradients, fresh beauty lighting" },
+  { id: "fashion", label: "Fashion model", hint: "fashion editorial look, model context when appropriate, refined styling, natural pose" },
+  { id: "minimal", label: "Minimal beige", hint: "minimal warm neutral background, beige and ivory tones, calm premium composition" },
+  { id: "luxury", label: "Dark luxury", hint: "dark luxury studio setup, dramatic rim light, rich shadows, premium materials" },
+  { id: "social", label: "Social media creative", hint: "bold social media creative, dynamic crop, bright engaging visual, modern campaign feel" },
+];
+
+const VARIATIONS = [
+  { id: "cleaner", label: "Cleaner", hint: "make the result cleaner, simpler, with fewer props and a clearer product silhouette" },
+  { id: "premium", label: "More premium", hint: "make the result feel more premium with refined lighting, elegant materials, and luxury finish" },
+  { id: "brighter", label: "Brighter", hint: "make the image brighter, fresh, optimistic, and more commercially inviting" },
+  { id: "background", label: "Different background", hint: "change the background while keeping the product accurate and realistic" },
+  { id: "closer", label: "Closer crop", hint: "use a closer crop with the product larger in frame and the key details more visible" },
+  { id: "realistic", label: "More realistic", hint: "make the output more photorealistic with natural materials, accurate scale, and believable light" },
+];
+
+const EXPORT_SIZES = {
+  original: { label: "Original size", width: null, height: null },
+  square: { label: "1080 x 1080", width: 1080, height: 1080 },
+  feed: { label: "4:5 (1080 x 1350)", width: 1080, height: 1350 },
+  story: { label: "9:16 (1080 x 1920)", width: 1080, height: 1920 },
+  widescreen: { label: "16:9 (1920 x 1080)", width: 1920, height: 1080 },
+};
+
+const HISTORY_DB = "domstudio_history";
+const HISTORY_STORE = "results";
+const HISTORY_LIMIT = 5;
+const BRAND_PREFS_KEY = "domstudio_brand_preferences";
+
+const DEFAULT_BRAND_PREFS = {
+  brand_colors: "",
+  preferred_background: "",
+  brand_mood: "",
+  do_not_use: "",
+  default_marketplace: "wildberries",
+  default_style_template: "clean",
+};
+
+function loadBrandPrefs() {
+  try {
+    return {
+      ...DEFAULT_BRAND_PREFS,
+      ...JSON.parse(localStorage.getItem(BRAND_PREFS_KEY) || "{}"),
+    };
+  } catch {
+    return { ...DEFAULT_BRAND_PREFS };
+  }
+}
+
+function saveBrandPrefs(prefs) {
+  localStorage.setItem(BRAND_PREFS_KEY, JSON.stringify(prefs));
+}
+
+const initialBrandPrefs = loadBrandPrefs();
+
 const state = {
   route: location.hash.slice(1) || "home",
   accessToken: localStorage.getItem("domstudio_access"),
@@ -21,8 +124,19 @@ const state = {
   verificationContact: null,
   verificationKind: "email",
   selectedImage: null,
+  selectedImageName: null,
   generatedImage: null,
+  generatedMeta: null,
+  lastGenerationPayload: null,
+  history: [],
+  brandPrefs: initialBrandPrefs,
   generating: false,
+  formDraft: {
+    mode: "catalog",
+    marketplace: initialBrandPrefs.default_marketplace,
+    style_template: initialBrandPrefs.default_style_template,
+    brand_colors: initialBrandPrefs.brand_colors,
+  },
 };
 
 const app = document.querySelector("#app");
@@ -108,6 +222,218 @@ async function loadPlans() {
       { name: "pro", price_rub: 3750, photos: 60, tokens: 6000 },
     ];
   }
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+  })[char]);
+}
+
+function draftValue(name) {
+  return escapeHtml(state.formDraft[name] || "");
+}
+
+function brandPrefValue(name) {
+  return escapeHtml(state.brandPrefs[name] || "");
+}
+
+function selectedAttr(value, expected) {
+  return value === expected ? "selected" : "";
+}
+
+function checkedAttr(value) {
+  return value ? "checked" : "";
+}
+
+function truncate(value, maxLength = 500) {
+  const text = String(value || "").trim().replace(/\s+/g, " ");
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trim()}…` : text;
+}
+
+function currentMarketplace() {
+  return MARKETPLACE_PRESETS.find((preset) => preset.id === state.formDraft.marketplace) || MARKETPLACE_PRESETS[0];
+}
+
+function currentStyleTemplate() {
+  return STYLE_TEMPLATES.find((template) => template.id === state.formDraft.style_template) || STYLE_TEMPLATES[0];
+}
+
+function composeGenerationPayload(values) {
+  const marketplace = MARKETPLACE_PRESETS.find((preset) => preset.id === values.marketplace) || currentMarketplace();
+  const styleTemplate = STYLE_TEMPLATES.find((template) => template.id === values.style_template) || currentStyleTemplate();
+  const prefs = state.brandPrefs;
+  const userStyle = values.style_hint || "";
+  const brandColors = values.brand_colors || prefs.brand_colors;
+  const styleParts = [
+    userStyle,
+    ...[
+      marketplace.hint,
+      styleTemplate.hint,
+      brandColors ? `brand colors: ${brandColors}` : "",
+      prefs.preferred_background ? `preferred background: ${prefs.preferred_background}` : "",
+      prefs.brand_mood ? `brand mood: ${prefs.brand_mood}` : "",
+      values.constraints ? `constraints: ${values.constraints}` : "",
+      prefs.do_not_use ? `avoid: ${prefs.do_not_use}` : "",
+    ].filter((part) => part && !userStyle.includes(part)),
+  ].filter(Boolean);
+
+  return {
+    mode: values.mode || marketplace.mode,
+    subject: truncate(values.subject || values.product_type || "product"),
+    style_hint: truncate(styleParts.join(", ")),
+    image: state.selectedImage,
+    upscale_4k: values.upscale_4k === "on" || values.upscale_4k === true,
+  };
+}
+
+function syncDraftFromForm(form) {
+  if (!form) return;
+  const values = Object.fromEntries(new FormData(form));
+  state.formDraft = {
+    ...state.formDraft,
+    ...values,
+    upscale_4k: values.upscale_4k === "on",
+  };
+}
+
+function openHistoryDb() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("IndexedDB is unavailable"));
+      return;
+    }
+
+    const request = indexedDB.open(HISTORY_DB, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(HISTORY_STORE, { keyPath: "id" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function idbRequest(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function readHistoryItems() {
+  const db = await openHistoryDb();
+  try {
+    const tx = db.transaction(HISTORY_STORE, "readonly");
+    const items = await idbRequest(tx.objectStore(HISTORY_STORE).getAll());
+    return items.sort((a, b) => b.createdAt - a.createdAt).slice(0, HISTORY_LIMIT);
+  } finally {
+    db.close();
+  }
+}
+
+async function putHistoryItem(item) {
+  const db = await openHistoryDb();
+  try {
+    const tx = db.transaction(HISTORY_STORE, "readwrite");
+    const store = tx.objectStore(HISTORY_STORE);
+    await idbRequest(store.put(item));
+    const items = await idbRequest(store.getAll());
+    const stale = items
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(HISTORY_LIMIT);
+    await Promise.all(stale.map((oldItem) => idbRequest(store.delete(oldItem.id))));
+  } finally {
+    db.close();
+  }
+}
+
+async function deleteHistoryItem(id) {
+  const db = await openHistoryDb();
+  try {
+    const tx = db.transaction(HISTORY_STORE, "readwrite");
+    await idbRequest(tx.objectStore(HISTORY_STORE).delete(id));
+  } finally {
+    db.close();
+  }
+}
+
+async function loadHistory() {
+  try {
+    state.history = await readHistoryItems();
+  } catch {
+    state.history = [];
+  }
+}
+
+async function rememberResult(result, dataUrl, payload) {
+  try {
+    await putHistoryItem({
+      id: String(Date.now()),
+      createdAt: Date.now(),
+      dataUrl,
+      mode: payload.mode,
+      subject: payload.subject,
+      style_hint: payload.style_hint,
+      width: result.width,
+      height: result.height,
+      format: result.format || "PNG",
+    });
+    state.history = await readHistoryItems();
+  } catch {
+    toast("Не удалось сохранить историю в браузере");
+  }
+}
+
+function historyPanel() {
+  if (!state.history.length) return "";
+  return `<div class="history-panel">
+    <div class="mini-head"><h3>Недавние результаты</h3><span>только в этом браузере</span></div>
+    <div class="history-grid">
+      ${state.history.map((item) => `
+        <article class="history-item">
+          <button class="history-thumb" type="button" data-history-id="${item.id}">
+            <img src="${item.dataUrl}" alt="${escapeHtml(item.subject)}" />
+          </button>
+          <div>
+            <b>${escapeHtml(item.subject)}</b>
+            <span>${escapeHtml(item.mode)} ${item.width && item.height ? `· ${item.width}×${item.height}` : ""}</span>
+          </div>
+          <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
+        </article>`).join("")}
+    </div>
+  </div>`;
+}
+
+function exportTools() {
+  if (!state.generatedImage) return "";
+  return `<div class="export-tools">
+    <div class="mini-head"><h3>Экспорт</h3><span>обработка в браузере</span></div>
+    <div class="export-row">
+      <select class="select compact" id="export-format">
+        <option value="png">PNG</option>
+        <option value="jpeg">JPG</option>
+        <option value="webp">WebP</option>
+      </select>
+      <select class="select compact" id="export-size">
+        ${Object.entries(EXPORT_SIZES).map(([id, size]) => `<option value="${id}">${size.label}</option>`).join("")}
+      </select>
+      <button class="button secondary" type="button" data-export>Скачать</button>
+    </div>
+  </div>`;
+}
+
+function variationTools() {
+  if (!state.generatedImage || !state.lastGenerationPayload) return "";
+  return `<div class="variation-tools">
+    <div class="mini-head"><h3>Вариации</h3><span>100 токенов при клике</span></div>
+    <div class="chip-row">
+      ${VARIATIONS.map((variation) => `<button class="chip" type="button" data-variation="${variation.id}" ${state.generating ? "disabled" : ""}>${variation.label}</button>`).join("")}
+    </div>
+  </div>`;
 }
 
 function nav() {
@@ -203,11 +529,34 @@ function studioPage() {
       <header class="workspace-head"><div><div class="eyebrow">Новая генерация</div><h1>AI-студия</h1></div><div class="balance"><span>${state.user.tokens}</span> токенов</div></header>
       <div class="studio-grid">
         <form class="panel" id="generate-form">
-          <div class="field"><label for="mode">Режим съёмки</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}">${mode[1]} — ${mode[2]}</option>`).join("")}</select></div>
-          <div class="field"><label for="subject">Что снимаем</label><textarea class="textarea" id="subject" name="subject" required placeholder="Например: золотые серьги-кольца на светлом фоне"></textarea></div>
-          <div class="field"><label for="style_hint">Пожелания к стилю</label><input class="input" id="style_hint" name="style_hint" placeholder="Тёплый свет, премиальный минимализм" /></div>
-          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" /><span><strong>Добавить фото товара</strong><br />PNG или JPEG, до 10 МБ</span></label>
-          <label class="check"><input type="checkbox" name="upscale_4k" /> Сделать дополнительный 4K-апскейл</label>
+          <div class="form-section">
+            <div class="field"><label for="marketplace">Площадка</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select></div>
+            <div class="field"><label for="style_template">Шаблон стиля</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${template.label}</option>`).join("")}</select></div>
+            <div class="field"><label for="mode">Режим съёмки</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${mode[1]} — ${mode[2]}</option>`).join("")}</select></div>
+          </div>
+          <div class="brand-preferences">
+            <div class="mini-head"><h3>Бренд</h3><span>сохранит текущую площадку и стиль</span></div>
+            <div class="helper-grid">
+              <div class="field"><label for="brand_pref_colors">Цвета</label><input class="input" id="brand_pref_colors" name="brand_pref_colors" value="${brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
+              <div class="field"><label for="brand_pref_background">Фон</label><input class="input" id="brand_pref_background" name="brand_pref_background" value="${brandPrefValue("preferred_background")}" placeholder="тёплый светлый фон" /></div>
+              <div class="field"><label for="brand_pref_mood">Настроение</label><input class="input" id="brand_pref_mood" name="brand_pref_mood" value="${brandPrefValue("brand_mood")}" placeholder="clean luxury, calm, premium" /></div>
+              <div class="field"><label for="brand_pref_avoid">Не использовать</label><input class="input" id="brand_pref_avoid" name="brand_pref_avoid" value="${brandPrefValue("do_not_use")}" placeholder="неон, дешёвый пластик, текст" /></div>
+            </div>
+            <button class="button secondary block" type="button" data-save-brand>Сохранить бренд</button>
+          </div>
+          <div class="prompt-helper">
+            <div class="mini-head"><h3>Помощник промпта</h3><span>соберёт основу сам</span></div>
+            <div class="helper-grid">
+              <div class="field"><label for="product_type">Тип товара</label><input class="input" id="product_type" name="product_type" value="${draftValue("product_type")}" placeholder="Золотые серьги-кольца" /></div>
+              <div class="field"><label for="brand_colors">Цвета бренда</label><input class="input" id="brand_colors" name="brand_colors" value="${draftValue("brand_colors") || brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
+              <div class="field wide"><label for="constraints">Ограничения</label><input class="input" id="constraints" name="constraints" value="${draftValue("constraints")}" placeholder="без текста, без рук, сохранить форму упаковки" /></div>
+            </div>
+            <button class="button secondary block" type="button" data-build-prompt>Собрать промпт из настроек</button>
+          </div>
+          <div class="field"><label for="subject">Что снимаем</label><textarea class="textarea" id="subject" name="subject" required placeholder="Например: золотые серьги-кольца на светлом фоне">${draftValue("subject")}</textarea></div>
+          <div class="field"><label for="style_hint">Пожелания к стилю</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="Тёплый свет, премиальный минимализм" /></div>
+          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" /><span><strong>${state.selectedImageName ? escapeHtml(state.selectedImageName) : "Добавить фото товара"}</strong><br />${state.selectedImageName ? "Фото готово к генерации" : "PNG или JPEG, до 10 МБ"}</span></label>
+          <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> Сделать дополнительный 4K-апскейл</label>
           <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? "Создаём кадр…" : "Создать фото · 100 токенов"}</button>
         </form>
         <div class="panel">
@@ -216,7 +565,10 @@ function studioPage() {
               ? `<img src="${state.generatedImage}" alt="Сгенерированный результат" />`
               : `<div class="result-empty"><b>${state.generating ? "Собираем студию…" : "Здесь появится результат"}</b>${state.generating ? "Генерация может занять несколько минут." : "Заполните описание, выберите режим и запустите генерацию."}</div>`}
           </div>
-          ${state.generatedImage ? `<a class="button block" href="${state.generatedImage}" download="domstudio-result.png">Скачать PNG</a>` : ""}
+          ${state.generatedMeta ? `<p class="result-meta">${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
+          ${exportTools()}
+          ${variationTools()}
+          ${historyPanel()}
         </div>
       </div>
     </section>
@@ -286,7 +638,163 @@ function bind() {
   document.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
   document.querySelector("#verify-form")?.addEventListener("submit", submitVerification);
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
+  document.querySelector("#generate-form")?.addEventListener("input", event => {
+    if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
+  });
+  document.querySelector("#generate-form")?.addEventListener("change", event => {
+    if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
+  });
+  document.querySelector("#marketplace")?.addEventListener("change", selectMarketplacePreset);
+  document.querySelector("[data-save-brand]")?.addEventListener("click", saveBrandPreferences);
+  document.querySelector("[data-build-prompt]")?.addEventListener("click", buildPromptFromHelper);
+  document.querySelectorAll("[data-variation]").forEach(el => el.addEventListener("click", () => regenerateVariation(el.dataset.variation)));
+  document.querySelector("[data-export]")?.addEventListener("click", exportGeneratedImage);
+  document.querySelectorAll("[data-history-id]").forEach(el => el.addEventListener("click", () => restoreHistoryItem(el.dataset.historyId)));
+  document.querySelectorAll("[data-delete-history]").forEach(el => el.addEventListener("click", () => removeHistoryItem(el.dataset.deleteHistory)));
   document.querySelector("#image")?.addEventListener("change", selectImage);
+}
+
+function selectMarketplacePreset(event) {
+  const preset = MARKETPLACE_PRESETS.find((item) => item.id === event.currentTarget.value);
+  if (!preset) return;
+  state.formDraft.marketplace = preset.id;
+  state.formDraft.mode = preset.mode;
+  const modeSelect = document.querySelector("#mode");
+  if (modeSelect) modeSelect.value = preset.mode;
+  syncDraftFromForm(document.querySelector("#generate-form"));
+}
+
+function buildPromptFromHelper() {
+  const form = document.querySelector("#generate-form");
+  if (!form) return;
+  syncDraftFromForm(form);
+
+  const values = { ...state.formDraft };
+  const marketplace = currentMarketplace();
+  const styleTemplate = currentStyleTemplate();
+  const prefs = state.brandPrefs;
+  const brandColors = values.brand_colors || prefs.brand_colors;
+  const productType = values.product_type || values.subject || "";
+  const subject = truncate([productType, marketplace.subjectInstruction].filter(Boolean).join(". "));
+  const styleHint = truncate([
+    styleTemplate.hint,
+    marketplace.hint,
+    brandColors ? `brand colors: ${brandColors}` : "",
+    prefs.preferred_background ? `preferred background: ${prefs.preferred_background}` : "",
+    prefs.brand_mood ? `brand mood: ${prefs.brand_mood}` : "",
+    values.constraints ? `constraints: ${values.constraints}` : "",
+    prefs.do_not_use ? `avoid: ${prefs.do_not_use}` : "",
+  ].filter(Boolean).join(", "));
+
+  form.elements.subject.value = subject;
+  form.elements.style_hint.value = styleHint;
+  state.formDraft.subject = subject;
+  state.formDraft.style_hint = styleHint;
+  toast("Промпт собран");
+}
+
+function saveBrandPreferences() {
+  const form = document.querySelector("#generate-form");
+  if (!form) return;
+  syncDraftFromForm(form);
+
+  state.brandPrefs = {
+    brand_colors: form.elements.brand_pref_colors.value.trim(),
+    preferred_background: form.elements.brand_pref_background.value.trim(),
+    brand_mood: form.elements.brand_pref_mood.value.trim(),
+    do_not_use: form.elements.brand_pref_avoid.value.trim(),
+    default_marketplace: form.elements.marketplace.value,
+    default_style_template: form.elements.style_template.value,
+  };
+  state.formDraft = {
+    ...state.formDraft,
+    marketplace: state.brandPrefs.default_marketplace,
+    style_template: state.brandPrefs.default_style_template,
+    brand_colors: state.formDraft.brand_colors || state.brandPrefs.brand_colors,
+  };
+  saveBrandPrefs(state.brandPrefs);
+  toast("Бренд сохранён в браузере");
+  render();
+}
+
+async function regenerateVariation(variationId) {
+  const variation = VARIATIONS.find((item) => item.id === variationId);
+  if (!variation || !state.lastGenerationPayload) return;
+  await generateWithPayload({
+    ...state.lastGenerationPayload,
+    style_hint: truncate(`${state.lastGenerationPayload.style_hint}, ${variation.hint}`),
+    seed: -1,
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function exportGeneratedImage() {
+  if (!state.generatedImage) return;
+  try {
+    const format = document.querySelector("#export-format")?.value || "png";
+    const sizeId = document.querySelector("#export-size")?.value || "original";
+    const exportSize = EXPORT_SIZES[sizeId] || EXPORT_SIZES.original;
+    const image = await loadImage(state.generatedImage);
+    const width = exportSize.width || image.naturalWidth;
+    const height = exportSize.height || image.naturalHeight;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = width;
+    canvas.height = height;
+
+    if (format === "jpeg") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+    const drawWidth = Math.round(image.naturalWidth * scale);
+    const drawHeight = Math.round(image.naturalHeight * scale);
+    const x = Math.round((width - drawWidth) / 2);
+    const y = Math.round((height - drawHeight) / 2);
+    ctx.drawImage(image, x, y, drawWidth, drawHeight);
+
+    const mime = format === "jpeg" ? "image/jpeg" : `image/${format}`;
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL(mime, 0.94);
+    link.download = `domstudio-${sizeId}.${format === "jpeg" ? "jpg" : format}`;
+    link.click();
+  } catch {
+    toast("Не удалось экспортировать изображение");
+  }
+}
+
+function restoreHistoryItem(id) {
+  const item = state.history.find((historyItem) => historyItem.id === id);
+  if (!item) return;
+  state.generatedImage = item.dataUrl;
+  state.generatedMeta = item;
+  state.lastGenerationPayload = {
+    mode: item.mode || "catalog",
+    subject: item.subject || "product",
+    style_hint: item.style_hint || "",
+    image: state.selectedImage,
+    upscale_4k: false,
+  };
+  render();
+}
+
+async function removeHistoryItem(id) {
+  try {
+    await deleteHistoryItem(id);
+    state.history = await readHistoryItems();
+    render();
+  } catch {
+    toast("Не удалось удалить из истории");
+  }
 }
 
 async function submitAuth(event) {
@@ -335,29 +843,36 @@ function selectImage(event) {
   const reader = new FileReader();
   reader.onload = () => {
     state.selectedImage = String(reader.result).split(",")[1];
-    document.querySelector("#upload-label span").innerHTML = `<strong>${file.name}</strong><br />Фото готово к генерации`;
+    state.selectedImageName = file.name;
+    document.querySelector("#upload-label span").innerHTML = `<strong>${escapeHtml(file.name)}</strong><br />Фото готово к генерации`;
   };
   reader.readAsDataURL(file);
 }
 
 async function submitGeneration(event) {
   event.preventDefault();
-  const values = Object.fromEntries(new FormData(event.currentTarget));
+  syncDraftFromForm(event.currentTarget);
+  const values = { ...state.formDraft };
+  const payload = composeGenerationPayload(values);
+  state.formDraft.subject = payload.subject;
+  await generateWithPayload(payload);
+}
+
+async function generateWithPayload(payload) {
   state.generating = true;
   state.generatedImage = null;
+  state.generatedMeta = null;
+  state.lastGenerationPayload = payload;
   render();
   try {
     const result = await api("/generation/generate", {
       method: "POST",
-      body: JSON.stringify({
-        mode: values.mode,
-        subject: values.subject,
-        style_hint: values.style_hint || "",
-        image: state.selectedImage,
-        upscale_4k: values.upscale_4k === "on",
-      }),
+      body: JSON.stringify(payload),
     });
-    state.generatedImage = `data:image/${String(result.format || "png").toLowerCase()};base64,${result.image}`;
+    const dataUrl = `data:image/${String(result.format || "png").toLowerCase()};base64,${result.image}`;
+    state.generatedImage = dataUrl;
+    state.generatedMeta = result;
+    await rememberResult(result, dataUrl, payload);
     await loadUser();
     toast("Фото готово");
   } catch (error) {
@@ -387,5 +902,5 @@ window.addEventListener("hashchange", () => {
   render();
 });
 
-await Promise.all([loadUser(), loadPlans()]);
+await Promise.all([loadUser(), loadPlans(), loadHistory()]);
 render();
