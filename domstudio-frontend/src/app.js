@@ -1,28 +1,35 @@
 import "./styles.css";
 import { gsap } from "gsap";
 import productProofUrl from "./assets/product-proof.webp";
-import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
-import modeProductUrl from "./assets/mode-product-real-v3.webp";
-import modeCreativeUrl from "./assets/mode-creative-real-v3.webp";
-import modeLifestyleUrl from "./assets/mode-lifestyle-real-v3.webp";
+import modeCatalogUrl from "./assets/mode-catalog-after-matched.webp";
+import modeProductUrl from "./assets/mode-product-after-matched.webp";
+import modeCreativeUrl from "./assets/mode-creative-after-matched.webp";
+import modeLifestyleUrl from "./assets/mode-lifestyle-after-matched.webp";
 import modeFittingUrl from "./assets/mode-fitting-real-v2.webp";
-import modeStoriesUrl from "./assets/mode-stories-real-v3.webp";
+import modeStoriesUrl from "./assets/mode-stories-after-matched.webp";
 import modeCatalogBeforeUrl from "./assets/mode-catalog-before.webp";
 import modeProductBeforeUrl from "./assets/mode-product-before.webp";
 import modeCreativeBeforeUrl from "./assets/mode-creative-before.webp";
 import modeLifestyleBeforeUrl from "./assets/mode-lifestyle-before.webp";
 import modeFittingBeforeUrl from "./assets/mode-fitting-before.webp";
 import modeStoriesBeforeUrl from "./assets/mode-stories-before.webp";
+import productProofLiveUrl from "./assets/product-proof-live.mp4";
+import modeCatalogLiveUrl from "./assets/mode-catalog-live.mp4";
+import modeProductLiveUrl from "./assets/mode-product-live.mp4";
+import modeCreativeLiveUrl from "./assets/mode-creative-live.mp4";
+import modeLifestyleLiveUrl from "./assets/mode-lifestyle-live.mp4";
+import modeFittingLiveUrl from "./assets/mode-fitting-live.mp4";
+import modeStoriesLiveUrl from "./assets/mode-stories-live.mp4";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const MODES = [
-  ["catalog", "Каталог", "Чистый фон и точная подача для маркетплейсов.", modeCatalogUrl, "Пример чистой карточки товара для маркетплейса", modeCatalogBeforeUrl, "Фон + тени"],
-  ["product", "Предметная", "Премиальный свет, фактуры и рекламный кадр.", modeProductUrl, "Пример премиальной предметной съёмки", modeProductBeforeUrl, "Свет + сет"],
-  ["creative", "Креатив", "Выразительный контент для соцсетей и кампаний.", modeCreativeUrl, "Пример креативного рекламного визуала", modeCreativeBeforeUrl, "Кампания"],
-  ["image", "Lifestyle", "Товар в естественной сцене с AI-моделью.", modeLifestyleUrl, "Пример lifestyle-кадра с товаром", modeLifestyleBeforeUrl, "Сцена"],
-  ["fitting", "Примерка", "Виртуальная примерка одежды и аксессуаров.", modeFittingUrl, "Пример виртуальной примерки", modeFittingBeforeUrl, "Примерка"],
-  ["mobile", "Stories", "Вертикальный UGC-контент в формате 9:16.", modeStoriesUrl, "Пример вертикального story-контента", modeStoriesBeforeUrl, "9:16"],
+  ["catalog", "Каталог", "Чистый фон и точная подача для маркетплейсов.", modeCatalogUrl, "Пример чистой карточки товара для маркетплейса", modeCatalogBeforeUrl, "Фон + тени", modeCatalogLiveUrl],
+  ["product", "Предметная", "Премиальный свет, фактуры и рекламный кадр.", modeProductUrl, "Пример премиальной предметной съёмки", modeProductBeforeUrl, "Свет + сет", modeProductLiveUrl],
+  ["creative", "Креатив", "Выразительный контент для соцсетей и кампаний.", modeCreativeUrl, "Пример креативного рекламного визуала", modeCreativeBeforeUrl, "Кампания", modeCreativeLiveUrl],
+  ["image", "Lifestyle", "Товар в естественной сцене с AI-моделью.", modeLifestyleUrl, "Пример lifestyle-кадра с товаром", modeLifestyleBeforeUrl, "Сцена", modeLifestyleLiveUrl],
+  ["fitting", "Примерка", "Виртуальная примерка одежды и аксессуаров.", modeFittingUrl, "Пример виртуальной примерки", modeFittingBeforeUrl, "Примерка", modeFittingLiveUrl],
+  ["mobile", "Stories", "Вертикальный UGC-контент в формате 9:16.", modeStoriesUrl, "Пример вертикального story-контента", modeStoriesBeforeUrl, "9:16", modeStoriesLiveUrl],
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -572,7 +579,9 @@ function homePage() {
               <span>Mini studio</span>
               <b>WB · Ozon · Stories</b>
             </div>
-            <div class="hero-proof-frame"><img src="${productProofUrl}" alt="Пример улучшения товарного фото в DomStudio" /></div>
+            <div class="hero-proof-frame">
+              <video src="${productProofLiveUrl}" poster="${productProofUrl}" autoplay muted loop playsinline aria-label="Живой пример товарного фото в DomStudio"></video>
+            </div>
             <div class="mini-studio-controls">
               <label><span>Фото товара</span><button type="button" data-route="studio">Загрузить</button></label>
               <label><span>Промпт</span><input value="сыворотка на светлом фоне" readonly /></label>
@@ -608,7 +617,7 @@ function homePage() {
           ${MODES.map((mode, index) => `
             <article class="mode-card">
               <figure class="mode-visual proof-compare">
-                <img class="proof-after" src="${mode[3]}" alt="${mode[4]}" loading="lazy" />
+                <video class="proof-after" src="${mode[7]}" poster="${mode[3]}" autoplay muted loop playsinline aria-label="${mode[4]}"></video>
                 <div class="proof-before">
                   <img src="${mode[5]}" alt="Обычный исходный кадр для режима ${mode[1]}" loading="lazy" />
                   <span>До</span>
