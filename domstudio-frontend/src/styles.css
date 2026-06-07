@@ -137,8 +137,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .hero .studio-card-top { color: rgba(246,241,232,.58); }
 .hero .studio-card-top b { color: #f6f1e8; }
 .hero-proof-frame { margin: 0 14px; overflow: hidden; border-radius: 20px; background: #e9e3d7; }
-.hero-proof-frame img,
-.hero-proof-frame video { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.hero-proof-frame img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
 .mini-studio-controls { display: grid; gap: 10px; padding: 14px; }
 .mini-studio-controls label { display: grid; grid-template-columns: 105px 1fr; align-items: center; gap: 10px; min-height: 44px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 14px; background: white; }
 .hero .mini-studio-controls label { border-color: rgba(255,255,255,.10); background: rgba(255,255,255,.08); }
@@ -183,8 +182,7 @@ h1 em { color: var(--gold); font-style: normal; }
   background: var(--card); box-shadow: 0 18px 55px rgba(32,25,14,.08);
 }
 .mode-visual { position: relative; margin: 0 0 18px; overflow: hidden; background: #f4f0e8; }
-.mode-visual img,
-.mode-visual video { display: block; width: 100%; object-fit: cover; }
+.mode-visual img { display: block; width: 100%; object-fit: cover; }
 .proof-compare { aspect-ratio: 16 / 10.5; }
 .proof-after { height: 100%; }
 .proof-before {
