@@ -170,7 +170,8 @@ class ComfyClient:
                 headers=_headers(self.api_key),
                 json={"prompt": workflow, "client_id": str(uuid.uuid4())},
             )
-            response.raise_for_status()
+            if response.is_error:
+                raise ComfyGenerationError(f"ComfyUI rejected workflow: {_response_error(response)}")
             payload = response.json()
 
         prompt_id = payload.get("prompt_id")
@@ -195,6 +196,9 @@ class ComfyClient:
         while time.monotonic() < deadline:
             payload = await self.history(prompt_id)
             job = payload.get(prompt_id) or payload
+            error = _extract_error(job)
+            if error:
+                raise ComfyGenerationError(f"ComfyUI job failed: {error}")
             outputs = _extract_outputs(job)
             if outputs:
                 return outputs
@@ -249,6 +253,51 @@ def _extract_outputs(job: dict[str, Any]) -> list[dict[str, Any]]:
                 if isinstance(item, dict) and item.get("filename"):
                     outputs.append({"kind": key, **item})
     return outputs
+
+
+def _extract_error(job: dict[str, Any]) -> str | None:
+    status = job.get("status") if isinstance(job, dict) else None
+    if not isinstance(status, dict):
+        return None
+
+    messages = status.get("messages") or []
+    for message in reversed(messages):
+        if not isinstance(message, list) or len(message) < 2:
+            continue
+        event, payload = message[0], message[1]
+        if event != "execution_error" or not isinstance(payload, dict):
+            continue
+        node = payload.get("node_type") or payload.get("node_id") or "unknown node"
+        detail = payload.get("exception_message") or payload.get("exception_type") or "execution error"
+        return f"{node}: {detail}"
+
+    if status.get("status_str") == "error":
+        return "execution error"
+    return None
+
+
+def _response_error(response: httpx.Response) -> str:
+    try:
+        payload = response.json()
+    except ValueError:
+        return response.text or str(response.status_code)
+
+    node_errors = payload.get("node_errors")
+    if isinstance(node_errors, dict):
+        for node_id, error_info in node_errors.items():
+            if not isinstance(error_info, dict):
+                continue
+            class_type = error_info.get("class_type") or node_id
+            errors = error_info.get("errors") or []
+            if errors and isinstance(errors[0], dict):
+                detail = errors[0].get("details") or errors[0].get("message")
+                if detail:
+                    return f"{class_type}: {detail}"
+
+    error = payload.get("error")
+    if isinstance(error, dict):
+        return error.get("message") or json.dumps(error)
+    return json.dumps(payload)
 
 
 def _first_output(outputs: list[dict[str, Any]], kinds: set[str]) -> dict[str, Any] | None:

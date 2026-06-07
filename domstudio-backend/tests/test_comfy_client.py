@@ -2,6 +2,8 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import httpx
+
 from services import comfy_client
 
 
@@ -89,6 +91,49 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(outputs[0]["filename"], "result.png")
         self.assertEqual(outputs[0]["kind"], "images")
+
+    async def test_extracts_execution_error_from_history_payload(self):
+        error = comfy_client._extract_error({
+            "status": {
+                "status_str": "error",
+                "messages": [
+                    [
+                        "execution_error",
+                        {
+                            "node_type": "NunchakuQwenImageDiTLoader",
+                            "exception_message": "Please use int4 quantization",
+                        },
+                    ]
+                ],
+            }
+        })
+
+        self.assertEqual(
+            error,
+            "NunchakuQwenImageDiTLoader: Please use int4 quantization",
+        )
+
+    async def test_formats_prompt_validation_errors(self):
+        response = httpx.Response(
+            400,
+            json={
+                "node_errors": {
+                    "1": {
+                        "class_type": "NunchakuQwenImageDiTLoader",
+                        "errors": [
+                            {
+                                "details": "model_name: missing.safetensors not in []",
+                            }
+                        ],
+                    }
+                }
+            },
+        )
+
+        self.assertEqual(
+            comfy_client._response_error(response),
+            "NunchakuQwenImageDiTLoader: model_name: missing.safetensors not in []",
+        )
 
 
 if __name__ == "__main__":

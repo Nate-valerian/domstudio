@@ -58,12 +58,13 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         db = FakeDb([900])
         user = SimpleNamespace(id=uuid.uuid4())
 
-        with patch.object(generation.httpx, "AsyncClient", FakeClient):
-            result = await generation.generate(
-                generation.GenerateRequest(subject="gold earrings"),
-                db,
-                user,
-            )
+        with patch.object(generation, "GENERATION_PROVIDER", "worker"):
+            with patch.object(generation.httpx, "AsyncClient", FakeClient):
+                result = await generation.generate(
+                    generation.GenerateRequest(subject="gold earrings"),
+                    db,
+                    user,
+                )
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["tokens_charged"], generation.GENERATION_TOKEN_COST)
@@ -96,13 +97,14 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
             "payload": {"status": "error", "error": "worker unavailable"},
         })
 
-        with patch.object(generation.httpx, "AsyncClient", failing_client):
-            with self.assertRaises(HTTPException) as raised:
-                await generation.generate(
-                    generation.GenerateRequest(subject="gold earrings"),
-                    db,
-                    user,
-                )
+        with patch.object(generation, "GENERATION_PROVIDER", "worker"):
+            with patch.object(generation.httpx, "AsyncClient", failing_client):
+                with self.assertRaises(HTTPException) as raised:
+                    await generation.generate(
+                        generation.GenerateRequest(subject="gold earrings"),
+                        db,
+                        user,
+                    )
 
         self.assertEqual(raised.exception.status_code, 502)
         self.assertEqual(len(db.statements), 2)
