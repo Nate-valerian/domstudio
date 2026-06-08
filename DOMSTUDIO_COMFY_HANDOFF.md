@@ -2,6 +2,15 @@
 
 Created: June 7, 2026
 
+## Mandatory Read First
+
+Before doing any new ComfyUI, AutoDL, image, card, or video work, read
+`DOMSTUDIO_TOMORROW.md` section `Mandatory Read First`.
+
+Key rule: do not repeat the June 7 mistake of applying one generic treatment to
+all cards. Each landing card has its own functionality, and fake pan/zoom stills
+must not be presented as real 3-second video.
+
 ## Current Frontend Decision
 
 - Keep the frontend as Vite, not Next.js.
@@ -249,14 +258,85 @@ python -m unittest discover -s tests -v
 17 tests OK
 ```
 
-Current limitation:
+Current limitation before the later AutoDL retry:
 
 ```text
 domstudio-backend/workflows/product_image.json
 ```
 
-is only a placeholder. It must be replaced with a real exported ComfyUI API
-workflow before `GENERATION_PROVIDER=comfy` can generate real images.
+was a simple text-to-image workflow and was not enough for product-preserving
+Catalog/Product editing.
+
+## AutoDL / Qwen Edit Status For Tomorrow
+
+New working AutoDL instance:
+
+```text
+autodl-container-95c4479bc9-7f1ffc79
+```
+
+ComfyUI is reachable inside the instance at:
+
+```text
+http://127.0.0.1:6006
+```
+
+The first AutoDL/tzwm setup path failed because the initializer repeatedly
+crashed after partial downloads, especially around:
+
+```text
+/root/autodl-tmp/tzwm_qwen-image
+```
+
+Do not restart broad tzwm model initialization unless there is no alternative.
+It wasted time by downloading partial files, then expecting them in stale temp
+paths. Prefer checking ComfyUI `/object_info` and downloading only the exact
+missing model file.
+
+The new instance has the missing Qwen text encoder:
+
+```text
+qwen_2.5_vl_7b_fp8_scaled.safetensors
+```
+
+Verified by:
+
+```bash
+curl -s http://127.0.0.1:6006/object_info/CLIPLoader | python -m json.tool | head -100
+```
+
+The new instance also has:
+
+```text
+Nunchaku model:
+svdq-int4_r128-qwen-image-edit-2509-lightning-4steps-251115.safetensors
+
+VAE:
+qwen_image_vae.safetensors
+```
+
+Verified by:
+
+```bash
+curl -s http://127.0.0.1:6006/object_info/NunchakuQwenImageDiTLoader | python -m json.tool | head -100
+curl -s http://127.0.0.1:6006/object_info/VAELoader | python -m json.tool | head -80
+```
+
+The matching example workflow exists:
+
+```text
+/root/autodl-tmp/ComfyUI/custom_nodes/ComfyUI-nunchaku/example_workflows/nunchaku-qwen-image-edit-2509-lightning.json
+```
+
+Local backend workflow file was patched to use the installed Nunchaku model:
+
+```text
+domstudio-backend/workflows/product_image.json
+```
+
+But this local workflow is still too simple. It is filename-compatible with the
+new instance, but the real DomStudio workflow should be the exported API version
+of the Qwen image-edit workflow above.
 
 ## Current Conversation Decisions
 
@@ -278,21 +358,34 @@ workflow before `GENERATION_PROVIDER=comfy` can generate real images.
 
 ## Immediate Next Step
 
-1. Start the chosen AutoDL ComfyUI instance:
+1. Keep using the new working AutoDL instance if it is still available:
 
 ```bash
+cd /root/autodl-tmp/ComfyUI
 python main.py --listen 0.0.0.0 --port 6006
 ```
 
-2. Build or load the DomStudio product-image workflow in ComfyUI.
-3. Export the workflow in API format.
-4. Replace:
+2. In ComfyUI, load:
+
+```text
+/root/autodl-tmp/ComfyUI/custom_nodes/ComfyUI-nunchaku/example_workflows/nunchaku-qwen-image-edit-2509-lightning.json
+```
+
+3. Run one manual product-preserving Catalog test with an uploaded product image.
+   Use a narrow prompt:
+
+```text
+clean ecommerce catalog photo, preserve the exact product shape, material, color, and label, remove cluttered background, place product on pure white background, realistic soft studio shadow, sharp details
+```
+
+4. If it preserves the product, export the workflow in API format.
+5. Replace:
 
 ```text
 domstudio-backend/workflows/product_image.json
 ```
 
-5. Set backend env:
+6. Set backend env:
 
 ```env
 GENERATION_PROVIDER=comfy
@@ -311,4 +404,4 @@ AUTODL_TOKEN=
 AUTODL_DEPLOYMENT_UUID=
 ```
 
-6. Test one real `/generation/generate` request through FastAPI.
+7. Test one real `/generation/generate` request through FastAPI.

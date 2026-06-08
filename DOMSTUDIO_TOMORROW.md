@@ -2,6 +2,48 @@
 
 Created: June 6, 2026
 
+## Mandatory Read First
+
+Before starting any DomStudio work, read this section and follow it.
+
+What went wrong on June 7, 2026:
+
+1. I wasted the user's time and AutoDL money by pushing ahead without respecting
+   the actual product requirement.
+2. I treated all landing cards with one generic approach, even after the user
+   said each card has its own functionality.
+3. I made fake "live video" by adding pan/zoom/shaking motion to still images.
+   That is not real AI video and must not be presented as video generation.
+4. I tried to patch visual symptoms instead of setting up the correct workflow
+   per card/mode.
+5. I did not stop early enough when the outputs were visibly wrong.
+6. I over-relied on Qwen/Nunchaku base image generation for tasks that needed
+   image editing, controlled identity preservation, virtual try-on, or real
+   image-to-video.
+
+Rules for future work:
+
+1. Do not use one generic treatment for all cards. Each card must demonstrate
+   its own capability:
+   - Catalog: marketplace cleanup, clean background, accurate product.
+   - Product: premium product lighting/composition.
+   - Creative: campaign/social creative.
+   - Lifestyle: product placed naturally in a scene.
+   - Fitting: real virtual try-on workflow, not random redraw.
+   - Stories: vertical social/video format.
+2. Before/after images must preserve the same product or person unless the user
+   explicitly asks for a change. If identity changes, reject the output.
+3. Do not call a pan/zoom/shaking still image a video. A 3-second video must use
+   a real image-to-video/video workflow with meaningful motion.
+4. Do not spend AutoDL/GPU money on broad experiments without a narrow test plan.
+   Test one card first, inspect it, then continue.
+5. For fitting, product identity, or precise edits, prefer dedicated tools such
+   as Flux Kontext / Flux image edit, Qwen Image Edit, or a virtual try-on model.
+   Do not assume base Qwen image generation is enough.
+6. If outputs are wrong twice in the same direction, stop and change workflow
+   instead of generating more variations.
+7. Be honest in status updates. Say "not solved" when it is not solved.
+
 ## Current Direction
 
 The project is a DomStudio AI product-photo SaaS. The frontend/backend are already
@@ -92,4 +134,3 @@ Start with:
 4. Regenerate buttons
 5. Browser-only recent history
 6. Client-side export sizes
-
