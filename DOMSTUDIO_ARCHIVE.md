@@ -141,3 +141,43 @@ The local `product_image.json` is still a simple graph. It should not be treated
 as the final product-preserving workflow. Tomorrow, load the Qwen image-edit
 example manually in ComfyUI, test one uploaded product image, then export the
 working graph in API format and wire that into DomStudio.
+
+## June 8, 2026 - Product Direction For Tomorrow
+
+User asked whether DomStudio should become a native mobile app now, or whether
+the Russian marketplace-first feature set should be built on the site first.
+
+Decision:
+
+Build the website/mobile-web/PWA product first. Native iOS/RuStore app comes
+later.
+
+Reasoning:
+
+1. The risky part is not the mobile wrapper. The risky part is proving the seller
+   workflow:
+   - product preservation
+   - WB/Ozon/Yandex presets
+   - affordable pricing
+   - batch upload/export
+   - marketplace card/infographic builder
+   - SEO/listing assistant
+2. The site can be tested immediately with sellers and can be made mobile-first.
+3. A native app should be distribution after the workflow is validated, not the
+   first build target.
+
+Positioning to use tomorrow:
+
+```text
+DomStudio is a Russian marketplace-first visual studio for WB/Ozon/Yandex
+sellers.
+```
+
+Suggested build direction:
+
+1. Improve the site around Russian marketplace sellers.
+2. Make the phone/mobile-web flow feel app-like:
+   upload photo -> choose marketplace -> generate -> download.
+3. Add affordable packs and clear token costs.
+4. Add content-pack workflow before video/native app work.
+5. Keep native mobile as a later milestone after paid website workflow is proven.

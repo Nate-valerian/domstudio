@@ -47,11 +47,58 @@ Rules for future work:
 ## Current Direction
 
 The project is a DomStudio AI product-photo SaaS. The frontend/backend are already
-deployable, and the current UI should stay close to the original style for now.
+deployable. The product direction is now:
+
+```text
+Russian marketplace-first visual studio for WB/Ozon/Yandex sellers.
+```
+
+Do not jump into a native iOS/RuStore app yet. First prove the seller workflow on
+the website and make the site feel mobile-first/PWA-like. Native mobile becomes
+distribution later, after the product flow is validated.
 
 The attempted full dark/premium restyle was rejected because it looked dated. The
 old stylesheet was restored. Future UI work should be surgical: improve polish
 without replacing the whole visual direction.
+
+## Tomorrow Product Decision
+
+Decision:
+
+Build the marketplace-first website/PWA first, then move to native mobile app
+later.
+
+Why:
+
+1. The hard part is not the app wrapper. The hard part is product preservation,
+   marketplace exports, pricing, batch generation, and seller workflow.
+2. Mobile web can be tested immediately with Russian sellers without App
+   Store/RuStore review friction.
+3. A native app should be built only after the core paid workflow is proven.
+4. The site should already work like a phone app: upload photo, choose
+   marketplace, generate, download.
+
+Tomorrow focus:
+
+1. Reposition the site around Russian marketplaces:
+   - Wildberries
+   - Ozon
+   - Yandex Market
+   - Avito
+   - VK / Telegram seller content
+2. Make pricing feel affordable for small sellers:
+   - cheap starter pack
+   - clear token cost before generation
+   - preview/final export split where possible
+3. Add or improve the first seller workflows:
+   - one-click marketplace preset
+   - content pack concept
+   - product-preserving catalog cleanup
+   - export sizes for marketplace/social
+4. Keep native mobile app as a later milestone after the website/PWA flow works.
+
+Do not spend tomorrow designing a native mobile app unless the user explicitly
+changes this decision.
 
 ## User Constraint
 
