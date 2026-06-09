@@ -102,15 +102,12 @@ async def send_email_otp(email: str, code: str):
 
 # ─── SMS OTP ──────────────────────────────────────────────────────────────────
 async def send_sms_otp(phone: str, code: str):
-    """
-    Send OTP via SMS using SMSC.ru (most reliable for Russian numbers).
-    Fallback: SMS.ru
-    """
+    """Send OTP via SMS.ru. Falls back to console log when SMS_API_KEY is unset."""
     if not SMS_API_KEY:
         print(f"[SMS OTP] To: {phone} | Code: {code}")
         return
 
-    # Normalize phone — strip non-digits, ensure starts with 7
+    # Normalize — strip non-digits, ensure starts with 7
     digits = "".join(c for c in phone if c.isdigit())
     if digits.startswith("8"):
         digits = "7" + digits[1:]
@@ -119,20 +116,17 @@ async def send_sms_otp(phone: str, code: str):
 
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(
-                "https://smsc.ru/sys/send.php",
-                params={
-                    "login":   os.getenv("SMS_LOGIN", "domstudio"),
-                    "psw":     SMS_API_KEY,
-                    "phones":  digits,
-                    "mes":     message,
-                    "sender":  SMS_SENDER,
-                    "charset": "utf-8",
-                    "fmt":     1,
-                }
+            resp = await client.post(
+                "https://sms.ru/sms/send",
+                data={
+                    "api_id": SMS_API_KEY,
+                    "to":     digits,
+                    "msg":    message,
+                    "json":   1,
+                },
             )
             data = resp.json()
-            if data.get("error"):
+            if data.get("status") != "OK":
                 print(f"[SMS ERROR] {data}")
-    except Exception as e:
-        print(f"[SMS EXCEPTION] {e}")
+    except Exception as exc:
+        print(f"[SMS EXCEPTION] {exc}")
