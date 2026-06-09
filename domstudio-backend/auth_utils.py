@@ -24,6 +24,8 @@ OTP_TTL_MIN     = 10        # 10 minutes
 SMS_API_KEY     = os.getenv("SMS_API_KEY", "")       # smsc.ru or sms.ru key
 SMS_SENDER      = os.getenv("SMS_SENDER", "DomStudio")
 FRONTEND_URL    = os.getenv("FRONTEND_URL", "https://domstudio.ru")
+RESEND_API_KEY  = os.getenv("RESEND_API_KEY", "")
+EMAIL_FROM      = os.getenv("EMAIL_FROM", "DomStudio <noreply@domstudio.ru>")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -69,25 +71,34 @@ def otp_expires_at() -> datetime:
 
 # ─── EMAIL OTP ────────────────────────────────────────────────────────────────
 async def send_email_otp(email: str, code: str):
-    """
-    Send OTP via email.
-    In production: replace with Sendgrid / Mailgun / SMTP.
-    For Russian market, Mail.ru Cloud Solutions SMTP works well.
-    """
-    # Placeholder — log to console in dev
-    print(f"[EMAIL OTP] To: {email} | Code: {code}")
-    # Production example with httpx + Mailgun:
-    # async with httpx.AsyncClient() as client:
-    #     await client.post(
-    #         "https://api.mailgun.net/v3/mg.domstudio.ru/messages",
-    #         auth=("api", MAILGUN_KEY),
-    #         data={
-    #             "from": "DomStudio <noreply@domstudio.ru>",
-    #             "to": email,
-    #             "subject": f"Ваш код: {code}",
-    #             "text": f"Код подтверждения DomStudio: {code}\nДействителен {OTP_TTL_MIN} минут.",
-    #         }
-    #     )
+    """Send OTP via Resend. Falls back to console log when RESEND_API_KEY is unset."""
+    if not RESEND_API_KEY:
+        print(f"[EMAIL OTP] To: {email} | Code: {code}")
+        return
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from":    EMAIL_FROM,
+                    "to":      [email],
+                    "subject": f"Ваш код подтверждения: {code}",
+                    "text": (
+                        f"Код подтверждения DomStudio: {code}\n"
+                        f"Действителен {OTP_TTL_MIN} минут.\n\n"
+                        "Если вы не запрашивали этот код — просто проигнорируйте письмо."
+                    ),
+                },
+            )
+            if resp.status_code not in (200, 201):
+                print(f"[EMAIL ERROR] Resend {resp.status_code}: {resp.text}")
+    except Exception as exc:
+        print(f"[EMAIL EXCEPTION] {exc}")
 
 # ─── SMS OTP ──────────────────────────────────────────────────────────────────
 async def send_sms_otp(phone: str, code: str):
