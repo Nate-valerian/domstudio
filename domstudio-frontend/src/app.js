@@ -148,6 +148,12 @@ const FALLBACK_PLANS = [
   { name: "business", price_rub: 1490, photos: 300, tokens: 30000 },
 ];
 
+const TOKEN_PACKS = [
+  { pack_id: "pack_500",  tokens: 500,  price_rub: 99,  label: "500 токенов" },
+  { pack_id: "pack_1500", tokens: 1500, price_rub: 249, label: "1 500 токенов" },
+  { pack_id: "pack_5000", tokens: 5000, price_rub: 699, label: "5 000 токенов" },
+];
+
 const DEFAULT_BRAND_PREFS = {
   brand_colors: "",
   preferred_background: "",
@@ -915,6 +921,19 @@ function pricingPage() {
             <button class="button ${plan.name === "pro" ? "gold" : ""}" data-plan="${plan.name}">${plan.price_rub ? "Выбрать тариф" : "Начать бесплатно"}</button>
           </article>`).join("")}
       </div>
+
+      <div class="topup-section">
+        <div class="mini-head"><h3>Докупить токены</h3><span>без смены тарифа · сгорают при следующем пополнении</span></div>
+        <div class="topup-grid">
+          ${TOKEN_PACKS.map(pack => `
+            <article class="topup-card">
+              <b>${pack.label}</b>
+              <span>~${Math.floor(pack.tokens / 100)} фото</span>
+              <div class="topup-price">${pack.price_rub} ₽</div>
+              <button class="button secondary" data-pack-id="${pack.pack_id}">Купить</button>
+            </article>`).join("")}
+        </div>
+      </div>
     </section>
   </main>`;
 }
@@ -998,6 +1017,7 @@ function bind() {
   document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => { state.authMode = null; state.authLoading = false; render(); }));
   document.querySelectorAll("[data-logout]").forEach(el => el.addEventListener("click", () => logout()));
   document.querySelectorAll("[data-plan]").forEach(el => el.addEventListener("click", () => choosePlan(el.dataset.plan)));
+  document.querySelectorAll("[data-pack-id]").forEach(el => el.addEventListener("click", () => choosePack(el.dataset.packId)));
   document.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
   document.querySelector("#verify-form")?.addEventListener("submit", submitVerification);
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
@@ -1504,6 +1524,19 @@ async function choosePlan(plan) {
   }
   try {
     const payment = await api("/payments/tinkoff/init", { method: "POST", body: JSON.stringify({ plan }) });
+    location.href = payment.payment_url;
+  } catch (error) {
+    toast(error.message);
+  }
+}
+
+async function choosePack(packId) {
+  if (!state.user) {
+    state.authMode = "register";
+    return render();
+  }
+  try {
+    const payment = await api("/payments/tinkoff/topup", { method: "POST", body: JSON.stringify({ pack_id: packId }) });
     location.href = payment.payment_url;
   } catch (error) {
     toast(error.message);

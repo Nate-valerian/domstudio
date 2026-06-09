@@ -54,6 +54,13 @@ PLANS = {
     PlanName.business: {"price_rub": 1490,   "photos": 300, "tokens": 30000},
 }
 
+# ─── TOKEN TOP-UP PACKS ──────────────────────────────────────────────────────
+TOKEN_PACKS = {
+    "pack_500":  {"tokens": 500,  "price_rub": 99,  "label": "500 токенов"},
+    "pack_1500": {"tokens": 1500, "price_rub": 249, "label": "1 500 токенов"},
+    "pack_5000": {"tokens": 5000, "price_rub": 699, "label": "5 000 токенов"},
+}
+
 # ─── MODELS ──────────────────────────────────────────────────────────────────
 class User(Base):
     __tablename__ = "users"
@@ -110,7 +117,8 @@ class Payment(Base):
     provider         = Column(Enum(PaymentProvider))
     provider_order_id= Column(String(255), unique=True, index=True)  # Tinkoff PaymentId
     amount_rub       = Column(Float)
-    plan             = Column(Enum(PlanName))
+    plan             = Column(Enum(PlanName), nullable=True)   # null for token top-ups
+    pack_id          = Column(String(50),  nullable=True)       # set for token top-up packs
     status           = Column(Enum(PaymentStatus), default=PaymentStatus.pending)
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
     updated_at       = Column(DateTime(timezone=True), onupdate=func.now())

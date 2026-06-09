@@ -1,10 +1,12 @@
 """
 DomStudio — Payments Router
 POST /payments/tinkoff/init          — create Tinkoff payment, get payment URL
+POST /payments/tinkoff/topup         — buy a token top-up pack via Tinkoff
 POST /payments/tinkoff/webhook       — Tinkoff server notification
 POST /payments/yandex/init           — create Yandex Pay order
 POST /payments/yandex/webhook        — Yandex Pay notification
 GET  /payments/history               — user payment history
+GET  /payments/packs                 — list available token top-up packs
 """
 
 import os
@@ -15,11 +17,11 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from pydantic import BaseModel
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
-from database import get_db, User, Payment, Subscription, TokenBalance, PaymentStatus, PaymentProvider, PlanName, PLANS
+from database import get_db, User, Payment, Subscription, TokenBalance, PaymentStatus, PaymentProvider, PlanName, PLANS, TOKEN_PACKS
 from dependencies import get_current_user
 
 router = APIRouter()
@@ -66,6 +68,9 @@ def yandex_sign(body: str) -> str:
 # ─── SCHEMAS ─────────────────────────────────────────────────────────────────
 class InitPaymentRequest(BaseModel):
     plan: PlanName
+
+class TopUpRequest(BaseModel):
+    pack_id: str
 
 class TinkoffWebhook(BaseModel):
     TerminalKey: str
@@ -134,6 +139,68 @@ async def tinkoff_init(
     }
 
 
+@router.post("/tinkoff/topup")
+async def tinkoff_topup(
+    req: TopUpRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if req.pack_id not in TOKEN_PACKS:
+        raise HTTPException(400, "Unknown token pack")
+
+    pack       = TOKEN_PACKS[req.pack_id]
+    amount_kop = int(pack["price_rub"] * 100)
+
+    payment = Payment(
+        user_id=current_user.id,
+        provider=PaymentProvider.tinkoff,
+        provider_order_id=f"DS-TOP-{current_user.id}-{int(datetime.now().timestamp())}",
+        amount_rub=pack["price_rub"],
+        pack_id=req.pack_id,
+        status=PaymentStatus.pending,
+    )
+    db.add(payment)
+    await db.flush()
+
+    result = await tinkoff_request("Init", {
+        "Amount":      amount_kop,
+        "OrderId":     str(payment.id),
+        "Description": f"DomStudio токены +{pack['tokens']}",
+        "NotificationURL": f"{os.getenv('API_URL','https://api.domstudio.ru')}/payments/tinkoff/webhook",
+        "SuccessURL":  f"{FRONTEND_URL}/?payment=success",
+        "FailURL":     f"{FRONTEND_URL}/?payment=failed",
+        "Receipt": {
+            "Email":    current_user.email or "",
+            "Phone":    current_user.phone or "",
+            "Taxation": "usn_income",
+            "Items": [{
+                "Name":     pack["label"],
+                "Price":    amount_kop,
+                "Quantity": 1,
+                "Amount":   amount_kop,
+                "Tax":      "none",
+            }]
+        }
+    })
+
+    if not result.get("Success"):
+        raise HTTPException(500, f"Tinkoff error: {result.get('Message')}")
+
+    payment.provider_order_id = result["PaymentId"]
+    return {
+        "payment_id":  str(payment.id),
+        "payment_url": result["PaymentURL"],
+    }
+
+
+@router.get("/packs")
+async def list_packs():
+    return [
+        {"pack_id": pid, **cfg}
+        for pid, cfg in TOKEN_PACKS.items()
+    ]
+
+
 @router.post("/tinkoff/webhook")
 async def tinkoff_webhook(
     request: Request,
@@ -158,7 +225,10 @@ async def tinkoff_webhook(
 
     if webhook.Status == "CONFIRMED" and payment.status != PaymentStatus.succeeded:
         payment.status = PaymentStatus.succeeded
-        await activate_subscription(payment.user_id, payment.plan, db)
+        if payment.pack_id:
+            await activate_topup(payment.user_id, payment.pack_id, db)
+        else:
+            await activate_subscription(payment.user_id, payment.plan, db)
 
     elif webhook.Status in ("CANCELED", "REJECTED", "DEADLINE_EXPIRED"):
         payment.status = PaymentStatus.failed
@@ -292,9 +362,9 @@ async def payment_history(
     ]
 
 
-# ─── SUBSCRIPTION ACTIVATION (background task) ───────────────────────────────
+# ─── SUBSCRIPTION ACTIVATION ────────────────────────────────────────────────
 async def activate_subscription(user_id, plan: PlanName, db: AsyncSession):
-    """Called after successful payment — upgrades plan + tops up tokens."""
+    """Called after successful plan payment — upgrades plan, resets quota, tops up tokens."""
     from sqlalchemy.orm import selectinload
     user = await db.scalar(
         select(User)
@@ -304,15 +374,26 @@ async def activate_subscription(user_id, plan: PlanName, db: AsyncSession):
     if not user:
         return
 
-    plan_cfg = PLANS[plan]
+    plan_cfg  = PLANS[plan]
+    renews_at = datetime.now(timezone.utc) + timedelta(days=30)
 
-    # Update subscription
     if user.subscription:
         user.subscription.plan         = plan
         user.subscription.photos_used  = 0
         user.subscription.photos_limit = plan_cfg["photos"]
-        user.subscription.renews_at    = None  # set renewal logic separately
-    
-    # Top up tokens
+        user.subscription.renews_at    = renews_at
+
     if user.token_balance:
         user.token_balance.balance += plan_cfg["tokens"]
+
+
+async def activate_topup(user_id, pack_id: str, db: AsyncSession):
+    """Called after successful top-up payment — adds tokens without changing the plan."""
+    pack = TOKEN_PACKS.get(pack_id)
+    if not pack:
+        return
+    await db.execute(
+        update(TokenBalance)
+        .where(TokenBalance.user_id == user_id)
+        .values(balance=TokenBalance.balance + pack["tokens"])
+    )

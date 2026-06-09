@@ -338,3 +338,202 @@ domstudio-backend/database.py
 
 3. **Preview/final export split** — requires a `/generation/preview` backend
    endpoint; not yet added.
+
+## June 9, 2026 — Afternoon: Tier 2 Frontend (history, batch, share, payment return, SEO)
+
+Commits: `71db365`
+
+### Changes in this session
+
+#### 1. Full history page (`#history`)
+
+Added a dedicated history page accessible from nav and sidebar (logged-in
+users only). Shows all stored items (limit raised from 5 → 20).
+
+Features:
+
+- Filter chips per shooting mode: Все / Каталог / Предметная / Креатив /
+  Lifestyle / Примерка / Stories
+- "Очистить всё" button clears all IndexedDB history
+- Grid layout: thumbnail (80×80), subject, mode + variation + resolution,
+  date + time
+- Empty state with CTA to studio
+- "No results for this mode" message when filter returns zero items
+- Responsive: single column on mobile
+
+New functions: `purgeHistory()`, `clearAllHistory()`, `historyPage()`.
+New CSS: `.chip-active`, `.history-full-grid`, `.history-card`,
+`.history-card-info`, `.history-card-thumb`, `.history-empty`.
+
+#### 2. Batch upload
+
+File input now accepts `multiple` attribute. When the user selects N > 1
+files:
+
+- All files are read as base64 immediately
+- `state.batchQueue` holds the queue
+- Upload label updates to "N фото в очереди · N×100 токенов"
+- Generate button updates to "Создать пакет · N×100 токенов"
+- `processBatch()` runs them sequentially via `generateWithPayload()`
+- Button shows "Пакет 2/3…" during processing
+- Toast on completion: "Пакет готов — N фото"
+
+Each batch item lands in browser history independently.
+
+#### 3. Share result (Web Share API)
+
+"Поделиться" button added to the export row (next to "Скачать").
+
+Priority chain:
+
+1. `navigator.canShare({ files })` → native share sheet with image file
+2. `navigator.clipboard.write` → copy image to clipboard + toast
+3. Fallback → trigger download
+
+Error on `AbortError` (user cancelled) is silently swallowed.
+
+#### 4. Payment return handling
+
+On app init, checks `new URLSearchParams(location.search).get("payment")`:
+
+- `payment=success` → reload user data, show toast, navigate `#account`
+- `payment=failed` → show toast, navigate `#pricing`
+- Clears the query param from URL via `history.replaceState`
+
+No backend changes needed; Tinkoff already redirects to the configured URL.
+
+#### 5. SEO route titles
+
+`document.title` is updated every time `navigate()` or `render()` runs.
+
+```text
+home    → DomStudio — AI-студия для продавцов маркетплейсов
+studio  → Студия — DomStudio
+pricing → Тарифы — DomStudio
+account → Аккаунт — DomStudio
+history → История генераций — DomStudio
+```
+
+### Files changed in this session
+
+```text
+domstudio-frontend/src/app.js
+domstudio-frontend/src/styles.css
+```
+
+### Remaining after this session
+
+1. **ComfyUI / Qwen workflow** — unchanged from above.
+2. **Subscription renewal** — fixed in Tier 3 (see below).
+3. **Token top-up packs** — implemented in Tier 3 (see below).
+4. **Async video job API** — implemented in Tier 3 (see below).
+
+## June 9, 2026 — Evening: Tier 3 Backend (renewal, top-up, video jobs)
+
+### What was built
+
+#### 1. Subscription renewal date
+
+`activate_subscription()` in `payments.py` now sets:
+
+```python
+renews_at = datetime.now(timezone.utc) + timedelta(days=30)
+```
+
+Previously it was always `None`. The field already existed in the model and
+is returned in `/users/me/full`; it was just never populated.
+
+#### 2. Token top-up packs
+
+Sellers can now buy extra tokens without switching plan.
+
+**Backend (`database.py`):**
+
+```python
+TOKEN_PACKS = {
+    "pack_500":  {"tokens": 500,  "price_rub": 99,  "label": "500 токенов"},
+    "pack_1500": {"tokens": 1500, "price_rub": 249, "label": "1 500 токенов"},
+    "pack_5000": {"tokens": 5000, "price_rub": 699, "label": "5 000 токенов"},
+}
+```
+
+Added `pack_id = Column(String(50), nullable=True)` to the `Payment` model.
+Existing plan payments have `pack_id = None`; top-up payments have `plan = None`.
+
+New endpoints in `payments.py`:
+
+- `POST /payments/tinkoff/topup` — creates a top-up Payment with `pack_id`,
+  calls Tinkoff Init, returns `payment_url`.
+- `GET /payments/packs` — returns the list of available packs.
+- `activate_topup()` helper — called by the webhook when `payment.pack_id`
+  is set; adds tokens without touching the subscription.
+
+Tinkoff webhook now branches: if `payment.pack_id` is set → `activate_topup`,
+otherwise → `activate_subscription`.
+
+**Frontend (`app.js` + `styles.css`):**
+
+- `TOKEN_PACKS` constant mirrors backend config.
+- `pricingPage()` appends a "Докупить токены" section below the plan grid:
+  3 cards (500 / 1 500 / 5 000 токенов) with price and "Купить" button.
+- `choosePack(packId)` calls `POST /payments/tinkoff/topup`, redirects to
+  Tinkoff on success.
+- `[data-pack-id]` wired in `bind()`.
+- New CSS: `.topup-section`, `.topup-grid`, `.topup-card`, `.topup-price`.
+
+#### 3. Async video job API
+
+`GenerationJob` model already existed. Added three endpoints to
+`generation.py`:
+
+**`POST /generation/video`**
+
+- Validates token balance (costs 300 tokens).
+- Creates a `GenerationJob` record with `status=queued`.
+- Schedules `_run_video_job()` as a FastAPI `BackgroundTask`.
+- Returns `{job_id, status, tokens_charged, token_balance}` immediately.
+
+**`_run_video_job(job_id, req)`** (background):
+
+- Sets job status → `processing`.
+- Calls the real ComfyUI video workflow (currently stubbed with
+  `asyncio.sleep(5)` until the workflow is wired).
+- Sets status → `done` + `output_url` on success.
+- Sets status → `failed` and refunds tokens on error.
+
+**`GET /generation/jobs`**
+
+Returns the 20 most recent jobs for the current user.
+
+**`GET /generation/jobs/{job_id}`**
+
+Returns a single job; 404 if it belongs to another user.
+
+Using FastAPI `BackgroundTasks` instead of Redis/Celery keeps the stack
+simple. The API surface is identical to what a Redis-backed worker would
+expose — swapping in Celery later requires only replacing
+`_run_video_job` with a task decorator.
+
+### Tier 3 files changed
+
+```text
+domstudio-backend/database.py
+domstudio-backend/routers/payments.py
+domstudio-backend/routers/generation.py
+domstudio-frontend/src/app.js
+domstudio-frontend/src/styles.css
+DOMSTUDIO_ARCHIVE.md
+```
+
+### Still remaining
+
+1. **ComfyUI / Qwen image workflow** — `product_image.json` is still a stub.
+   Boot `autodl-container-95c4479bc9-7f1ffc79`, load Qwen image-edit example,
+   export API format, replace the file, set `GENERATION_PROVIDER=comfy`.
+2. **Video workflow stub** — `_run_video_job` sleeps 5s. Replace with real
+   ComfyUI image-to-video call once the workflow is available.
+3. **SMS / email OTP service** — `SMS_API_KEY` env var is read but no real
+   provider is wired (`send_sms_otp` / `send_email_otp` in `auth_utils.py`).
+4. **Deployment** — frontend + backend not live yet.
+5. **DB migration** — `Payment.pack_id` column needs `ALTER TABLE` on existing
+   deployments (new installs get it from `create_all`).

@@ -525,6 +525,18 @@ h1 em { color: var(--gold); font-style: normal; }
   .history-card-thumb { width: 62px; height: 62px; }
 }
 
+/* ── Token top-up section ────────────────────────────────────────────────── */
+.topup-section { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--line); }
+.topup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; }
+.topup-card {
+  display: flex; flex-direction: column; gap: 6px; padding: 20px;
+  border: 1px solid var(--line); border-radius: 18px; background: var(--card);
+}
+.topup-card b { font-size: 17px; }
+.topup-card span { color: var(--muted); font-size: 13px; font-weight: 700; }
+.topup-price { margin: 6px 0 10px; font: 700 26px "Unbounded"; }
+.topup-card .button { margin-top: auto; }
+
 /* ── History page ────────────────────────────────────────────────────────── */
 .chip-active { background: var(--ink); color: white; border-color: var(--ink); }
 .history-full-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 4px; }
