@@ -49,9 +49,9 @@ class JobStatus(str, enum.Enum):
 # ─── PLANS CONFIG ────────────────────────────────────────────────────────────
 PLANS = {
     PlanName.free:     {"price_rub": 0,      "photos": 5,   "tokens": 500},
-    PlanName.basic:    {"price_rub": 500,    "photos": 30,  "tokens": 3000},
-    PlanName.pro:      {"price_rub": 1400,   "photos": 120, "tokens": 12000},
-    PlanName.business: {"price_rub": 2700,   "photos": 300, "tokens": 30000},
+    PlanName.basic:    {"price_rub": 270,    "photos": 30,  "tokens": 3000},
+    PlanName.pro:      {"price_rub": 790,    "photos": 100, "tokens": 10000},
+    PlanName.business: {"price_rub": 1490,   "photos": 300, "tokens": 30000},
 }
 
 # ─── MODELS ──────────────────────────────────────────────────────────────────

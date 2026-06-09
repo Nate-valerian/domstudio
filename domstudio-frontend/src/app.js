@@ -48,11 +48,18 @@ const MARKETPLACE_PRESETS = [
     subjectInstruction: "Prepare it for Yandex Market.",
   },
   {
+    id: "avito",
+    label: "Avito",
+    mode: "catalog",
+    hint: "Avito listing photo, honest clear product photo, natural daylight-style lighting, light neutral background, accurate colors and proportions, no text overlays.",
+    subjectInstruction: "Prepare it for an Avito product listing.",
+  },
+  {
     id: "instagram",
-    label: "VK / Social Post",
+    label: "VK / Telegram",
     mode: "creative",
-    hint: "VK and social feed creative, 4:5 or square-safe composition, scroll-stopping but realistic, tasteful brand mood.",
-    subjectInstruction: "Make it work as a VK or social feed post.",
+    hint: "VK and Telegram channel post creative, engaging product photo, scroll-stopping but realistic, brand-consistent composition, 4:5 or square-safe.",
+    subjectInstruction: "Make it work as a VK or Telegram post.",
   },
   {
     id: "story",
@@ -97,6 +104,16 @@ const EXPORT_SIZES = {
   widescreen: { label: "16:9 (1920 x 1080)", width: 1920, height: 1080 },
 };
 
+const PACK_FORMATS = [
+  { id: "wb", label: "Wildberries", size: "square", format: "jpeg" },
+  { id: "ozon", label: "Ozon", size: "square", format: "jpeg" },
+  { id: "yandex", label: "Yandex Market", size: "square", format: "jpeg" },
+  { id: "avito", label: "Avito", size: "square", format: "jpeg" },
+  { id: "story", label: "Story 9:16", size: "story", format: "png" },
+  { id: "post", label: "Пост 4:5", size: "feed", format: "jpeg" },
+  { id: "banner", label: "Баннер 16:9", size: "widescreen", format: "jpeg" },
+];
+
 const HISTORY_DB = "domstudio_history";
 const HISTORY_STORE = "results";
 const HISTORY_LIMIT = 5;
@@ -118,9 +135,9 @@ const PLAN_DESCRIPTIONS = {
 
 const FALLBACK_PLANS = [
   { name: "free", price_rub: 0, photos: 5, tokens: 500 },
-  { name: "basic", price_rub: 500, photos: 30, tokens: 3000 },
-  { name: "pro", price_rub: 1400, photos: 120, tokens: 12000 },
-  { name: "business", price_rub: 2700, photos: 300, tokens: 30000 },
+  { name: "basic", price_rub: 270, photos: 30, tokens: 3000 },
+  { name: "pro", price_rub: 790, photos: 100, tokens: 10000 },
+  { name: "business", price_rub: 1490, photos: 300, tokens: 30000 },
 ];
 
 const DEFAULT_BRAND_PREFS = {
@@ -176,6 +193,8 @@ const state = {
   history: [],
   brandPrefs: initialBrandPrefs,
   generating: false,
+  brandPrefsOpen: false,
+  promptHelperOpen: false,
   formDraft: {
     mode: "catalog",
     marketplace: initialBrandPrefs.default_marketplace,
@@ -509,6 +528,16 @@ function comparisonPanel() {
   </div>`;
 }
 
+function contentPackTools() {
+  if (!state.generatedImage || state.generating) return "";
+  return `<div class="content-pack">
+    <div class="mini-head"><h3>Пакет для площадок</h3><span>скачать одним кликом</span></div>
+    <div class="pack-grid">
+      ${PACK_FORMATS.map((fmt) => `<button class="pack-btn" type="button" data-pack="${fmt.id}">${fmt.label}<span>${EXPORT_SIZES[fmt.size].label}</span></button>`).join("")}
+    </div>
+  </div>`;
+}
+
 function nav() {
   const logged = Boolean(state.user);
   const navItems = [
@@ -527,11 +556,10 @@ function nav() {
         <div class="nav-dropdown ${state.presetsOpen ? "open" : ""}">
           <button class="nav-link dropdown-trigger" type="button" data-toggle-presets>Пресеты <span>⌄</span></button>
           <div class="preset-menu">
-            ${MARKETPLACE_PRESETS.map((preset) => `
-              <button type="button" data-preset-route="${preset.id}">
-                <b>${preset.label}</b>
-                <span>${preset.mode === "mobile" ? "9:16 social" : preset.mode === "creative" ? "4:5 creative" : preset.mode === "product" ? "banner / premium" : "marketplace card"}</span>
-              </button>`).join("")}
+            ${MARKETPLACE_PRESETS.map((preset) => {
+              const desc = preset.mode === "mobile" ? "9:16 · сторис" : preset.mode === "creative" ? "4:5 · VK / Telegram" : preset.mode === "product" ? "баннер · премиум" : "карточка маркетплейса";
+              return `<button type="button" data-preset-route="${preset.id}"><b>${preset.label}</b><span>${desc}</span></button>`;
+            }).join("")}
           </div>
         </div>
       </div>
@@ -557,26 +585,26 @@ function homePage() {
     <main class="page">
       <section class="hero">
         <div class="hero-copy">
-          <div class="eyebrow">AI-фотостудия для товаров</div>
+          <div class="eyebrow">AI-студия для продавцов маркетплейсов</div>
           <h1>Контент, который <em>продаёт</em></h1>
-          <p>Загрузите обычное фото товара, выберите площадку и получите готовую студийную съёмку для маркетплейсов, рекламы и социальных сетей.</p>
+          <p>Загрузите обычное фото товара, выберите площадку — Wildberries, Ozon, Yandex, Avito — и получите готовую карточку, сторис или баннер за минуты.</p>
           <div class="hero-actions">
             <button class="button gold" data-route="studio">Создать первое фото</button>
             <button class="button secondary" data-route="pricing">Посмотреть тарифы</button>
           </div>
-          <div class="trust-row"><span>5 фото бесплатно</span><span>30 фото за 500 ₽</span><span>Экспорт под площадки</span></div>
+          <div class="trust-row"><span>5 фото бесплатно</span><span>30 фото за 270 ₽</span><span>WB · Ozon · Yandex · Avito</span></div>
         </div>
         <div class="hero-visual">
           <div class="hero-studio-card">
             <div class="studio-card-top">
               <span>Mini studio</span>
-              <b>WB · Ozon · Stories</b>
+              <b>WB · Ozon · Yandex · Avito</b>
             </div>
             <div class="hero-proof-frame"><img src="${productProofUrl}" alt="Пример улучшения товарного фото в DomStudio" /></div>
             <div class="mini-studio-controls">
               <label><span>Фото товара</span><button type="button" data-route="studio">Загрузить</button></label>
               <label><span>Промпт</span><input value="сыворотка на светлом фоне" readonly /></label>
-              <div class="preset-pills"><span>Wildberries</span><span>Clean catalog</span><span>1080×1080</span></div>
+              <div class="preset-pills"><span>Wildberries</span><span>Ozon</span><span>Avito</span><span>1080×1080</span></div>
               <button class="button gold block" type="button" data-route="studio">Создать бесплатно</button>
             </div>
           </div>
@@ -593,7 +621,7 @@ function homePage() {
           <article class="proof-visual"><img src="${productProofUrl}" alt="До и после AI-обработки товарного фото" /></article>
           <div class="proof-copy">
             <div class="proof-stat"><b>30</b><span>фото в первом платном пакете</span></div>
-            <div class="proof-stat"><b>500 ₽</b><span>низкий вход после бесплатных 5</span></div>
+            <div class="proof-stat"><b>270 ₽</b><span>низкий вход после бесплатных 5</span></div>
             <div class="proof-stat"><b>3 формата</b><span>карточка, пост, сторис и widescreen export</span></div>
           </div>
         </div>
@@ -660,30 +688,43 @@ function studioPage() {
             <div class="field"><label for="style_template">Шаблон стиля</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${template.label}</option>`).join("")}</select></div>
             <div class="field"><label for="mode">Режим съёмки</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${mode[1]} — ${mode[2]}</option>`).join("")}</select></div>
           </div>
-          <div class="brand-preferences">
-            <div class="mini-head"><h3>Бренд</h3><span>сохранит текущую площадку и стиль</span></div>
-            <div class="helper-grid">
-              <div class="field"><label for="brand_pref_colors">Цвета</label><input class="input" id="brand_pref_colors" name="brand_pref_colors" value="${brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
-              <div class="field"><label for="brand_pref_background">Фон</label><input class="input" id="brand_pref_background" name="brand_pref_background" value="${brandPrefValue("preferred_background")}" placeholder="тёплый светлый фон" /></div>
-              <div class="field"><label for="brand_pref_mood">Настроение</label><input class="input" id="brand_pref_mood" name="brand_pref_mood" value="${brandPrefValue("brand_mood")}" placeholder="clean luxury, calm, premium" /></div>
-              <div class="field"><label for="brand_pref_avoid">Не использовать</label><input class="input" id="brand_pref_avoid" name="brand_pref_avoid" value="${brandPrefValue("do_not_use")}" placeholder="неон, дешёвый пластик, текст" /></div>
-            </div>
-            <button class="button secondary block" type="button" data-save-brand>Сохранить бренд</button>
+          <div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
+            <button class="collapsible-head" type="button" data-toggle-brand>
+              <span><h3>Бренд</h3><small>площадка, стиль, цвета по умолчанию</small></span>
+              <span class="chevron">${state.brandPrefsOpen ? "−" : "+"}</span>
+            </button>
+            ${state.brandPrefsOpen ? `<div class="collapsible-body">
+              <div class="helper-grid">
+                <div class="field"><label for="brand_pref_colors">Цвета</label><input class="input" id="brand_pref_colors" name="brand_pref_colors" value="${brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
+                <div class="field"><label for="brand_pref_background">Фон</label><input class="input" id="brand_pref_background" name="brand_pref_background" value="${brandPrefValue("preferred_background")}" placeholder="тёплый светлый фон" /></div>
+                <div class="field"><label for="brand_pref_mood">Настроение</label><input class="input" id="brand_pref_mood" name="brand_pref_mood" value="${brandPrefValue("brand_mood")}" placeholder="clean luxury, calm, premium" /></div>
+                <div class="field"><label for="brand_pref_avoid">Не использовать</label><input class="input" id="brand_pref_avoid" name="brand_pref_avoid" value="${brandPrefValue("do_not_use")}" placeholder="неон, дешёвый пластик, текст" /></div>
+              </div>
+              <button class="button secondary block" type="button" data-save-brand>Сохранить бренд</button>
+            </div>` : ""}
           </div>
-          <div class="prompt-helper">
-            <div class="mini-head"><h3>Помощник промпта</h3><span>соберёт основу сам</span></div>
-            <div class="helper-grid">
-              <div class="field"><label for="product_type">Тип товара</label><input class="input" id="product_type" name="product_type" value="${draftValue("product_type")}" placeholder="Золотые серьги-кольца" /></div>
-              <div class="field"><label for="brand_colors">Цвета бренда</label><input class="input" id="brand_colors" name="brand_colors" value="${draftValue("brand_colors") || brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
-              <div class="field wide"><label for="constraints">Ограничения</label><input class="input" id="constraints" name="constraints" value="${draftValue("constraints")}" placeholder="без текста, без рук, сохранить форму упаковки" /></div>
-            </div>
-            <button class="button secondary block" type="button" data-build-prompt>Собрать промпт из настроек</button>
+          <div class="prompt-helper collapsible ${state.promptHelperOpen ? "open" : ""}">
+            <button class="collapsible-head" type="button" data-toggle-prompt>
+              <span><h3>Помощник промпта</h3><small>соберёт описание и стиль автоматически</small></span>
+              <span class="chevron">${state.promptHelperOpen ? "−" : "+"}</span>
+            </button>
+            ${state.promptHelperOpen ? `<div class="collapsible-body">
+              <div class="helper-grid">
+                <div class="field"><label for="product_type">Тип товара</label><input class="input" id="product_type" name="product_type" value="${draftValue("product_type")}" placeholder="Золотые серьги-кольца" /></div>
+                <div class="field"><label for="brand_colors">Цвета бренда</label><input class="input" id="brand_colors" name="brand_colors" value="${draftValue("brand_colors") || brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
+                <div class="field wide"><label for="constraints">Ограничения</label><input class="input" id="constraints" name="constraints" value="${draftValue("constraints")}" placeholder="без текста, без рук, сохранить форму упаковки" /></div>
+              </div>
+              <button class="button secondary block" type="button" data-build-prompt>Собрать промпт из настроек</button>
+            </div>` : ""}
           </div>
           <div class="field"><label for="subject">Что снимаем</label><textarea class="textarea" id="subject" name="subject" required placeholder="Например: золотые серьги-кольца на светлом фоне">${draftValue("subject")}</textarea></div>
           <div class="field"><label for="style_hint">Пожелания к стилю</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="Тёплый свет, премиальный минимализм" /></div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" /><span><strong>${state.selectedImageName ? escapeHtml(state.selectedImageName) : "Добавить фото товара"}</strong><br />${state.selectedImageName ? "Фото готово к генерации" : "PNG или JPEG, до 10 МБ"}</span></label>
           <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> Сделать дополнительный 4K-апскейл</label>
           <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? "Создаём кадр…" : "Создать фото · 100 токенов"}</button>
+          ${state.user.tokens < 100
+            ? `<p class="token-hint warn">Токенов недостаточно — <button class="text-button" type="button" data-route="pricing">пополнить тариф</button></p>`
+            : `<p class="token-hint">У вас ${state.user.tokens} токенов · хватит на ~${Math.floor(state.user.tokens / 100)} фото</p>`}
         </form>
         <div class="panel">
           <div class="result ${state.generating && !state.generatedImage ? "loading" : ""}">
@@ -693,6 +734,7 @@ function studioPage() {
           </div>
           ${state.generatedMeta ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
           ${exportTools()}
+          ${contentPackTools()}
           ${comparisonPanel()}
           ${variationTools()}
           ${historyPanel()}
@@ -705,16 +747,68 @@ function studioPage() {
 function accountPage() {
   if (!state.user) return gatePage();
   const sub = state.user.subscription || {};
+  const planName = sub.plan || "free";
+  const isFree = planName === "free";
+  const lowTokens = state.user.tokens < 300;
+  const recentHistory = state.history.slice(0, 3);
+  const bp = state.brandPrefs;
+  const hasBrand = bp.brand_colors || bp.preferred_background || bp.brand_mood || bp.do_not_use;
+
   return `<main class="app-layout">
     ${appSidebar("account")}
     <section class="workspace">
-      <header class="workspace-head"><div><div class="eyebrow">Аккаунт</div><h1>Обзор</h1></div><button class="button" data-route="studio">Создать фото</button></header>
+      <header class="workspace-head"><div><div class="eyebrow">Аккаунт</div><h1>Обзор</h1></div><button class="button gold" data-route="studio">Создать фото</button></header>
+
       <div class="stats">
-        <article class="stat"><span>Текущий тариф</span><b>${sub.plan || "free"}</b></article>
-        <article class="stat"><span>Осталось токенов</span><b>${state.user.tokens}</b></article>
-        <article class="stat"><span>Фото в этом периоде</span><b>${sub.photos_used || 0} / ${sub.photos_limit || 5}</b></article>
+        <article class="stat"><span>Тариф</span><b>${planLabel(planName)}</b></article>
+        <article class="stat"><span>Токенов осталось</span><b>${state.user.tokens.toLocaleString("ru-RU")}</b></article>
+        <article class="stat"><span>Фото в периоде</span><b>${sub.photos_used || 0} / ${sub.photos_limit || 5}</b></article>
       </div>
-      <div class="panel"><h3>Данные аккаунта</h3><p>${state.user.email || state.user.phone}</p><p>Статус: ${state.user.is_verified ? "подтверждён" : "ожидает подтверждения"}</p></div>
+
+      ${isFree || lowTokens ? `
+      <div class="upgrade-cta">
+        <div class="upgrade-cta-copy">
+          <b>${isFree ? "Попробуйте Старт — 270 ₽/мес" : "Токены заканчиваются"}</b>
+          <span>${isFree ? "30 фото, 3 000 токенов, все режимы съёмки" : "Пополните тариф, чтобы не прерываться"}</span>
+        </div>
+        <button class="button gold" data-route="pricing">Выбрать тариф</button>
+      </div>` : ""}
+
+      ${recentHistory.length ? `
+      <div class="panel account-section">
+        <div class="account-section-head"><h3>Недавние результаты</h3><span>из браузера</span></div>
+        <div class="history-grid">
+          ${recentHistory.map((item) => `
+            <article class="history-item">
+              <button class="history-thumb" type="button" data-history-id="${item.id}">
+                <img src="${item.dataUrl}" alt="${escapeHtml(item.subject)}" />
+              </button>
+              <div>
+                <b>${escapeHtml(item.subject)}</b>
+                <span>${escapeHtml(item.mode)}${item.width ? ` · ${item.width}×${item.height}` : ""}</span>
+              </div>
+              <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
+            </article>`).join("")}
+        </div>
+        <button class="button secondary" style="margin-top:14px" data-route="studio">Открыть студию</button>
+      </div>` : ""}
+
+      ${hasBrand ? `
+      <div class="panel account-section">
+        <div class="account-section-head"><h3>Бренд</h3><button class="text-button" data-route="studio">Изменить</button></div>
+        <dl class="brand-summary">
+          ${bp.brand_colors ? `<div><dt>Цвета</dt><dd>${escapeHtml(bp.brand_colors)}</dd></div>` : ""}
+          ${bp.preferred_background ? `<div><dt>Фон</dt><dd>${escapeHtml(bp.preferred_background)}</dd></div>` : ""}
+          ${bp.brand_mood ? `<div><dt>Настроение</dt><dd>${escapeHtml(bp.brand_mood)}</dd></div>` : ""}
+          ${bp.do_not_use ? `<div><dt>Избегать</dt><dd>${escapeHtml(bp.do_not_use)}</dd></div>` : ""}
+        </dl>
+      </div>` : ""}
+
+      <div class="panel account-section">
+        <div class="account-section-head"><h3>Данные аккаунта</h3></div>
+        <p class="account-contact">${escapeHtml(state.user.email || state.user.phone || "—")}</p>
+        <p class="account-status ${state.user.is_verified ? "verified" : "pending"}">${state.user.is_verified ? "✓ Подтверждён" : "⏳ Ожидает подтверждения"}</p>
+      </div>
     </section>
   </main>`;
 }
@@ -826,10 +920,13 @@ function bind() {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
   });
   document.querySelector("#marketplace")?.addEventListener("change", selectMarketplacePreset);
+  document.querySelector("[data-toggle-brand]")?.addEventListener("click", toggleBrandPrefs);
+  document.querySelector("[data-toggle-prompt]")?.addEventListener("click", togglePromptHelper);
   document.querySelector("[data-save-brand]")?.addEventListener("click", saveBrandPreferences);
   document.querySelector("[data-build-prompt]")?.addEventListener("click", buildPromptFromHelper);
   document.querySelectorAll("[data-variation]").forEach(el => el.addEventListener("click", () => regenerateVariation(el.dataset.variation)));
   document.querySelector("[data-export]")?.addEventListener("click", exportGeneratedImage);
+  document.querySelectorAll("[data-pack]").forEach(el => el.addEventListener("click", () => exportForPack(el.dataset.pack)));
   document.querySelectorAll("[data-history-id]").forEach(el => el.addEventListener("click", () => restoreHistoryItem(el.dataset.historyId)));
   document.querySelectorAll("[data-delete-history]").forEach(el => el.addEventListener("click", () => removeHistoryItem(el.dataset.deleteHistory)));
   document.querySelector("#image")?.addEventListener("change", selectImage);
@@ -978,6 +1075,16 @@ function selectMarketplacePreset(event) {
   syncDraftFromForm(document.querySelector("#generate-form"));
 }
 
+function toggleBrandPrefs() {
+  state.brandPrefsOpen = !state.brandPrefsOpen;
+  render({ motion: false });
+}
+
+function togglePromptHelper() {
+  state.promptHelperOpen = !state.promptHelperOpen;
+  render({ motion: false });
+}
+
 function buildPromptFromHelper() {
   const form = document.querySelector("#generate-form");
   if (!form) return;
@@ -1053,39 +1160,55 @@ function loadImage(src) {
   });
 }
 
+async function renderToCanvas(image, sizeId, format) {
+  const exportSize = EXPORT_SIZES[sizeId] || EXPORT_SIZES.original;
+  const width = exportSize.width || image.naturalWidth;
+  const height = exportSize.height || image.naturalHeight;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = width;
+  canvas.height = height;
+  if (format === "jpeg") {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+  }
+  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = Math.round(image.naturalWidth * scale);
+  const drawHeight = Math.round(image.naturalHeight * scale);
+  ctx.drawImage(image, Math.round((width - drawWidth) / 2), Math.round((height - drawHeight) / 2), drawWidth, drawHeight);
+  const mime = format === "jpeg" ? "image/jpeg" : `image/${format}`;
+  return canvas.toDataURL(mime, 0.94);
+}
+
 async function exportGeneratedImage() {
   if (!state.generatedImage) return;
   try {
     const format = document.querySelector("#export-format")?.value || "png";
     const sizeId = document.querySelector("#export-size")?.value || "original";
-    const exportSize = EXPORT_SIZES[sizeId] || EXPORT_SIZES.original;
     const image = await loadImage(state.generatedImage);
-    const width = exportSize.width || image.naturalWidth;
-    const height = exportSize.height || image.naturalHeight;
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = width;
-    canvas.height = height;
-
-    if (format === "jpeg") {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, width, height);
-    }
-
-    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
-    const drawWidth = Math.round(image.naturalWidth * scale);
-    const drawHeight = Math.round(image.naturalHeight * scale);
-    const x = Math.round((width - drawWidth) / 2);
-    const y = Math.round((height - drawHeight) / 2);
-    ctx.drawImage(image, x, y, drawWidth, drawHeight);
-
-    const mime = format === "jpeg" ? "image/jpeg" : `image/${format}`;
+    const dataUrl = await renderToCanvas(image, sizeId, format);
     const link = document.createElement("a");
-    link.href = canvas.toDataURL(mime, 0.94);
+    link.href = dataUrl;
     link.download = `domstudio-${sizeId}.${format === "jpeg" ? "jpg" : format}`;
     link.click();
   } catch {
     toast("Не удалось экспортировать изображение");
+  }
+}
+
+async function exportForPack(packId) {
+  const fmt = PACK_FORMATS.find((f) => f.id === packId);
+  if (!fmt || !state.generatedImage) return;
+  try {
+    const image = await loadImage(state.generatedImage);
+    const dataUrl = await renderToCanvas(image, fmt.size, fmt.format);
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `domstudio-${fmt.id}.${fmt.format === "jpeg" ? "jpg" : fmt.format}`;
+    link.click();
+    toast(`Скачан: ${fmt.label}`);
+  } catch {
+    toast("Не удалось экспортировать");
   }
 }
 
