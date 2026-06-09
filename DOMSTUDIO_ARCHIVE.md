@@ -525,15 +525,93 @@ domstudio-frontend/src/styles.css
 DOMSTUDIO_ARCHIVE.md
 ```
 
-### Still remaining
+### Still remaining after Tier 3
 
 1. **ComfyUI / Qwen image workflow** — `product_image.json` is still a stub.
    Boot `autodl-container-95c4479bc9-7f1ffc79`, load Qwen image-edit example,
    export API format, replace the file, set `GENERATION_PROVIDER=comfy`.
 2. **Video workflow stub** — `_run_video_job` sleeps 5s. Replace with real
    ComfyUI image-to-video call once the workflow is available.
-3. **SMS / email OTP service** — `SMS_API_KEY` env var is read but no real
-   provider is wired (`send_sms_otp` / `send_email_otp` in `auth_utils.py`).
+3. **SMS / email OTP service** — not yet wired.
 4. **Deployment** — frontend + backend not live yet.
 5. **DB migration** — `Payment.pack_id` column needs `ALTER TABLE` on existing
    deployments (new installs get it from `create_all`).
+
+## June 9, 2026 — Evening: Tier 4 (OTP providers, DB migrations, deployment)
+
+Commits: `32c996e`, `cb3e3e1`, `030dfcb`
+
+### What was built
+
+#### 1. Email OTP — Resend
+
+`send_email_otp()` in `auth_utils.py` now makes a real HTTP POST to
+`https://api.resend.com/emails` using `httpx`. Falls back to console log
+when `RESEND_API_KEY` is unset (dev-friendly).
+
+New env vars: `RESEND_API_KEY`, `EMAIL_FROM`.
+API key saved to `.env` (not committed).
+
+#### 2. SMS OTP — SMS.ru
+
+`send_sms_otp()` switched from SMSC.ru (login+password) to SMS.ru
+(`api_id` auth). POST to `https://sms.ru/sms/send`. Same console fallback
+pattern when `SMS_API_KEY` is unset.
+
+`SMS_LOGIN` env var removed (not needed by SMS.ru).
+API key (`FBD1E9E3-…`) saved to `.env`.
+
+Sender name `Domstudio` submitted for registration on SMS.ru.
+
+#### 3. DB migration runner (`migrate.py`)
+
+Standalone `asyncpg` script — no Alembic config needed.
+
+Tracks applied versions in a `schema_migrations` table (safe to re-run).
+Three migrations:
+
+- `001` — `ALTER TABLE payments ADD COLUMN IF NOT EXISTS pack_id VARCHAR(50)`
+- `002` — `CREATE TABLE IF NOT EXISTS generation_jobs` (for existing DBs that
+  predate the Tier 3 model addition)
+- `003` — `ALTER TABLE payments ALTER COLUMN plan DROP NOT NULL`
+
+Usage: `python migrate.py` (reads `DATABASE_URL` from `.env`).
+
+#### 4. Deployment configs
+
+- `domstudio-frontend/vercel.json` — SPA rewrite rule + explicit
+  `buildCommand: "npm run build"` and `outputDirectory: "dist"` (needed
+  because Vercel's auto-detected command included a broken `cd` prefix for
+  the monorepo).
+- `domstudio-backend/Procfile` — `web: uvicorn main:app --host 0.0.0.0 --port $PORT`
+- `domstudio-backend/railway.toml` — nixpacks build, health check at `/health`.
+
+#### 5. Frontend live on Vercel
+
+Project: `domstudio3.vercel.app` (Nate-valerian/domstudio, branch: main).
+Root directory set to `domstudio-frontend`.
+Auto-deploys on push to `main`.
+
+`VITE_API_URL` not yet set — frontend hits `localhost:8000` by default until
+the backend is deployed.
+
+### Tier 4 files changed (OTP + migrations + deploy)
+
+```text
+domstudio-backend/auth_utils.py
+domstudio-backend/.env.example
+domstudio-backend/migrate.py          (new)
+domstudio-backend/Procfile            (new)
+domstudio-backend/railway.toml        (new)
+domstudio-frontend/vercel.json        (new)
+domstudio-frontend/.env.example
+DOMSTUDIO_ARCHIVE.md
+```
+
+### Next session — backend deploy (Supabase + Render)
+
+1. Create Supabase project → copy connection string → replace `DATABASE_URL`
+2. Deploy FastAPI to Render (free tier) → get public URL
+3. Run `python migrate.py` against Supabase once to create all tables
+4. In Vercel → Environment Variables → set `VITE_API_URL` to Render URL → redeploy
+5. Test registration end-to-end (email OTP → account created → token balance seeded)
