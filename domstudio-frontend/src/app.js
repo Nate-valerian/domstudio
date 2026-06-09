@@ -116,8 +116,16 @@ const PACK_FORMATS = [
 
 const HISTORY_DB = "domstudio_history";
 const HISTORY_STORE = "results";
-const HISTORY_LIMIT = 5;
+const HISTORY_LIMIT = 20;
 const BRAND_PREFS_KEY = "domstudio_brand_preferences";
+
+const PAGE_TITLES = {
+  home:    "DomStudio — AI-студия для продавцов маркетплейсов",
+  studio:  "Студия — DomStudio",
+  pricing: "Тарифы — DomStudio",
+  account: "Аккаунт — DomStudio",
+  history: "История генераций — DomStudio",
+};
 
 const PLAN_LABELS = {
   free: "Free",
@@ -195,6 +203,10 @@ const state = {
   generating: false,
   brandPrefsOpen: false,
   promptHelperOpen: false,
+  historyFilter: "all",
+  batchQueue: [],
+  batchTotal: 0,
+  batchIndex: 0,
   formDraft: {
     mode: "catalog",
     marketplace: initialBrandPrefs.default_marketplace,
@@ -209,6 +221,7 @@ let lastMotionKey = "";
 function navigate(route) {
   state.navMenuOpen = false;
   state.presetsOpen = false;
+  document.title = PAGE_TITLES[route] || PAGE_TITLES.home;
   location.hash = route;
 }
 
@@ -441,6 +454,27 @@ async function deleteHistoryItem(id) {
   }
 }
 
+async function purgeHistory() {
+  const db = await openHistoryDb();
+  try {
+    const tx = db.transaction(HISTORY_STORE, "readwrite");
+    await idbRequest(tx.objectStore(HISTORY_STORE).clear());
+  } finally {
+    db.close();
+  }
+}
+
+async function clearAllHistory() {
+  try {
+    await purgeHistory();
+    state.history = [];
+    toast("История очищена");
+    render();
+  } catch {
+    toast("Не удалось очистить историю");
+  }
+}
+
 async function loadHistory() {
   try {
     state.history = await readHistoryItems();
@@ -503,6 +537,7 @@ function exportTools() {
         ${Object.entries(EXPORT_SIZES).map(([id, size]) => `<option value="${id}">${size.label}</option>`).join("")}
       </select>
       <button class="button secondary" type="button" data-export>Скачать</button>
+      <button class="button secondary" type="button" data-share>Поделиться</button>
     </div>
   </div>`;
 }
@@ -544,7 +579,7 @@ function nav() {
     ["home", "Главная"],
     ["studio", "Студия"],
     ["pricing", "Тарифы"],
-    ...(logged ? [["account", "Аккаунт"]] : []),
+    ...(logged ? [["history", "История"], ["account", "Аккаунт"]] : []),
   ];
   const initials = logged ? String(state.user.email || state.user.phone || "DS").slice(0, 2).toUpperCase() : "";
   return `
@@ -669,6 +704,7 @@ function appSidebar(active) {
   return `<aside class="sidebar">
     <p class="side-caption">Рабочее пространство</p>
     <button class="side-link ${active === "studio" ? "active" : ""}" data-route="studio">✦ Новая генерация</button>
+    <button class="side-link ${active === "history" ? "active" : ""}" data-route="history">◑ История</button>
     <button class="side-link ${active === "account" ? "active" : ""}" data-route="account">◫ Обзор аккаунта</button>
     <button class="side-link ${active === "pricing" ? "active" : ""}" data-route="pricing">◇ Тарифы и токены</button>
     <button class="side-link" data-logout>Выйти</button>
@@ -719,9 +755,9 @@ function studioPage() {
           </div>
           <div class="field"><label for="subject">Что снимаем</label><textarea class="textarea" id="subject" name="subject" required placeholder="Например: золотые серьги-кольца на светлом фоне">${draftValue("subject")}</textarea></div>
           <div class="field"><label for="style_hint">Пожелания к стилю</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="Тёплый свет, премиальный минимализм" /></div>
-          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" /><span><strong>${state.selectedImageName ? escapeHtml(state.selectedImageName) : "Добавить фото товара"}</strong><br />${state.selectedImageName ? "Фото готово к генерации" : "PNG или JPEG, до 10 МБ"}</span></label>
+          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? `${state.batchQueue.length} фото в очереди` : state.selectedImageName ? escapeHtml(state.selectedImageName) : "Добавить фото товара"}</strong><br />${state.batchQueue.length > 1 ? `${state.batchQueue.length * 100} токенов на пакет` : state.selectedImageName ? "Фото готово к генерации" : "PNG или JPEG · несколько файлов"}</span></label>
           <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> Сделать дополнительный 4K-апскейл</label>
-          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? "Создаём кадр…" : "Создать фото · 100 токенов"}</button>
+          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? `Пакет ${state.batchIndex}/${state.batchTotal}…` : "Создаём кадр…") : (state.batchQueue.length > 1 ? `Создать пакет · ${state.batchQueue.length * 100} токенов` : "Создать фото · 100 токенов")}</button>
           ${state.user.tokens < 100
             ? `<p class="token-hint warn">Токенов недостаточно — <button class="text-button" type="button" data-route="pricing">пополнить тариф</button></p>`
             : `<p class="token-hint">У вас ${state.user.tokens} токенов · хватит на ~${Math.floor(state.user.tokens / 100)} фото</p>`}
@@ -813,6 +849,56 @@ function accountPage() {
   </main>`;
 }
 
+function historyPage() {
+  const modeFilters = [
+    { id: "all", label: "Все" },
+    ...MODES.map(([id, label]) => ({ id, label })),
+  ];
+  const filtered = state.history.filter(
+    item => state.historyFilter === "all" || item.mode === state.historyFilter
+  );
+  return `<main class="${state.user ? "app-layout" : "page"}">
+    ${state.user ? appSidebar("history") : ""}
+    <section class="${state.user ? "workspace" : "section"}">
+      <header class="workspace-head">
+        <div><div class="eyebrow">Браузер</div><h1>История</h1></div>
+        ${state.history.length ? `<button class="button secondary" data-clear-history>Очистить всё</button>` : ""}
+      </header>
+      ${state.history.length ? `
+        <div class="chip-row" style="margin-bottom: 20px;">
+          ${modeFilters.map(m => `<button class="chip ${state.historyFilter === m.id ? "chip-active" : ""}" type="button" data-history-filter="${m.id}">${m.label}</button>`).join("")}
+        </div>
+        ${filtered.length ? `
+          <div class="history-full-grid">
+            ${filtered.map(item => {
+              const d = new Date(item.createdAt);
+              const dateStr = d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+              const timeStr = d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+              return `<article class="history-card">
+                <button class="history-card-thumb" type="button" data-history-id="${item.id}">
+                  <img src="${item.dataUrl}" alt="${escapeHtml(item.subject)}" loading="lazy" />
+                </button>
+                <div class="history-card-info">
+                  <b>${escapeHtml(item.subject)}</b>
+                  <span>${escapeHtml(item.mode)}${item.variation_label ? ` · ${escapeHtml(item.variation_label)}` : ""}${item.width ? ` · ${item.width}×${item.height}` : ""}</span>
+                  <time>${dateStr}, ${timeStr}</time>
+                </div>
+                <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
+              </article>`;
+            }).join("")}
+          </div>
+        ` : `<p class="history-empty-filter">Нет результатов для этого режима.</p>`}
+      ` : `
+        <div class="history-empty">
+          <b>История пуста</b>
+          <p>Результаты сохраняются только в этом браузере — появятся здесь после первой генерации.</p>
+          <button class="button gold" data-route="studio">Создать первое фото</button>
+        </div>
+      `}
+    </section>
+  </main>`;
+}
+
 function pricingPage() {
   const cards = state.plans.filter(plan => ["free", "basic", "pro", "business"].includes(plan.name));
   return `<main class="${state.user ? "app-layout" : "page"}">
@@ -883,7 +969,9 @@ function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
     : state.route === "pricing" ? pricingPage()
     : state.route === "account" ? accountPage()
+    : state.route === "history" ? historyPage()
     : homePage();
+  document.title = PAGE_TITLES[state.route] || PAGE_TITLES.home;
   const motionKey = `${state.route}:${state.authMode || "none"}`;
   const shouldAnimateEntrance = options.motion ?? motionKey !== lastMotionKey;
   app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${authModal()}</div>`;
@@ -929,6 +1017,9 @@ function bind() {
   document.querySelectorAll("[data-pack]").forEach(el => el.addEventListener("click", () => exportForPack(el.dataset.pack)));
   document.querySelectorAll("[data-history-id]").forEach(el => el.addEventListener("click", () => restoreHistoryItem(el.dataset.historyId)));
   document.querySelectorAll("[data-delete-history]").forEach(el => el.addEventListener("click", () => removeHistoryItem(el.dataset.deleteHistory)));
+  document.querySelectorAll("[data-history-filter]").forEach(el => el.addEventListener("click", () => { state.historyFilter = el.dataset.historyFilter; render({ motion: false }); }));
+  document.querySelector("[data-clear-history]")?.addEventListener("click", clearAllHistory);
+  document.querySelector("[data-share]")?.addEventListener("click", shareResult);
   document.querySelector("#image")?.addEventListener("change", selectImage);
 }
 
@@ -1151,6 +1242,24 @@ async function regenerateVariation(variationId) {
   });
 }
 
+async function processBatch(values) {
+  const queue = [...state.batchQueue];
+  state.batchQueue = [];
+  state.batchTotal = queue.length;
+  state.batchIndex = 0;
+  for (let i = 0; i < queue.length; i++) {
+    state.batchIndex = i + 1;
+    state.selectedImage = queue[i].base64;
+    state.selectedImageName = queue[i].name;
+    const payload = composeGenerationPayload(values);
+    await generateWithPayload(payload, { label: `Фото ${i + 1} из ${queue.length}` });
+  }
+  state.batchTotal = 0;
+  state.batchIndex = 0;
+  toast(`Пакет готов — ${queue.length} фото`);
+  render();
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -1304,22 +1413,46 @@ async function submitVerification(event) {
 }
 
 function selectImage(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 10 * 1024 * 1024) return toast("Файл должен быть меньше 10 МБ");
-  const reader = new FileReader();
-  reader.onload = () => {
-    state.selectedImage = String(reader.result).split(",")[1];
-    state.selectedImageName = file.name;
-    document.querySelector("#upload-label span").innerHTML = `<strong>${escapeHtml(file.name)}</strong><br />Фото готово к генерации`;
-  };
-  reader.readAsDataURL(file);
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+  const oversized = files.find(f => f.size > 10 * 1024 * 1024);
+  if (oversized) return toast(`Файл ${escapeHtml(oversized.name)} больше 10 МБ`);
+
+  if (files.length === 1) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      state.selectedImage = String(reader.result).split(",")[1];
+      state.selectedImageName = files[0].name;
+      state.batchQueue = [];
+      const label = document.querySelector("#upload-label span");
+      if (label) label.innerHTML = `<strong>${escapeHtml(files[0].name)}</strong><br />Фото готово к генерации`;
+    };
+    reader.readAsDataURL(files[0]);
+    return;
+  }
+
+  Promise.all(
+    files.map(file => new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ name: file.name, base64: String(reader.result).split(",")[1] });
+      reader.readAsDataURL(file);
+    }))
+  ).then(queue => {
+    state.batchQueue = queue;
+    state.selectedImage = queue[0].base64;
+    state.selectedImageName = `${queue.length} фото`;
+    render({ motion: false });
+  });
 }
 
 async function submitGeneration(event) {
   event.preventDefault();
   syncDraftFromForm(event.currentTarget);
   const values = { ...state.formDraft };
+  if (state.batchQueue.length > 1) {
+    await processBatch(values);
+    return;
+  }
   const payload = composeGenerationPayload(values);
   state.formDraft.subject = payload.subject;
   await generateWithPayload(payload);
@@ -1377,6 +1510,52 @@ async function choosePlan(plan) {
   }
 }
 
+function checkPaymentReturn() {
+  const params = new URLSearchParams(location.search);
+  const payment = params.get("payment");
+  if (!payment) return;
+  history.replaceState(null, "", location.pathname + location.hash);
+  if (payment === "success") {
+    loadUser().then(() => {
+      toast("Оплата прошла — тариф активирован");
+      navigate("account");
+      render();
+    });
+  } else if (payment === "failed") {
+    toast("Не удалось провести оплату — попробуйте снова");
+    navigate("pricing");
+  }
+}
+
+async function shareResult() {
+  if (!state.generatedImage) return;
+  const subject = state.generatedMeta?.subject || "";
+  try {
+    if (typeof navigator.canShare === "function") {
+      const blob = await (await fetch(state.generatedImage)).blob();
+      const file = new File([blob], "domstudio-result.jpg", { type: blob.type });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: "DomStudio — AI-фотостудия",
+          text: subject ? `Товарный кадр: ${subject}` : "AI-кадр из DomStudio",
+          files: [file],
+        });
+        return;
+      }
+    }
+    const blob = await (await fetch(state.generatedImage)).blob();
+    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    toast("Изображение скопировано в буфер обмена");
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      const link = document.createElement("a");
+      link.href = state.generatedImage;
+      link.download = "domstudio-result.jpg";
+      link.click();
+    }
+  }
+}
+
 window.addEventListener("hashchange", () => {
   state.route = location.hash.slice(1) || "home";
   state.navMenuOpen = false;
@@ -1386,4 +1565,5 @@ window.addEventListener("hashchange", () => {
 window.addEventListener("scroll", handleScroll, { passive: true });
 
 await Promise.all([loadUser(), loadPlans(), loadHistory()]);
+checkPaymentReturn();
 render();

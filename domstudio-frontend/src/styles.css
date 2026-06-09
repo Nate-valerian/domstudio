@@ -520,7 +520,31 @@ h1 em { color: var(--gold); font-style: normal; }
   .footer { gap: 8px; padding: 24px 16px; }
   .upgrade-cta { flex-direction: column; align-items: stretch; }
   .brand-summary { grid-template-columns: 1fr; }
+  .history-full-grid { grid-template-columns: 1fr; }
+  .history-card { grid-template-columns: 62px 1fr 36px; }
+  .history-card-thumb { width: 62px; height: 62px; }
 }
+
+/* ── History page ────────────────────────────────────────────────────────── */
+.chip-active { background: var(--ink); color: white; border-color: var(--ink); }
+.history-full-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin-top: 4px; }
+.history-card {
+  display: grid; grid-template-columns: 80px 1fr 36px; align-items: center; gap: 12px;
+  padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--card);
+}
+.history-card-thumb {
+  width: 80px; height: 80px; padding: 0; overflow: hidden; border: 1px solid var(--line);
+  border-radius: 12px; background: white; cursor: pointer; flex-shrink: 0;
+}
+.history-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.history-card-info { display: grid; gap: 3px; min-width: 0; }
+.history-card-info b { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.history-card-info span { color: var(--muted); font-size: 12px; font-weight: 700; }
+.history-card-info time { color: var(--muted); font-size: 11px; font-weight: 700; opacity: .75; }
+.history-empty { max-width: 440px; margin: 60px auto; padding: 40px 20px; text-align: center; display: grid; gap: 14px; }
+.history-empty b { display: block; font: 700 22px "Unbounded"; }
+.history-empty p { margin: 0; color: var(--muted); line-height: 1.7; }
+.history-empty-filter { padding: 24px; color: var(--muted); font-size: 14px; font-weight: 700; text-align: center; }
 
 /* ── Safe-area / notch support ──────────────────────────────────────────── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
@@ -533,4 +557,5 @@ h1 em { color: var(--gold); font-style: normal; }
   .chip, .pack-btn, .history-delete, .close { min-height: 44px; min-width: 44px; }
   .upload { min-height: 180px; }
   .collapsible-head { min-height: 56px; }
+  .history-card-thumb { min-height: 62px; }
 }
