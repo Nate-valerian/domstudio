@@ -615,3 +615,118 @@ DOMSTUDIO_ARCHIVE.md
 3. Run `python migrate.py` against Supabase once to create all tables
 4. In Vercel → Environment Variables → set `VITE_API_URL` to Render URL → redeploy
 5. Test registration end-to-end (email OTP → account created → token balance seeded)
+
+## June 10, 2026 — Tier 5: Supabase + Render Deploy
+
+Commits: `0a02c84`
+
+### What was done
+
+#### 1. Supabase database initialized
+
+Connected to the existing Supabase project `domstudio`
+(project ref: `zohlbeimqgnzsgrfjniz`, region: `ap-northeast-2`).
+
+Used the **Session Pooler** connection string (IPv4-compatible) because Render
+runs on IPv4 and the Direct connection is IPv6-only on the free tier.
+
+Connection string format:
+```
+postgresql+asyncpg://postgres.zohlbeimqgnzsgrfjniz:[PASSWORD]@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
+```
+
+#### 2. migrate.py fixes
+
+Three bugs fixed in `migrate.py`:
+
+- **BOM encoding** — `.env` saved with UTF-8 BOM on Windows caused
+  `os.environ["DATABASE_URL"]` to fail with `KeyError`. Fixed by rewriting
+  the file without BOM via PowerShell
+  `[System.Text.UTF8Encoding]::new($false)`.
+
+- **Special chars in password** — Supabase-generated passwords contain `[`
+  and `]` which break `urlparse`. Replaced `urlparse` with a regex
+  (`re.match`) that extracts host/user/password/port/db separately and passes
+  them as keyword args to `asyncpg.connect(**_PG_PARAMS)`.
+
+- **Cursor outside transaction** — Supabase Session Pooler rejects
+  `conn.cursor()` outside a transaction. Replaced with `conn.fetch()`.
+
+- **Fresh DB** — migrations 001/003 `ALTER TABLE payments` failed because
+  tables didn't exist yet. Added SQLAlchemy `create_all()` as the first step
+  in `run()` so `migrate.py` works on both fresh and existing databases.
+
+All 3 migrations applied successfully:
+```
+Base tables ensured.
+  [apply] 001 — Add pack_id to payments
+  [apply] 002 — Create generation_jobs table
+  [apply] 003 — Make payments.plan nullable
+Migrations complete.
+```
+
+#### 3. Python version pinned for Render
+
+Added `domstudio-backend/.python-version` with `3.11.9`.
+
+Render defaulted to Python 3.14.3 which has no pre-built wheel for
+`pydantic-core==2.18.2`. Compilation from source failed due to a read-only
+Cargo registry path on Render. Pinning to 3.11 fixes this.
+
+#### 4. Backend live on Render
+
+URL: `https://domstudio.onrender.com`
+
+Health check: `GET /health` → `{"status":"ok","service":"domstudio-api"}`
+
+Render service config:
+- Root directory: `domstudio-backend`
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- Instance type: Free
+
+Key env vars set on Render:
+```
+DATABASE_URL        = postgresql+asyncpg://...(Supabase session pooler)
+JWT_SECRET          = (random secret)
+FRONTEND_URL        = https://domstudio.vercel.app
+CORS_ORIGINS        = https://domstudio.vercel.app
+RESEND_API_KEY      = (set)
+EMAIL_FROM          = DomStudio <noreply@domstudio.ru>
+SMS_API_KEY         = (set)
+SMS_SENDER          = DomStudio
+GENERATION_PROVIDER = worker
+```
+
+#### 5. Frontend live on Vercel
+
+URL: `https://domstudio.vercel.app`
+
+`VITE_API_URL` set to `https://domstudio.onrender.com` in Vercel environment
+variables. Frontend redeployed and pointing at the live backend.
+
+CORS fixed: initial `CORS_ORIGINS` was set to `domstudio3.vercel.app` but
+the actual Vercel domain is `domstudio.vercel.app`. Updated on Render.
+
+### Files changed
+
+```
+domstudio-backend/migrate.py
+domstudio-backend/.python-version   (new)
+```
+
+### What is still not done
+
+1. **End-to-end registration test** — email OTP flow not yet verified on the
+   live site. Should test: register → OTP email arrives → account created →
+   token balance seeded.
+
+2. **ComfyUI / Qwen image workflow** — `product_image.json` is still a stub.
+   `GENERATION_PROVIDER=worker` on Render means generation returns a
+   placeholder. Real images require AutoDL + Qwen image-edit workflow.
+
+3. **Video job stub** — `_run_video_job` still sleeps 5s (placeholder).
+
+4. **Render free tier cold starts** — backend sleeps after 15 min inactivity.
+   First request after sleep takes ~30s. Acceptable for now; upgrade to paid
+   ($7/mo) when real users onboard.
