@@ -4,25 +4,36 @@ DomStudio — DB Migration Runner
 Usage:
     python migrate.py
 
-Applies all unapplied migrations in order. Safe to run multiple times.
-Uses a `schema_migrations` table to track applied versions.
-
-For fresh installs this is unnecessary — main.py runs create_all on startup.
-Only needed when deploying schema changes to an existing database.
+Creates all base tables (via SQLAlchemy create_all) then applies any ALTER
+migrations in order. Safe to run multiple times on both fresh and existing DBs.
 """
 
 import asyncio
 import os
+import re
 
 import asyncpg
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import create_async_engine
 
 load_dotenv()
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 
-# asyncpg wants postgresql:// not postgresql+asyncpg://
-PG_DSN = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+# Use regex so special chars in the password don't break urlparse
+_m = re.match(
+    r"postgresql(?:\+asyncpg)?://([^:]+):(.+)@([^:@/]+)(?::(\d+))?/(.+)",
+    DATABASE_URL,
+)
+if not _m:
+    raise ValueError(f"Cannot parse DATABASE_URL: {DATABASE_URL[:30]}…")
+_PG_PARAMS = dict(
+    user=_m.group(1),
+    password=_m.group(2),
+    host=_m.group(3),
+    port=int(_m.group(4) or 5432),
+    database=_m.group(5),
+)
 
 # ─── MIGRATIONS ──────────────────────────────────────────────────────────────
 # Each entry: (version_id, description, sql)
@@ -66,7 +77,17 @@ MIGRATIONS: list[tuple[str, str, str]] = [
 
 
 async def run():
-    conn = await asyncpg.connect(PG_DSN)
+    # Create all base tables from SQLAlchemy models (safe no-op if they exist)
+    from database import Base
+    sa_url = DATABASE_URL if DATABASE_URL.startswith("postgresql+asyncpg") \
+        else DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    _engine = create_async_engine(sa_url, echo=False)
+    async with _engine.begin() as _conn:
+        await _conn.run_sync(Base.metadata.create_all)
+    await _engine.dispose()
+    print("Base tables ensured.")
+
+    conn = await asyncpg.connect(**_PG_PARAMS)
     try:
         # Ensure tracking table exists
         await conn.execute("""
@@ -77,9 +98,8 @@ async def run():
             );
         """)
 
-        applied = {row["version"] async for row in conn.cursor(
-            "SELECT version FROM schema_migrations"
-        )}
+        rows = await conn.fetch("SELECT version FROM schema_migrations")
+        applied = {row["version"] for row in rows}
 
         for version, description, sql in MIGRATIONS:
             if version in applied:
