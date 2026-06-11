@@ -730,3 +730,92 @@ domstudio-backend/.python-version   (new)
 4. **Render free tier cold starts** — backend sleeps after 15 min inactivity.
    First request after sleep takes ~30s. Acceptable for now; upgrade to paid
    ($7/mo) when real users onboard.
+
+## June 11, 2026 — Tier 6: Registration fixed, E2E verified
+
+### What was done
+
+#### 1. Traced and fixed registration 500 error
+
+Three bugs were found and fixed, one at a time via debug tracing:
+
+**Bug 1 — asyncpg prepared statement cache (cosmetic fix, kept)**
+
+Added `connect_args={"prepared_statement_cache_size": 0}` to the SQLAlchemy
+engine in `database.py`. Standard fix for asyncpg + Supabase Session Pooler.
+Not the root cause but correct practice.
+
+**Bug 2 — SQLAlchemy native PostgreSQL ENUM types with asyncpg**
+
+Changed all `Column(Enum(...))` to `Column(Enum(..., native_enum=False))` in
+`database.py`. Affects: `Subscription.plan`, `Payment.plan`,
+`Payment.provider`, `Payment.status`, `GenerationJob.status`.
+Without `native_enum=False`, asyncpg cannot register type codecs for custom
+PostgreSQL ENUM types and INSERTs fail at commit time.
+
+**Bug 3 — passlib 1.7.4 + bcrypt 4.x incompatibility (root cause)**
+
+`passlib 1.7.4` uses a >72-byte test password internally in `detect_wrap_bug`
+to probe for a bcrypt vulnerability. `bcrypt 4.0.0+` added a strict
+`ValueError` for passwords over 72 bytes, which crashed passlib's internal
+test on every first hash call.
+
+Fix: removed `passlib` entirely. Replaced with direct `bcrypt` calls in
+`auth_utils.py`:
+
+```python
+import bcrypt as _bcrypt
+
+def hash_password(password: str) -> str:
+    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
+
+def verify_password(plain: str, hashed: str) -> bool:
+    return _bcrypt.checkpw(plain.encode(), hashed.encode())
+```
+
+`requirements.txt`: removed `passlib[bcrypt]==1.7.4`, added `bcrypt==4.2.1`.
+
+#### 2. Email sender fixed
+
+Resend rejected OTP emails because `domstudio.ru` is not a verified sender
+domain. Changed `EMAIL_FROM` on Render to `DomStudio <onboarding@resend.dev>`.
+Emails now deliver. For production, verify `domstudio.ru` at resend.com/domains.
+
+#### 3. E2E registration verified
+
+Full flow confirmed working on the live site:
+- Register at domstudio.vercel.app → OTP email arrives → enter code → studio opens
+- 500 tokens seeded, marketplace presets loaded, generate button visible
+
+### Files changed
+
+```
+domstudio-backend/database.py     — asyncpg engine fix + native_enum=False
+domstudio-backend/auth_utils.py   — replaced passlib with direct bcrypt
+domstudio-backend/requirements.txt — removed passlib, pinned bcrypt==4.2.1
+domstudio-backend/main.py         — version marker added/removed during debug
+```
+
+### What is still not done
+
+1. **Real image generation** — `GENERATION_PROVIDER=worker` on Render returns
+   a placeholder. This is the #1 next priority.
+
+   Steps to fix:
+   - Boot AutoDL instance `autodl-container-95c4479bc9-7f1ffc79`
+   - Open ComfyUI at `http://127.0.0.1:6006`
+   - Load example workflow:
+     `/root/autodl-tmp/ComfyUI/custom_nodes/ComfyUI-nunchaku/example_workflows/nunchaku-qwen-image-edit-2509-lightning.json`
+   - Upload one product photo, run it, confirm product is preserved
+   - Export working graph as API JSON
+   - Replace `domstudio-backend/workflows/product_image.json`
+   - Set `GENERATION_PROVIDER=comfy` on Render
+   - Set `COMFYUI_URL` on Render to the AutoDL tunnel URL
+
+2. **Video job stub** — `_run_video_job` sleeps 5s, no real video.
+
+3. **Resend domain** — verify `domstudio.ru` at resend.com/domains before
+   going live with real users. Current sender `onboarding@resend.dev` works
+   but looks unprofessional.
+
+4. **Render free tier cold starts** — 30s wake-up after 15 min idle.
