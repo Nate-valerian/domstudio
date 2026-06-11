@@ -53,48 +53,43 @@ def _headers(api_key: str | None = None) -> dict[str, str]:
 
 async def discover_autodl_comfy_url(
     token: str | None = None,
-    deployment_uuid: str | None = None,
+    instance_uuid: str | None = None,
     port: str | int | None = None,
     api_url: str | None = None,
 ) -> str:
-    """Return the AutoDL public service URL for a running elastic container."""
+    """Return the AutoDL public service URL via the instance pro snapshot API."""
 
     token = token or os.getenv("AUTODL_TOKEN")
-    deployment_uuid = deployment_uuid or os.getenv("AUTODL_DEPLOYMENT_UUID")
+    instance_uuid = instance_uuid or os.getenv("AUTODL_INSTANCE_UUID")
     port = str(port or os.getenv("COMFYUI_PORT", DEFAULT_COMFY_PORT))
     api_url = (api_url or os.getenv("AUTODL_API_URL", DEFAULT_AUTODL_API_URL)).rstrip("/")
 
-    if not token or not deployment_uuid:
-        raise ComfyConfigError("AUTODL_TOKEN and AUTODL_DEPLOYMENT_UUID are required for AutoDL discovery")
+    if not token or not instance_uuid:
+        raise ComfyConfigError("AUTODL_TOKEN and AUTODL_INSTANCE_UUID are required for AutoDL discovery")
 
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(
-            f"{api_url}/api/v1/dev/deployment/container/list",
+        response = await client.get(
+            f"{api_url}/api/v1/dev/instance/pro/snapshot",
             headers={"Authorization": token},
-            json={"deployment_uuid": deployment_uuid},
+            params={"instance_uuid": instance_uuid},
         )
         response.raise_for_status()
         payload = response.json()
 
-    data = payload.get("data", {})
-    if isinstance(data, list):
-        containers = data
-    else:
-        containers = data.get("list") or data.get("items") or data.get("containers") or []
-    if not isinstance(containers, list):
-        raise ComfyConfigError("AutoDL container list response did not include a list")
+    if payload.get("code") != "Success":
+        raise ComfyConfigError(f"AutoDL snapshot API error: {payload.get('msg') or payload}")
 
-    url_key = f"service_{port}_port_url"
-    for container in containers:
-        info = container.get("info") or container
-        status = str(info.get("status") or container.get("status") or "").lower()
-        if status and status not in {"running", "success", "started"}:
-            continue
-        service_url = info.get(url_key)
-        if service_url:
-            return str(service_url).rstrip("/")
+    data = payload.get("data") or {}
+    domain_key = f"service_{port}_domain"
+    domain = data.get(domain_key)
+    if not domain:
+        raise ComfyConfigError(
+            f"AutoDL instance {instance_uuid} has no {domain_key} "
+            f"(is the instance running and is port {port} exposed?)"
+        )
 
-    raise ComfyConfigError(f"No running AutoDL container exposes {url_key}")
+    # domain comes as "host:8443" — always served over HTTPS by AutoDL's proxy
+    return f"https://{domain}".rstrip("/")
 
 
 async def resolve_comfy_url() -> str:
