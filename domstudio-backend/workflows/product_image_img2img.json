@@ -1,0 +1,91 @@
+{
+  "1": {
+    "class_type": "NunchakuQwenImageDiTLoader",
+    "inputs": {
+      "model_name": "svdq-int4_r128-qwen-image-edit-2509-lightning-4steps-251115.safetensors",
+      "cpu_offload": "auto",
+      "num_blocks_on_gpu": 24,
+      "use_pin_memory": "disable"
+    }
+  },
+  "2": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "model": ["1", 0],
+      "shift": 3.1
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "{{image_name}}"
+    }
+  },
+  "6": {
+    "class_type": "TextEncodeQwenImageEdit",
+    "inputs": {
+      "clip":   ["3", 0],
+      "vae":    ["4", 0],
+      "image":  ["5", 0],
+      "prompt": "{{prompt}}"
+    }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["3", 0],
+      "text": "low quality, blurry, distorted, watermark, text overlay, logo, extra objects"
+    }
+  },
+  "8": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "9": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["2", 0],
+      "seed": "{{seed}}",
+      "steps": 4,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["8", 0],
+      "denoise": 1.0
+    }
+  },
+  "10": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["9", 0],
+      "vae": ["4", 0]
+    }
+  },
+  "11": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["10", 0],
+      "filename_prefix": "domstudio/{{mode}}"
+    }
+  }
+}

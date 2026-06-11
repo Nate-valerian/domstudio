@@ -136,7 +136,7 @@ def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:
     return value
 
 
-def render_workflow(workflow: dict[str, Any], request: Any) -> dict[str, Any]:
+def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = "") -> dict[str, Any]:
     prompt = compose_prompt(request.subject, request.style_hint)
     seed = int(request.seed if request.seed >= 0 else time.time_ns() % (2**32))
     replacements = {
@@ -144,7 +144,7 @@ def render_workflow(workflow: dict[str, Any], request: Any) -> dict[str, Any]:
         "{{subject}}": request.subject,
         "{{style_hint}}": request.style_hint,
         "{{seed}}": seed,
-        "{{image_base64}}": request.image or "",
+        "{{image_name}}": image_name,
         "{{upscale_4k}}": bool(request.upscale_4k),
         "{{mode}}": request.mode,
     }
@@ -157,6 +157,20 @@ class ComfyClient:
     def __init__(self, base_url: str, api_key: str | None = None):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key or os.getenv("COMFYUI_API_KEY")
+
+    async def upload_image(self, image_b64: str) -> str:
+        """Upload a base64-encoded image to ComfyUI and return the stored filename."""
+        image_data = base64.b64decode(image_b64)
+        filename = f"upload_{uuid.uuid4().hex[:8]}.png"
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                f"{self.base_url}/upload/image",
+                headers=_headers(self.api_key),
+                files={"image": (filename, image_data, "image/png")},
+                data={"type": "input", "overwrite": "true"},
+            )
+            response.raise_for_status()
+            return response.json()["name"]
 
     async def queue_prompt(self, workflow: dict[str, Any]) -> str:
         async with httpx.AsyncClient(timeout=_env_int("COMFYUI_REQUEST_TIMEOUT", 60)) as client:
@@ -315,6 +329,14 @@ def _format_from_content_type(content_type: str, filename: str) -> str:
 
 async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     base_url = await resolve_comfy_url()
-    workflow = render_workflow(load_workflow(), request)
     client = ComfyClient(base_url)
+
+    image_name = ""
+    if request.image:
+        image_name = await client.upload_image(request.image)
+        workflow_file = "product_image_img2img.json"
+    else:
+        workflow_file = "product_image.json"
+
+    workflow = render_workflow(load_workflow(workflow_file), request, image_name=image_name)
     return await client.run_workflow(workflow)
