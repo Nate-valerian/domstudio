@@ -92,7 +92,7 @@ class Subscription(Base):
 
     id           = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id      = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True)
-    plan         = Column(Enum(PlanName), default=PlanName.free)
+    plan         = Column(Enum(PlanName, native_enum=False), default=PlanName.free)
     photos_used  = Column(Integer, default=0)
     photos_limit = Column(Integer, default=5)
     renews_at    = Column(DateTime(timezone=True), nullable=True)
@@ -118,12 +118,12 @@ class Payment(Base):
 
     id               = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id          = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    provider         = Column(Enum(PaymentProvider))
+    provider         = Column(Enum(PaymentProvider, native_enum=False))
     provider_order_id= Column(String(255), unique=True, index=True)  # Tinkoff PaymentId
     amount_rub       = Column(Float)
-    plan             = Column(Enum(PlanName), nullable=True)   # null for token top-ups
-    pack_id          = Column(String(50),  nullable=True)       # set for token top-up packs
-    status           = Column(Enum(PaymentStatus), default=PaymentStatus.pending)
+    plan             = Column(Enum(PlanName, native_enum=False), nullable=True)
+    pack_id          = Column(String(50),  nullable=True)
+    status           = Column(Enum(PaymentStatus, native_enum=False), default=PaymentStatus.pending)
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
     updated_at       = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -137,7 +137,7 @@ class GenerationJob(Base):
     user_id    = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     mode       = Column(String(50))
     subject    = Column(String(500))
-    status     = Column(Enum(JobStatus), default=JobStatus.queued)
+    status     = Column(Enum(JobStatus, native_enum=False), default=JobStatus.queued)
     output_url = Column(String(1000), nullable=True)
     tokens_used= Column(Integer, default=100)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
