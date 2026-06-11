@@ -25,6 +25,7 @@ GENERATION_API_URL    = os.getenv("GENERATION_API_URL", "http://localhost:8001")
 GENERATION_PROVIDER   = os.getenv("GENERATION_PROVIDER", "worker").lower()
 IMAGE_TOKEN_COST      = 100
 VIDEO_TOKEN_COST      = 300
+GENERATION_TOKEN_COST = IMAGE_TOKEN_COST
 
 
 # ─── SCHEMAS ──────────────────────────────────────────────────────────────────

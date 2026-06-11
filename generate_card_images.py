@@ -1,7 +1,7 @@
 """
 Generate before/after card images for DomStudio landing page.
-Uses Qwen Image Edit (TextEncodeQwenImageEdit) to transform each before image
-into its mode-specific after while preserving product identity.
+- Catalog mode: BiRefNet background removal -> white background composite
+- All other modes: Qwen Image Edit (TextEncodeQwenImageEdit) for scene transformation
 """
 
 import json
@@ -18,14 +18,7 @@ MODES = [
         "name": "catalog",
         "before": "mode-catalog-before.webp",
         "after":  "mode-catalog-real-v3.webp",
-        "width": 1024, "height": 1024, "steps": 4,
-        "prompt": (
-            "Professional marketplace catalog product photo. "
-            "Keep the exact same white pump dispenser bottle and white box from the input image. "
-            "Replace the background with a pure white seamless studio background. "
-            "Center the products with soft even lighting and a subtle shadow at the base. "
-            "Clean commercial e-commerce shot ready for Wildberries or Ozon marketplace listing."
-        ),
+        "use_birefnet": True,
     },
     {
         "name": "product",
@@ -126,6 +119,24 @@ def upload_image(path: Path) -> str:
     return json.loads(r.stdout)["name"]
 
 
+def build_birefnet_workflow(image_name, mode):
+    return {
+        "1": {
+            "class_type": "AutoDownloadBiRefNetModel",
+            "inputs": {"model_name": "General-HR", "device": "AUTO"},
+        },
+        "2": {"class_type": "LoadImage", "inputs": {"image": image_name}},
+        "3": {
+            "class_type": "RembgByBiRefNet",
+            "inputs": {"model": ["1", 0], "images": ["2", 0]},
+        },
+        "4": {
+            "class_type": "SaveImage",
+            "inputs": {"images": ["3", 0], "filename_prefix": f"domstudio/{mode}"},
+        },
+    }
+
+
 def build_workflow(image_name, prompt, width, height, steps, seed, mode):
     return {
         "1": {
@@ -203,17 +214,22 @@ def download_bytes(output_info) -> bytes:
     return r.stdout
 
 
-def save_as_webp(png_bytes: bytes, out_path: Path):
+def save_as_webp(png_bytes: bytes, out_path: Path, white_bg: bool = False):
     try:
         from PIL import Image
         import io
-        img = Image.open(io.BytesIO(png_bytes)).convert("RGB")
+        img = Image.open(io.BytesIO(png_bytes))
+        if white_bg and img.mode == "RGBA":
+            bg = Image.new("RGB", img.size, (255, 255, 255))
+            bg.paste(img, mask=img.split()[3])
+            img = bg
+        else:
+            img = img.convert("RGB")
         img.save(str(out_path), "WEBP", quality=87, method=6)
         print(f"    Saved WebP {img.width}x{img.height} -> {out_path.name}")
     except ImportError:
-        # Pillow not available — save raw bytes (PNG content under .webp extension)
         out_path.write_bytes(png_bytes)
-        print(f"    Saved (no Pillow, raw PNG bytes) → {out_path.name}")
+        print(f"    Saved (no Pillow, raw PNG bytes) -> {out_path.name}")
 
 
 def main():
@@ -225,7 +241,8 @@ def main():
         sys.exit(1)
     for cfg in modes_to_run:
         print(f"\n{'='*50}")
-        print(f"  MODE: {cfg['name'].upper()}  ({cfg['width']}x{cfg['height']})")
+        dims = f"{cfg['width']}x{cfg['height']}" if 'width' in cfg else "native res"
+        print(f"  MODE: {cfg['name'].upper()}  ({dims})")
         print(f"{'='*50}")
 
         before = ASSETS / cfg["before"]
@@ -235,8 +252,13 @@ def main():
         img_name = upload_image(before)
         print(f"  Uploaded as '{img_name}'")
 
-        seed     = int(time.time_ns() % (2**32))
-        workflow = build_workflow(img_name, cfg["prompt"], cfg["width"], cfg["height"], cfg["steps"], seed, cfg["name"])
+        seed = int(time.time_ns() % (2**32))
+        use_birefnet = cfg.get("use_birefnet", False)
+        if use_birefnet:
+            print(f"  Using BiRefNet background removal (General-HR)")
+            workflow = build_birefnet_workflow(img_name, cfg["name"])
+        else:
+            workflow = build_workflow(img_name, cfg["prompt"], cfg["width"], cfg["height"], cfg["steps"], seed, cfg["name"])
 
         print(f"  Submitting workflow ...")
         resp = curl_post_json(f"{COMFY}/prompt", {"prompt": workflow, "client_id": str(uuid.uuid4())})
@@ -255,7 +277,7 @@ def main():
 
         print(f"  Generated: {output['filename']}")
         img_bytes = download_bytes(output)
-        save_as_webp(img_bytes, after)
+        save_as_webp(img_bytes, after, white_bg=use_birefnet)
 
         time.sleep(2)
 

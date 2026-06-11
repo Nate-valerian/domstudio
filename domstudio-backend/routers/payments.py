@@ -225,8 +225,9 @@ async def tinkoff_webhook(
 
     if webhook.Status == "CONFIRMED" and payment.status != PaymentStatus.succeeded:
         payment.status = PaymentStatus.succeeded
-        if payment.pack_id:
-            await activate_topup(payment.user_id, payment.pack_id, db)
+        pack_id = getattr(payment, "pack_id", None)
+        if pack_id:
+            await activate_topup(payment.user_id, pack_id, db)
         else:
             await activate_subscription(payment.user_id, payment.plan, db)
 
