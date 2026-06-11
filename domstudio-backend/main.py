@@ -35,6 +35,7 @@ app = FastAPI(
     version="1.0.0",
     description="Auth, payments and subscription management for DomStudio",
     lifespan=lifespan,
+    debug=True,
 )
 
 cors_origins = [
