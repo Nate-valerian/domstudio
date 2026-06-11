@@ -10,8 +10,8 @@ import httpx
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt as _bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from config import required_env
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
@@ -21,20 +21,18 @@ ACCESS_TTL_MIN  = 30        # 30 minutes
 REFRESH_TTL_DAYS= 30        # 30 days
 OTP_TTL_MIN     = 10        # 10 minutes
 
-SMS_API_KEY     = os.getenv("SMS_API_KEY", "")       # smsc.ru or sms.ru key
+SMS_API_KEY     = os.getenv("SMS_API_KEY", "")
 SMS_SENDER      = os.getenv("SMS_SENDER", "DomStudio")
 FRONTEND_URL    = os.getenv("FRONTEND_URL", "https://domstudio.ru")
 RESEND_API_KEY  = os.getenv("RESEND_API_KEY", "")
 EMAIL_FROM      = os.getenv("EMAIL_FROM", "DomStudio <noreply@domstudio.ru>")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # ─── PASSWORD ────────────────────────────────────────────────────────────────
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return _bcrypt.checkpw(plain.encode(), hashed.encode())
 
 # ─── JWT ─────────────────────────────────────────────────────────────────────
 def create_access_token(user_id: str) -> str:
