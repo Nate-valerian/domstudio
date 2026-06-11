@@ -60,4 +60,4 @@ app.include_router(generation.router,    prefix="/generation",    tags=["Generat
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "domstudio-api"}
+    return {"status": "ok", "service": "domstudio-api", "v": 3}
