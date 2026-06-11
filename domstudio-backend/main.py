@@ -10,11 +10,13 @@ Env vars required (see .env.example):
   YANDEX_PAY_MERCHANT_ID, YANDEX_PAY_SECRET, SMS_API_KEY, FRONTEND_URL
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import logging
 import os
+import traceback
 
 from database import engine, Base
 from routers import auth, generation, users, payments, subscriptions, tokens
@@ -52,6 +54,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc), "type": type(exc).__name__, "trace": traceback.format_exc()},
+    )
+
 app.include_router(auth.router,          prefix="/auth",          tags=["Auth"])
 app.include_router(users.router,         prefix="/users",         tags=["Users"])
 app.include_router(payments.router,      prefix="/payments",      tags=["Payments"])
@@ -62,3 +71,7 @@ app.include_router(generation.router,    prefix="/generation",    tags=["Generat
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "domstudio-api"}
+
+@app.get("/version")
+def version():
+    return {"version": "debug-2"}
