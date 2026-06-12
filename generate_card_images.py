@@ -10,7 +10,7 @@ import time
 import uuid
 from pathlib import Path
 
-COMFY  = "https://testing-armor-tank-antibody.trycloudflare.com"
+COMFY  = "https://airports-contributed-fields-jet.trycloudflare.com"
 ASSETS = Path("domstudio-frontend/src/assets")
 
 MODES = [
@@ -52,11 +52,14 @@ MODES = [
         "after":  "mode-lifestyle-real-v3.webp",
         "width": 1024, "height": 1024, "steps": 4,
         "prompt": (
-            "Lifestyle editorial product photo. "
-            "Keep the exact same tan brown leather crossbody bag from the input image. "
-            "Place it as the hero on a marble cafe table with a coffee cup beside it, "
-            "warm afternoon natural light, editorial magazine quality, "
-            "authentic everyday lifestyle scene, the bag is clearly the main subject."
+            "Luxury fashion editorial product photo. "
+            "Keep the exact same tan cognac leather crossbody bag from the input image as the hero. "
+            "COMPLETELY CHANGE the background and setting: place the bag on cream Italian marble "
+            "with scattered white rose petals and a small luxury perfume bottle beside it. "
+            "Warm golden hour side light casting soft elegant shadows. "
+            "Remove the coffee cup, remove the sunglasses, remove the cafe chair. "
+            "Blurred warm ivory studio background. "
+            "Vogue Russia editorial quality, aspirational luxury brand campaign."
         ),
     },
     {
@@ -65,12 +68,14 @@ MODES = [
         "after":  "mode-fitting-real-v2.webp",
         "width": 832, "height": 1216, "steps": 4,
         "prompt": (
-            "Fashion e-commerce virtual try-on photo. "
-            "Show the exact same beige linen blazer and matching wide-leg trousers from the input image "
-            "being worn by a slim female model. "
-            "Clean white studio background, full body portrait shot, "
-            "correct professional fit with natural fabric drape, "
-            "fashion marketplace listing quality."
+            "Fashion virtual try-on editorial photo. "
+            "Show the exact same beige oversized blazer and wide-leg trousers from the input image "
+            "worn by a confident slim female model with dark hair. "
+            "CHANGE the background to a stylish minimal interior: "
+            "large arched window with soft diffused natural light, "
+            "blurred light stone wall behind her, warm wooden floor. "
+            "Full body portrait, model standing naturally, hands relaxed at sides. "
+            "Lamoda / Revolve campaign quality, editorial fashion photography, not a plain white background."
         ),
     },
     {
@@ -79,12 +84,13 @@ MODES = [
         "after":  "mode-stories-real-v3.webp",
         "width": 608, "height": 1080, "steps": 4,
         "prompt": (
-            "Vertical 9:16 Instagram story creative. "
-            "Keep the exact same clear glass juice bottle and small green dropper serum bottle "
-            "from the input image as the featured products. "
-            "Minimal wellness aesthetic, soft natural light, indoor plants in background, "
-            "products centered in the safe zone, "
-            "UGC organic feel, mobile-first composition."
+            "Vertical 9:16 premium Instagram / VK story beauty creative. "
+            "Feature ONLY the small green glass dropper serum bottle as the hero product. "
+            "Place it centered in the lower third of a vertical composition. "
+            "Background: deep dark marble with warm golden bokeh light orbs. "
+            "Dramatic product lighting from above, sharp glass reflections. "
+            "Large empty space in the top third for story text overlay. "
+            "Premium skincare brand editorial, luxury beauty campaign quality, scroll-stopping vertical visual."
         ),
     },
 ]

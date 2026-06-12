@@ -217,22 +217,30 @@ async def tinkoff_webhook(
     if not hmac.compare_digest(expected, webhook.Token):
         raise HTTPException(400, "Invalid signature")
 
-    payment = await db.scalar(
-        select(Payment).where(Payment.provider_order_id == webhook.PaymentId)
-    )
-    if not payment:
-        return PlainTextResponse("OK")  # acknowledge unknown payments
-
-    if webhook.Status == "CONFIRMED" and payment.status != PaymentStatus.succeeded:
-        payment.status = PaymentStatus.succeeded
-        pack_id = getattr(payment, "pack_id", None)
-        if pack_id:
-            await activate_topup(payment.user_id, pack_id, db)
-        else:
-            await activate_subscription(payment.user_id, payment.plan, db)
+    # Use UPDATE … RETURNING to atomically flip status → prevents double-credit on retried webhooks
+    if webhook.Status == "CONFIRMED":
+        result = await db.execute(
+            update(Payment)
+            .where(
+                Payment.provider_order_id == webhook.PaymentId,
+                Payment.status == PaymentStatus.pending,
+            )
+            .values(status=PaymentStatus.succeeded)
+            .returning(Payment.id, Payment.user_id, Payment.plan, Payment.pack_id)
+        )
+        row = result.first()
+        if row:
+            if row.pack_id:
+                await activate_topup(row.user_id, row.pack_id, db)
+            else:
+                await activate_subscription(row.user_id, row.plan, db)
 
     elif webhook.Status in ("CANCELED", "REJECTED", "DEADLINE_EXPIRED"):
-        payment.status = PaymentStatus.failed
+        await db.execute(
+            update(Payment)
+            .where(Payment.provider_order_id == webhook.PaymentId)
+            .values(status=PaymentStatus.failed)
+        )
 
     return PlainTextResponse("OK")
 
@@ -324,15 +332,25 @@ async def yandex_webhook(
     order_id = data.get("orderId")
     event    = data.get("eventType")
 
-    payment = await db.scalar(select(Payment).where(Payment.id == order_id))
-    if not payment:
-        return {"ok": True}
-
-    if event == "ORDER_PAID" and payment.status != PaymentStatus.succeeded:
-        payment.status = PaymentStatus.succeeded
-        await activate_subscription(payment.user_id, payment.plan, db)
+    if event == "ORDER_PAID":
+        result = await db.execute(
+            update(Payment)
+            .where(Payment.id == order_id, Payment.status == PaymentStatus.pending)
+            .values(status=PaymentStatus.succeeded)
+            .returning(Payment.user_id, Payment.plan, Payment.pack_id)
+        )
+        row = result.first()
+        if row:
+            if row.pack_id:
+                await activate_topup(row.user_id, row.pack_id, db)
+            else:
+                await activate_subscription(row.user_id, row.plan, db)
     elif event in ("ORDER_FAILED", "ORDER_CANCELLED"):
-        payment.status = PaymentStatus.failed
+        await db.execute(
+            update(Payment)
+            .where(Payment.id == order_id)
+            .values(status=PaymentStatus.failed)
+        )
 
     return {"ok": True}
 

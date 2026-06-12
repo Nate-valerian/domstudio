@@ -1,0 +1,18 @@
+{
+  "1": {
+    "class_type": "AutoDownloadBiRefNetModel",
+    "inputs": { "model_name": "General-HR", "device": "AUTO" }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "{{image_name}}" }
+  },
+  "3": {
+    "class_type": "RembgByBiRefNet",
+    "inputs": { "model": ["1", 0], "images": ["2", 0] }
+  },
+  "4": {
+    "class_type": "SaveImage",
+    "inputs": { "images": ["3", 0], "filename_prefix": "domstudio/{{mode}}" }
+  }
+}

@@ -7,6 +7,8 @@ GET  /generation/jobs/{job_id} — poll a single job by id
 """
 
 import asyncio
+import base64
+import io
 import os
 
 import httpx
@@ -15,7 +17,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import AsyncSessionLocal, GenerationJob, JobStatus, TokenBalance, User, get_db
+from database import AsyncSessionLocal, GenerationJob, JobStatus, Subscription, TokenBalance, User, get_db
 from dependencies import get_current_user
 from services.comfy_client import generate_image_with_comfy
 
@@ -62,6 +64,25 @@ async def change_balance(db: AsyncSession, user_id, amount: int, require_balance
     return result.scalar_one_or_none()
 
 
+async def increment_photos_used(db: AsyncSession, user_id) -> None:
+    await db.execute(
+        update(Subscription)
+        .where(Subscription.user_id == user_id)
+        .values(photos_used=Subscription.photos_used + 1)
+    )
+
+
+def _image_dimensions(b64: str) -> tuple[int, int]:
+    """Decode base64 image and return (width, height). Returns (0,0) on failure."""
+    try:
+        from PIL import Image
+        data = base64.b64decode(b64)
+        img = Image.open(io.BytesIO(data))
+        return img.width, img.height
+    except Exception:
+        return 0, 0
+
+
 # ─── IMAGE GENERATION (synchronous) ───────────────────────────────────────────
 
 @router.post("/generate")
@@ -92,8 +113,14 @@ async def generate(
         await change_balance(db, current_user.id, IMAGE_TOKEN_COST)
         raise HTTPException(502, f"Generation failed: {exc}") from exc
 
+    await increment_photos_used(db, current_user.id)
+
+    w, h = _image_dimensions(result.get("image", ""))
+
     return {
         **result,
+        "width":          w or None,
+        "height":         h or None,
         "tokens_charged": IMAGE_TOKEN_COST,
         "token_balance":  balance,
     }

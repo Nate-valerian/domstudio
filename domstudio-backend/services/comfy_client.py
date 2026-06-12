@@ -332,11 +332,39 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     client = ComfyClient(base_url)
 
     image_name = ""
+    is_catalog = getattr(request, "mode", "") == "catalog"
+
     if request.image:
         image_name = await client.upload_image(request.image)
-        workflow_file = "product_image_img2img.json"
+        workflow_file = "catalog_birefnet.json" if is_catalog else "product_image_img2img.json"
     else:
         workflow_file = "product_image.json"
 
     workflow = render_workflow(load_workflow(workflow_file), request, image_name=image_name)
-    return await client.run_workflow(workflow)
+    result = await client.run_workflow(workflow)
+
+    # Catalog BiRefNet returns RGBA — composite onto white so output is clean white-bg JPEG/PNG
+    if is_catalog and request.image and result.get("status") == "success":
+        result = _composite_on_white(result)
+
+    return result
+
+
+def _composite_on_white(result: dict[str, Any]) -> dict[str, Any]:
+    """Composite an RGBA base64 image onto a white background and return updated result."""
+    try:
+        import base64
+        import io
+        from PIL import Image
+
+        raw = base64.b64decode(result["image"])
+        img = Image.open(io.BytesIO(raw)).convert("RGBA")
+        bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        bg.paste(img, mask=img.split()[3])
+        out = bg.convert("RGB")
+        buf = io.BytesIO()
+        out.save(buf, format="PNG")
+        result = {**result, "image": base64.b64encode(buf.getvalue()).decode(), "format": "PNG"}
+    except Exception:
+        pass  # if Pillow unavailable, return raw RGBA — not ideal but not a crash
+    return result
