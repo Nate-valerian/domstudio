@@ -120,6 +120,48 @@ def compose_prompt(subject: str, style_hint: str = "") -> str:
     return ", ".join(part for part in parts if part)
 
 
+def compose_img2img_prompt(subject: str, style_hint: str = "") -> str:
+    scene = subject.strip()
+    style = style_hint.strip()
+    instruction = f"Keep this product exactly as shown. Change the background and scene: {scene}."
+    if style:
+        instruction += f" Style: {style}."
+    return instruction
+
+
+async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
+    """Use Claude to expand a short user prompt into a proper Qwen Image Edit instruction.
+    Falls back to compose_img2img_prompt() if ANTHROPIC_API_KEY is absent or the call fails."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        return compose_img2img_prompt(subject, style_hint)
+    try:
+        import anthropic
+        aclient = anthropic.AsyncAnthropic(api_key=api_key)
+        user_text = subject.strip()
+        if style_hint.strip():
+            user_text += f". Visual style: {style_hint.strip()}"
+        message = await aclient.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=200,
+            system=(
+                "You write prompts for the Qwen Image Edit model, which edits product photos.\n"
+                "The user describes the desired background or scene in casual language.\n"
+                "Rewrite it as a clear instruction for Qwen Image Edit.\n"
+                "Rules:\n"
+                "1. Begin with: 'Keep this product exactly as shown.'\n"
+                "2. Clearly describe the background/scene/setting.\n"
+                "3. Add lighting and atmosphere details.\n"
+                "4. Mention visual style or mood if the user implies it.\n"
+                "5. 1-3 sentences total. Output ONLY the instruction, nothing else."
+            ),
+            messages=[{"role": "user", "content": user_text}],
+        )
+        return message.content[0].text.strip()
+    except Exception:
+        return compose_img2img_prompt(subject, style_hint)
+
+
 def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:
     if isinstance(value, dict):
         return {key: _replace_placeholders(item, replacements) for key, item in value.items()}
@@ -136,8 +178,13 @@ def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:
     return value
 
 
-def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = "") -> dict[str, Any]:
-    prompt = compose_prompt(request.subject, request.style_hint)
+def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = "", expanded_prompt: str | None = None) -> dict[str, Any]:
+    if expanded_prompt is not None:
+        prompt = expanded_prompt
+    elif image_name:
+        prompt = compose_img2img_prompt(request.subject, request.style_hint)
+    else:
+        prompt = compose_prompt(request.subject, request.style_hint)
     seed = int(request.seed if request.seed >= 0 else time.time_ns() % (2**32))
     replacements = {
         "{{prompt}}": prompt,
@@ -364,7 +411,11 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     else:
         workflow_file = "product_image.json"
 
-    workflow = render_workflow(load_workflow(workflow_file), request, image_name=image_name)
+    expanded_prompt = None
+    if image_name and not is_catalog:
+        expanded_prompt = await expand_prompt_for_qwen(request.subject, getattr(request, "style_hint", ""))
+
+    workflow = render_workflow(load_workflow(workflow_file), request, image_name=image_name, expanded_prompt=expanded_prompt)
     result = await client.run_workflow(workflow)
 
     # Catalog BiRefNet returns RGBA — composite onto white so output is clean white-bg JPEG/PNG
