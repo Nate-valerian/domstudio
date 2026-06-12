@@ -1,5 +1,6 @@
 import "./styles.css";
 import { gsap } from "gsap";
+import { t, getLang, setLang } from "./i18n.js";
 import productProofUrl from "./assets/product-proof.webp";
 import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
 import modeProductUrl from "./assets/mode-product-real-v3.webp";
@@ -110,8 +111,8 @@ const PACK_FORMATS = [
   { id: "yandex", label: "Yandex Market", size: "square", format: "jpeg" },
   { id: "avito", label: "Avito", size: "square", format: "jpeg" },
   { id: "story", label: "Story 9:16", size: "story", format: "png" },
-  { id: "post", label: "Пост 4:5", size: "feed", format: "jpeg" },
-  { id: "banner", label: "Баннер 16:9", size: "widescreen", format: "jpeg" },
+  { id: "post", labelKey: "pack.post", size: "feed", format: "jpeg" },
+  { id: "banner", labelKey: "pack.banner", size: "widescreen", format: "jpeg" },
 ];
 
 const HISTORY_DB = "domstudio_history";
@@ -182,6 +183,7 @@ const initialBrandPrefs = loadBrandPrefs();
 
 const state = {
   route: location.hash.slice(1) || "home",
+  lang: getLang(),
   accessToken: localStorage.getItem("domstudio_access"),
   refreshToken: localStorage.getItem("domstudio_refresh"),
   user: null,
@@ -227,7 +229,7 @@ let lastMotionKey = "";
 function navigate(route) {
   state.navMenuOpen = false;
   state.presetsOpen = false;
-  document.title = PAGE_TITLES[route] || PAGE_TITLES.home;
+  document.title = t(`title.${route}`) || t("title.home");
   location.hash = route;
 }
 
@@ -251,7 +253,7 @@ async function api(path, options = {}, retry = true) {
     if (refreshed) return api(path, options, false);
   }
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.detail || data.error || "Не удалось выполнить запрос");
+  if (!response.ok) throw new Error(data.detail || data.error || t("toast.requestFailed"));
   return data;
 }
 
@@ -284,7 +286,7 @@ function logout(showToast = true) {
   state.user = null;
   localStorage.removeItem("domstudio_access");
   localStorage.removeItem("domstudio_refresh");
-  if (showToast) toast("Вы вышли из аккаунта");
+  if (showToast) toast(t("toast.logout"));
   render();
 }
 
@@ -333,20 +335,20 @@ function checkedAttr(value) {
 }
 
 function planLabel(planName) {
-  return PLAN_LABELS[planName] || planName;
+  return t(`plan.${planName}`) || planName;
 }
 
 function planDescription(planName) {
-  return PLAN_DESCRIPTIONS[planName] || "Готовый контент для продаж";
+  return t(`planDesc.${planName}`) || t("planDesc.default");
 }
 
 function pricePerPhoto(plan) {
-  if (!plan.price_rub) return "0 ₽ / фото";
-  return `${Math.round(plan.price_rub / plan.photos)} ₽ / фото`;
+  if (!plan.price_rub) return t("pricing.freePerPhoto");
+  return t("pricing.pricePerPhoto", { n: Math.round(plan.price_rub / plan.photos) });
 }
 
 function planPhotos(plan) {
-  return plan.name === "business" ? "300+ фото" : `${plan.photos} фото`;
+  return plan.name === "business" ? t("pricing.photos300") : `${plan.photos} ${t("pricing.photos")}`;
 }
 
 function truncate(value, maxLength = 500) {
@@ -474,10 +476,10 @@ async function clearAllHistory() {
   try {
     await purgeHistory();
     state.history = [];
-    toast("История очищена");
+    toast(t("toast.historyCleared"));
     render();
   } catch {
-    toast("Не удалось очистить историю");
+    toast(t("toast.historyClearFailed"));
   }
 }
 
@@ -505,14 +507,14 @@ async function rememberResult(result, dataUrl, payload) {
     });
     state.history = await readHistoryItems();
   } catch {
-    toast("Не удалось сохранить историю в браузере");
+    toast(t("toast.historyFailed"));
   }
 }
 
 function historyPanel() {
   if (!state.history.length) return "";
   return `<div class="history-panel">
-    <div class="mini-head"><h3>Недавние результаты</h3><span>только в этом браузере</span></div>
+    <div class="mini-head"><h3>${t("history.h3")}</h3><span>${t("history.sub")}</span></div>
     <div class="history-grid">
       ${state.history.map((item) => `
         <article class="history-item">
@@ -523,7 +525,7 @@ function historyPanel() {
             <b>${escapeHtml(item.subject)}</b>
             <span>${item.variation_label ? `${escapeHtml(item.variation_label)} · ` : ""}${escapeHtml(item.mode)} ${item.width && item.height ? `· ${item.width}×${item.height}` : ""}</span>
           </div>
-          <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
+          <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="${t("history.delete")}">×</button>
         </article>`).join("")}
     </div>
   </div>`;
@@ -532,7 +534,7 @@ function historyPanel() {
 function exportTools() {
   if (!state.generatedImage) return "";
   return `<div class="export-tools">
-    <div class="mini-head"><h3>Экспорт</h3><span>обработка в браузере</span></div>
+    <div class="mini-head"><h3>${t("export.h3")}</h3><span>${t("export.sub")}</span></div>
     <div class="export-row">
       <select class="select compact" id="export-format">
         <option value="png">PNG</option>
@@ -542,8 +544,8 @@ function exportTools() {
       <select class="select compact" id="export-size">
         ${Object.entries(EXPORT_SIZES).map(([id, size]) => `<option value="${id}">${size.label}</option>`).join("")}
       </select>
-      <button class="button secondary" type="button" data-export>Скачать</button>
-      <button class="button secondary" type="button" data-share>Поделиться</button>
+      <button class="button secondary" type="button" data-export>${t("export.download")}</button>
+      <button class="button secondary" type="button" data-share>${t("export.share")}</button>
     </div>
   </div>`;
 }
@@ -551,7 +553,7 @@ function exportTools() {
 function variationTools() {
   if (!state.generatedImage || !state.lastGenerationPayload) return "";
   return `<div class="variation-tools">
-    <div class="mini-head"><h3>Вариации</h3><span>${state.generating && state.generationLabel ? escapeHtml(state.generationLabel) : "100 токенов при клике"}</span></div>
+    <div class="mini-head"><h3>${t("variation.h3")}</h3><span>${state.generating && state.generationLabel ? escapeHtml(state.generationLabel) : t("variation.sub")}</span></div>
     <div class="chip-row">
       ${VARIATIONS.map((variation) => `<button class="chip" type="button" data-variation="${variation.id}" ${state.generating ? "disabled" : ""}>${variation.label}</button>`).join("")}
     </div>
@@ -561,10 +563,10 @@ function variationTools() {
 function comparisonPanel() {
   if (!state.previousGeneratedImage || !state.generatedImage || state.generating) return "";
   return `<div class="compare-panel">
-    <div class="mini-head"><h3>Сравнение</h3><span>предыдущий и текущий кадр</span></div>
+    <div class="mini-head"><h3>${t("compare.h3")}</h3><span>${t("compare.sub")}</span></div>
     <div class="compare-grid">
-      <figure><img src="${state.previousGeneratedImage}" alt="Предыдущий результат" /><figcaption>Previous</figcaption></figure>
-      <figure><img src="${state.generatedImage}" alt="Текущий результат" /><figcaption>Current${state.generatedMeta?.variation_label ? ` · ${escapeHtml(state.generatedMeta.variation_label)}` : ""}</figcaption></figure>
+      <figure><img src="${state.previousGeneratedImage}" alt="${t("compare.sub")}" /><figcaption>Previous</figcaption></figure>
+      <figure><img src="${state.generatedImage}" alt="Current" /><figcaption>Current${state.generatedMeta?.variation_label ? ` · ${escapeHtml(state.generatedMeta.variation_label)}` : ""}</figcaption></figure>
     </div>
   </div>`;
 }
@@ -572,20 +574,21 @@ function comparisonPanel() {
 function contentPackTools() {
   if (!state.generatedImage || state.generating) return "";
   return `<div class="content-pack">
-    <div class="mini-head"><h3>Пакет для площадок</h3><span>скачать одним кликом</span></div>
+    <div class="mini-head"><h3>${t("pack.h3")}</h3><span>${t("pack.sub")}</span></div>
     <div class="pack-grid">
-      ${PACK_FORMATS.map((fmt) => `<button class="pack-btn" type="button" data-pack="${fmt.id}">${fmt.label}<span>${EXPORT_SIZES[fmt.size].label}</span></button>`).join("")}
+      ${PACK_FORMATS.map((fmt) => `<button class="pack-btn" type="button" data-pack="${fmt.id}">${fmt.labelKey ? t(fmt.labelKey) : fmt.label}<span>${EXPORT_SIZES[fmt.size].label}</span></button>`).join("")}
     </div>
   </div>`;
 }
 
 function nav() {
   const logged = Boolean(state.user);
+  const lang = state.lang;
   const navItems = [
-    ["home", "Главная"],
-    ["studio", "Студия"],
-    ["pricing", "Тарифы"],
-    ...(logged ? [["history", "История"]] : []),
+    ["home", t("nav.home")],
+    ["studio", t("nav.studio")],
+    ["pricing", t("nav.pricing")],
+    ...(logged ? [["history", t("nav.history")]] : []),
   ];
   const initials = logged ? String(state.user.email || state.user.phone || "DS").slice(0, 2).toUpperCase() : "";
   return `
@@ -595,10 +598,10 @@ function nav() {
       <div class="nav-links ${state.navMenuOpen ? "open" : ""}">
         ${navItems.map(([route, label]) => `<button class="nav-link ${state.route === route ? "active" : ""}" data-route="${route}">${label}</button>`).join("")}
         <div class="nav-dropdown ${state.presetsOpen ? "open" : ""}">
-          <button class="nav-link dropdown-trigger" type="button" data-toggle-presets>Пресеты <span>⌄</span></button>
+          <button class="nav-link dropdown-trigger" type="button" data-toggle-presets>${t("nav.presets")} <span>⌄</span></button>
           <div class="preset-menu">
             ${MARKETPLACE_PRESETS.map((preset) => {
-              const desc = preset.mode === "mobile" ? "9:16 · сторис" : preset.mode === "creative" ? "4:5 · VK / Telegram" : preset.mode === "product" ? "баннер · премиум" : "карточка маркетплейса";
+              const desc = t(`preset.${preset.mode}.desc`);
               return `<button type="button" data-preset-route="${preset.id}"><b>${preset.label}</b><span>${desc}</span></button>`;
             }).join("")}
           </div>
@@ -606,19 +609,20 @@ function nav() {
       </div>
       <div class="nav-actions">
         ${logged
-          ? `<button class="token-pill" data-route="account"><span>${state.user.tokens}</span> токенов</button>
-             <button class="profile-pill" data-route="account" title="Аккаунт"><span>${escapeHtml(initials)}</span></button>
-             <button class="button gold nav-cta" data-route="studio">Создать фото</button>`
-          : `<button class="button secondary" data-auth="login">Войти</button>
-             <button class="button gold nav-cta" data-auth="register">Создать бесплатно</button>`}
-        <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Открыть меню"><span></span><span></span></button>
+          ? `<button class="token-pill" data-route="account"><span>${state.user.tokens}</span> ${t("nav.tokens", { n: "" }).trim()}</button>
+             <button class="profile-pill" data-route="account" title="${t("account.eyebrow")}"><span>${escapeHtml(initials)}</span></button>
+             <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`
+          : `<button class="button secondary" data-auth="login">${t("nav.login")}</button>
+             <button class="button gold nav-cta" data-auth="register">${t("nav.register")}</button>`}
+        <button class="lang-toggle" type="button" data-toggle-lang>${lang === "ru" ? "EN" : "RU"}</button>
+        <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Menu"><span></span><span></span></button>
       </div>
       </div>
     </nav>`;
 }
 
 function footer() {
-  return `<footer class="footer"><b>DomStudio</b><span>AI-фотостудия для бизнеса · 2026</span></footer>`;
+  return `<footer class="footer"><b>DomStudio</b><span>${t("footer.tagline")}</span></footer>`;
 }
 
 function homePage() {
@@ -626,14 +630,14 @@ function homePage() {
     <main class="page">
       <section class="hero">
         <div class="hero-copy">
-          <div class="eyebrow">AI-студия для продавцов маркетплейсов</div>
-          <h1>Контент, который <em>продаёт</em></h1>
-          <p>Загрузите обычное фото товара, выберите площадку — Wildberries, Ozon, Yandex, Avito — и получите готовую карточку, сторис или баннер за минуты.</p>
+          <div class="eyebrow">${t("home.eyebrow")}</div>
+          <h1>${t("home.h1a")} <em>${t("home.h1b")}</em></h1>
+          <p>${t("home.p")}</p>
           <div class="hero-actions">
-            <button class="button gold" data-route="studio">Создать первое фото</button>
-            <button class="button secondary" data-route="pricing">Посмотреть тарифы</button>
+            <button class="button gold" data-route="studio">${t("home.cta")}</button>
+            <button class="button secondary" data-route="pricing">${t("home.pricing")}</button>
           </div>
-          <div class="trust-row"><span>5 фото бесплатно</span><span>30 фото за 270 ₽</span><span>WB · Ozon · Yandex · Avito</span></div>
+          <div class="trust-row"><span>${t("home.trust1")}</span><span>${t("home.trust2")}</span><span>${t("home.trust3")}</span></div>
         </div>
         <div class="hero-visual">
           <div class="hero-studio-card">
@@ -641,79 +645,79 @@ function homePage() {
               <span>Mini studio</span>
               <b>WB · Ozon · Yandex · Avito</b>
             </div>
-            <div class="hero-proof-frame"><img src="${productProofUrl}" alt="Пример улучшения товарного фото в DomStudio" /></div>
+            <div class="hero-proof-frame"><img src="${productProofUrl}" alt="DomStudio AI" /></div>
             <div class="mini-studio-controls">
-              <label><span>Фото товара</span><button type="button" data-route="studio">Загрузить</button></label>
-              <label><span>Промпт</span><input value="сыворотка на светлом фоне" readonly /></label>
+              <label><span>${t("home.miniPhoto")}</span><button type="button" data-route="studio">${t("home.miniUpload")}</button></label>
+              <label><span>${t("home.miniPromptLabel")}</span><input value="${t("home.miniPromptValue")}" readonly /></label>
               <div class="preset-pills"><span>Wildberries</span><span>Ozon</span><span>Avito</span><span>1080×1080</span></div>
-              <button class="button gold block" type="button" data-route="studio">Создать бесплатно</button>
+              <button class="button gold block" type="button" data-route="studio">${t("home.miniCta")}</button>
             </div>
           </div>
-          <div class="float-card"><b>AI</b><span>обычный снимок → готовый кадр</span></div>
+          <div class="float-card"><b>AI</b><span>${t("home.floatCard")}</span></div>
         </div>
       </section>
 
       <section class="section proof-section">
         <div class="section-head">
-          <h2>Сначала покажите результат. Потом объясняйте.</h2>
-          <p>DomStudio должен сразу доказывать ценность: обычный снимок превращается в карточку товара, баннер или social creative без тяжёлого хранения на сервере.</p>
+          <h2>${t("home.proofH2")}</h2>
+          <p>${t("home.proofP")}</p>
         </div>
         <div class="proof-grid">
-          <article class="proof-visual"><img src="${productProofUrl}" alt="До и после AI-обработки товарного фото" /></article>
+          <article class="proof-visual"><img src="${productProofUrl}" alt="DomStudio AI" /></article>
           <div class="proof-copy">
-            <div class="proof-stat"><b>30</b><span>фото в первом платном пакете</span></div>
-            <div class="proof-stat"><b>270 ₽</b><span>низкий вход после бесплатных 5</span></div>
-            <div class="proof-stat"><b>3 формата</b><span>карточка, пост, сторис и widescreen export</span></div>
+            <div class="proof-stat"><b>30</b><span>${t("home.stat1s")}</span></div>
+            <div class="proof-stat"><b>270 ₽</b><span>${t("home.stat2s")}</span></div>
+            <div class="proof-stat"><b>${t("home.stat3b")}</b><span>${t("home.stat3s")}</span></div>
           </div>
         </div>
       </section>
 
       <section class="section modes-section">
         <div class="section-head">
-          <h2>Одна студия. Шесть способов показать товар.</h2>
-          <p>Выберите задачу, добавьте описание и получите визуал в нужном формате.</p>
+          <h2>${t("home.modesH2")}</h2>
+          <p>${t("home.modesP")}</p>
         </div>
         <div class="mode-grid">
           ${MODES.map((mode, index) => `
             <article class="mode-card">
               <figure class="mode-visual proof-compare">
-                <img class="proof-after" src="${mode[3]}" alt="${mode[4]}" loading="lazy" />
+                <img class="proof-after" src="${mode[3]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
                 <div class="proof-before">
-                  <img src="${mode[5]}" alt="Обычный исходный кадр для режима ${mode[1]}" loading="lazy" />
-                  <span>До</span>
+                  <img src="${mode[5]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
+                  <span>${t("home.before")}</span>
                 </div>
-                <span class="proof-after-label">После</span>
+                <span class="proof-after-label">${t("home.after")}</span>
               </figure>
-              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${mode[6]}</span></div>
-              <h3>${mode[1]}</h3>
-              <p>${mode[2]}</p>
+              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${t("mode." + mode[0] + ".tag")}</span></div>
+              <h3>${t("mode." + mode[0] + ".name")}</h3>
+              <p>${t("mode." + mode[0] + ".desc")}</p>
             </article>`).join("")}
         </div>
       </section>
 
       <section class="section dark workflow-section">
-        <div class="section-head"><h2>От снимка до готового контента</h2><p>Без аренды, команды и недель ожидания.</p></div>
+        <div class="section-head"><h2>${t("home.workflowH2")}</h2><p>${t("home.workflowP")}</p></div>
         <div class="steps">
-          <article class="step"><b>01</b><h3>Загрузите</h3><p>Сфотографируйте товар на телефон или начните с текстового описания.</p></article>
-          <article class="step"><b>02</b><h3>Настройте</h3><p>Выберите формат съёмки, стиль и нужное разрешение.</p></article>
-          <article class="step"><b>03</b><h3>Скачайте</h3><p>Получите готовый кадр и используйте его в продажах.</p></article>
+          <article class="step"><b>01</b><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></article>
+          <article class="step"><b>02</b><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></article>
+          <article class="step"><b>03</b><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></article>
         </div>
       </section>
     </main>`;
 }
 
 function gatePage() {
-  return `<main class="page"><section class="gate"><div class="eyebrow">Личный кабинет</div><h1>Сначала создадим аккаунт</h1><p>В аккаунте хранятся токены, тариф и результаты генерации.</p><button class="button gold" data-auth="register">Начать бесплатно</button></section></main>`;
+  return `<main class="page"><section class="gate"><div class="eyebrow">${t("gate.eyebrow")}</div><h1>${t("gate.h1")}</h1><p>${t("gate.p")}</p><button class="button gold" data-auth="register">${t("gate.cta")}</button></section></main>`;
 }
 
 function appSidebar(active) {
   return `<aside class="sidebar">
-    <p class="side-caption">Рабочее пространство</p>
-    <button class="side-link ${active === "studio" ? "active" : ""}" data-route="studio">✦ Новая генерация</button>
-    <button class="side-link ${active === "history" ? "active" : ""}" data-route="history">◑ История</button>
-    <button class="side-link ${active === "account" ? "active" : ""}" data-route="account">◫ Обзор аккаунта</button>
-    <button class="side-link ${active === "pricing" ? "active" : ""}" data-route="pricing">◇ Тарифы и токены</button>
-    <button class="side-link" data-logout>Выйти</button>
+    <p class="side-caption">${t("sidebar.caption")}</p>
+    <button class="side-link ${active === "studio" ? "active" : ""}" data-route="studio">${t("sidebar.new")}</button>
+    <button class="side-link ${active === "history" ? "active" : ""}" data-route="history">${t("sidebar.history")}</button>
+    <button class="side-link ${active === "account" ? "active" : ""}" data-route="account">${t("sidebar.account")}</button>
+    <button class="side-link ${active === "pricing" ? "active" : ""}" data-route="pricing">${t("sidebar.pricing")}</button>
+    <button class="side-link" data-logout>${t("sidebar.logout")}</button>
   </aside>`;
 }
 
@@ -722,57 +726,57 @@ function studioPage() {
   return `<main class="app-layout">
     ${appSidebar("studio")}
     <section class="workspace">
-      <header class="workspace-head"><div><div class="eyebrow">Новая генерация</div><h1>AI-студия</h1></div><div class="balance"><span>${state.user.tokens}</span> токенов</div></header>
+      <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div><div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div></header>
       <div class="studio-grid">
         <form class="panel" id="generate-form">
           <div class="form-section">
-            <div class="field"><label for="marketplace">Площадка</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select></div>
-            <div class="field"><label for="style_template">Шаблон стиля</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${template.label}</option>`).join("")}</select></div>
-            <div class="field"><label for="mode">Режим съёмки</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${mode[1]} — ${mode[2]}</option>`).join("")}</select></div>
+            <div class="field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select></div>
+            <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${template.label}</option>`).join("")}</select></div>
+            <div class="field"><label for="mode">${t("studio.mode")}</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${t("mode." + mode[0] + ".name")} — ${t("mode." + mode[0] + ".desc")}</option>`).join("")}</select></div>
           </div>
           <div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
             <button class="collapsible-head" type="button" data-toggle-brand>
-              <span><h3>Бренд</h3><small>площадка, стиль, цвета по умолчанию</small></span>
+              <span><h3>${t("studio.brandTitle")}</h3><small>${t("studio.brandSub")}</small></span>
               <span class="chevron">${state.brandPrefsOpen ? "−" : "+"}</span>
             </button>
             ${state.brandPrefsOpen ? `<div class="collapsible-body">
               <div class="helper-grid">
-                <div class="field"><label for="brand_pref_colors">Цвета</label><input class="input" id="brand_pref_colors" name="brand_pref_colors" value="${brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
-                <div class="field"><label for="brand_pref_background">Фон</label><input class="input" id="brand_pref_background" name="brand_pref_background" value="${brandPrefValue("preferred_background")}" placeholder="тёплый светлый фон" /></div>
-                <div class="field"><label for="brand_pref_mood">Настроение</label><input class="input" id="brand_pref_mood" name="brand_pref_mood" value="${brandPrefValue("brand_mood")}" placeholder="clean luxury, calm, premium" /></div>
-                <div class="field"><label for="brand_pref_avoid">Не использовать</label><input class="input" id="brand_pref_avoid" name="brand_pref_avoid" value="${brandPrefValue("do_not_use")}" placeholder="неон, дешёвый пластик, текст" /></div>
+                <div class="field"><label for="brand_pref_colors">${t("studio.brandColors")}</label><input class="input" id="brand_pref_colors" name="brand_pref_colors" value="${brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
+                <div class="field"><label for="brand_pref_background">${t("studio.brandBg")}</label><input class="input" id="brand_pref_background" name="brand_pref_background" value="${brandPrefValue("preferred_background")}" placeholder="warm light background" /></div>
+                <div class="field"><label for="brand_pref_mood">${t("studio.brandMood")}</label><input class="input" id="brand_pref_mood" name="brand_pref_mood" value="${brandPrefValue("brand_mood")}" placeholder="clean luxury, calm, premium" /></div>
+                <div class="field"><label for="brand_pref_avoid">${t("studio.brandAvoid")}</label><input class="input" id="brand_pref_avoid" name="brand_pref_avoid" value="${brandPrefValue("do_not_use")}" placeholder="neon, cheap plastic, text" /></div>
               </div>
-              <button class="button secondary block" type="button" data-save-brand>Сохранить бренд</button>
+              <button class="button secondary block" type="button" data-save-brand>${t("studio.brandSave")}</button>
             </div>` : ""}
           </div>
           <div class="prompt-helper collapsible ${state.promptHelperOpen ? "open" : ""}">
             <button class="collapsible-head" type="button" data-toggle-prompt>
-              <span><h3>Помощник промпта</h3><small>соберёт описание и стиль автоматически</small></span>
+              <span><h3>${t("studio.helperTitle")}</h3><small>${t("studio.helperSub")}</small></span>
               <span class="chevron">${state.promptHelperOpen ? "−" : "+"}</span>
             </button>
             ${state.promptHelperOpen ? `<div class="collapsible-body">
               <div class="helper-grid">
-                <div class="field"><label for="product_type">Тип товара</label><input class="input" id="product_type" name="product_type" value="${draftValue("product_type")}" placeholder="Золотые серьги-кольца" /></div>
-                <div class="field"><label for="brand_colors">Цвета бренда</label><input class="input" id="brand_colors" name="brand_colors" value="${draftValue("brand_colors") || brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
-                <div class="field wide"><label for="constraints">Ограничения</label><input class="input" id="constraints" name="constraints" value="${draftValue("constraints")}" placeholder="без текста, без рук, сохранить форму упаковки" /></div>
+                <div class="field"><label for="product_type">${t("studio.helperType")}</label><input class="input" id="product_type" name="product_type" value="${draftValue("product_type")}" placeholder="Gold hoop earrings" /></div>
+                <div class="field"><label for="brand_colors">${t("studio.helperColors")}</label><input class="input" id="brand_colors" name="brand_colors" value="${draftValue("brand_colors") || brandPrefValue("brand_colors")}" placeholder="ivory, gold, deep green" /></div>
+                <div class="field wide"><label for="constraints">${t("studio.helperConstraints")}</label><input class="input" id="constraints" name="constraints" value="${draftValue("constraints")}" placeholder="no text, no hands, preserve packaging shape" /></div>
               </div>
-              <button class="button secondary block" type="button" data-build-prompt>Собрать промпт из настроек</button>
+              <button class="button secondary block" type="button" data-build-prompt>${t("studio.helperBuild")}</button>
             </div>` : ""}
           </div>
-          <div class="field"><label for="subject">Что снимаем</label><textarea class="textarea" id="subject" name="subject" required placeholder="Например: золотые серьги-кольца на светлом фоне">${draftValue("subject")}</textarea></div>
-          <div class="field"><label for="style_hint">Пожелания к стилю</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="Тёплый свет, премиальный минимализм" /></div>
-          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? `${state.batchQueue.length} фото в очереди` : state.selectedImageName ? escapeHtml(state.selectedImageName) : "Добавить фото товара"}</strong><br />${state.batchQueue.length > 1 ? `${state.batchQueue.length * 100} токенов на пакет` : state.selectedImageName ? "Фото готово к генерации" : "PNG или JPEG · несколько файлов"}</span></label>
-          <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> Сделать дополнительный 4K-апскейл</label>
-          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? `Пакет ${state.batchIndex}/${state.batchTotal}…` : "Создаём кадр…") : (state.batchQueue.length > 1 ? `Создать пакет · ${state.batchQueue.length * 100} токенов` : "Создать фото · 100 токенов")}</button>
+          <div class="field"><label for="subject">${t("studio.subjectLabel")}</label><textarea class="textarea" id="subject" name="subject" required placeholder="${t("studio.subjectPlaceholder")}">${draftValue("subject")}</textarea></div>
+          <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
+          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
+          <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>
+          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : t("studio.submitGenerating")) : (state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"))}</button>
           ${state.user.tokens < 100
-            ? `<p class="token-hint warn">Токенов недостаточно — <button class="text-button" type="button" data-route="pricing">пополнить тариф</button></p>`
-            : `<p class="token-hint">У вас ${state.user.tokens} токенов · хватит на ~${Math.floor(state.user.tokens / 100)} фото</p>`}
+            ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
+            : `<p class="token-hint">${t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) })}</p>`}
         </form>
         <div class="panel">
           <div class="result ${state.generating && !state.generatedImage ? "loading" : ""}">
             ${state.generatedImage
-              ? `<img src="${state.generatedImage}" alt="Сгенерированный результат" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || "Создаём новый кадр…")}</div>` : ""}`
-              : `<div class="result-empty"><b>${state.generating ? "Собираем студию…" : "Здесь появится результат"}</b>${state.generating ? "Генерация может занять несколько минут." : "Заполните описание, выберите режим и запустите генерацию."}</div>`}
+              ? `<img src="${state.generatedImage}" alt="AI result" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("studio.generatingNew"))}</div>` : ""}`
+              : `<div class="result-empty"><b>${state.generating ? t("studio.resultSetting") : t("studio.resultEmptyB")}</b>${state.generating ? "" : t("studio.resultEmptyP")}</div>`}
           </div>
           ${state.generatedMeta ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
           ${exportTools()}
@@ -799,26 +803,26 @@ function accountPage() {
   return `<main class="app-layout">
     ${appSidebar("account")}
     <section class="workspace">
-      <header class="workspace-head"><div><div class="eyebrow">Аккаунт</div><h1>Обзор</h1></div><button class="button gold" data-route="studio">Создать фото</button></header>
+      <header class="workspace-head"><div><div class="eyebrow">${t("account.eyebrow")}</div><h1>${t("account.h1")}</h1></div><button class="button gold" data-route="studio">${t("account.create")}</button></header>
 
       <div class="stats">
-        <article class="stat"><span>Тариф</span><b>${planLabel(planName)}</b></article>
-        <article class="stat"><span>Токенов осталось</span><b>${state.user.tokens.toLocaleString("ru-RU")}</b></article>
-        <article class="stat"><span>Фото в периоде</span><b>${sub.photos_used || 0} / ${sub.photos_limit || 5}</b></article>
+        <article class="stat"><span>${t("account.statPlan")}</span><b>${planLabel(planName)}</b></article>
+        <article class="stat"><span>${t("account.statTokens")}</span><b>${state.user.tokens.toLocaleString("ru-RU")}</b></article>
+        <article class="stat"><span>${t("account.statPhotos")}</span><b>${sub.photos_used || 0} / ${sub.photos_limit || 5}</b></article>
       </div>
 
       ${isFree || lowTokens ? `
       <div class="upgrade-cta">
         <div class="upgrade-cta-copy">
-          <b>${isFree ? "Попробуйте Старт — 270 ₽/мес" : "Токены заканчиваются"}</b>
-          <span>${isFree ? "30 фото, 3 000 токенов, все режимы съёмки" : "Пополните тариф, чтобы не прерываться"}</span>
+          <b>${isFree ? t("account.upgradeFreB") : t("account.upgradeLowB")}</b>
+          <span>${isFree ? t("account.upgradeFreS") : t("account.upgradeLowS")}</span>
         </div>
-        <button class="button gold" data-route="pricing">Выбрать тариф</button>
+        <button class="button gold" data-route="pricing">${t("account.upgradeCta")}</button>
       </div>` : ""}
 
       ${recentHistory.length ? `
       <div class="panel account-section">
-        <div class="account-section-head"><h3>Недавние результаты</h3><span>из браузера</span></div>
+        <div class="account-section-head"><h3>${t("account.recentH3")}</h3><span>${t("account.recentSub")}</span></div>
         <div class="history-grid">
           ${recentHistory.map((item) => `
             <article class="history-item">
@@ -829,36 +833,37 @@ function accountPage() {
                 <b>${escapeHtml(item.subject)}</b>
                 <span>${escapeHtml(item.mode)}${item.width ? ` · ${item.width}×${item.height}` : ""}</span>
               </div>
-              <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
+              <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="${t("history.delete")}">×</button>
             </article>`).join("")}
         </div>
-        <button class="button secondary" style="margin-top:14px" data-route="studio">Открыть студию</button>
+        <button class="button secondary" style="margin-top:14px" data-route="studio">${t("account.openStudio")}</button>
       </div>` : ""}
 
       ${hasBrand ? `
       <div class="panel account-section">
-        <div class="account-section-head"><h3>Бренд</h3><button class="text-button" data-route="studio">Изменить</button></div>
+        <div class="account-section-head"><h3>${t("account.brandH3")}</h3><button class="text-button" data-route="studio">${t("account.brandEdit")}</button></div>
         <dl class="brand-summary">
-          ${bp.brand_colors ? `<div><dt>Цвета</dt><dd>${escapeHtml(bp.brand_colors)}</dd></div>` : ""}
-          ${bp.preferred_background ? `<div><dt>Фон</dt><dd>${escapeHtml(bp.preferred_background)}</dd></div>` : ""}
-          ${bp.brand_mood ? `<div><dt>Настроение</dt><dd>${escapeHtml(bp.brand_mood)}</dd></div>` : ""}
-          ${bp.do_not_use ? `<div><dt>Избегать</dt><dd>${escapeHtml(bp.do_not_use)}</dd></div>` : ""}
+          ${bp.brand_colors ? `<div><dt>${t("account.brandColors")}</dt><dd>${escapeHtml(bp.brand_colors)}</dd></div>` : ""}
+          ${bp.preferred_background ? `<div><dt>${t("account.brandBg")}</dt><dd>${escapeHtml(bp.preferred_background)}</dd></div>` : ""}
+          ${bp.brand_mood ? `<div><dt>${t("account.brandMood")}</dt><dd>${escapeHtml(bp.brand_mood)}</dd></div>` : ""}
+          ${bp.do_not_use ? `<div><dt>${t("account.brandAvoid")}</dt><dd>${escapeHtml(bp.do_not_use)}</dd></div>` : ""}
         </dl>
       </div>` : ""}
 
       <div class="panel account-section">
-        <div class="account-section-head"><h3>Данные аккаунта</h3></div>
+        <div class="account-section-head"><h3>${t("account.dataH3")}</h3></div>
         <p class="account-contact">${escapeHtml(state.user.email || state.user.phone || "—")}</p>
-        <p class="account-status ${state.user.is_verified ? "verified" : "pending"}">${state.user.is_verified ? "✓ Подтверждён" : "⏳ Ожидает подтверждения"}</p>
+        <p class="account-status ${state.user.is_verified ? "verified" : "pending"}">${state.user.is_verified ? t("account.verified") : t("account.pending")}</p>
       </div>
     </section>
   </main>`;
 }
 
 function historyPage() {
+  const locale = state.lang === "en" ? "en-GB" : "ru-RU";
   const modeFilters = [
-    { id: "all", label: "Все" },
-    ...MODES.map(([id, label]) => ({ id, label })),
+    { id: "all", label: t("historyPage.filterAll") },
+    ...MODES.map(([id]) => ({ id, label: t(`mode.${id}.name`) })),
   ];
   const filtered = state.history.filter(
     item => state.historyFilter === "all" || item.mode === state.historyFilter
@@ -867,8 +872,8 @@ function historyPage() {
     ${state.user ? appSidebar("history") : ""}
     <section class="${state.user ? "workspace" : "section"}">
       <header class="workspace-head">
-        <div><div class="eyebrow">Браузер</div><h1>История</h1></div>
-        ${state.history.length ? `<button class="button secondary" data-clear-history>Очистить всё</button>` : ""}
+        <div><div class="eyebrow">${t("historyPage.eyebrow")}</div><h1>${t("historyPage.h1")}</h1></div>
+        ${state.history.length ? `<button class="button secondary" data-clear-history>${t("historyPage.clearAll")}</button>` : ""}
       </header>
       ${state.history.length ? `
         <div class="chip-row" style="margin-bottom: 20px;">
@@ -878,8 +883,8 @@ function historyPage() {
           <div class="history-full-grid">
             ${filtered.map(item => {
               const d = new Date(item.createdAt);
-              const dateStr = d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
-              const timeStr = d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+              const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "short" });
+              const timeStr = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
               return `<article class="history-card">
                 <button class="history-card-thumb" type="button" data-history-id="${item.id}">
                   <img src="${item.dataUrl}" alt="${escapeHtml(item.subject)}" loading="lazy" />
@@ -889,16 +894,16 @@ function historyPage() {
                   <span>${escapeHtml(item.mode)}${item.variation_label ? ` · ${escapeHtml(item.variation_label)}` : ""}${item.width ? ` · ${item.width}×${item.height}` : ""}</span>
                   <time>${dateStr}, ${timeStr}</time>
                 </div>
-                <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="Удалить">×</button>
+                <button class="history-delete" type="button" data-delete-history="${item.id}" aria-label="${t("history.delete")}">×</button>
               </article>`;
             }).join("")}
           </div>
-        ` : `<p class="history-empty-filter">Нет результатов для этого режима.</p>`}
+        ` : `<p class="history-empty-filter">${t("historyPage.noFilter")}</p>`}
       ` : `
         <div class="history-empty">
-          <b>История пуста</b>
-          <p>Результаты сохраняются только в этом браузере — появятся здесь после первой генерации.</p>
-          <button class="button gold" data-route="studio">Создать первое фото</button>
+          <b>${t("historyPage.emptyB")}</b>
+          <p>${t("historyPage.emptyP")}</p>
+          <button class="button gold" data-route="studio">${t("historyPage.emptyCta")}</button>
         </div>
       `}
     </section>
@@ -910,27 +915,27 @@ function pricingPage() {
   return `<main class="${state.user ? "app-layout" : "page"}">
     ${state.user ? appSidebar("pricing") : ""}
     <section class="${state.user ? "workspace" : "section"}">
-      <header class="workspace-head"><div><div class="eyebrow">Тарифы</div><h1>Масштабируйте контент</h1></div></header>
+      <header class="workspace-head"><div><div class="eyebrow">${t("pricing.eyebrow")}</div><h1>${t("pricing.h1")}</h1></div></header>
       <div class="price-grid">
         ${cards.map(plan => `
           <article class="price-card ${plan.name === "pro" ? "featured" : ""}">
             <div class="plan-kicker">${planDescription(plan.name)}</div>
             <h3>${planLabel(plan.name)}</h3>
-            <div class="price">${plan.price_rub.toLocaleString("ru-RU")} ₽ <small>/ месяц</small></div>
-            <ul class="price-list"><li>${planPhotos(plan)}</li><li>${pricePerPhoto(plan)}</li><li>${plan.tokens.toLocaleString("ru-RU")} токенов</li><li>Все режимы съёмки</li></ul>
-            <button class="button ${plan.name === "pro" ? "gold" : ""}" data-plan="${plan.name}">${plan.price_rub ? "Выбрать тариф" : "Начать бесплатно"}</button>
+            <div class="price">${plan.price_rub.toLocaleString("ru-RU")} ₽ <small>${t("pricing.perMonth")}</small></div>
+            <ul class="price-list"><li>${planPhotos(plan)}</li><li>${pricePerPhoto(plan)}</li><li>${plan.tokens.toLocaleString("ru-RU")} ${t("studio.tokens", { n: "" }).trim()}</li><li>${t("pricing.allModes")}</li></ul>
+            <button class="button ${plan.name === "pro" ? "gold" : ""}" data-plan="${plan.name}">${plan.price_rub ? t("pricing.choose") : t("pricing.startFree")}</button>
           </article>`).join("")}
       </div>
 
       <div class="topup-section">
-        <div class="mini-head"><h3>Докупить токены</h3><span>без смены тарифа · сгорают при следующем пополнении</span></div>
+        <div class="mini-head"><h3>${t("pricing.topupH3")}</h3><span>${t("pricing.topupSub")}</span></div>
         <div class="topup-grid">
           ${TOKEN_PACKS.map(pack => `
             <article class="topup-card">
-              <b>${pack.label}</b>
-              <span>~${Math.floor(pack.tokens / 100)} фото</span>
+              <b>${pack.tokens.toLocaleString("ru-RU")} ${t("nav.tokens", { n: "" }).trim()}</b>
+              <span>~${Math.floor(pack.tokens / 100)} ${t("pricing.photos")}</span>
               <div class="topup-price">${pack.price_rub} ₽</div>
-              <button class="button secondary" data-pack-id="${pack.pack_id}">Купить</button>
+              <button class="button secondary" data-pack-id="${pack.pack_id}">${t("pricing.topupBuy")}</button>
             </article>`).join("")}
         </div>
       </div>
@@ -944,11 +949,11 @@ function authModal() {
   if (state.authMode === "verify") {
     return `<div class="modal-backdrop">
       <form class="modal auth-modal compact" id="verify-form">
-        <div class="modal-top"><div><div class="eyebrow">Подтверждение</div><h2>Проверьте ${state.verificationKind === "phone" ? "телефон" : "почту"}</h2></div><button class="close" type="button" data-close>×</button></div>
-        <div class="notice">Код отправлен на <b>${escapeHtml(state.verificationContact)}</b>. Введите 6 цифр, чтобы открыть студию.</div>
+        <div class="modal-top"><div><div class="eyebrow">${t("auth.verifyEyebrow")}</div><h2>${state.verificationKind === "phone" ? t("auth.verifyH2Phone") : t("auth.verifyH2Email")}</h2></div><button class="close" type="button" data-close>×</button></div>
+        <div class="notice">${t("auth.verifyNotice", { contact: `<b>${escapeHtml(state.verificationContact)}</b>` })}</div>
         <div class="code-field"><input class="input" name="code" inputmode="numeric" autocomplete="one-time-code" required maxlength="6" placeholder="000000" /></div>
-        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? "Проверяем…" : "Подтвердить и войти"}</button>
-        <button class="text-button auth-back" type="button" data-auth="${state.verificationReturnMode}">Изменить контакт</button>
+        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? t("auth.verifyLoading") : t("auth.verifySubmit")}</button>
+        <button class="text-button auth-back" type="button" data-auth="${state.verificationReturnMode}">${t("auth.verifyBack")}</button>
       </form>
     </div>`;
   }
@@ -957,28 +962,28 @@ function authModal() {
     <form class="modal auth-modal" id="auth-form">
       <div class="auth-side">
         <div class="brand auth-brand">Dom<span>Studio</span></div>
-        <h2>${register ? "Создайте студию за минуту" : "Добро пожаловать обратно"}</h2>
-        <p>${register ? "Бесплатный старт включает токены, пресеты маркетплейсов и браузерную историю без облачного хранения изображений." : "Продолжите работу с токенами, брендом, историей и готовыми экспортами."}</p>
+        <h2>${register ? t("auth.sideRegisterH2") : t("auth.sideLoginH2")}</h2>
+        <p>${register ? t("auth.sideRegisterP") : t("auth.sideLoginP")}</p>
         <ul class="auth-benefits">
-          <li>5 фото на бесплатном старте</li>
-          <li>История хранится только в браузере</li>
-          <li>Пресеты WB, Ozon, Yandex и соцсетей</li>
+          <li>${t("auth.benefit1")}</li>
+          <li>${t("auth.benefit2")}</li>
+          <li>${t("auth.benefit3")}</li>
         </ul>
       </div>
       <div class="auth-main">
-        <div class="modal-top"><div><div class="eyebrow">Аккаунт</div><h2>${register ? "Регистрация" : "Вход"}</h2></div><button class="close" type="button" data-close>×</button></div>
+        <div class="modal-top"><div><div class="eyebrow">${t("auth.eyebrow")}</div><h2>${register ? t("auth.registerH2") : t("auth.loginH2")}</h2></div><button class="close" type="button" data-close>×</button></div>
         <div class="auth-tabs">
           <button class="${state.authChannel === "email" ? "active" : ""}" type="button" data-auth-channel="email">Email</button>
-          <button class="${state.authChannel === "phone" ? "active" : ""}" type="button" data-auth-channel="phone">Телефон</button>
+          <button class="${state.authChannel === "phone" ? "active" : ""}" type="button" data-auth-channel="phone">${t("auth.tabPhone")}</button>
         </div>
         ${isPhone
-          ? `<div class="field"><label>Телефон</label><input class="input" type="tel" name="phone" autocomplete="tel" required placeholder="+7 999 123-45-67" /></div>
-             <div class="notice muted">${register ? "Мы отправим код подтверждения по SMS." : "Для входа отправим одноразовый SMS-код."}</div>`
-          : `<div class="field"><label>Email</label><input class="input" type="email" name="email" autocomplete="email" required placeholder="you@brand.com" /></div>
-             <div class="field"><label>Пароль</label><div class="password-wrap"><input class="input" type="${state.passwordVisible ? "text" : "password"}" name="password" autocomplete="${register ? "new-password" : "current-password"}" minlength="8" required placeholder="Минимум 8 символов" /><button type="button" data-toggle-password>${state.passwordVisible ? "Скрыть" : "Показать"}</button></div></div>`}
-        ${register ? `<label class="check compact"><input type="checkbox" required /> Я понимаю, что первые результаты сохраняются только в этом браузере</label>` : ""}
-        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? "Подождите…" : register ? (isPhone ? "Получить код" : "Создать аккаунт") : (isPhone ? "Войти по SMS" : "Войти")}</button>
-        <p class="auth-switch">${register ? "Уже есть аккаунт?" : "Ещё нет аккаунта?"} <button class="text-button" type="button" data-auth="${register ? "login" : "register"}">${register ? "Войти" : "Создать аккаунт"}</button></p>
+          ? `<div class="field"><label>${t("auth.phoneLabel")}</label><input class="input" type="tel" name="phone" autocomplete="tel" required placeholder="+7 999 123-45-67" /></div>
+             <div class="notice muted">${register ? t("auth.phoneNoticeRegister") : t("auth.phoneNoticeLogin")}</div>`
+          : `<div class="field"><label>${t("auth.emailLabel")}</label><input class="input" type="email" name="email" autocomplete="email" required placeholder="you@brand.com" /></div>
+             <div class="field"><label>${t("auth.passwordLabel")}</label><div class="password-wrap"><input class="input" type="${state.passwordVisible ? "text" : "password"}" name="password" autocomplete="${register ? "new-password" : "current-password"}" minlength="8" required placeholder="${t("auth.passwordPlaceholder")}" /><button type="button" data-toggle-password>${state.passwordVisible ? t("auth.passwordHide") : t("auth.passwordShow")}</button></div></div>`}
+        ${register ? `<label class="check compact"><input type="checkbox" required /> ${t("auth.consent")}</label>` : ""}
+        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? t("auth.submitLoading") : register ? (isPhone ? t("auth.submitRegisterPhone") : t("auth.submitRegisterEmail")) : (isPhone ? t("auth.submitLoginPhone") : t("auth.submitLoginEmail"))}</button>
+        <p class="auth-switch">${register ? t("auth.haveAccount") : t("auth.noAccount")} <button class="text-button" type="button" data-auth="${register ? "login" : "register"}">${register ? t("auth.switchLogin") : t("auth.switchRegister")}</button></p>
       </div>
     </form>
   </div>`;
@@ -990,7 +995,7 @@ function render(options = {}) {
     : state.route === "account" ? accountPage()
     : state.route === "history" ? historyPage()
     : homePage();
-  document.title = PAGE_TITLES[state.route] || PAGE_TITLES.home;
+  document.title = t(`title.${state.route}`) || t("title.home");
   const motionKey = `${state.route}:${state.authMode || "none"}`;
   const shouldAnimateEntrance = options.motion ?? motionKey !== lastMotionKey;
   app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${authModal()}</div>`;
@@ -1041,6 +1046,14 @@ function bind() {
   document.querySelector("[data-clear-history]")?.addEventListener("click", clearAllHistory);
   document.querySelector("[data-share]")?.addEventListener("click", shareResult);
   document.querySelector("#image")?.addEventListener("change", selectImage);
+  document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
+}
+
+function toggleLang() {
+  const next = state.lang === "ru" ? "en" : "ru";
+  state.lang = next;
+  setLang(next);
+  render();
 }
 
 function togglePresetsMenu() {
@@ -1066,7 +1079,7 @@ function togglePasswordVisibility(button) {
   const input = button.closest(".password-wrap")?.querySelector("input");
   if (!input) return;
   input.type = state.passwordVisible ? "text" : "password";
-  button.textContent = state.passwordVisible ? "Скрыть" : "Показать";
+  button.textContent = state.passwordVisible ? t("auth.passwordHide") : t("auth.passwordShow");
   input.focus({ preventScroll: true });
 }
 
@@ -1222,7 +1235,7 @@ function buildPromptFromHelper() {
   form.elements.style_hint.value = styleHint;
   state.formDraft.subject = subject;
   state.formDraft.style_hint = styleHint;
-  toast("Промпт собран");
+  toast(t("toast.promptBuilt"));
 }
 
 function saveBrandPreferences() {
@@ -1245,7 +1258,7 @@ function saveBrandPreferences() {
     brand_colors: state.formDraft.brand_colors || state.brandPrefs.brand_colors,
   };
   saveBrandPrefs(state.brandPrefs);
-  toast("Бренд сохранён в браузере");
+  toast(t("toast.brandSaved"));
   render();
 }
 
@@ -1272,11 +1285,11 @@ async function processBatch(values) {
     state.selectedImage = queue[i].base64;
     state.selectedImageName = queue[i].name;
     const payload = composeGenerationPayload(values);
-    await generateWithPayload(payload, { label: `Фото ${i + 1} из ${queue.length}` });
+    await generateWithPayload(payload, { label: t("studio.batchItemLabel", { n: i + 1, total: queue.length }) });
   }
   state.batchTotal = 0;
   state.batchIndex = 0;
-  toast(`Пакет готов — ${queue.length} фото`);
+  toast(t("toast.batchDone", { n: queue.length }));
   render();
 }
 
@@ -1321,7 +1334,7 @@ async function exportGeneratedImage() {
     link.download = `domstudio-${sizeId}.${format === "jpeg" ? "jpg" : format}`;
     link.click();
   } catch {
-    toast("Не удалось экспортировать изображение");
+    toast(t("toast.exportFailed"));
   }
 }
 
@@ -1335,9 +1348,9 @@ async function exportForPack(packId) {
     link.href = dataUrl;
     link.download = `domstudio-${fmt.id}.${fmt.format === "jpeg" ? "jpg" : fmt.format}`;
     link.click();
-    toast(`Скачан: ${fmt.label}`);
+    toast(t("toast.downloaded", { name: fmt.labelKey ? t(fmt.labelKey) : fmt.label }));
   } catch {
-    toast("Не удалось экспортировать");
+    toast(t("toast.exportFailed"));
   }
 }
 
@@ -1364,7 +1377,7 @@ async function removeHistoryItem(id) {
     state.history = await readHistoryItems();
     render();
   } catch {
-    toast("Не удалось удалить из истории");
+    toast(t("toast.historyDeleteFailed"));
   }
 }
 
@@ -1386,7 +1399,7 @@ async function submitAuth(event) {
       state.verificationReturnMode = state.authMode;
       state.authMode = "verify";
       state.authLoading = false;
-      toast("Код отправлен");
+      toast(t("toast.codeSent"));
       render();
       return;
     }
@@ -1436,7 +1449,7 @@ function selectImage(event) {
   const files = Array.from(event.target.files);
   if (!files.length) return;
   const oversized = files.find(f => f.size > 10 * 1024 * 1024);
-  if (oversized) return toast(`Файл ${escapeHtml(oversized.name)} больше 10 МБ`);
+  if (oversized) return toast(t("toast.fileTooBig", { name: escapeHtml(oversized.name) }));
 
   if (files.length === 1) {
     const reader = new FileReader();
@@ -1445,7 +1458,7 @@ function selectImage(event) {
       state.selectedImageName = files[0].name;
       state.batchQueue = [];
       const label = document.querySelector("#upload-label span");
-      if (label) label.innerHTML = `<strong>${escapeHtml(files[0].name)}</strong><br />Фото готово к генерации`;
+      if (label) label.innerHTML = `<strong>${escapeHtml(files[0].name)}</strong><br />${t("studio.uploadReady")}`;
     };
     reader.readAsDataURL(files[0]);
     return;
@@ -1460,7 +1473,7 @@ function selectImage(event) {
   ).then(queue => {
     state.batchQueue = queue;
     state.selectedImage = queue[0].base64;
-    state.selectedImageName = `${queue.length} фото`;
+    state.selectedImageName = `${queue.length} ${t("pricing.photos")}`;
     render({ motion: false });
   });
 }
@@ -1482,7 +1495,7 @@ async function generateWithPayload(payload, options = {}) {
   const previousImage = options.keepCurrentImage ? state.generatedImage : null;
   const previousMeta = options.keepCurrentImage ? state.generatedMeta : null;
   state.generating = true;
-  state.generationLabel = options.label ? `Создаём вариацию: ${options.label}…` : "Создаём кадр…";
+  state.generationLabel = options.label ? `${t("studio.submitGenerating").replace("…", "")} ${options.label}…` : t("studio.submitGenerating");
   if (!options.keepCurrentImage) {
     state.generatedImage = null;
     state.generatedMeta = null;
@@ -1506,7 +1519,7 @@ async function generateWithPayload(payload, options = {}) {
     state.generatedMeta = resultMeta;
     await rememberResult(resultMeta, dataUrl, payload);
     await loadUser();
-    toast(options.label ? `Вариация готова: ${options.label}` : "Фото готово");
+    toast(options.label ? t("toast.variationDone", { label: options.label }) : t("toast.photoDone"));
   } catch (error) {
     toast(error.message);
   } finally {
@@ -1550,12 +1563,12 @@ function checkPaymentReturn() {
   history.replaceState(null, "", location.pathname + location.hash);
   if (payment === "success") {
     loadUser().then(() => {
-      toast("Оплата прошла — тариф активирован");
+      toast(t("toast.paymentSuccess"));
       navigate("account");
       render();
     });
   } else if (payment === "failed") {
-    toast("Не удалось провести оплату — попробуйте снова");
+    toast(t("toast.paymentFailed"));
     navigate("pricing");
   }
 }
@@ -1569,8 +1582,8 @@ async function shareResult() {
       const file = new File([blob], "domstudio-result.jpg", { type: blob.type });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: "DomStudio — AI-фотостудия",
-          text: subject ? `Товарный кадр: ${subject}` : "AI-кадр из DomStudio",
+          title: "DomStudio",
+          text: subject || "DomStudio AI",
           files: [file],
         });
         return;
@@ -1578,7 +1591,7 @@ async function shareResult() {
     }
     const blob = await (await fetch(state.generatedImage)).blob();
     await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-    toast("Изображение скопировано в буфер обмена");
+    toast(t("toast.imageCopied"));
   } catch (error) {
     if (error.name !== "AbortError") {
       const link = document.createElement("a");
