@@ -455,7 +455,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .studio-card-top { padding: 10px 12px; font-size: 9px; line-height: 1.3; }
   .hero-proof-frame { margin: 0 10px; border-radius: 14px; }
   .hero-proof-frame img { aspect-ratio: 16 / 11; }
-  .mini-studio-controls { display: none; gap: 8px; padding: 10px; }
+  .mini-studio-controls { display: grid; gap: 8px; padding: 10px; }
   .mini-studio-controls label { grid-template-columns: 1fr; min-height: auto; padding: 10px; gap: 8px; }
   .mini-studio-controls label button { width: 100%; }
   .preset-pills { gap: 6px; }
