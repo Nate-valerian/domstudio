@@ -30,7 +30,7 @@ router = APIRouter()
 TINKOFF_TERMINAL = os.getenv("TINKOFF_TERMINAL_KEY", "")
 TINKOFF_SECRET   = os.getenv("TINKOFF_SECRET_KEY", "")
 TINKOFF_BASE     = "https://securepay.tinkoff.ru/v2"
-FRONTEND_URL     = os.getenv("FRONTEND_URL", "https://domstudio.ru")
+FRONTEND_URL     = os.getenv("FRONTEND_URL", "https://domstudio.site")
 
 # ─── YANDEX PAY CONFIG ───────────────────────────────────────────────────────
 YANDEX_MERCHANT_ID = os.getenv("YANDEX_PAY_MERCHANT_ID", "")

@@ -23,9 +23,9 @@ OTP_TTL_MIN     = 10        # 10 minutes
 
 SMS_API_KEY     = os.getenv("SMS_API_KEY", "")
 SMS_SENDER      = os.getenv("SMS_SENDER", "DomStudio")
-FRONTEND_URL    = os.getenv("FRONTEND_URL", "https://domstudio.ru")
+FRONTEND_URL    = os.getenv("FRONTEND_URL", "https://domstudio.site")
 RESEND_API_KEY  = os.getenv("RESEND_API_KEY", "")
-EMAIL_FROM      = os.getenv("EMAIL_FROM", "DomStudio <noreply@domstudio.ru>")
+EMAIL_FROM      = os.getenv("EMAIL_FROM", "DomStudio <noreply@domstudio.site>")
 
 # ─── PASSWORD ────────────────────────────────────────────────────────────────
 def hash_password(password: str) -> str:
