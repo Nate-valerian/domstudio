@@ -130,34 +130,43 @@ def compose_img2img_prompt(subject: str, style_hint: str = "") -> str:
 
 
 async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
-    """Use Claude to expand a short user prompt into a proper Qwen Image Edit instruction.
-    Falls back to compose_img2img_prompt() if ANTHROPIC_API_KEY is absent or the call fails."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    """Use DeepSeek to expand a short user prompt into a proper Qwen Image Edit instruction.
+    Falls back to compose_img2img_prompt() if DEEPSEEK_API_KEY is absent or the call fails."""
+    api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         return compose_img2img_prompt(subject, style_hint)
     try:
-        import anthropic
-        aclient = anthropic.AsyncAnthropic(api_key=api_key)
         user_text = subject.strip()
         if style_hint.strip():
             user_text += f". Visual style: {style_hint.strip()}"
-        message = await aclient.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=200,
-            system=(
-                "You write prompts for the Qwen Image Edit model, which edits product photos.\n"
-                "The user describes the desired background or scene in casual language.\n"
-                "Rewrite it as a clear instruction for Qwen Image Edit.\n"
-                "Rules:\n"
-                "1. Begin with: 'Keep this product exactly as shown.'\n"
-                "2. Clearly describe the background/scene/setting.\n"
-                "3. Add lighting and atmosphere details.\n"
-                "4. Mention visual style or mood if the user implies it.\n"
-                "5. 1-3 sentences total. Output ONLY the instruction, nothing else."
-            ),
-            messages=[{"role": "user", "content": user_text}],
-        )
-        return message.content[0].text.strip()
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "model": "deepseek-chat",
+                    "max_tokens": 200,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": (
+                                "You write prompts for the Qwen Image Edit model, which edits product photos.\n"
+                                "The user describes the desired background or scene in casual language.\n"
+                                "Rewrite it as a clear instruction for Qwen Image Edit.\n"
+                                "Rules:\n"
+                                "1. Begin with: 'Keep this product exactly as shown.'\n"
+                                "2. Clearly describe the background/scene/setting.\n"
+                                "3. Add lighting and atmosphere details.\n"
+                                "4. Mention visual style or mood if the user implies it.\n"
+                                "5. 1-3 sentences total. Output ONLY the instruction, nothing else."
+                            ),
+                        },
+                        {"role": "user", "content": user_text},
+                    ],
+                },
+            )
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"].strip()
     except Exception:
         return compose_img2img_prompt(subject, style_hint)
 
