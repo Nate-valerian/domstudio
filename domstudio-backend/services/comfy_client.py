@@ -151,6 +151,29 @@ def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = ""
     return _replace_placeholders(deepcopy(workflow), replacements)
 
 
+def _compress_for_upload(
+    image_data: bytes,
+    max_dim: int = 1280,
+    quality: int = 90,
+) -> tuple[bytes, str, str]:
+    """Resize + JPEG-compress image before tunnel upload to avoid ConnectionResetError."""
+    try:
+        import io
+        from PIL import Image
+
+        img = Image.open(io.BytesIO(image_data))
+        if img.mode in ("RGBA", "P", "LA"):
+            img = img.convert("RGB")
+        elif img.mode != "RGB":
+            img = img.convert("RGB")
+        img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=quality, optimize=True)
+        return buf.getvalue(), "image/jpeg", "jpg"
+    except Exception:
+        return image_data, "image/png", "png"
+
+
 class ComfyClient:
     """Small async client for the standard ComfyUI HTTP API."""
 
@@ -161,12 +184,13 @@ class ComfyClient:
     async def upload_image(self, image_b64: str) -> str:
         """Upload a base64-encoded image to ComfyUI and return the stored filename."""
         image_data = base64.b64decode(image_b64)
-        filename = f"upload_{uuid.uuid4().hex[:8]}.png"
-        async with httpx.AsyncClient(timeout=60) as client:
+        image_data, mime, ext = _compress_for_upload(image_data)
+        filename = f"upload_{uuid.uuid4().hex[:8]}.{ext}"
+        async with httpx.AsyncClient(timeout=120) as client:
             response = await client.post(
                 f"{self.base_url}/upload/image",
                 headers=_headers(self.api_key),
-                files={"image": (filename, image_data, "image/png")},
+                files={"image": (filename, image_data, mime)},
                 data={"type": "input", "overwrite": "true"},
             )
             response.raise_for_status()
