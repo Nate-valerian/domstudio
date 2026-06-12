@@ -585,7 +585,7 @@ function nav() {
     ["home", "Главная"],
     ["studio", "Студия"],
     ["pricing", "Тарифы"],
-    ...(logged ? [["history", "История"], ["account", "Аккаунт"]] : []),
+    ...(logged ? [["history", "История"]] : []),
   ];
   const initials = logged ? String(state.user.email || state.user.phone || "DS").slice(0, 2).toUpperCase() : "";
   return `
@@ -607,7 +607,7 @@ function nav() {
       <div class="nav-actions">
         ${logged
           ? `<button class="token-pill" data-route="account"><span>${state.user.tokens}</span> токенов</button>
-             <button class="profile-pill" data-route="account"><span>${escapeHtml(initials)}</span></button>
+             <button class="profile-pill" data-route="account" title="Аккаунт"><span>${escapeHtml(initials)}</span></button>
              <button class="button gold nav-cta" data-route="studio">Создать фото</button>`
           : `<button class="button secondary" data-auth="login">Войти</button>
              <button class="button gold nav-cta" data-auth="register">Создать бесплатно</button>`}
