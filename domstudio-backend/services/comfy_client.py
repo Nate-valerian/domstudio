@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import os
 import time
 import uuid
@@ -13,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_AUTODL_API_URL = "https://api.autodl.com"
@@ -123,9 +126,10 @@ def compose_prompt(subject: str, style_hint: str = "") -> str:
 def compose_img2img_prompt(subject: str, style_hint: str = "") -> str:
     scene = subject.strip()
     style = style_hint.strip()
-    instruction = f"Keep this product exactly as shown. Change the background and scene: {scene}."
+    instruction = f"Change the background to: {scene}."
     if style:
-        instruction += f" Style: {style}."
+        instruction += f" {style}."
+    instruction += " Keep the product bottle and label exactly as they appear."
     return instruction
 
 
@@ -134,6 +138,7 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
     Falls back to compose_img2img_prompt() if DEEPSEEK_API_KEY is absent or the call fails."""
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
+        logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
         return compose_img2img_prompt(subject, style_hint)
     try:
         user_text = subject.strip()
@@ -152,13 +157,17 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
                             "content": (
                                 "You write prompts for the Qwen Image Edit model, which edits product photos.\n"
                                 "The user describes the desired background or scene in casual language.\n"
-                                "Rewrite it as a clear instruction for Qwen Image Edit.\n"
+                                "Rewrite it as a clear instruction that tells Qwen to change the background.\n"
                                 "Rules:\n"
-                                "1. Begin with: 'Keep this product exactly as shown.'\n"
-                                "2. Clearly describe the background/scene/setting.\n"
-                                "3. Add lighting and atmosphere details.\n"
-                                "4. Mention visual style or mood if the user implies it.\n"
-                                "5. 1-3 sentences total. Output ONLY the instruction, nothing else."
+                                "1. Start with: 'Change the background to [detailed scene description].'\n"
+                                "2. Describe the surface, objects, lighting, and atmosphere in detail.\n"
+                                "3. End with: 'Keep the product bottle and label exactly as they appear.'\n"
+                                "4. 2-3 sentences total. Output ONLY the instruction, nothing else.\n"
+                                "Example input: 'marble table with candles'\n"
+                                "Example output: 'Change the background to a polished white marble surface "
+                                "with three lit white candles casting warm golden light, dark elegant ambient "
+                                "background. Professional product photography with soft shadows. "
+                                "Keep the product bottle and label exactly as they appear.'"
                             ),
                         },
                         {"role": "user", "content": user_text},
@@ -166,8 +175,11 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
                 },
             )
             response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"].strip()
-    except Exception:
+            expanded = response.json()["choices"][0]["message"]["content"].strip()
+            logger.info("DeepSeek expanded prompt: %s", expanded)
+            return expanded
+    except Exception as exc:
+        logger.warning("DeepSeek prompt expansion failed (%s) — using fallback", exc)
         return compose_img2img_prompt(subject, style_hint)
 
 
