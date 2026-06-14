@@ -55,7 +55,7 @@ class FakeClient:
 
 class GenerationTests(unittest.IsolatedAsyncioTestCase):
     async def test_charges_tokens_and_returns_worker_result(self):
-        db = FakeDb([900])
+        db = FakeDb([900, None])
         user = SimpleNamespace(id=uuid.uuid4())
 
         with patch.object(generation, "GENERATION_PROVIDER", "worker"):
@@ -69,10 +69,10 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["tokens_charged"], generation.GENERATION_TOKEN_COST)
         self.assertEqual(result["token_balance"], 900)
-        self.assertEqual(len(db.statements), 1)
+        self.assertEqual(len(db.statements), 2)
 
     async def test_can_use_comfy_provider(self):
-        db = FakeDb([900])
+        db = FakeDb([900, None])
         user = SimpleNamespace(id=uuid.uuid4())
 
         async def fake_comfy(req):
@@ -88,7 +88,7 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result["prompt_id"], "abc")
         self.assertEqual(result["tokens_charged"], generation.GENERATION_TOKEN_COST)
-        self.assertEqual(len(db.statements), 1)
+        self.assertEqual(len(db.statements), 2)
 
     async def test_refunds_tokens_when_worker_fails(self):
         db = FakeDb([900, 1000])

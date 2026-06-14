@@ -22,6 +22,7 @@ env/
 build/
 dist/
 node_modules/
+*.log
 *.egg-info/
 .idea/
 .vscode/
@@ -29,3 +30,10 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local experiment artifacts
+design-preview*.html
+cloudflared-*
+Usersnate-AppDataLocalTempcomfy_nodes.json
+run_remote.py
+ssh_cmd.py

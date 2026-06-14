@@ -45,6 +45,9 @@ AUTODL_TOKEN=your-developer-token
 AUTODL_DEPLOYMENT_UUID=your-deployment-uuid
 ```
 
+For AutoDL instance/pro snapshots, use `AUTODL_INSTANCE_UUID` instead of
+`AUTODL_DEPLOYMENT_UUID`. Both discovery paths are supported.
+
 Run ComfyUI in AutoDL on the mapped port:
 
 ```powershell

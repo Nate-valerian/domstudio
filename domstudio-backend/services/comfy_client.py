@@ -57,18 +57,26 @@ def _headers(api_key: str | None = None) -> dict[str, str]:
 async def discover_autodl_comfy_url(
     token: str | None = None,
     instance_uuid: str | None = None,
+    deployment_uuid: str | None = None,
     port: str | int | None = None,
     api_url: str | None = None,
 ) -> str:
-    """Return the AutoDL public service URL via the instance pro snapshot API."""
+    """Return the AutoDL public service URL."""
 
     token = token or os.getenv("AUTODL_TOKEN")
     instance_uuid = instance_uuid or os.getenv("AUTODL_INSTANCE_UUID")
+    deployment_uuid = deployment_uuid or os.getenv("AUTODL_DEPLOYMENT_UUID")
     port = str(port or os.getenv("COMFYUI_PORT", DEFAULT_COMFY_PORT))
     api_url = (api_url or os.getenv("AUTODL_API_URL", DEFAULT_AUTODL_API_URL)).rstrip("/")
 
-    if not token or not instance_uuid:
-        raise ComfyConfigError("AUTODL_TOKEN and AUTODL_INSTANCE_UUID are required for AutoDL discovery")
+    if not token:
+        raise ComfyConfigError("AUTODL_TOKEN is required for AutoDL discovery")
+
+    if deployment_uuid and not instance_uuid:
+        return await discover_autodl_deployment_comfy_url(token, deployment_uuid, port, api_url)
+
+    if not instance_uuid:
+        raise ComfyConfigError("AUTODL_INSTANCE_UUID or AUTODL_DEPLOYMENT_UUID is required for AutoDL discovery")
 
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.get(
@@ -93,6 +101,38 @@ async def discover_autodl_comfy_url(
 
     # domain comes as "host:8443" — always served over HTTPS by AutoDL's proxy
     return f"https://{domain}".rstrip("/")
+
+
+async def discover_autodl_deployment_comfy_url(
+    token: str,
+    deployment_uuid: str,
+    port: str,
+    api_url: str,
+) -> str:
+    """Return the public ComfyUI URL for an AutoDL elastic deployment."""
+
+    service_key = f"service_{port}_port_url"
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            f"{api_url}/api/v1/dev/deployment/container/list",
+            headers={"Authorization": token},
+            json={"deployment_uuid": deployment_uuid},
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    if payload.get("code") not in (None, "Success"):
+        raise ComfyConfigError(f"AutoDL deployment API error: {payload.get('msg') or payload}")
+
+    containers = (payload.get("data") or {}).get("list") or []
+    for container in containers:
+        info = container.get("info") or {}
+        if info.get("status") == "running" and info.get(service_key):
+            return str(info[service_key]).rstrip("/")
+
+    raise ComfyConfigError(
+        f"AutoDL deployment {deployment_uuid} has no running container with {service_key}"
+    )
 
 
 async def resolve_comfy_url() -> str:

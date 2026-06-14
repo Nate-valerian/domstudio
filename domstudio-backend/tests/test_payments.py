@@ -18,6 +18,19 @@ class FakeDb:
     async def scalar(self, statement):
         return self.payment
 
+    async def execute(self, statement):
+        if not self.payment:
+            return SimpleNamespace(first=lambda: None)
+
+        self.payment.status = payments.PaymentStatus.succeeded
+        row = SimpleNamespace(
+            id=getattr(self.payment, "id", None),
+            user_id=self.payment.user_id,
+            plan=getattr(self.payment, "plan", None),
+            pack_id=getattr(self.payment, "pack_id", None),
+        )
+        return SimpleNamespace(first=lambda: row)
+
 
 class TinkoffWebhookTests(unittest.TestCase):
     def make_client(self, payment=None):
