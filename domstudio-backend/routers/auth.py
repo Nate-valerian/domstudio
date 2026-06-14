@@ -116,14 +116,16 @@ async def issue_tokens(db: AsyncSession, user_id: str) -> TokenResponse:
 
 @router.post("/register/email", status_code=201)
 async def register_email(req: EmailRegisterRequest, db: AsyncSession = Depends(get_db)):
-    # Check existing
     existing = await db.scalar(select(User).where(User.email == req.email))
     if existing:
-        raise HTTPException(400, "Email already registered")
+        if existing.is_verified:
+            raise HTTPException(400, "Email already registered")
+        # Unverified — resend code instead of blocking
+        user = existing
+        user.password_hash = hash_password(req.password)
+    else:
+        user = await create_user_with_defaults(db, email=req.email, password=req.password)
 
-    user = await create_user_with_defaults(db, email=req.email, password=req.password)
-
-    # Send email OTP
     code = generate_otp()
     otp  = OtpCode(user_id=user.id, contact=req.email, code=code, expires_at=otp_expires_at())
     db.add(otp)
