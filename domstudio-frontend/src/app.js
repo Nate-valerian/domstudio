@@ -967,6 +967,28 @@ function authModal() {
       </form>
     </div>`;
   }
+  if (state.authMode === "forgot") {
+    return `<div class="modal-backdrop">
+      <form class="modal auth-modal compact" id="forgot-form">
+        <div class="modal-top"><div><div class="eyebrow">${t("auth.forgotEyebrow")}</div><h2>${t("auth.forgotH2")}</h2></div><button class="close" type="button" data-close>×</button></div>
+        <div class="notice">${t("auth.forgotNotice")}</div>
+        <div class="field"><label>${t("auth.emailLabel")}</label><input class="input" type="email" name="email" autocomplete="email" required placeholder="you@brand.com" /></div>
+        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? t("auth.forgotLoading") : t("auth.forgotSubmit")}</button>
+        <button class="text-button auth-back" type="button" data-auth="login">${t("auth.forgotBack")}</button>
+      </form>
+    </div>`;
+  }
+  if (state.authMode === "reset") {
+    return `<div class="modal-backdrop">
+      <form class="modal auth-modal compact" id="reset-form">
+        <div class="modal-top"><div><div class="eyebrow">${t("auth.resetEyebrow")}</div><h2>${t("auth.resetH2")}</h2></div><button class="close" type="button" data-close>×</button></div>
+        <div class="notice">${t("auth.resetNotice", { contact: `<b>${escapeHtml(state.verificationContact)}</b>` })}</div>
+        <div class="code-field"><input class="input" name="code" inputmode="numeric" autocomplete="one-time-code" required maxlength="6" placeholder="000000" /></div>
+        <div class="field"><label>${t("auth.resetPasswordLabel")}</label><div class="password-wrap"><input class="input" type="${state.passwordVisible ? "text" : "password"}" name="new_password" autocomplete="new-password" minlength="8" required placeholder="${t("auth.passwordPlaceholder")}" /><button type="button" data-toggle-password>${state.passwordVisible ? t("auth.passwordHide") : t("auth.passwordShow")}</button></div></div>
+        <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? t("auth.resetLoading") : t("auth.resetSubmit")}</button>
+      </form>
+    </div>`;
+  }
   const register = state.authMode === "register";
   return `<div class="modal-backdrop">
     <form class="modal auth-modal" id="auth-form">
@@ -993,6 +1015,7 @@ function authModal() {
              <div class="field"><label>${t("auth.passwordLabel")}</label><div class="password-wrap"><input class="input" type="${state.passwordVisible ? "text" : "password"}" name="password" autocomplete="${register ? "new-password" : "current-password"}" minlength="8" required placeholder="${t("auth.passwordPlaceholder")}" /><button type="button" data-toggle-password>${state.passwordVisible ? t("auth.passwordHide") : t("auth.passwordShow")}</button></div></div>`}
         ${register ? `<label class="check compact"><input type="checkbox" required /> ${t("auth.consent")}</label>` : ""}
         <button class="button gold block" type="submit" ${state.authLoading ? "disabled" : ""}>${state.authLoading ? t("auth.submitLoading") : register ? (isPhone ? t("auth.submitRegisterPhone") : t("auth.submitRegisterEmail")) : (isPhone ? t("auth.submitLoginPhone") : t("auth.submitLoginEmail"))}</button>
+        ${!register && !isPhone ? `<p class="auth-switch"><button class="text-button" type="button" data-auth="forgot">${t("auth.forgotLink")}</button></p>` : ""}
         <p class="auth-switch">${register ? t("auth.haveAccount") : t("auth.noAccount")} <button class="text-button" type="button" data-auth="${register ? "login" : "register"}">${register ? t("auth.switchLogin") : t("auth.switchRegister")}</button></p>
       </div>
     </form>
@@ -1035,6 +1058,8 @@ function bind() {
   document.querySelectorAll("[data-pack-id]").forEach(el => el.addEventListener("click", () => choosePack(el.dataset.packId)));
   document.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
   document.querySelector("#verify-form")?.addEventListener("submit", submitVerification);
+  document.querySelector("#forgot-form")?.addEventListener("submit", submitForgotPassword);
+  document.querySelector("#reset-form")?.addEventListener("submit", submitResetPassword);
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
@@ -1470,6 +1495,45 @@ async function submitVerification(event) {
   render();
   try {
     saveTokens(await api(`/auth/verify/${state.verificationKind}`, { method: "POST", body: JSON.stringify(body) }));
+    state.authMode = null;
+    state.authLoading = false;
+    await loadUser();
+    navigate("studio");
+    render();
+  } catch (error) {
+    toast(error.message);
+    state.authLoading = false;
+    render();
+  }
+}
+
+async function submitForgotPassword(event) {
+  event.preventDefault();
+  const email = new FormData(event.currentTarget).get("email");
+  state.authLoading = true;
+  render();
+  try {
+    await api("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
+    state.verificationContact = email;
+    state.authMode = "reset";
+    state.authLoading = false;
+    toast(t("toast.codeSent"));
+    render();
+  } catch (error) {
+    toast(error.message);
+    state.authLoading = false;
+    render();
+  }
+}
+
+async function submitResetPassword(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const body = { email: state.verificationContact, code: form.get("code"), new_password: form.get("new_password") };
+  state.authLoading = true;
+  render();
+  try {
+    saveTokens(await api("/auth/reset-password", { method: "POST", body: JSON.stringify(body) }));
     state.authMode = null;
     state.authLoading = false;
     await loadUser();

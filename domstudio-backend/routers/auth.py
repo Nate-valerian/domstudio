@@ -71,6 +71,21 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type:    str = "bearer"
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email:        EmailStr
+    code:         str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def strong_password(cls, v):
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 async def create_user_with_defaults(db: AsyncSession, email=None, phone=None, password=None) -> User:
     """Create user + free subscription + token balance."""
@@ -269,3 +284,37 @@ async def me(current_user: User = Depends(get_current_user)):
         "is_verified": current_user.is_verified,
         "created_at":  current_user.created_at,
     }
+
+
+@router.post("/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    user = await db.scalar(select(User).where(User.email == req.email))
+    if user:
+        code = generate_otp()
+        otp  = OtpCode(user_id=user.id, contact=req.email, code=code, expires_at=otp_expires_at())
+        db.add(otp)
+        await send_email_otp(req.email, code)
+    # Always return 200 — don't leak whether the email exists
+    return {"message": "If that email exists, a reset code has been sent"}
+
+
+@router.post("/reset-password")
+async def reset_password(req: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    now = datetime.now(timezone.utc)
+    otp = await db.scalar(
+        select(OtpCode).where(
+            OtpCode.contact    == req.email,
+            OtpCode.code       == req.code,
+            OtpCode.used       == False,
+            OtpCode.expires_at > now,
+        )
+    )
+    if not otp:
+        raise HTTPException(400, "Invalid or expired code")
+
+    otp.used = True
+    user = await db.get(User, otp.user_id)
+    user.password_hash = hash_password(req.new_password)
+    user.is_verified   = True  # ensure account is verified after successful reset
+
+    return await issue_tokens(db, user.id)
