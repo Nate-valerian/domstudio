@@ -181,9 +181,8 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
         logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
         return compose_img2img_prompt(subject, style_hint)
     try:
+        # Send only the scene description — style_hint contains marketplace noise that confuses the model
         user_text = subject.strip()
-        if style_hint.strip():
-            user_text += f". Visual style: {style_hint.strip()}"
         async with httpx.AsyncClient(timeout=15) as client:
             response = await client.post(
                 "https://api.deepseek.com/v1/chat/completions",
@@ -195,19 +194,16 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
                         {
                             "role": "system",
                             "content": (
-                                "You write prompts for the Qwen Image Edit model, which edits product photos.\n"
-                                "The user describes the desired background or scene in casual language.\n"
-                                "Rewrite it as a clear instruction that tells Qwen to change the background.\n"
+                                "You write background-change prompts for the Qwen Image Edit model.\n"
+                                "The user gives a short scene description in any language.\n"
+                                "OUTPUT FORMAT — you must follow this exactly:\n"
+                                "  Change the background to [rich scene description with surface, lighting, atmosphere]. Keep the product exactly as it appears.\n"
                                 "Rules:\n"
-                                "1. Start with: 'Change the background to [detailed scene description].'\n"
-                                "2. Describe the surface, objects, lighting, and atmosphere in detail.\n"
-                                "3. End with: 'Keep the product bottle and label exactly as they appear.'\n"
-                                "4. 2-3 sentences total. Output ONLY the instruction, nothing else.\n"
-                                "Example input: 'marble table with candles'\n"
-                                "Example output: 'Change the background to a polished white marble surface "
-                                "with three lit white candles casting warm golden light, dark elegant ambient "
-                                "background. Professional product photography with soft shadows. "
-                                "Keep the product bottle and label exactly as they appear.'"
+                                "- First word of output MUST be 'Change'\n"
+                                "- Last sentence MUST be 'Keep the product exactly as it appears.'\n"
+                                "- 1-2 sentences only. No extra commentary. No lists.\n"
+                                "Example input: marble table with candles\n"
+                                "Example output: Change the background to a polished white marble surface with three lit pillar candles casting warm golden light against a dark elegant backdrop. Keep the product exactly as it appears."
                             ),
                         },
                         {"role": "user", "content": user_text},
@@ -216,6 +212,9 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
             )
             response.raise_for_status()
             expanded = response.json()["choices"][0]["message"]["content"].strip()
+            if not expanded.lower().startswith("change"):
+                logger.warning("DeepSeek returned unexpected format, using fallback. Got: %s", expanded[:100])
+                return compose_img2img_prompt(subject, style_hint)
             logger.info("DeepSeek expanded prompt: %s", expanded)
             return expanded
     except Exception as exc:
