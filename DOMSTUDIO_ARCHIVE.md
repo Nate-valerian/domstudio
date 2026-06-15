@@ -819,3 +819,77 @@ domstudio-backend/main.py         — version marker added/removed during debug
    but looks unprofessional.
 
 4. **Render free tier cold starts** — 30s wake-up after 15 min idle.
+---
+
+## June 14, 2026 - End-of-Day Continuation Note
+
+### What was fixed today
+
+- Committed `e29cf5b Fix AutoDL discovery config and backend tests`.
+- Backend test suite is green again: `19 tests OK`.
+- Frontend production build still passes.
+- AutoDL discovery now supports both:
+  - `AUTODL_INSTANCE_UUID` for instance/pro snapshot discovery.
+  - `AUTODL_DEPLOYMENT_UUID` for legacy elastic deployment discovery.
+- `.env.example` and backend README were updated to document both paths.
+- Local experiment artifacts and logs were added to `.gitignore`.
+
+### Product direction reminder
+
+React Native mobile app is feasible and likely a good phase-2 path. Use Expo +
+React Native, reusing the current FastAPI backend.
+
+Do not start mobile as the main priority yet unless the user explicitly changes
+direction. The current gating work is still the sellable core:
+
+1. Prove product-preserving image generation.
+2. Make marketplace-ready WB/Ozon/Yandex outputs reliable.
+3. Test the full FastAPI `GENERATION_PROVIDER=comfy` path.
+4. Only then build the React Native mobile wrapper/app.
+
+### Next best task tomorrow
+
+Run one real product-preserving Catalog test through Comfy/Qwen Image Edit:
+
+1. Start or confirm AutoDL + ComfyUI.
+2. Load the Qwen image-edit workflow.
+3. Upload one real product photo.
+4. Prompt for clean marketplace catalog output while preserving exact product,
+   shape, material, color, and label.
+5. If the result is good, export API workflow JSON and wire it into the backend.
+6. Test `/generation/generate` through FastAPI with `GENERATION_PROVIDER=comfy`.
+
+Do not spend tomorrow on more UI polish or native mobile until generation quality
+is proven.
+
+---
+
+## June 15, 2026 - Export Pack Update
+
+### What changed
+
+- Expanded frontend export presets in `domstudio-frontend/src/app.js`.
+- Added square 2000, portrait 3:4, landscape 4:3, story crop, banner crop,
+  Telegram post, VK post, and WebP square outputs.
+- Updated marketplace pack defaults:
+  - Ozon now exports as 2000 x 2000 JPEG.
+  - Avito now exports as 1600 x 1200 landscape JPEG.
+  - Stories and banners now have both fit and crop options.
+- Added canvas export layout modes:
+  - `fit` keeps the whole image visible on a clean background.
+  - `cover` crops to fill the requested aspect ratio.
+  - `blur` fills wide/tall formats with a blurred background plus fitted image.
+- Removed the old unused `mode-product-real.webp` asset. The app currently uses
+  `mode-product-real-v3.webp`.
+
+### Why it matters
+
+DomStudio can now produce more practical deliverables from the same generated
+image: marketplace catalog squares, Ozon high-resolution square, Avito
+landscape, social posts, stories, banners, and WebP. This makes the export pack
+closer to a sellable workflow after generation quality is proven.
+
+### Still not done
+
+- Real product-preserving generation is still the main blocker.
+- Need to verify the new export presets visually in the browser before shipping.

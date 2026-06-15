@@ -98,21 +98,31 @@ const VARIATIONS = [
 ];
 
 const EXPORT_SIZES = {
-  original: { label: "Original size", width: null, height: null },
-  square: { label: "1080 x 1080", width: 1080, height: 1080 },
-  feed: { label: "4:5 (1080 x 1350)", width: 1080, height: 1350 },
-  story: { label: "9:16 (1080 x 1920)", width: 1080, height: 1920 },
-  widescreen: { label: "16:9 (1920 x 1080)", width: 1920, height: 1080 },
+  original: { label: "Original size", width: null, height: null, layout: "original" },
+  square: { label: "Square 1080", width: 1080, height: 1080, layout: "fit", fill: "#ffffff" },
+  square2k: { label: "Square 2000", width: 2000, height: 2000, layout: "fit", fill: "#ffffff" },
+  feed: { label: "Post 4:5", width: 1080, height: 1350, layout: "blur", fill: "rgba(255,255,255,.24)" },
+  portrait: { label: "Portrait 3:4", width: 1200, height: 1600, layout: "blur", fill: "rgba(255,255,255,.24)" },
+  story: { label: "Story 9:16 fit", width: 1080, height: 1920, layout: "blur", fill: "rgba(255,255,255,.20)" },
+  storyCrop: { label: "Story 9:16 crop", width: 1080, height: 1920, layout: "cover" },
+  widescreen: { label: "Banner 16:9 fit", width: 1920, height: 1080, layout: "blur", fill: "rgba(255,255,255,.24)" },
+  bannerCrop: { label: "Banner 16:9 crop", width: 1920, height: 1080, layout: "cover" },
+  landscape: { label: "Landscape 4:3", width: 1600, height: 1200, layout: "fit", fill: "#ffffff" },
 };
 
 const PACK_FORMATS = [
   { id: "wb", label: "Wildberries", size: "square", format: "jpeg" },
-  { id: "ozon", label: "Ozon", size: "square", format: "jpeg" },
+  { id: "ozon", label: "Ozon", size: "square2k", format: "jpeg" },
   { id: "yandex", label: "Yandex Market", size: "square", format: "jpeg" },
-  { id: "avito", label: "Avito", size: "square", format: "jpeg" },
-  { id: "story", label: "Story 9:16", size: "story", format: "png" },
+  { id: "avito", label: "Avito", size: "landscape", format: "jpeg" },
+  { id: "vk", label: "VK post", size: "feed", format: "jpeg" },
+  { id: "telegram", label: "Telegram post", size: "square", format: "jpeg" },
+  { id: "story", label: "Story fit", size: "story", format: "jpeg" },
+  { id: "story_crop", label: "Story crop", size: "storyCrop", format: "jpeg" },
   { id: "post", labelKey: "pack.post", size: "feed", format: "jpeg" },
   { id: "banner", labelKey: "pack.banner", size: "widescreen", format: "jpeg" },
+  { id: "banner_crop", label: "Banner crop", size: "bannerCrop", format: "jpeg" },
+  { id: "webp_square", label: "WebP square", size: "square", format: "webp" },
 ];
 
 const HISTORY_DB = "domstudio_history";
@@ -1302,6 +1312,20 @@ function loadImage(src) {
   });
 }
 
+function drawCover(ctx, image, width, height) {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = Math.round(image.naturalWidth * scale);
+  const drawHeight = Math.round(image.naturalHeight * scale);
+  ctx.drawImage(image, Math.round((width - drawWidth) / 2), Math.round((height - drawHeight) / 2), drawWidth, drawHeight);
+}
+
+function drawFit(ctx, image, width, height) {
+  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = Math.round(image.naturalWidth * scale);
+  const drawHeight = Math.round(image.naturalHeight * scale);
+  ctx.drawImage(image, Math.round((width - drawWidth) / 2), Math.round((height - drawHeight) / 2), drawWidth, drawHeight);
+}
+
 async function renderToCanvas(image, sizeId, format) {
   const exportSize = EXPORT_SIZES[sizeId] || EXPORT_SIZES.original;
   const width = exportSize.width || image.naturalWidth;
@@ -1310,14 +1334,27 @@ async function renderToCanvas(image, sizeId, format) {
   const ctx = canvas.getContext("2d");
   canvas.width = width;
   canvas.height = height;
-  if (format === "jpeg") {
-    ctx.fillStyle = "#ffffff";
+
+  const shouldFill = format === "jpeg" || exportSize.layout !== "original";
+  if (shouldFill && exportSize.layout !== "blur") {
+    ctx.fillStyle = exportSize.fill || "#ffffff";
     ctx.fillRect(0, 0, width, height);
   }
-  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
-  const drawWidth = Math.round(image.naturalWidth * scale);
-  const drawHeight = Math.round(image.naturalHeight * scale);
-  ctx.drawImage(image, Math.round((width - drawWidth) / 2), Math.round((height - drawHeight) / 2), drawWidth, drawHeight);
+
+  if (exportSize.layout === "cover") {
+    drawCover(ctx, image, width, height);
+  } else if (exportSize.layout === "blur") {
+    ctx.save();
+    ctx.filter = "blur(28px)";
+    drawCover(ctx, image, width, height);
+    ctx.restore();
+    ctx.fillStyle = exportSize.fill || "rgba(255,255,255,.22)";
+    ctx.fillRect(0, 0, width, height);
+    drawFit(ctx, image, width, height);
+  } else {
+    drawFit(ctx, image, width, height);
+  }
+
   const mime = format === "jpeg" ? "image/jpeg" : `image/${format}`;
   return canvas.toDataURL(mime, 0.94);
 }
