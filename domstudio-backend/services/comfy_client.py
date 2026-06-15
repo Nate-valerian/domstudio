@@ -464,6 +464,7 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
 
     image_name = ""
     is_catalog = getattr(request, "mode", "") == "catalog"
+    mode = getattr(request, "mode", "?")
 
     if request.image:
         image_name = await client.upload_image(request.image)
@@ -471,11 +472,13 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     else:
         workflow_file = "product_image.json"
 
+    logger.info("[GEN] mode=%s has_image=%s is_catalog=%s workflow=%s", mode, bool(request.image), is_catalog, workflow_file)
+
     expanded_prompt = None
     if image_name and not is_catalog:
         expanded_prompt = await expand_prompt_for_qwen(request.subject, getattr(request, "style_hint", ""))
 
-    workflow = render_workflow(load_workflow(workflow_file), request, image_name=image_name, expanded_prompt=expanded_prompt)
+    logger.info("[GEN] subject=%r expanded_prompt=%r", getattr(request, "subject", ""), expanded_prompt)
     result = await client.run_workflow(workflow)
 
     # Catalog BiRefNet returns RGBA — composite onto white so output is clean white-bg JPEG/PNG
