@@ -179,7 +179,7 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
-        return compose_img2img_prompt(subject, style_hint)
+        return compose_img2img_prompt(subject)  # no style_hint — marketplace noise confuses Qwen
     try:
         # Send only the scene description — style_hint contains marketplace noise that confuses the model
         user_text = subject.strip()
@@ -214,12 +214,12 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
             expanded = response.json()["choices"][0]["message"]["content"].strip()
             if not expanded.lower().startswith("change"):
                 logger.warning("DeepSeek returned unexpected format, using fallback. Got: %s", expanded[:100])
-                return compose_img2img_prompt(subject, style_hint)
+                return compose_img2img_prompt(subject)  # no style_hint
             logger.info("DeepSeek expanded prompt: %s", expanded)
             return expanded
     except Exception as exc:
         logger.warning("DeepSeek prompt expansion failed (%s) — using fallback", exc)
-        return compose_img2img_prompt(subject, style_hint)
+        return compose_img2img_prompt(subject)  # no style_hint
 
 
 def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:
