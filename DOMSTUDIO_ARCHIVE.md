@@ -1137,3 +1137,52 @@ Verification:
 - Direct remote Comfy test with the typoed request produced a correct result:
   black bottle preserved, visible lit candles behind it, marble surface, warm
   light.
+
+## June 16, 2026 - Amvera Backend Deploy Restored
+
+Problem:
+
+- Amvera was deploying from `master`, while local work was on `main`.
+- The Web IDE showed old `master` at commit `782b2cd`, so user force-pushed
+  the latest branch state to Amvera `master`.
+- After that, deploy moved forward but the container could not start.
+
+Observed Amvera errors:
+
+```text
+bash: line 1: uvicorn: command not found
+/app/venv/bin/python: No module named uvicorn
+ERROR: Error loading ASGI app. Could not import module "main".
+```
+
+Diagnosis:
+
+- `requirementsPath` must point at the backend requirements file so Amvera
+  installs `uvicorn`.
+- Runtime command runs from the repository root, so `uvicorn main:app` cannot
+  find `domstudio-backend/main.py`.
+- Running `cd domstudio-backend && ...` was rejected by Amvera validation.
+
+Config fix in `amvera.yml`:
+
+```yaml
+build:
+  requirementsPath: domstudio-backend/requirements.txt
+  useCache: false
+run:
+  command: python -m uvicorn --app-dir domstudio-backend main:app --host 0.0.0.0 --port 80
+  persistenceMount: /data
+  containerPort: 80
+```
+
+Verification:
+
+- Local backend tests passed: 22 tests.
+- Local import check from repo root loaded `DomStudio API`.
+- Pushed commit `8120bb0` to GitHub `main`, Amvera `main`, and Amvera
+  `master`.
+- Live health recovered:
+
+```json
+{"status":"ok","service":"domstudio-api","v":4,"prompt_version":"visible-props-2026-06-16"}
+```
