@@ -7,6 +7,7 @@ import base64
 import json
 import logging
 import os
+import re
 import time
 import uuid
 from copy import deepcopy
@@ -163,14 +164,44 @@ def compose_prompt(subject: str, style_hint: str = "") -> str:
     return ", ".join(part for part in parts if part)
 
 
+_SCENE_TYPO_REPLACEMENTS = {
+    r"\bmarbel\b": "marble",
+    r"\bmarbels\b": "marbles",
+    r"\btabel\b": "table",
+    r"\btables\b": "tables",
+    r"\bcandel\b": "candle",
+    r"\bcandels\b": "candles",
+}
+
+
+def normalize_scene_text(text: str) -> str:
+    scene = str(text or "").strip()
+    for pattern, replacement in _SCENE_TYPO_REPLACEMENTS.items():
+        scene = re.sub(pattern, replacement, scene, flags=re.IGNORECASE)
+    scene = re.sub(r"\s+", " ", scene)
+    return scene.strip(" .")
+
+
 def compose_img2img_prompt(subject: str, style_hint: str = "") -> str:
-    scene = subject.strip()
-    style = style_hint.strip()
-    instruction = f"Change the background to: {scene}."
+    scene = normalize_scene_text(subject) or "a clean product photography scene"
+    style = normalize_scene_text(style_hint)
+    instruction = f"Place the product in a new environment: {scene}."
     if style:
-        instruction += f" {style}."
-    instruction += " Keep the product bottle and label exactly as they appear."
+        instruction += f" Use this style direction only where it supports the scene: {style}."
+    instruction += (
+        " Include all requested scene props clearly when they are mentioned, such as candles, marble, table surfaces, flowers, or lights. "
+        "Do not leave a plain white or empty studio background when props or a scene are requested. "
+        "Keep the product, bottle shape, cap, color, and label exactly as they appear."
+    )
     return instruction
+
+
+def prompt_expander_user_text(subject: str, style_hint: str = "") -> str:
+    scene = normalize_scene_text(subject)
+    style = normalize_scene_text(style_hint)
+    if not style:
+        return scene
+    return f"Scene request: {scene}\nStyle context: {style}"
 
 
 async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
@@ -179,10 +210,9 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
-        return compose_img2img_prompt(subject)  # no style_hint — marketplace noise confuses Qwen
+        return compose_img2img_prompt(subject, style_hint)
     try:
-        # Send only the scene description — style_hint contains marketplace noise that confuses the model
-        user_text = subject.strip()
+        user_text = prompt_expander_user_text(subject, style_hint)
         async with httpx.AsyncClient(timeout=15) as client:
             response = await client.post(
                 "https://api.deepseek.com/v1/chat/completions",
@@ -195,15 +225,18 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
                             "role": "system",
                             "content": (
                                 "You write background-change prompts for the Qwen Image Edit model.\n"
-                                "The user gives a short scene description in any language.\n"
+                                "The user gives a short scene description and optional style context in any language.\n"
                                 "OUTPUT FORMAT — you must follow this exactly:\n"
-                                "  Change the background to [rich scene description with surface, lighting, atmosphere]. Keep the product exactly as it appears.\n"
+                                "  Change the background and product environment to [rich scene description with visible requested props, surface, lighting, atmosphere]. Keep the product exactly as it appears.\n"
                                 "Rules:\n"
                                 "- First word of output MUST be 'Change'\n"
                                 "- Last sentence MUST be 'Keep the product exactly as it appears.'\n"
+                                "- Correct obvious spelling mistakes in scene props, for example marbel->marble, tabel->table, candels->candles.\n"
+                                "- If the user mentions concrete props such as candles, flowers, marble, table, lights, boxes, fabric, include those props visibly.\n"
+                                "- Ignore marketplace, export-size, crop, platform, and social-channel instructions unless they describe visual style.\n"
                                 "- 1-2 sentences only. No extra commentary. No lists.\n"
                                 "Example input: marble table with candles\n"
-                                "Example output: Change the background to a polished white marble surface with three lit pillar candles casting warm golden light against a dark elegant backdrop. Keep the product exactly as it appears."
+                                "Example output: Change the background and product environment to a polished white marble table with three visible lit pillar candles casting warm golden light against an elegant boutique backdrop. Keep the product exactly as it appears."
                             ),
                         },
                         {"role": "user", "content": user_text},
@@ -214,12 +247,12 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
             expanded = response.json()["choices"][0]["message"]["content"].strip()
             if not expanded.lower().startswith("change"):
                 logger.warning("DeepSeek returned unexpected format, using fallback. Got: %s", expanded[:100])
-                return compose_img2img_prompt(subject)  # no style_hint
+                return compose_img2img_prompt(subject, style_hint)
             logger.info("DeepSeek expanded prompt: %s", expanded)
             return expanded
     except Exception as exc:
         logger.warning("DeepSeek prompt expansion failed (%s) — using fallback", exc)
-        return compose_img2img_prompt(subject)  # no style_hint
+        return compose_img2img_prompt(subject, style_hint)
 
 
 def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:

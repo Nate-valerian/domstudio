@@ -92,6 +92,27 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(inputs["upscale"], True)
         self.assertEqual(inputs["mode"], "mode=catalog")
 
+    async def test_img2img_fallback_corrects_scene_typos_and_keeps_props(self):
+        prompt = comfy_client.compose_img2img_prompt(
+            "on marbel tabel with candels.",
+            "Warm light, premium minimalism",
+        )
+
+        self.assertIn("marble table with candles", prompt)
+        self.assertIn("Warm light", prompt)
+        self.assertIn("Include all requested scene props clearly", prompt)
+        self.assertIn("Do not leave a plain white or empty studio background", prompt)
+        self.assertIn("Keep the product, bottle shape, cap, color, and label exactly as they appear", prompt)
+
+    async def test_prompt_expander_user_text_keeps_scene_and_style_context(self):
+        text = comfy_client.prompt_expander_user_text(
+            "on marbel tabel with candels.",
+            "Warm light, premium minimalism, Website banner crop",
+        )
+
+        self.assertIn("Scene request: on marble table with candles", text)
+        self.assertIn("Style context: Warm light, premium minimalism", text)
+
     async def test_generate_image_loads_renders_and_runs_selected_workflow(self):
         FakeComfyRunner.last_workflow = None
         request = SimpleNamespace(

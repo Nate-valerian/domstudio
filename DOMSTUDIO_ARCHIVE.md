@@ -1094,3 +1094,46 @@ Future note:
 If `/root/autodl-fs` is mounted later, prefer moving non-critical or secondary
 models there because `/root/models` is useful but less ideal than real attached
 file storage.
+
+## June 16, 2026 - Candle Prompt Failure Diagnosed + Prompt Builder Strengthened
+
+User tested the frontend with:
+
+```text
+on marbel tabel with candels.
+```
+
+and asked why no candles appeared.
+
+Diagnosis:
+
+- The frontend sends the user scene in `subject`, but useful style context
+  like warm light / premium minimalism is bundled into `style_hint`.
+- Backend `expand_prompt_for_qwen()` was sending only `subject` to DeepSeek
+  because raw marketplace/style hints previously confused Qwen.
+- If DeepSeek is unavailable or the prompt is weak, the fallback prompt passed
+  typo-heavy text straight through (`marbel`, `tabel`, `candels`) and did not
+  explicitly require visible props.
+- Qwen Image Edit tends to preserve the product and can ignore optional props
+  unless the prompt says they must be visible and forbids a plain empty
+  background.
+
+Code fix:
+
+- Added scene typo normalization for common product-scene mistakes:
+  `marbel -> marble`, `tabel -> table`, `candels -> candles`.
+- Strengthened fallback prompt:
+  - "Place the product in a new environment..."
+  - explicitly include requested props such as candles, marble, table surfaces,
+    flowers, or lights.
+  - explicitly avoid plain white/empty backgrounds when props are requested.
+  - preserve product shape/cap/color/label.
+- DeepSeek now receives both normalized scene request and style context, but
+  system instructions tell it to ignore marketplace/export/crop/platform noise.
+
+Verification:
+
+- Backend tests increased to 22 and pass.
+- Direct remote Comfy test with the typoed request produced a correct result:
+  black bottle preserved, visible lit candles behind it, marble surface, warm
+  light.
