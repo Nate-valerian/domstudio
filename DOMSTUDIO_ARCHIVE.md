@@ -947,3 +947,58 @@ COMFYUI_URL=<public Comfy 6006 URL>
 
 Then test `/generation/generate` end-to-end through the deployed frontend —
 Catalog mode first, then Product mode.
+
+## June 16, 2026 - New Cloudflare Tunnel Restored (cloudflared was wiped)
+
+### What was wrong
+
+The AutoDL box's `cloudflared` binary was gone (likely wiped on a container
+restart — `/usr/local/bin` isn't on the persistent `/root/autodl-tmp` disk),
+and no tunnel process was running, so there was no public URL to point
+`COMFYUI_URL` at. ComfyUI itself was still alive on port 6006 internally.
+
+### What went wrong trying to fix it
+
+- GitHub downloads from the AutoDL box are extremely slow/unreliable
+  (~20-30 KB/s, matches the earlier HuggingFace timeout issue) — a clean
+  37MB `cloudflared` binary download would take 20-30 minutes.
+- Multiple retry attempts left **3 duplicate `curl` processes** running
+  concurrently against the same destination file, splitting bandwidth and
+  corrupting the binary (segfault on `--version`).
+- A resume attempt (`curl -C -`) hit `curl: (16) Error in the HTTP2 framing
+  layer` — a known issue on throttled/unstable connections.
+- A second resume attempt with `--http1.1` hit a flat connection timeout —
+  GitHub access from the box appears to be intermittently/fully blocked.
+
+### What fixed it
+
+Downloaded `cloudflared-linux-amd64` locally (full, unrestricted internet —
+15 seconds for 39MB) and **SFTP'd the binary directly to the remote box**,
+bypassing the box's GitHub connectivity entirely. Verified `cloudflared
+--version` runs clean, started the tunnel, confirmed the public URL returns
+HTTP 200 on `/system_stats`.
+
+### Result
+
+New public tunnel URL (changes again on next AutoDL reboot):
+
+```
+https://weapon-steven-norman-importance.trycloudflare.com
+```
+
+### Next step
+
+Set in Amvera dashboard:
+
+```
+GENERATION_PROVIDER=comfy
+COMFYUI_URL=https://weapon-steven-norman-importance.trycloudflare.com
+```
+
+Then run one real generation through the deployed frontend — Catalog mode
+first, then Product mode. Remote disk is still at ~2.4GB free — watch for
+disk-related failures during testing.
+
+**Lesson for next time:** if a remote box's outbound GitHub/HuggingFace
+access is slow or blocked, download the asset locally and `sftp.put()` it
+across rather than fighting the remote connection.
