@@ -1002,3 +1002,52 @@ disk-related failures during testing.
 **Lesson for next time:** if a remote box's outbound GitHub/HuggingFace
 access is slow or blocked, download the asset locally and `sftp.put()` it
 across rather than fighting the remote connection.
+
+## June 16, 2026 - First Real Product-Preserving Generation Verified Live (the boss fight)
+
+### What was tested
+
+With `GENERATION_PROVIDER=comfy` and `COMFYUI_URL` set in Amvera to the
+restored tunnel, called `/generation/generate` directly against the live
+backend (`https://domstudio1-nate.amvera.io`) with a real test account,
+using the black perfume bottle product photo
+(`domstudio-frontend/src/assets/mode-product-before.webp`) as input.
+
+### Catalog mode — SUCCESS
+
+- Request: `mode=catalog`, subject "black perfume bottle"
+- Result: clean white-background cutout, 960x599, bottle shape/color/
+  reflections preserved precisely. Genuinely marketplace-ready.
+- 100 tokens charged, balance 4300 → 4200
+
+### Product mode — SUCCESS
+
+- Request: `mode=product`, subject "marble table with candles, warm evening
+  lighting", style_hint "premium boutique feel"
+- Result: 1024x1024, scene fully changed to a marble table with warm lamp
+  lighting in the background, bottle shape/color/cap preserved (label detail
+  slightly softened vs. the catalog cutout, but clearly the same product).
+- First attempt: response was truncated client-side (`IncompleteRead`) over
+  the long-running connection — token deduction (4200 → 4100) confirmed the
+  generation itself succeeded server-side, just the transfer dropped.
+  Retried with `curl -o file` (more robust than Python `urllib` for a large,
+  slow streamed response) and got the full 1MB PNG response cleanly.
+  Balance 4100 → 4000 on the successful retry.
+
+### Why this matters
+
+This is the actual gating milestone the project has been blocked on: proof
+that the Comfy/Qwen pipeline can take a real uploaded product photo and
+produce both (a) a clean marketplace catalog cutout and (b) a scene-changed
+lifestyle/product shot, while preserving the product itself, end-to-end
+through the live deployed backend — not just in an isolated ComfyUI test.
+
+### Next steps
+
+- Test via the actual frontend UI (domstudio.vercel.app) for a full
+  user-facing pass, not just direct API calls.
+- Try a few more product types (not just a black bottle) to check
+  generalization.
+- Watch the AutoDL remote disk (still ~2.4GB free) and the trycloudflare
+  tunnel (URL rotates on every reboot — re-run the SFTP-binary + tunnel
+  steps from the entry above if it goes down).
