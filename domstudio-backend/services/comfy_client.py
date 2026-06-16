@@ -174,6 +174,30 @@ _SCENE_TYPO_REPLACEMENTS = {
 }
 
 
+MODE_PROMPT_DIRECTIVES = {
+    "product": (
+        "Product photography objective: create a premium commercial product shot with realistic surface, "
+        "controlled studio lighting, refined shadows, and advertising-quality composition."
+    ),
+    "creative": (
+        "Creative campaign objective: create an expressive social media advertising visual with a bold, "
+        "scroll-stopping composition while keeping the product realistic and readable."
+    ),
+    "image": (
+        "Lifestyle objective: place the product in a natural believable environment with contextual props, "
+        "human-scale realism, and warm editorial photography."
+    ),
+    "fitting": (
+        "Virtual fitting objective: if the product is clothing, footwear, jewelry, or an accessory, show it "
+        "worn naturally by a realistic model; otherwise use a styled product scene that suggests scale and use."
+    ),
+    "mobile": (
+        "Stories objective: compose for a mobile-first vertical story crop with the product clear in the safe "
+        "center area, strong foreground/background separation, and room for future text overlays."
+    ),
+}
+
+
 def normalize_scene_text(text: str) -> str:
     scene = str(text or "").strip()
     for pattern, replacement in _SCENE_TYPO_REPLACEMENTS.items():
@@ -182,10 +206,17 @@ def normalize_scene_text(text: str) -> str:
     return scene.strip(" .")
 
 
-def compose_img2img_prompt(subject: str, style_hint: str = "") -> str:
+def mode_prompt_directive(mode: str | None) -> str:
+    return MODE_PROMPT_DIRECTIVES.get(str(mode or "").strip().lower(), "")
+
+
+def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject) or "a clean product photography scene"
     style = normalize_scene_text(style_hint)
     instruction = f"Place the product in a new environment: {scene}."
+    directive = mode_prompt_directive(mode)
+    if directive:
+        instruction += f" {directive}"
     if style:
         instruction += f" Use this style direction only where it supports the scene: {style}."
     instruction += (
@@ -196,23 +227,27 @@ def compose_img2img_prompt(subject: str, style_hint: str = "") -> str:
     return instruction
 
 
-def prompt_expander_user_text(subject: str, style_hint: str = "") -> str:
+def prompt_expander_user_text(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject)
     style = normalize_scene_text(style_hint)
-    if not style:
-        return scene
-    return f"Scene request: {scene}\nStyle context: {style}"
+    directive = mode_prompt_directive(mode)
+    parts = [f"Scene request: {scene}"]
+    if directive:
+        parts.append(f"Mode objective: {directive}")
+    if style:
+        parts.append(f"Style context: {style}")
+    return "\n".join(parts)
 
 
-async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
+async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     """Use DeepSeek to expand a short user prompt into a proper Qwen Image Edit instruction.
     Falls back to compose_img2img_prompt() if DEEPSEEK_API_KEY is absent or the call fails."""
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
-        return compose_img2img_prompt(subject, style_hint)
+        return compose_img2img_prompt(subject, style_hint, mode)
     try:
-        user_text = prompt_expander_user_text(subject, style_hint)
+        user_text = prompt_expander_user_text(subject, style_hint, mode)
         async with httpx.AsyncClient(timeout=15) as client:
             response = await client.post(
                 "https://api.deepseek.com/v1/chat/completions",
@@ -233,6 +268,7 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
                                 "- Last sentence MUST be 'Keep the product exactly as it appears.'\n"
                                 "- Correct obvious spelling mistakes in scene props, for example marbel->marble, tabel->table, candels->candles.\n"
                                 "- If the user mentions concrete props such as candles, flowers, marble, table, lights, boxes, fabric, include those props visibly.\n"
+                                "- Follow the mode objective when one is provided, but never sacrifice product accuracy.\n"
                                 "- Ignore marketplace, export-size, crop, platform, and social-channel instructions unless they describe visual style.\n"
                                 "- 1-2 sentences only. No extra commentary. No lists.\n"
                                 "Example input: marble table with candles\n"
@@ -247,12 +283,12 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "") -> str:
             expanded = response.json()["choices"][0]["message"]["content"].strip()
             if not expanded.lower().startswith("change"):
                 logger.warning("DeepSeek returned unexpected format, using fallback. Got: %s", expanded[:100])
-                return compose_img2img_prompt(subject, style_hint)
+                return compose_img2img_prompt(subject, style_hint, mode)
             logger.info("DeepSeek expanded prompt: %s", expanded)
             return expanded
     except Exception as exc:
         logger.warning("DeepSeek prompt expansion failed (%s) — using fallback", exc)
-        return compose_img2img_prompt(subject, style_hint)
+        return compose_img2img_prompt(subject, style_hint, mode)
 
 
 def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:
@@ -275,7 +311,7 @@ def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = ""
     if expanded_prompt is not None:
         prompt = expanded_prompt
     elif image_name:
-        prompt = compose_img2img_prompt(request.subject, request.style_hint)
+        prompt = compose_img2img_prompt(request.subject, request.style_hint, getattr(request, "mode", None))
     else:
         prompt = compose_prompt(request.subject, request.style_hint)
     seed = int(request.seed if request.seed >= 0 else time.time_ns() % (2**32))
@@ -509,7 +545,11 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
 
     expanded_prompt = None
     if image_name and not is_catalog:
-        expanded_prompt = await expand_prompt_for_qwen(request.subject, getattr(request, "style_hint", ""))
+        expanded_prompt = await expand_prompt_for_qwen(
+            request.subject,
+            getattr(request, "style_hint", ""),
+            mode,
+        )
 
     logger.info("[GEN] subject=%r expanded_prompt=%r", getattr(request, "subject", ""), expanded_prompt)
     workflow = render_workflow(

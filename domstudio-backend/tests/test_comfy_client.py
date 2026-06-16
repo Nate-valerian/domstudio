@@ -96,22 +96,86 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         prompt = comfy_client.compose_img2img_prompt(
             "on marbel tabel with candels.",
             "Warm light, premium minimalism",
+            "product",
         )
 
         self.assertIn("marble table with candles", prompt)
+        self.assertIn("Product photography objective", prompt)
         self.assertIn("Warm light", prompt)
         self.assertIn("Include all requested scene props clearly", prompt)
         self.assertIn("Do not leave a plain white or empty studio background", prompt)
         self.assertIn("Keep the product, bottle shape, cap, color, and label exactly as they appear", prompt)
 
+    async def test_non_catalog_modes_have_distinct_prompt_objectives(self):
+        expectations = {
+            "product": "Product photography objective",
+            "creative": "Creative campaign objective",
+            "image": "Lifestyle objective",
+            "fitting": "Virtual fitting objective",
+            "mobile": "Stories objective",
+        }
+
+        for mode, expected in expectations.items():
+            with self.subTest(mode=mode):
+                prompt = comfy_client.compose_img2img_prompt("simple scene", "", mode)
+                self.assertIn(expected, prompt)
+
     async def test_prompt_expander_user_text_keeps_scene_and_style_context(self):
         text = comfy_client.prompt_expander_user_text(
             "on marbel tabel with candels.",
             "Warm light, premium minimalism, Website banner crop",
+            "mobile",
         )
 
         self.assertIn("Scene request: on marble table with candles", text)
+        self.assertIn("Mode objective: Stories objective", text)
         self.assertIn("Style context: Warm light, premium minimalism", text)
+
+    async def test_mode_prompt_directive_returns_empty_for_catalog_cleanup(self):
+        self.assertEqual(comfy_client.mode_prompt_directive("catalog"), "")
+
+    async def test_all_six_modes_select_expected_workflow_branch(self):
+        expected_workflows = {
+            "catalog": "catalog_birefnet.json",
+            "product": "product_image_img2img.json",
+            "creative": "product_image_img2img.json",
+            "image": "product_image_img2img.json",
+            "fitting": "product_image_img2img.json",
+            "mobile": "product_image_img2img.json",
+        }
+        template = {
+            "load": {"inputs": {"image": "{{image_name}}"}},
+            "prompt": {"inputs": {"text": "{{prompt}}"}},
+            "save": {"inputs": {"prefix": "domstudio/{{mode}}"}},
+        }
+
+        async def fake_resolve_url():
+            return "https://comfy.example"
+
+        async def fake_expand_prompt(subject, style_hint, mode=None):
+            return f"Change the scene for {mode}. Keep the product exactly as it appears."
+
+        for mode, workflow_name in expected_workflows.items():
+            with self.subTest(mode=mode):
+                FakeComfyRunner.last_workflow = None
+                request = SimpleNamespace(
+                    subject="test scene",
+                    style_hint="clean commercial style",
+                    seed=42,
+                    image="base64",
+                    upscale_4k=False,
+                    mode=mode,
+                )
+                with patch.object(comfy_client, "resolve_comfy_url", fake_resolve_url):
+                    with patch.object(comfy_client, "ComfyClient", FakeComfyRunner):
+                        with patch.object(comfy_client, "load_workflow", return_value=template) as load_workflow:
+                            with patch.object(comfy_client, "expand_prompt_for_qwen", fake_expand_prompt):
+                                result = await comfy_client.generate_image_with_comfy(request)
+
+                self.assertEqual(result["status"], "success")
+                load_workflow.assert_called_once_with(workflow_name)
+                self.assertEqual(FakeComfyRunner.last_workflow["load"]["inputs"]["image"], "uploaded-product.jpg")
+                self.assertEqual(FakeComfyRunner.last_workflow["save"]["inputs"]["prefix"], f"domstudio/{mode}")
 
     async def test_generate_image_loads_renders_and_runs_selected_workflow(self):
         FakeComfyRunner.last_workflow = None
@@ -132,7 +196,8 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         async def fake_resolve_url():
             return "https://comfy.example"
 
-        async def fake_expand_prompt(subject, style_hint):
+        async def fake_expand_prompt(subject, style_hint, mode=None):
+            self.assertEqual(mode, "product")
             return "Change the background to a marble table with candles. Keep the product exactly as it appears."
 
         with patch.object(comfy_client, "resolve_comfy_url", fake_resolve_url):
