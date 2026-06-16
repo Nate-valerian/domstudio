@@ -893,3 +893,57 @@ closer to a sellable workflow after generation quality is proven.
 
 - Real product-preserving generation is still the main blocker.
 - Need to verify the new export presets visually in the browser before shipping.
+
+## June 16, 2026 - Comfy Workflow Bug Fixed + Live AutoDL Verification
+
+### What was wrong
+
+`generate_image_with_comfy()` in `domstudio-backend/services/comfy_client.py`
+selected the right `workflow_file` per mode but never loaded or rendered it
+before calling `client.run_workflow(workflow)` — `workflow` was an undefined
+variable. Any real request with `GENERATION_PROVIDER=comfy` would fail
+immediately with a `NameError`, before ever reaching ComfyUI.
+
+### What changed
+
+- Fixed `comfy_client.py` (line ~481): now calls `load_workflow(workflow_file)`,
+  renders it via `render_workflow(...)` with `request`, `image_name`, and
+  `expanded_prompt`, and passes the rendered workflow into `run_workflow()`.
+- Added a regression test in `tests/test_comfy_client.py`
+  (`test_generate_image_loads_renders_and_runs_selected_workflow`) that
+  verifies product mode selects `product_image_img2img.json`, substitutes the
+  uploaded image name and expanded Qwen prompt into the rendered workflow, and
+  that the rendered (not raw) workflow is what gets sent to Comfy.
+- Backend test suite: 20/20 passing.
+- Committed as `ce97185 Fix unrendered Comfy workflow bug in generate_image_with_comfy`.
+
+### Live verification on remote AutoDL/SeetaCloud box
+
+Connected via `ssh -p 57689 root@connect.westc.seetacloud.com`. Confirmed:
+
+- ComfyUI running on port 6006.
+- Qwen model, Qwen CLIP, and Qwen VAE installed and visible to Comfy.
+- Product img2img workflow (`product_image_img2img.json`) ran successfully —
+  produced a usable preserved-product result (test case: black bottle).
+- Catalog BiRefNet workflow ran successfully — produced a transparent cutout;
+  backend's white-composite logic correctly turns that into a clean white-bg
+  output.
+
+### Known issue to watch
+
+Remote disk is tight: ~2.4 GB free. An unrelated
+`z_image_turbo_bf16.safetensors` (~12 GB) is taking most of the space. Will
+need to be cleared or the instance resized before heavier generation testing.
+
+### Next step
+
+Get the public 6006 service URL from AutoDL/SeetaCloud, then set in the live
+backend env:
+
+```
+GENERATION_PROVIDER=comfy
+COMFYUI_URL=<public Comfy 6006 URL>
+```
+
+Then test `/generation/generate` end-to-end through the deployed frontend —
+Catalog mode first, then Product mode.
