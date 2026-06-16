@@ -479,6 +479,12 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
         expanded_prompt = await expand_prompt_for_qwen(request.subject, getattr(request, "style_hint", ""))
 
     logger.info("[GEN] subject=%r expanded_prompt=%r", getattr(request, "subject", ""), expanded_prompt)
+    workflow = render_workflow(
+        load_workflow(workflow_file),
+        request,
+        image_name=image_name,
+        expanded_prompt=expanded_prompt,
+    )
     result = await client.run_workflow(workflow)
 
     # Catalog BiRefNet returns RGBA — composite onto white so output is clean white-bg JPEG/PNG

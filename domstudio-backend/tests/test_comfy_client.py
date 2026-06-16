@@ -39,6 +39,20 @@ class FakeAutoDlClient:
         })
 
 
+class FakeComfyRunner:
+    last_workflow = None
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def upload_image(self, image_b64):
+        return "uploaded-product.jpg"
+
+    async def run_workflow(self, workflow):
+        FakeComfyRunner.last_workflow = workflow
+        return {"status": "success", "image": "base64", "format": "PNG"}
+
+
 class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
     async def test_discovers_running_autodl_service_url(self):
         with patch.object(comfy_client.httpx, "AsyncClient", FakeAutoDlClient):
@@ -77,6 +91,43 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(inputs["seed"], 42)
         self.assertIs(inputs["upscale"], True)
         self.assertEqual(inputs["mode"], "mode=catalog")
+
+    async def test_generate_image_loads_renders_and_runs_selected_workflow(self):
+        FakeComfyRunner.last_workflow = None
+        request = SimpleNamespace(
+            subject="marble table with candles",
+            style_hint="clean catalog",
+            seed=42,
+            image="base64",
+            upscale_4k=False,
+            mode="product",
+        )
+        template = {
+            "load": {"inputs": {"image": "{{image_name}}"}},
+            "prompt": {"inputs": {"text": "{{prompt}}"}},
+            "seed": {"inputs": {"value": "{{seed}}"}},
+        }
+
+        async def fake_resolve_url():
+            return "https://comfy.example"
+
+        async def fake_expand_prompt(subject, style_hint):
+            return "Change the background to a marble table with candles. Keep the product exactly as it appears."
+
+        with patch.object(comfy_client, "resolve_comfy_url", fake_resolve_url):
+            with patch.object(comfy_client, "ComfyClient", FakeComfyRunner):
+                with patch.object(comfy_client, "load_workflow", return_value=template) as load_workflow:
+                    with patch.object(comfy_client, "expand_prompt_for_qwen", fake_expand_prompt):
+                        result = await comfy_client.generate_image_with_comfy(request)
+
+        self.assertEqual(result["status"], "success")
+        load_workflow.assert_called_once_with("product_image_img2img.json")
+        self.assertEqual(FakeComfyRunner.last_workflow["load"]["inputs"]["image"], "uploaded-product.jpg")
+        self.assertEqual(
+            FakeComfyRunner.last_workflow["prompt"]["inputs"]["text"],
+            "Change the background to a marble table with candles. Keep the product exactly as it appears.",
+        )
+        self.assertEqual(FakeComfyRunner.last_workflow["seed"]["inputs"]["value"], 42)
 
     async def test_extracts_image_outputs_from_history_payload(self):
         outputs = comfy_client._extract_outputs({
