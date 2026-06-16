@@ -1186,3 +1186,45 @@ Verification:
 ```json
 {"status":"ok","service":"domstudio-api","v":4,"prompt_version":"visible-props-2026-06-16"}
 ```
+
+## June 16, 2026 - Six Generation Modes Checked and Separated
+
+User asked to check all six product-photo functions after the candle result
+started working.
+
+Finding:
+
+- The frontend exposes six shooting modes:
+  `catalog`, `product`, `creative`, `image`, `fitting`, `mobile`.
+- Backend workflow routing was technically functional, but only had two real
+  branches:
+  - `catalog` -> `catalog_birefnet.json`
+  - all non-catalog modes -> `product_image_img2img.json`
+- That meant Product, Creative, Lifestyle, Fitting, and Stories could behave
+  too similarly unless the user prompt carried all the intent.
+
+Fix:
+
+- Added mode-specific prompt objectives before Qwen prompt expansion:
+  - Product: premium commercial product photography.
+  - Creative: expressive social media campaign visual.
+  - Lifestyle (`image`): believable natural environment.
+  - Fitting: model-worn result when item type makes sense; otherwise scale/use
+    scene.
+  - Stories (`mobile`): mobile-first safe-center story composition.
+- Catalog remains a clean background/cutout workflow and intentionally has no
+  Qwen prompt objective.
+- Bumped health marker to:
+
+```json
+{"status":"ok","service":"domstudio-api","v":5,"prompt_version":"six-mode-objectives-2026-06-16"}
+```
+
+Verification:
+
+- Backend tests now cover all six mode IDs and expected workflow branches.
+- Backend tests passed: 25 tests.
+- Frontend production build passed.
+- Pushed commit `76eebd4` to GitHub `main`, Amvera `main`, and Amvera
+  `master`.
+- Live Amvera health returned v5 with `six-mode-objectives-2026-06-16`.
