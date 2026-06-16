@@ -1051,3 +1051,46 @@ through the live deployed backend — not just in an isolated ComfyUI test.
 - Watch the AutoDL remote disk (still ~2.4GB free) and the trycloudflare
   tunnel (URL rotates on every reboot — re-run the SFTP-binary + tunnel
   steps from the entry above if it goes down).
+
+## June 16, 2026 - Remote Disk Pressure Reduced
+
+User pointed out the AutoDL file-storage page shows 20GB free storage.
+
+Checked the running container:
+
+- `/root/autodl-fs` exists but is a broken symlink to `/autodl-fs/data`.
+- `/autodl-fs/data` is not mounted in the current container.
+- Therefore the console file store is not usable from this live SSH session
+  until AutoDL actually attaches/mounts it to the instance.
+
+What was usable:
+
+- The container root filesystem had about 19GB free.
+- Comfy already scans `/root/models` via `extra_model_paths.yaml`.
+
+Action taken:
+
+- Moved the unrelated `z_image_turbo_bf16.safetensors` model (~12GB) from:
+
+```text
+/root/autodl-tmp/models/diffusion_models/
+```
+
+to:
+
+```text
+/root/models/diffusion_models/
+```
+
+Result:
+
+- `/root/autodl-tmp` free space improved from ~2.4GB to ~14GB.
+- Qwen Image Edit files stayed on `/root/autodl-tmp/models`, so the current
+  DomStudio generation path remains unchanged.
+- Comfy stayed healthy on port 6006 after the move.
+
+Future note:
+
+If `/root/autodl-fs` is mounted later, prefer moving non-critical or secondary
+models there because `/root/models` is useful but less ideal than real attached
+file storage.
