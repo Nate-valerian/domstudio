@@ -175,6 +175,35 @@ _SCENE_TYPO_REPLACEMENTS = {
     r"\bcandels\b": "candles",
 }
 
+SCENE_INTENT_PATTERN = re.compile(
+    r"\b("
+    r"marble|marbel|mabel|mable|table|tabel|candle|candles|candel|candels|"
+    r"flower|flowers|fabric|wood|stone|kitchen|bathroom|room|desk|shelf|surface|"
+    r"background|boutique|restaurant|studio set|window light|warm light"
+    r")\b",
+    re.IGNORECASE,
+)
+
+CATALOG_BACKGROUND_PATTERN = re.compile(
+    r"\b(simple|plain|clean|white|transparent|remove|removed|cutout|cut-out)\b.{0,32}\bbackground\b|"
+    r"\bbackground\b.{0,32}\b(simple|plain|clean|white|transparent|remove|removed|cutout|cut-out)\b",
+    re.IGNORECASE,
+)
+
+IMAGE_EDIT_PRESERVATION_DIRECTIVE = (
+    "This is a background/environment edit, not a product redesign. "
+    "Preserve the uploaded product exactly: silhouette, bottle or package geometry, cap, material, color, label artwork, logo, barcode, and every visible letter or symbol. "
+    "Do not translate, rewrite, invent, replace, simplify, or remove existing packaging text or branding. "
+    "Do not add new labels, new logos, new text overlays, or fake brand names. "
+    "Only change the surrounding environment, surface, lighting, reflections, and contact shadows."
+)
+
+IMAGE_EDIT_NEGATIVE_PROMPT = (
+    "low quality, blurry, distorted, warped product, changed product shape, changed label, altered packaging, "
+    "rewritten label text, fake label, fake letters, gibberish text, misspelled text, translated text, extra logo, "
+    "new brand name, text overlay, watermark, duplicated product, extra bottle, broken cap, deformed cap, messy background"
+)
+
 
 MODE_PROMPT_DIRECTIVES = {
     "product": (
@@ -216,6 +245,38 @@ def normalize_scene_text(text: str) -> str:
     return scene.strip(" .")
 
 
+def has_scene_intent(text: str) -> bool:
+    value = str(text or "")
+    if CATALOG_BACKGROUND_PATTERN.search(value):
+        return False
+    return bool(SCENE_INTENT_PATTERN.search(value))
+
+
+def effective_generation_mode(mode: str | None, subject: str = "", has_image: bool = False) -> str:
+    requested = str(mode or "catalog").strip().lower() or "catalog"
+    if has_image and requested == "catalog" and has_scene_intent(subject):
+        return "product"
+    return requested
+
+
+def sanitize_style_hint_for_image_edit(style_hint: str = "") -> str:
+    """Remove style phrases that fight product/label preservation."""
+    raw = str(style_hint or "").strip()
+    if not raw:
+        return ""
+
+    blocked = re.compile(
+        r"\b(no|without|remove|avoid)\s+(visible\s+)?(text|logos?|labels?|branding)\b|"
+        r"\b(no|without|remove|avoid)\s+(product\s+)?(text|logos?|labels?|branding)\b|"
+        r"\btext\s*overlay\b|"
+        r"\blogo\s*artifacts?\b",
+        re.IGNORECASE,
+    )
+    parts = [part.strip(" ,") for part in re.split(r",\s*", raw) if part.strip(" ,")]
+    kept = [part for part in parts if not blocked.search(part)]
+    return ", ".join(kept)
+
+
 def mode_prompt_directive(mode: str | None) -> str:
     return MODE_PROMPT_DIRECTIVES.get(str(mode or "").strip().lower(), "")
 
@@ -226,7 +287,7 @@ def generation_dimensions(mode: str | None) -> tuple[int, int]:
 
 def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject) or "a clean product photography scene"
-    style = normalize_scene_text(style_hint)
+    style = sanitize_style_hint_for_image_edit(style_hint)
     instruction = f"Place the product in a new environment: {scene}."
     directive = mode_prompt_directive(mode)
     if directive:
@@ -238,14 +299,14 @@ def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None 
         "Include all requested scene props clearly when they are mentioned, such as candles, marble, table surfaces, flowers, or lights. "
         "If candles are requested, show visible lit candles in the scene. If marble table is requested, show a clearly visible marble tabletop surface. "
         "Do not leave a plain white, empty, or catalog-cutout background when props or a scene are requested. "
-        "Keep the product, bottle shape, cap, color, and label exactly as they appear."
+        f"{IMAGE_EDIT_PRESERVATION_DIRECTIVE}"
     )
     return instruction
 
 
 def prompt_expander_user_text(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject)
-    style = normalize_scene_text(style_hint)
+    style = sanitize_style_hint_for_image_edit(style_hint)
     directive = mode_prompt_directive(mode)
     parts = [f"Scene request: {scene}"]
     if directive:
@@ -278,18 +339,21 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str |
                                 "You write background-change prompts for the Qwen Image Edit model.\n"
                                 "The user gives a short scene description and optional style context in any language.\n"
                                 "OUTPUT FORMAT — you must follow this exactly:\n"
-                                "  Change the background and product environment to [rich scene description with visible requested props, surface, lighting, atmosphere]. Keep the product exactly as it appears.\n"
+                                "  Change only the background and product environment to [rich scene description with visible requested props, surface, lighting, atmosphere]. Keep the uploaded product exactly as it appears, including label artwork, logos, packaging text, shape, cap, material, and color.\n"
                                 "Rules:\n"
                                 "- First word of output MUST be 'Change'\n"
-                                "- Last sentence MUST be 'Keep the product exactly as it appears.'\n"
+                                "- Last sentence MUST preserve the uploaded product exactly, including label artwork, logos, packaging text, shape, cap, material, and color.\n"
                                 "- Correct obvious spelling mistakes in scene props, for example mabel/marbel->marble, tabel->table, candels->candles.\n"
                                 "- If the user mentions concrete props such as candles, flowers, marble, table, lights, boxes, fabric, include those props visibly.\n"
                                 "- If the user asks for a scene, do not create a plain white catalog cutout background.\n"
+                                "- Ignore or rewrite any style/context phrase that says no text, no logo, no label, remove text, or remove logo; those phrases mean no NEW text/logos, not changing the product.\n"
+                                "- Do not translate, rewrite, invent, replace, simplify, or remove existing product label text or branding.\n"
+                                "- Do not add new labels, new logos, fake brand names, or text overlays.\n"
                                 "- Follow the mode objective when one is provided, but never sacrifice product accuracy.\n"
                                 "- Ignore marketplace, export-size, crop, platform, and social-channel instructions unless they describe visual style.\n"
                                 "- 1-2 sentences only. No extra commentary. No lists.\n"
                                 "Example input: marble table with candles\n"
-                                "Example output: Change the background and product environment to a polished white marble table with three visible lit pillar candles casting warm golden light against an elegant boutique backdrop. Keep the product exactly as it appears."
+                                "Example output: Change only the background and product environment to a polished white marble table with three visible lit pillar candles casting warm golden light against an elegant boutique backdrop. Keep the uploaded product exactly as it appears, including label artwork, logos, packaging text, shape, cap, material, and color."
                             ),
                         },
                         {"role": "user", "content": user_text},
@@ -324,25 +388,33 @@ def _replace_placeholders(value: Any, replacements: dict[str, Any]) -> Any:
     return value
 
 
-def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = "", expanded_prompt: str | None = None) -> dict[str, Any]:
+def render_workflow(
+    workflow: dict[str, Any],
+    request: Any,
+    image_name: str = "",
+    expanded_prompt: str | None = None,
+    mode_override: str | None = None,
+) -> dict[str, Any]:
+    selected_mode = mode_override or getattr(request, "mode", None)
     if expanded_prompt is not None:
         prompt = expanded_prompt
     elif image_name:
-        prompt = compose_img2img_prompt(request.subject, request.style_hint, getattr(request, "mode", None))
+        prompt = compose_img2img_prompt(request.subject, request.style_hint, selected_mode)
     else:
         prompt = compose_prompt(request.subject, request.style_hint)
     seed = int(request.seed if request.seed >= 0 else time.time_ns() % (2**32))
-    width, height = generation_dimensions(getattr(request, "mode", None))
+    width, height = generation_dimensions(selected_mode)
     replacements = {
         "{{prompt}}": prompt,
         "{{subject}}": request.subject,
         "{{style_hint}}": request.style_hint,
+        "{{negative_prompt}}": IMAGE_EDIT_NEGATIVE_PROMPT,
         "{{seed}}": seed,
         "{{width}}": width,
         "{{height}}": height,
         "{{image_name}}": image_name,
         "{{upscale_4k}}": bool(request.upscale_4k),
-        "{{mode}}": request.mode,
+        "{{mode}}": selected_mode,
     }
     return _replace_placeholders(deepcopy(workflow), replacements)
 
@@ -552,8 +624,9 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     client = ComfyClient(base_url)
 
     image_name = ""
-    is_catalog = getattr(request, "mode", "") == "catalog"
     mode = getattr(request, "mode", "?")
+    effective_mode = effective_generation_mode(mode, getattr(request, "subject", ""), bool(request.image))
+    is_catalog = effective_mode == "catalog"
 
     if request.image:
         image_name = await client.upload_image(request.image)
@@ -561,14 +634,21 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     else:
         workflow_file = "product_image.json"
 
-    logger.info("[GEN] mode=%s has_image=%s is_catalog=%s workflow=%s", mode, bool(request.image), is_catalog, workflow_file)
+    logger.info(
+        "[GEN] mode=%s effective_mode=%s has_image=%s is_catalog=%s workflow=%s",
+        mode,
+        effective_mode,
+        bool(request.image),
+        is_catalog,
+        workflow_file,
+    )
 
     expanded_prompt = None
     if image_name and not is_catalog:
         expanded_prompt = await expand_prompt_for_qwen(
             request.subject,
             getattr(request, "style_hint", ""),
-            mode,
+            effective_mode,
         )
 
     logger.info("[GEN] subject=%r expanded_prompt=%r", getattr(request, "subject", ""), expanded_prompt)
@@ -577,8 +657,10 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
         request,
         image_name=image_name,
         expanded_prompt=expanded_prompt,
+        mode_override=effective_mode,
     )
     result = await client.run_workflow(workflow)
+    result.setdefault("mode", effective_mode)
 
     # Catalog BiRefNet returns RGBA — composite onto white so output is clean white-bg JPEG/PNG
     if is_catalog and request.image and result.get("status") == "success":

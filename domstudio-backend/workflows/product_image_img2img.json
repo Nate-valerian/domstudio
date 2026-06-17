@@ -48,7 +48,7 @@
     "class_type": "CLIPTextEncode",
     "inputs": {
       "clip": ["3", 0],
-      "text": "low quality, blurry, distorted, watermark, text overlay, logo, extra objects"
+      "text": "{{negative_prompt}}"
     }
   },
   "8": {

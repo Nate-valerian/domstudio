@@ -375,15 +375,25 @@ function currentStyleTemplate() {
 }
 
 const SCENE_INTENT_PATTERN = /\b(marble|marbel|mabel|mable|table|tabel|candle|candles|candel|candels|flower|flowers|fabric|wood|stone|kitchen|bathroom|room|desk|shelf|surface|background|boutique|restaurant|studio set|window light|warm light)\b/i;
+const CATALOG_BACKGROUND_PATTERN = /\b(simple|plain|clean|white|transparent|remove|removed|cutout|cut-out)\b.{0,32}\bbackground\b|\bbackground\b.{0,32}\b(simple|plain|clean|white|transparent|remove|removed|cutout|cut-out)\b/i;
 
 function hasSceneIntent(value) {
-  return SCENE_INTENT_PATTERN.test(String(value || ""));
+  const text = String(value || "");
+  return !CATALOG_BACKGROUND_PATTERN.test(text) && SCENE_INTENT_PATTERN.test(text);
 }
 
 function resolvedGenerationMode(values) {
   const requestedMode = values.mode || currentMarketplace().mode;
   if (requestedMode === "catalog" && hasSceneIntent(values.subject)) return "product";
   return requestedMode;
+}
+
+function marketplaceHintForMode(marketplace, mode, hasImage) {
+  if (mode === "catalog") return marketplace.hint;
+  const preserve = hasImage
+    ? "preserve the uploaded product label, packaging text, logo, shape, color, and cap exactly; do not add new text or new logos"
+    : "do not add fake text, fake logos, or unreadable packaging details";
+  return `${marketplace.label} seller-ready commercial image, crop-safe for marketplace listing, ${preserve}`;
 }
 
 function composeGenerationPayload(values) {
@@ -393,11 +403,12 @@ function composeGenerationPayload(values) {
   const userStyle = values.style_hint || "";
   const brandColors = values.brand_colors || prefs.brand_colors;
   const mode = resolvedGenerationMode(values);
+  const marketplaceHint = marketplaceHintForMode(marketplace, mode, Boolean(state.selectedImage));
   const styleParts = [
     userStyle,
     mode !== values.mode ? "scene request detected: use product photography scene mode, not catalog cutout mode" : "",
     ...[
-      marketplace.hint,
+      marketplaceHint,
       styleTemplate.hint,
       brandColors ? `brand colors: ${brandColors}` : "",
       prefs.preferred_background ? `preferred background: ${prefs.preferred_background}` : "",

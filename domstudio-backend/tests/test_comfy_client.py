@@ -107,7 +107,8 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("visible lit candles", prompt)
         self.assertIn("clearly visible marble tabletop", prompt)
         self.assertIn("Do not leave a plain white, empty, or catalog-cutout background", prompt)
-        self.assertIn("Keep the product, bottle shape, cap, color, and label exactly as they appear", prompt)
+        self.assertIn("Preserve the uploaded product exactly", prompt)
+        self.assertIn("Do not translate, rewrite, invent, replace, simplify, or remove existing packaging text", prompt)
 
     async def test_non_catalog_modes_have_distinct_prompt_objectives(self):
         expectations = {
@@ -134,6 +135,28 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Mode objective: Stories objective", text)
         self.assertIn("Style context: Warm light, premium minimalism", text)
 
+    async def test_image_edit_style_sanitizer_removes_conflicting_label_rules(self):
+        text = comfy_client.sanitize_style_hint_for_image_edit(
+            "Wildberries-ready, no text, no logos, crop-safe, preserve label, text overlay"
+        )
+
+        self.assertIn("Wildberries-ready", text)
+        self.assertIn("crop-safe", text)
+        self.assertIn("preserve label", text)
+        self.assertNotIn("no text", text)
+        self.assertNotIn("no logos", text)
+        self.assertNotIn("text overlay", text)
+
+    async def test_catalog_scene_request_switches_to_product_mode_on_backend(self):
+        self.assertEqual(
+            comfy_client.effective_generation_mode("catalog", "on a marble table with candles", True),
+            "product",
+        )
+        self.assertEqual(
+            comfy_client.effective_generation_mode("catalog", "simple white background", True),
+            "catalog",
+        )
+
     async def test_mode_prompt_directive_returns_empty_for_catalog_cleanup(self):
         self.assertEqual(comfy_client.mode_prompt_directive("catalog"), "")
 
@@ -156,6 +179,33 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(rendered["latent"]["inputs"]["width"], 768)
         self.assertEqual(rendered["latent"]["inputs"]["height"], 1344)
+
+    async def test_render_workflow_supports_effective_mode_and_negative_prompt(self):
+        workflow = {
+            "prompt": {"inputs": {"text": "{{prompt}}"}},
+            "negative": {"inputs": {"text": "{{negative_prompt}}"}},
+            "save": {"inputs": {"prefix": "domstudio/{{mode}}"}},
+        }
+        request = SimpleNamespace(
+            subject="on a marble table with candles",
+            style_hint="no text, no logos, warm light",
+            seed=42,
+            image="base64",
+            upscale_4k=False,
+            mode="catalog",
+        )
+
+        rendered = comfy_client.render_workflow(
+            workflow,
+            request,
+            image_name="uploaded.jpg",
+            mode_override="product",
+        )
+
+        self.assertIn("warm light", rendered["prompt"]["inputs"]["text"])
+        self.assertNotIn("no text", rendered["prompt"]["inputs"]["text"])
+        self.assertIn("fake label", rendered["negative"]["inputs"]["text"])
+        self.assertEqual(rendered["save"]["inputs"]["prefix"], "domstudio/product")
 
     async def test_all_six_modes_select_expected_workflow_branch(self):
         expected_workflows = {
@@ -199,6 +249,39 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
                 load_workflow.assert_called_once_with(workflow_name)
                 self.assertEqual(FakeComfyRunner.last_workflow["load"]["inputs"]["image"], "uploaded-product.jpg")
                 self.assertEqual(FakeComfyRunner.last_workflow["save"]["inputs"]["prefix"], f"domstudio/{mode}")
+
+    async def test_catalog_scene_request_selects_product_edit_workflow(self):
+        FakeComfyRunner.last_workflow = None
+        request = SimpleNamespace(
+            subject="on a marble table with candles",
+            style_hint="clean commercial style",
+            seed=42,
+            image="base64",
+            upscale_4k=False,
+            mode="catalog",
+        )
+        template = {
+            "load": {"inputs": {"image": "{{image_name}}"}},
+            "prompt": {"inputs": {"text": "{{prompt}}"}},
+            "save": {"inputs": {"prefix": "domstudio/{{mode}}"}},
+        }
+
+        async def fake_resolve_url():
+            return "https://comfy.example"
+
+        async def fake_expand_prompt(subject, style_hint, mode=None):
+            self.assertEqual(mode, "product")
+            return "Change only the background to a marble table with candles. Keep the uploaded product exactly as it appears, including label artwork, logos, packaging text, shape, cap, material, and color."
+
+        with patch.object(comfy_client, "resolve_comfy_url", fake_resolve_url):
+            with patch.object(comfy_client, "ComfyClient", FakeComfyRunner):
+                with patch.object(comfy_client, "load_workflow", return_value=template) as load_workflow:
+                    with patch.object(comfy_client, "expand_prompt_for_qwen", fake_expand_prompt):
+                        result = await comfy_client.generate_image_with_comfy(request)
+
+        self.assertEqual(result["mode"], "product")
+        load_workflow.assert_called_once_with("product_image_img2img.json")
+        self.assertEqual(FakeComfyRunner.last_workflow["save"]["inputs"]["prefix"], "domstudio/product")
 
     async def test_generate_image_loads_renders_and_runs_selected_workflow(self):
         FakeComfyRunner.last_workflow = None

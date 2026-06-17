@@ -63,6 +63,6 @@ def health():
     return {
         "status": "ok",
         "service": "domstudio-api",
-        "v": 7,
-        "prompt_version": "scene-mode-routing-visible-props-2026-06-17",
+        "v": 8,
+        "prompt_version": "preserve-label-image-edit-2026-06-17",
     }

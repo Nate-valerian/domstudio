@@ -61,6 +61,7 @@ backend replaces these placeholders anywhere in the workflow before queueing it:
 {{prompt}}
 {{subject}}
 {{style_hint}}
+{{negative_prompt}}
 {{seed}}
 {{image_base64}}
 {{upscale_4k}}
