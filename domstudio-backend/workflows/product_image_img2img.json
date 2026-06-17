@@ -54,8 +54,8 @@
   "8": {
     "class_type": "EmptySD3LatentImage",
     "inputs": {
-      "width": 1024,
-      "height": 1024,
+      "width": "{{width}}",
+      "height": "{{height}}",
       "batch_size": 1
     }
   },

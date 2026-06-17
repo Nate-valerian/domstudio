@@ -1228,3 +1228,56 @@ Verification:
 - Pushed commit `76eebd4` to GitHub `main`, Amvera `main`, and Amvera
   `master`.
 - Live Amvera health returned v5 with `six-mode-objectives-2026-06-16`.
+
+## June 17, 2026 - Six-Mode Real Generation Comparison
+
+User asked to actually generate one image in each of the six modes from the
+same product and compare outputs.
+
+Input:
+
+- Shared source image:
+  `domstudio-frontend/src/assets/mode-product-before.webp`
+- Comfy tunnel used:
+  `https://weapon-steven-norman-importance.trycloudflare.com`
+- Local output folder:
+  `six-mode-comparison/`
+
+Results:
+
+- `catalog` succeeded: clean white-background product cutout, 960x599.
+- `product` succeeded: square 1024x1024, premium marble/candle product scene.
+- `creative` succeeded: square 1024x1024, bold social campaign look with
+  stronger color/lighting.
+- `image` succeeded: square 1024x1024, warmer lifestyle desk/interior scene.
+- `fitting` succeeded: square 1024x1024, hand/model scale cue.
+- `mobile` succeeded but exposed a bug: it was still square 1024x1024 because
+  the Comfy workflow latent size was hardcoded.
+
+Fix after comparison:
+
+- Added per-mode generation dimensions in `services/comfy_client.py`.
+- `mobile` now uses vertical story dimensions: 768x1344.
+- `product_image_img2img.json` now uses `{{width}}` and `{{height}}`
+  placeholders instead of hardcoded 1024x1024.
+- Added tests for mobile vertical dimensions and workflow rendering.
+- Bumped health marker to:
+
+```json
+{"status":"ok","service":"domstudio-api","v":6,"prompt_version":"six-mode-objectives-vertical-mobile-2026-06-16"}
+```
+
+Verification:
+
+- Backend tests passed: 27 tests.
+- Frontend production build passed.
+- Regenerated `mobile-vertical.png`; output was 768x1344.
+
+Remaining quality note:
+
+- The first vertical mobile sample was correctly vertical and story-safe, but
+  too plain and did not show the requested candles/marble strongly enough.
+- Tightened the mobile prompt directive so requested props should appear in the
+  lower third or side areas instead of being dropped for empty safe space.
+- Next visual check should regenerate mobile once more after deploy and inspect
+  whether candles/marble survive in the vertical frame.

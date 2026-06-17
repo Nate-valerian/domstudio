@@ -63,6 +63,6 @@ def health():
     return {
         "status": "ok",
         "service": "domstudio-api",
-        "v": 5,
-        "prompt_version": "six-mode-objectives-2026-06-16",
+        "v": 6,
+        "prompt_version": "six-mode-objectives-vertical-mobile-2026-06-16",
     }

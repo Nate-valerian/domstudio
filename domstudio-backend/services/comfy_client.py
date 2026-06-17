@@ -193,8 +193,14 @@ MODE_PROMPT_DIRECTIVES = {
     ),
     "mobile": (
         "Stories objective: compose for a mobile-first vertical story crop with the product clear in the safe "
-        "center area, strong foreground/background separation, and room for future text overlays."
+        "center area, strong foreground/background separation, and room for future text overlays. If the scene "
+        "mentions props, place them visibly around the lower third or side areas so the story frame is not plain."
     ),
+}
+
+
+MODE_DIMENSIONS = {
+    "mobile": (768, 1344),
 }
 
 
@@ -208,6 +214,10 @@ def normalize_scene_text(text: str) -> str:
 
 def mode_prompt_directive(mode: str | None) -> str:
     return MODE_PROMPT_DIRECTIVES.get(str(mode or "").strip().lower(), "")
+
+
+def generation_dimensions(mode: str | None) -> tuple[int, int]:
+    return MODE_DIMENSIONS.get(str(mode or "").strip().lower(), (1024, 1024))
 
 
 def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
@@ -315,11 +325,14 @@ def render_workflow(workflow: dict[str, Any], request: Any, image_name: str = ""
     else:
         prompt = compose_prompt(request.subject, request.style_hint)
     seed = int(request.seed if request.seed >= 0 else time.time_ns() % (2**32))
+    width, height = generation_dimensions(getattr(request, "mode", None))
     replacements = {
         "{{prompt}}": prompt,
         "{{subject}}": request.subject,
         "{{style_hint}}": request.style_hint,
         "{{seed}}": seed,
+        "{{width}}": width,
+        "{{height}}": height,
         "{{image_name}}": image_name,
         "{{upscale_4k}}": bool(request.upscale_4k),
         "{{mode}}": request.mode,

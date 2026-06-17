@@ -134,6 +134,26 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
     async def test_mode_prompt_directive_returns_empty_for_catalog_cleanup(self):
         self.assertEqual(comfy_client.mode_prompt_directive("catalog"), "")
 
+    async def test_generation_dimensions_make_mobile_vertical(self):
+        self.assertEqual(comfy_client.generation_dimensions("mobile"), (768, 1344))
+        self.assertEqual(comfy_client.generation_dimensions("product"), (1024, 1024))
+
+    async def test_render_workflow_sets_mode_dimensions(self):
+        workflow = {"latent": {"inputs": {"width": "{{width}}", "height": "{{height}}"}}}
+        request = SimpleNamespace(
+            subject="story scene",
+            style_hint="",
+            seed=42,
+            image="base64",
+            upscale_4k=False,
+            mode="mobile",
+        )
+
+        rendered = comfy_client.render_workflow(workflow, request, image_name="uploaded.jpg")
+
+        self.assertEqual(rendered["latent"]["inputs"]["width"], 768)
+        self.assertEqual(rendered["latent"]["inputs"]["height"], 1344)
+
     async def test_all_six_modes_select_expected_workflow_branch(self):
         expected_workflows = {
             "catalog": "catalog_birefnet.json",
