@@ -208,6 +208,41 @@ h1 em { color: var(--gold); font-style: normal; }
 .mode-card h3 { margin: 0 20px 12px; font-size: 20px; }
 .mode-card p { margin: 0; color: var(--muted); line-height: 1.6; }
 .mode-card p { margin-left: 20px; margin-right: 20px; }
+.examples-hero { padding-bottom: 28px; }
+.examples-strip {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  max-width: 1180px; margin: 0 auto;
+}
+.examples-strip span {
+  display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.62);
+  color: var(--muted); font-size: 13px; font-weight: 800;
+}
+.examples-section { padding-top: 24px; }
+.examples-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
+  max-width: 1180px; margin: 0 auto;
+}
+.example-card {
+  overflow: hidden; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--card); box-shadow: 0 18px 55px rgba(32,25,14,.08);
+}
+.example-card.wide { grid-column: span 2; }
+.example-card figure { margin: 0; overflow: hidden; background: #e9e3d7; aspect-ratio: 1 / 1; }
+.example-card.wide figure { aspect-ratio: 16 / 9; }
+.example-card.portrait figure { aspect-ratio: 4 / 5; }
+.example-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.example-card-copy { display: grid; gap: 6px; padding: 14px; }
+.example-card-copy span {
+  color: var(--green); font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase;
+}
+.example-card-copy h3 { margin: 0; font-size: 15px; letter-spacing: 0; }
+.example-card-copy p { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; }
+.examples-cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  max-width: 1180px; margin: 24px auto 0; padding: 22px; border-top: 1px solid var(--line);
+}
+.examples-cta h2 { margin: 0; font-size: clamp(22px, 3vw, 34px); }
 .workflow-section { background: var(--night); }
 .workflow-section .section-head h2 { color: #f6f1e8; }
 .steps { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid rgba(246,241,232,.18); background: transparent; }
@@ -441,6 +476,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .proof-grid { grid-template-columns: 1fr; }
   .proof-copy { grid-template-columns: repeat(3, 1fr); }
   .mode-grid, .price-grid { grid-template-columns: repeat(2, 1fr); }
+  .examples-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-layout { grid-template-columns: 1fr; }
   .sidebar { display: flex; overflow-x: auto; padding: 12px 18px; border-right: 0; border-bottom: 1px solid var(--line); }
   .side-caption { display: none; }
@@ -503,6 +539,11 @@ h1 em { color: var(--gold); font-style: normal; }
   .proof-stat b { font-size: 30px; }
   .section-head, .workspace-head, .footer { align-items: start; flex-direction: column; }
   .mode-grid, .steps, .stats, .price-grid { grid-template-columns: 1fr; }
+  .examples-grid { grid-template-columns: 1fr; }
+  .example-card.wide { grid-column: auto; }
+  .examples-strip { gap: 8px; }
+  .examples-strip span { min-height: 34px; padding: 0 11px; font-size: 12px; }
+  .examples-cta { align-items: stretch; flex-direction: column; padding: 18px 0 0; }
   .mode-grid { gap: 12px; }
   .mode-card { min-height: 0; border-radius: 16px; }
   .mode-visual { margin-bottom: 14px; }

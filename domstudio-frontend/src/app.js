@@ -14,6 +14,18 @@ import modeCreativeBeforeUrl from "./assets/mode-creative-before.webp";
 import modeLifestyleBeforeUrl from "./assets/mode-lifestyle-before.webp";
 import modeFittingBeforeUrl from "./assets/mode-fitting-before.webp";
 import modeStoriesBeforeUrl from "./assets/mode-stories-before.webp";
+import examplePerfumeCatalogUrl from "./assets/examples/example-perfume-catalog.webp";
+import examplePerfumeProductUrl from "./assets/examples/example-perfume-product.webp";
+import examplePerfumeCreativeUrl from "./assets/examples/example-perfume-creative.webp";
+import examplePerfumeLifestyleUrl from "./assets/examples/example-perfume-lifestyle.webp";
+import examplePerfumeFittingUrl from "./assets/examples/example-perfume-fitting.webp";
+import examplePerfumeMobileUrl from "./assets/examples/example-perfume-mobile.webp";
+import exampleBottleCatalogUrl from "./assets/examples/example-bottle-catalog.webp";
+import exampleBottleProductUrl from "./assets/examples/example-bottle-product.webp";
+import exampleBottleCreativeUrl from "./assets/examples/example-bottle-creative.webp";
+import exampleBottleLifestyleUrl from "./assets/examples/example-bottle-lifestyle.webp";
+import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.webp";
+import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -24,6 +36,21 @@ const MODES = [
   ["image", "Lifestyle", "Товар в естественной сцене с AI-моделью.", modeLifestyleUrl, "Пример lifestyle-кадра с товаром", modeLifestyleBeforeUrl, "Сцена"],
   ["fitting", "Примерка", "Виртуальная примерка одежды и аксессуаров.", modeFittingUrl, "Пример виртуальной примерки", modeFittingBeforeUrl, "Примерка"],
   ["mobile", "Stories", "Вертикальный UGC-контент в формате 9:16.", modeStoriesUrl, "Пример вертикального story-контента", modeStoriesBeforeUrl, "9:16"],
+];
+
+const EXAMPLE_IMAGES = [
+  { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: examplePerfumeCatalogUrl, shape: "wide" },
+  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl },
+  { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: examplePerfumeCreativeUrl },
+  { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: examplePerfumeLifestyleUrl },
+  { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: examplePerfumeFittingUrl },
+  { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: examplePerfumeMobileUrl, shape: "portrait" },
+  { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card", src: exampleBottleCatalogUrl, shape: "portrait" },
+  { mode: "Product", product: "Pomegranate bottle", title: "Marble table studio setup", src: exampleBottleProductUrl },
+  { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame", src: exampleBottleCreativeUrl },
+  { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene", src: exampleBottleLifestyleUrl },
+  { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context", src: exampleBottleFittingUrl },
+  { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame", src: exampleBottleMobileUrl, shape: "portrait" },
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -132,6 +159,7 @@ const BRAND_PREFS_KEY = "domstudio_brand_preferences";
 
 const PAGE_TITLES = {
   home:    "DomStudio — AI-студия для продавцов маркетплейсов",
+  examples: "Examples — DomStudio",
   studio:  "Студия — DomStudio",
   pricing: "Тарифы — DomStudio",
   account: "Аккаунт — DomStudio",
@@ -622,6 +650,7 @@ function nav() {
   const navItems = [
     ["home", t("nav.home")],
     ["studio", t("nav.studio")],
+    ["examples", "Examples"],
     ["pricing", t("nav.pricing")],
     ...(logged ? [["history", t("nav.history")]] : []),
   ];
@@ -736,6 +765,42 @@ function homePage() {
           <article class="step"><b>01</b><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></article>
           <article class="step"><b>02</b><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></article>
           <article class="step"><b>03</b><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></article>
+        </div>
+      </section>
+    </main>`;
+}
+
+function examplesPage() {
+  return `
+    <main class="page examples-page">
+      <section class="section examples-hero">
+        <div class="section-head">
+          <h2>Example results</h2>
+          <p>Real DomStudio generations across catalog, product, creative, lifestyle, fitting, and vertical story modes.</p>
+        </div>
+        <div class="examples-strip">
+          <span>12 generated images</span>
+          <span>6 shooting modes</span>
+          <span>Marketplace-ready formats</span>
+        </div>
+      </section>
+      <section class="section examples-section">
+        <div class="examples-grid">
+          ${EXAMPLE_IMAGES.map((item) => `
+            <article class="example-card ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
+              <figure>
+                <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />
+              </figure>
+              <div class="example-card-copy">
+                <span>${escapeHtml(item.mode)}</span>
+                <h3>${escapeHtml(item.title)}</h3>
+                <p>${escapeHtml(item.product)}</p>
+              </div>
+            </article>`).join("")}
+        </div>
+        <div class="examples-cta">
+          <h2>Make one from your product photo</h2>
+          <button class="button gold" data-route="studio">Open Studio</button>
         </div>
       </section>
     </main>`;
@@ -1051,6 +1116,7 @@ function authModal() {
 
 function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
+    : state.route === "examples" ? examplesPage()
     : state.route === "pricing" ? pricingPage()
     : state.route === "account" ? accountPage()
     : state.route === "history" ? historyPage()
@@ -1230,7 +1296,7 @@ function runMotion({ entrance = true } = {}) {
     animateFrom(".nav-dropdown.open .preset-menu", { y: 10, opacity: 0, scale: 0.98, duration: 0.24, ease: "power2.out" });
   }
 
-  q(".button, .mode-card, .price-card, .chip, .history-thumb, .nav-link, .token-pill, .profile-pill").forEach((el) => {
+  q(".button, .mode-card, .example-card, .price-card, .chip, .history-thumb, .nav-link, .token-pill, .profile-pill").forEach((el) => {
     el.addEventListener("mouseenter", () => gsap.to(el, { y: -1, duration: 0.16, ease: "power2.out" }));
     el.addEventListener("mouseleave", () => gsap.to(el, { y: 0, duration: 0.18, ease: "power2.out" }));
   });
