@@ -238,7 +238,10 @@ const state = {
   verificationReturnMode: "register",
   selectedImage: null,
   selectedImageName: null,
+  generationKind: "photo",
   generatedImage: null,
+  generatedVideo: null,
+  videoJob: null,
   generatedMeta: null,
   previousGeneratedImage: null,
   previousGeneratedMeta: null,
@@ -263,6 +266,7 @@ const state = {
 
 const app = document.querySelector("#app");
 let lastMotionKey = "";
+let videoPollTimer = null;
 
 function navigate(route) {
   state.navMenuOpen = false;
@@ -452,6 +456,18 @@ function composeGenerationPayload(values) {
     style_hint: truncate(styleParts.join(", ")),
     image: state.selectedImage,
     upscale_4k: values.upscale_4k === "on" || values.upscale_4k === true,
+  };
+}
+
+function composeVideoPayload(values) {
+  const payload = composeGenerationPayload(values);
+  const duration = Number.parseInt(values.duration_s || state.formDraft.duration_s || "3", 10);
+  return {
+    mode: payload.mode === "catalog" ? "product" : payload.mode,
+    subject: payload.subject,
+    style_hint: payload.style_hint,
+    image: state.selectedImage,
+    duration_s: Number.isFinite(duration) ? Math.min(Math.max(duration, 3), 5) : 3,
   };
 }
 
@@ -821,19 +837,58 @@ function appSidebar(active) {
   </aside>`;
 }
 
+function generationCost() {
+  return state.generationKind === "video" ? 300 : 100;
+}
+
+function videoSourceFromJob(job) {
+  if (!job) return "";
+  if (job.output_url) return job.output_url;
+  if (!job.output_data) return "";
+  const format = String(job.output_format || "mp4").toLowerCase();
+  const mime = format.includes("webm") ? "video/webm" : format.includes("gif") ? "image/gif" : "video/mp4";
+  return `data:${mime};base64,${job.output_data}`;
+}
+
+function videoJobPanel() {
+  if (!state.videoJob) return "";
+  const status = state.videoJob.status || "queued";
+  const label = t(`video.status.${status}`) || status;
+  const error = state.videoJob.error ? `<p class="video-error">${escapeHtml(state.videoJob.error)}</p>` : "";
+  const download = state.generatedVideo
+    ? `<a class="button secondary" href="${state.generatedVideo}" download="domstudio-video.${String(state.videoJob.output_format || "mp4").toLowerCase()}">${t("video.download")}</a>`
+    : "";
+  return `<div class="video-job-card ${status}">
+    <div class="mini-head"><h3>${t("video.jobTitle")}</h3><span>${label}</span></div>
+    <p>${t("video.jobSub", { n: state.videoJob.tokens_used || 300 })}</p>
+    ${error}
+    ${download}
+  </div>`;
+}
+
 function studioPage() {
   if (!state.user) return gatePage();
   const sceneModeNotice = state.formDraft.mode === "catalog" && hasSceneIntent(state.formDraft.subject);
+  const cost = generationCost();
   return `<main class="app-layout">
     ${appSidebar("studio")}
     <section class="workspace">
       <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div><div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div></header>
       <div class="studio-grid">
         <form class="panel" id="generate-form">
+          <div class="media-toggle" role="group" aria-label="${t("studio.outputType")}">
+            <button type="button" class="${state.generationKind === "photo" ? "active" : ""}" data-generation-kind="photo">${t("studio.photoTab")}</button>
+            <button type="button" class="${state.generationKind === "video" ? "active" : ""}" data-generation-kind="video">${t("studio.videoTab")}</button>
+          </div>
           <div class="form-section">
             <div class="field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select></div>
             <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${template.label}</option>`).join("")}</select></div>
             <div class="field"><label for="mode">${t("studio.mode")}</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${t("mode." + mode[0] + ".name")} — ${t("mode." + mode[0] + ".desc")}</option>`).join("")}</select></div>
+            ${state.generationKind === "video" ? `<div class="field"><label for="duration_s">${t("video.duration")}</label><select class="select" id="duration_s" name="duration_s">
+              <option value="3" ${selectedAttr(String(state.formDraft.duration_s || "3"), "3")}>3s</option>
+              <option value="4" ${selectedAttr(String(state.formDraft.duration_s || "3"), "4")}>4s</option>
+              <option value="5" ${selectedAttr(String(state.formDraft.duration_s || "3"), "5")}>5s</option>
+            </select></div>` : ""}
           </div>
           <div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
             <button class="collapsible-head" type="button" data-toggle-brand>
@@ -868,19 +923,22 @@ function studioPage() {
           ${sceneModeNotice ? `<div class="mode-notice">${t("studio.sceneModeNotice")}</div>` : ""}
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
-          <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>
-          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : t("studio.submitGenerating")) : (state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"))}</button>
-          ${state.user.tokens < 100
+          ${state.generationKind === "photo" ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>` : `<p class="video-note">${t("video.note")}</p>`}
+          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating")) : (state.generationKind === "video" ? t("video.submitCta") : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"))}</button>
+          ${state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
-            : `<p class="token-hint">${t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) })}</p>`}
+            : `<p class="token-hint">${state.generationKind === "video" ? t("video.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 300) }) : t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) })}</p>`}
         </form>
         <div class="panel">
-          <div class="result ${state.generating && !state.generatedImage ? "loading" : ""}">
-            ${state.generatedImage
+          <div class="result ${state.generating && !state.generatedImage && !state.generatedVideo ? "loading" : ""} ${state.generationKind === "video" || state.generatedVideo ? "video-result" : ""}">
+            ${state.generatedVideo
+              ? `<video src="${state.generatedVideo}" controls playsinline loop></video>${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("video.submitGenerating"))}</div>` : ""}`
+              : state.generatedImage
               ? `<img src="${state.generatedImage}" alt="AI result" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("studio.generatingNew"))}</div>` : ""}`
               : `<div class="result-empty"><b>${state.generating ? t("studio.resultSetting") : t("studio.resultEmptyB")}</b>${state.generating ? "" : t("studio.resultEmptyP")}</div>`}
           </div>
-          ${state.generatedMeta ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
+          ${state.generatedMeta && !state.generatedVideo ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
+          ${videoJobPanel()}
           ${exportTools()}
           ${contentPackTools()}
           ${comparisonPanel()}
@@ -1154,6 +1212,7 @@ function bind() {
   document.querySelector("#forgot-form")?.addEventListener("submit", submitForgotPassword);
   document.querySelector("#reset-form")?.addEventListener("submit", submitResetPassword);
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
+  document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
   });
@@ -1182,6 +1241,18 @@ function toggleLang() {
   state.lang = next;
   setLang(next);
   render();
+}
+
+function setGenerationKind(kind) {
+  if (!["photo", "video"].includes(kind) || state.generationKind === kind) return;
+  state.generationKind = kind;
+  state.batchTotal = 0;
+  state.batchIndex = 0;
+  state.generatedImage = null;
+  state.generatedVideo = null;
+  state.generatedMeta = null;
+  state.videoJob = null;
+  render({ motion: false });
 }
 
 function togglePresetsMenu() {
@@ -1676,6 +1747,13 @@ async function submitGeneration(event) {
   event.preventDefault();
   syncDraftFromForm(event.currentTarget);
   const values = { ...state.formDraft };
+  if (state.generationKind === "video") {
+    if (state.batchQueue.length > 1) toast(t("video.batchNotice"));
+    const payload = composeVideoPayload(values);
+    state.formDraft.subject = payload.subject;
+    await generateVideoWithPayload(payload);
+    return;
+  }
   if (state.batchQueue.length > 1) {
     await processBatch(values);
     return;
@@ -1688,6 +1766,76 @@ async function submitGeneration(event) {
   await generateWithPayload(payload);
 }
 
+async function generateVideoWithPayload(payload) {
+  clearTimeout(videoPollTimer);
+  state.generating = true;
+  state.generationLabel = t("video.submitGenerating");
+  state.generatedImage = null;
+  state.generatedVideo = null;
+  state.generatedMeta = null;
+  state.videoJob = null;
+  render();
+  try {
+    const job = await api("/generation/video", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    state.videoJob = job;
+    await loadUser();
+    toast(t("video.queued"));
+    render({ motion: false });
+    await pollVideoJob(job.job_id);
+  } catch (error) {
+    state.generating = false;
+    state.generationLabel = "";
+    toast(error.message);
+    render({ motion: false });
+  }
+}
+
+async function pollVideoJob(jobId, attempt = 0) {
+  try {
+    const job = await api(`/generation/jobs/${jobId}`);
+    state.videoJob = job;
+    const source = videoSourceFromJob(job);
+    if (source) {
+      state.generatedVideo = source;
+      state.generatedMeta = { ...job, mode: job.mode };
+    }
+    if (job.status === "done") {
+      state.generating = false;
+      state.generationLabel = "";
+      await loadUser();
+      toast(source ? t("video.done") : t("video.doneNoOutput"));
+      render({ motion: false });
+      return;
+    }
+    if (job.status === "failed") {
+      state.generating = false;
+      state.generationLabel = "";
+      await loadUser();
+      toast(job.error || t("video.failed"));
+      render({ motion: false });
+      return;
+    }
+    if (attempt >= 120) {
+      state.generating = false;
+      state.generationLabel = "";
+      toast(t("video.timeout"));
+      render({ motion: false });
+      return;
+    }
+    state.generationLabel = t(`video.status.${job.status}`) || t("video.submitGenerating");
+    render({ motion: false });
+    videoPollTimer = setTimeout(() => pollVideoJob(jobId, attempt + 1), 3000);
+  } catch (error) {
+    state.generating = false;
+    state.generationLabel = "";
+    toast(error.message);
+    render({ motion: false });
+  }
+}
+
 async function generateWithPayload(payload, options = {}) {
   const previousImage = options.keepCurrentImage ? state.generatedImage : null;
   const previousMeta = options.keepCurrentImage ? state.generatedMeta : null;
@@ -1695,6 +1843,8 @@ async function generateWithPayload(payload, options = {}) {
   state.generationLabel = options.label ? `${t("studio.submitGenerating").replace("…", "")} ${options.label}…` : t("studio.submitGenerating");
   if (!options.keepCurrentImage) {
     state.generatedImage = null;
+    state.generatedVideo = null;
+    state.videoJob = null;
     state.generatedMeta = null;
     state.previousGeneratedImage = null;
     state.previousGeneratedMeta = null;

@@ -27,6 +27,12 @@ async def lifespan(app: FastAPI):
     # Create all tables on startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.exec_driver_sql("""
+            ALTER TABLE generation_jobs
+                ADD COLUMN IF NOT EXISTS output_data TEXT,
+                ADD COLUMN IF NOT EXISTS output_format VARCHAR(30),
+                ADD COLUMN IF NOT EXISTS error TEXT;
+        """)
     log.info("Database tables ready")
     yield
 

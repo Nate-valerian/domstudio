@@ -402,7 +402,8 @@ def render_workflow(
         prompt = compose_img2img_prompt(request.subject, request.style_hint, selected_mode)
     else:
         prompt = compose_prompt(request.subject, request.style_hint)
-    seed = int(request.seed if request.seed >= 0 else time.time_ns() % (2**32))
+    request_seed = int(getattr(request, "seed", -1))
+    seed = int(request_seed if request_seed >= 0 else time.time_ns() % (2**32))
     width, height = generation_dimensions(selected_mode)
     replacements = {
         "{{prompt}}": prompt,
@@ -413,7 +414,8 @@ def render_workflow(
         "{{width}}": width,
         "{{height}}": height,
         "{{image_name}}": image_name,
-        "{{upscale_4k}}": bool(request.upscale_4k),
+        "{{duration_s}}": int(getattr(request, "duration_s", 3)),
+        "{{upscale_4k}}": bool(getattr(request, "upscale_4k", False)),
         "{{mode}}": selected_mode,
     }
     return _replace_placeholders(deepcopy(workflow), replacements)
@@ -537,6 +539,22 @@ class ComfyClient:
             "format": fmt.upper(),
             "prompt_id": prompt_id,
             "filename": image_output.get("filename"),
+        }
+
+    async def run_media_workflow(self, workflow: dict[str, Any], kinds: set[str]) -> dict[str, Any]:
+        prompt_id = await self.queue_prompt(workflow)
+        outputs = await self.wait_for_outputs(prompt_id)
+        media_output = _first_output(outputs, kinds)
+        if not media_output:
+            raise ComfyGenerationError(f"ComfyUI finished without a {'/'.join(sorted(kinds))} output")
+        media, fmt = await self.download_output(media_output)
+        return {
+            "status": "success",
+            "media": media,
+            "format": fmt.upper(),
+            "kind": media_output.get("kind"),
+            "prompt_id": prompt_id,
+            "filename": media_output.get("filename"),
         }
 
 
@@ -667,6 +685,40 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
         result = _composite_on_white(result)
 
     return result
+
+
+async def generate_video_with_comfy(request: Any) -> dict[str, Any]:
+    base_url = await resolve_comfy_url()
+    client = ComfyClient(base_url)
+
+    image_name = ""
+    if getattr(request, "image", None):
+        image_name = await client.upload_image(request.image)
+
+    workflow_file = os.getenv("COMFYUI_VIDEO_WORKFLOW", "product_video.json")
+    logger.info(
+        "[VIDEO] mode=%s has_image=%s workflow=%s duration=%s",
+        getattr(request, "mode", "?"),
+        bool(image_name),
+        workflow_file,
+        getattr(request, "duration_s", 3),
+    )
+
+    workflow = render_workflow(
+        load_workflow(workflow_file),
+        request,
+        image_name=image_name,
+    )
+    result = await client.run_media_workflow(workflow, {"videos", "gifs"})
+    return {
+        "status": "success",
+        "video": result["media"],
+        "format": result["format"],
+        "kind": result.get("kind"),
+        "prompt_id": result.get("prompt_id"),
+        "filename": result.get("filename"),
+        "mode": getattr(request, "mode", None),
+    }
 
 
 def _composite_on_white(result: dict[str, Any]) -> dict[str, Any]:

@@ -73,6 +73,16 @@ MIGRATIONS: list[tuple[str, str, str]] = [
             ALTER COLUMN plan DROP NOT NULL;
         """,
     ),
+    (
+        "004",
+        "Add video media fields to generation_jobs",
+        """
+        ALTER TABLE generation_jobs
+            ADD COLUMN IF NOT EXISTS output_data TEXT,
+            ADD COLUMN IF NOT EXISTS output_format VARCHAR(30),
+            ADD COLUMN IF NOT EXISTS error TEXT;
+        """,
+    ),
 ]
 
 

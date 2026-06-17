@@ -6,7 +6,6 @@ GET  /generation/jobs          — list user's recent jobs
 GET  /generation/jobs/{job_id} — poll a single job by id
 """
 
-import asyncio
 import base64
 import io
 import os
@@ -19,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import AsyncSessionLocal, GenerationJob, JobStatus, Subscription, TokenBalance, User, get_db
 from dependencies import get_current_user
-from services.comfy_client import generate_image_with_comfy
+from services.comfy_client import generate_image_with_comfy, generate_video_with_comfy
 
 
 router = APIRouter()
@@ -45,7 +44,8 @@ class VideoRequest(BaseModel):
     mode:       str  = "lifestyle"
     subject:    str  = Field(min_length=1, max_length=500)
     image:      str | None = None
-    duration_s: int  = Field(default=3, ge=2, le=10)
+    style_hint: str  = Field(default="", max_length=500)
+    duration_s: int  = Field(default=3, ge=3, le=5)
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -149,6 +149,7 @@ async def generate_video(
     db.add(job)
     await db.flush()
     job_id = str(job.id)
+    await db.commit()
 
     background_tasks.add_task(_run_video_job, job_id, req)
 
@@ -170,23 +171,36 @@ async def _run_video_job(job_id: str, req: VideoRequest) -> None:
         await db.commit()
 
     try:
-        # TODO: replace with real ComfyUI image-to-video workflow call
-        # e.g. result = await generate_video_with_comfy(req)
-        await asyncio.sleep(5)   # stub — simulates processing time
-        output_url = None        # will be an S3/CDN URL when workflow is wired
+        if GENERATION_PROVIDER == "comfy":
+            result = await generate_video_with_comfy(req)
+        else:
+            async with httpx.AsyncClient(timeout=900) as client:
+                response = await client.post(
+                    f"{GENERATION_API_URL}/video",
+                    json=req.model_dump(),
+                )
+                response.raise_for_status()
+                result = response.json()
+
+        if result.get("status") != "success":
+            raise RuntimeError(result.get("error") or "Video generation worker failed")
 
         async with AsyncSessionLocal() as db:
             job = await db.get(GenerationJob, job_id)
             if job:
-                job.status     = JobStatus.done
-                job.output_url = output_url
+                job.status = JobStatus.done
+                job.output_url = result.get("output_url")
+                job.output_data = result.get("video") or result.get("media")
+                job.output_format = result.get("format") or result.get("output_format")
+                job.error = None
                 await db.commit()
 
-    except Exception:
+    except Exception as exc:
         async with AsyncSessionLocal() as db:
             job = await db.get(GenerationJob, job_id)
             if job:
                 job.status = JobStatus.failed
+                job.error = str(exc)
                 await db.commit()
 
         # Refund tokens on failure
@@ -217,6 +231,9 @@ async def list_jobs(
             "mode":        j.mode,
             "subject":     j.subject,
             "output_url":  j.output_url,
+            "output_format": j.output_format,
+            "has_output":  bool(j.output_url or j.output_data),
+            "error":       j.error,
             "tokens_used": j.tokens_used,
             "created_at":  j.created_at,
         }
@@ -239,6 +256,9 @@ async def get_job(
         "mode":        job.mode,
         "subject":     job.subject,
         "output_url":  job.output_url,
+        "output_data": job.output_data,
+        "output_format": job.output_format,
+        "error":       job.error,
         "tokens_used": job.tokens_used,
         "created_at":  job.created_at,
     }
