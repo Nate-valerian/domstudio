@@ -34,6 +34,7 @@ Thumbs.db
 # Local experiment artifacts
 design-preview*.html
 six-mode-comparison/
+new-autodl-smoke/
 cloudflared-*
 Usersnate-AppDataLocalTempcomfy_nodes.json
 run_remote.py

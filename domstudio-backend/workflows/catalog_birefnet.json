@@ -1,7 +1,7 @@
 {
   "1": {
     "class_type": "AutoDownloadBiRefNetModel",
-    "inputs": { "model_name": "General-HR", "device": "AUTO" }
+    "inputs": { "model_name": "General", "device": "AUTO" }
   },
   "2": {
     "class_type": "LoadImage",

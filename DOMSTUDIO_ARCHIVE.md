@@ -1281,3 +1281,128 @@ Remaining quality note:
   lower third or side areas instead of being dropped for empty safe space.
 - Next visual check should regenerate mobile once more after deploy and inspect
   whether candles/marble survive in the vertical frame.
+
+## June 17, 2026 - New AutoDL GPU Instance + Cloudflare Tunnel Rebuilt
+
+User changed the AutoDL GPU instance and provided new SSH access.
+
+New instance:
+
+- Host: `connect.westc.seetacloud.com`
+- SSH port: `38677`
+- Container hostname: `autodl-container-7ed8449195-caf9a9eb`
+- GPU: NVIDIA GeForce RTX 4080 SUPER, 32760 MiB VRAM
+- ComfyUI path: `/root/autodl-tmp/ComfyUI`
+- ComfyUI runs on port `6006`
+- Prepared Python environment: `/root/miniconda3/bin/python`
+
+Checks/fixes:
+
+- Confirmed Miniconda environment has the needed libraries:
+  torch, torchvision, torchaudio, nunchaku, diffusers, transformers,
+  safetensors, Pillow, OpenCV, numpy.
+- Found Nunchaku custom node present but disabled. Re-enabled it by copying:
+
+```text
+/root/autodl-tmp/ComfyUI/custom_nodes/.disabled/ComfyUI-nunchaku@1_0_0
+```
+
+to:
+
+```text
+/root/autodl-tmp/ComfyUI/custom_nodes/ComfyUI-nunchaku
+```
+
+- Confirmed Comfy `/object_info` sees:
+  - `NunchakuQwenImageDiTLoader`
+  - `CLIPLoader`
+  - `VAELoader`
+  - `TextEncodeQwenImageEdit`
+  - `AutoDownloadBiRefNetModel`
+- Confirmed required Qwen files are visible:
+  - `svdq-int4_r128-qwen-image-edit-2509-lightning-4steps-251115.safetensors`
+  - `qwen_2.5_vl_7b_fp8_scaled.safetensors`
+  - `qwen_image_vae.safetensors`
+- Moved unrelated `z_image_turbo_bf16.safetensors` off
+  `/root/autodl-tmp` to free the data disk.
+
+Cloudflare:
+
+- Local `cloudflared-linux-amd64` binary was uploaded to the instance.
+- Because the first upload left `/usr/local/bin/cloudflared` temporarily busy,
+  a fresh copy was used at:
+
+```text
+/usr/local/bin/cloudflared-domstudio
+```
+
+- New public tunnel:
+
+```text
+https://jpeg-acts-development-jefferson.trycloudflare.com
+```
+
+Verification:
+
+- Public tunnel `/system_stats` returned 200 and reported ComfyUI 0.3.75,
+  Python 3.12.3, PyTorch 2.5.1+cu124, RTX 4080 SUPER.
+- Real DomStudio smoke outputs were generated locally in
+  `new-autodl-smoke/`:
+  - `catalog.png`
+  - `product.png`
+- Product/Qwen smoke result preserved the product and showed marble/candles.
+
+Catalog issue found and fixed:
+
+- First catalog smoke failed because AutoDL had a broken partial
+  `General-HR.safetensors` BiRefNet file (~61MB).
+- The instance already had a complete `General.safetensors`.
+- Patched `domstudio-backend/workflows/catalog_birefnet.json` to use
+  `General` instead of `General-HR` so catalog mode does not depend on the
+  corrupted HR auto-download.
+
+Production action needed:
+
+- Amvera backend variable `COMFYUI_URL` must be set to:
+
+```text
+https://jpeg-acts-development-jefferson.trycloudflare.com
+```
+
+- Then restart/redeploy Amvera so the backend uses the new tunnel.
+
+## June 18, 2026 - Same AutoDL Instance Cloudflare Restored
+
+User kept the same AutoDL instance:
+
+```text
+ssh -p 38677 root@connect.westc.seetacloud.com
+autodl-container-7ed8449195-caf9a9eb
+```
+
+Status verified:
+
+- ComfyUI is still running on port `6006`.
+- Public Cloudflare tunnel is running via `/usr/local/bin/cloudflared-domstudio`.
+- Public tunnel URL:
+
+```text
+https://jpeg-acts-development-jefferson.trycloudflare.com
+```
+
+Verification:
+
+- Public `/system_stats` returned HTTP 200 and showed RTX 4080 SUPER.
+- Public `/object_info` confirmed:
+  - `qwen_2.5_vl_7b_fp8_scaled.safetensors`
+  - `qwen_image_vae.safetensors`
+  - `svdq-int4_r128-qwen-image-edit-2509-lightning-4steps-251115.safetensors`
+
+Local helper script `generate_card_images.py` now points at:
+
+```text
+COMFYUI_URL=https://jpeg-acts-development-jefferson.trycloudflare.com
+```
+
+Next step: set the same URL as `COMFYUI_URL` in Amvera and test one real
+generation through the live backend/frontend.

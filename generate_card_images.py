@@ -10,7 +10,7 @@ import time
 import uuid
 from pathlib import Path
 
-COMFY  = "https://airports-contributed-fields-jet.trycloudflare.com"
+COMFY  = "https://jpeg-acts-development-jefferson.trycloudflare.com"
 ASSETS = Path("domstudio-frontend/src/assets")
 
 MODES = [
