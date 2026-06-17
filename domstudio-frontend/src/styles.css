@@ -185,7 +185,7 @@ h1 em { color: var(--gold); font-style: normal; }
   background: var(--card); box-shadow: 0 18px 55px rgba(32,25,14,.08);
 }
 .mode-visual { position: relative; margin: 0 0 18px; overflow: hidden; background: #f4f0e8; }
-.mode-visual img { display: block; width: 100%; object-fit: cover; }
+.mode-visual img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .proof-compare { aspect-ratio: 16 / 10.5; }
 .proof-after { height: 100%; }
 .proof-before {
@@ -193,7 +193,7 @@ h1 em { color: var(--gold); font-style: normal; }
   border: 2px solid rgba(255,253,248,.9); border-radius: 14px; background: #f4f0e8;
   box-shadow: 0 18px 44px rgba(17,17,15,.25);
 }
-.proof-before img { aspect-ratio: 4 / 3; }
+.proof-before img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
 .proof-before span, .proof-after-label {
   position: absolute; padding: 5px 8px; border-radius: 999px; font-size: 11px; font-weight: 900; backdrop-filter: blur(8px);
 }
@@ -281,7 +281,7 @@ h1 em { color: var(--gold); font-style: normal; }
   border-radius: 18px;
   background: #e9e3d7;
 }
-.result img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; }
+.result img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: cover; object-position: center; }
 .mode-notice {
   margin: -4px 0 18px;
   padding: 12px 14px;
