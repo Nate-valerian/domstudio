@@ -110,6 +110,7 @@ const T = {
     "studio.resultEmptyB": "Здесь появится результат",
     "studio.resultEmptyP": "Заполните описание, выберите режим и запустите генерацию.",
     "studio.generatingNew": "Создаём новый кадр…",
+    "studio.sceneModeNotice": "В описании есть сцена или реквизит. Запрос пойдёт в режим «Предметная», потому что «Каталог» делает только чистую вырезку товара.",
     // export / tools
     "export.h3": "Экспорт",
     "export.sub": "обработка в браузере",
@@ -243,6 +244,7 @@ const T = {
     "toast.paymentFailed": "Не удалось провести оплату — попробуйте снова",
     "toast.imageCopied": "Изображение скопировано в буфер обмена",
     "toast.fileTooBig": "Файл {name} больше 10 МБ",
+    "toast.sceneModeSwitched": "Вижу сцену в описании — запускаю «Предметную», а не каталожную вырезку.",
     // plan labels / descriptions
     "plan.free": "Free",
     "plan.basic": "Старт",
@@ -385,6 +387,7 @@ const T = {
     "studio.resultEmptyB": "Your result will appear here",
     "studio.resultEmptyP": "Fill in a description, choose a mode, and start generation.",
     "studio.generatingNew": "Generating new frame…",
+    "studio.sceneModeNotice": "Scene props detected. This will use Product mode, because Catalog only makes clean product cutouts.",
     // export / tools
     "export.h3": "Export",
     "export.sub": "processed in browser",
@@ -518,6 +521,7 @@ const T = {
     "toast.paymentFailed": "Payment failed — please try again",
     "toast.imageCopied": "Image copied to clipboard",
     "toast.fileTooBig": "File {name} exceeds 10 MB",
+    "toast.sceneModeSwitched": "Scene prompt detected: using Product mode instead of Catalog cutout.",
     // plan labels / descriptions
     "plan.free": "Free",
     "plan.basic": "Starter",

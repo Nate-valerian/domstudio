@@ -165,6 +165,8 @@ def compose_prompt(subject: str, style_hint: str = "") -> str:
 
 
 _SCENE_TYPO_REPLACEMENTS = {
+    r"\bmabel\b": "marble",
+    r"\bmable\b": "marble",
     r"\bmarbel\b": "marble",
     r"\bmarbels\b": "marbles",
     r"\btabel\b": "table",
@@ -206,6 +208,8 @@ MODE_DIMENSIONS = {
 
 def normalize_scene_text(text: str) -> str:
     scene = str(text or "").strip()
+    if scene.isupper():
+        scene = scene.lower()
     for pattern, replacement in _SCENE_TYPO_REPLACEMENTS.items():
         scene = re.sub(pattern, replacement, scene, flags=re.IGNORECASE)
     scene = re.sub(r"\s+", " ", scene)
@@ -230,8 +234,10 @@ def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None 
     if style:
         instruction += f" Use this style direction only where it supports the scene: {style}."
     instruction += (
-        " Include all requested scene props clearly when they are mentioned, such as candles, marble, table surfaces, flowers, or lights. "
-        "Do not leave a plain white or empty studio background when props or a scene are requested. "
+        " Replace the original background completely with the requested scene. "
+        "Include all requested scene props clearly when they are mentioned, such as candles, marble, table surfaces, flowers, or lights. "
+        "If candles are requested, show visible lit candles in the scene. If marble table is requested, show a clearly visible marble tabletop surface. "
+        "Do not leave a plain white, empty, or catalog-cutout background when props or a scene are requested. "
         "Keep the product, bottle shape, cap, color, and label exactly as they appear."
     )
     return instruction
@@ -276,8 +282,9 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str |
                                 "Rules:\n"
                                 "- First word of output MUST be 'Change'\n"
                                 "- Last sentence MUST be 'Keep the product exactly as it appears.'\n"
-                                "- Correct obvious spelling mistakes in scene props, for example marbel->marble, tabel->table, candels->candles.\n"
+                                "- Correct obvious spelling mistakes in scene props, for example mabel/marbel->marble, tabel->table, candels->candles.\n"
                                 "- If the user mentions concrete props such as candles, flowers, marble, table, lights, boxes, fabric, include those props visibly.\n"
+                                "- If the user asks for a scene, do not create a plain white catalog cutout background.\n"
                                 "- Follow the mode objective when one is provided, but never sacrifice product accuracy.\n"
                                 "- Ignore marketplace, export-size, crop, platform, and social-channel instructions unless they describe visual style.\n"
                                 "- 1-2 sentences only. No extra commentary. No lists.\n"

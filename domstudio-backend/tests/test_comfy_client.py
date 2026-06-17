@@ -94,7 +94,7 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_img2img_fallback_corrects_scene_typos_and_keeps_props(self):
         prompt = comfy_client.compose_img2img_prompt(
-            "on marbel tabel with candels.",
+            "ON THE MABEL TABEL WITH CANDELS.",
             "Warm light, premium minimalism",
             "product",
         )
@@ -102,8 +102,11 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("marble table with candles", prompt)
         self.assertIn("Product photography objective", prompt)
         self.assertIn("Warm light", prompt)
+        self.assertIn("Replace the original background completely", prompt)
         self.assertIn("Include all requested scene props clearly", prompt)
-        self.assertIn("Do not leave a plain white or empty studio background", prompt)
+        self.assertIn("visible lit candles", prompt)
+        self.assertIn("clearly visible marble tabletop", prompt)
+        self.assertIn("Do not leave a plain white, empty, or catalog-cutout background", prompt)
         self.assertIn("Keep the product, bottle shape, cap, color, and label exactly as they appear", prompt)
 
     async def test_non_catalog_modes_have_distinct_prompt_objectives(self):
@@ -122,12 +125,12 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_prompt_expander_user_text_keeps_scene_and_style_context(self):
         text = comfy_client.prompt_expander_user_text(
-            "on marbel tabel with candels.",
+            "ON THE MABEL TABEL WITH CANDELS.",
             "Warm light, premium minimalism, Website banner crop",
             "mobile",
         )
 
-        self.assertIn("Scene request: on marble table with candles", text)
+        self.assertIn("Scene request: on the marble table with candles", text)
         self.assertIn("Mode objective: Stories objective", text)
         self.assertIn("Style context: Warm light, premium minimalism", text)
 

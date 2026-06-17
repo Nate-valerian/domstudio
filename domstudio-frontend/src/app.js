@@ -374,14 +374,28 @@ function currentStyleTemplate() {
   return STYLE_TEMPLATES.find((template) => template.id === state.formDraft.style_template) || STYLE_TEMPLATES[0];
 }
 
+const SCENE_INTENT_PATTERN = /\b(marble|marbel|mabel|mable|table|tabel|candle|candles|candel|candels|flower|flowers|fabric|wood|stone|kitchen|bathroom|room|desk|shelf|surface|background|boutique|restaurant|studio set|window light|warm light)\b/i;
+
+function hasSceneIntent(value) {
+  return SCENE_INTENT_PATTERN.test(String(value || ""));
+}
+
+function resolvedGenerationMode(values) {
+  const requestedMode = values.mode || currentMarketplace().mode;
+  if (requestedMode === "catalog" && hasSceneIntent(values.subject)) return "product";
+  return requestedMode;
+}
+
 function composeGenerationPayload(values) {
   const marketplace = MARKETPLACE_PRESETS.find((preset) => preset.id === values.marketplace) || currentMarketplace();
   const styleTemplate = STYLE_TEMPLATES.find((template) => template.id === values.style_template) || currentStyleTemplate();
   const prefs = state.brandPrefs;
   const userStyle = values.style_hint || "";
   const brandColors = values.brand_colors || prefs.brand_colors;
+  const mode = resolvedGenerationMode(values);
   const styleParts = [
     userStyle,
+    mode !== values.mode ? "scene request detected: use product photography scene mode, not catalog cutout mode" : "",
     ...[
       marketplace.hint,
       styleTemplate.hint,
@@ -394,7 +408,7 @@ function composeGenerationPayload(values) {
   ].filter(Boolean);
 
   return {
-    mode: values.mode || marketplace.mode,
+    mode,
     subject: truncate(values.subject || values.product_type || "product"),
     style_hint: truncate(styleParts.join(", ")),
     image: state.selectedImage,
@@ -733,6 +747,7 @@ function appSidebar(active) {
 
 function studioPage() {
   if (!state.user) return gatePage();
+  const sceneModeNotice = state.formDraft.mode === "catalog" && hasSceneIntent(state.formDraft.subject);
   return `<main class="app-layout">
     ${appSidebar("studio")}
     <section class="workspace">
@@ -774,6 +789,7 @@ function studioPage() {
             </div>` : ""}
           </div>
           <div class="field"><label for="subject">${t("studio.subjectLabel")}</label><textarea class="textarea" id="subject" name="subject" required placeholder="${t("studio.subjectPlaceholder")}">${draftValue("subject")}</textarea></div>
+          ${sceneModeNotice ? `<div class="mode-notice">${t("studio.sceneModeNotice")}</div>` : ""}
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
           <label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>
@@ -1588,6 +1604,9 @@ async function submitGeneration(event) {
     return;
   }
   const payload = composeGenerationPayload(values);
+  if ((values.mode || currentMarketplace().mode) === "catalog" && payload.mode === "product") {
+    toast(t("toast.sceneModeSwitched"));
+  }
   state.formDraft.subject = payload.subject;
   await generateWithPayload(payload);
 }
