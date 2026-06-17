@@ -14,6 +14,7 @@ const T = {
     // nav
     "nav.home": "Главная",
     "nav.studio": "Студия",
+    "nav.examples": "Примеры",
     "nav.pricing": "Тарифы",
     "nav.history": "История",
     "nav.presets": "Пресеты",
@@ -57,6 +58,14 @@ const T = {
     "home.step2p": "Выберите формат съёмки, стиль и нужное разрешение.",
     "home.step3h": "Скачайте",
     "home.step3p": "Получите готовый кадр и используйте его в продажах.",
+    // examples
+    "examples.h1": "Примеры результатов",
+    "examples.p": "Реальные генерации DomStudio в режимах каталога, предметной съемки, креатива, lifestyle, примерки и сторис.",
+    "examples.badge1": "12 сгенерированных изображений",
+    "examples.badge2": "6 режимов съемки",
+    "examples.badge3": "Форматы для маркетплейсов",
+    "examples.ctaH": "Сделайте такой кадр из своего фото товара",
+    "examples.cta": "Открыть студию",
     // gate
     "gate.eyebrow": "Личный кабинет",
     "gate.h1": "Сначала создадим аккаунт",
@@ -257,6 +266,7 @@ const T = {
     "planDesc.default": "Готовый контент для продаж",
     // page titles
     "title.home": "DomStudio — AI-студия для продавцов маркетплейсов",
+    "title.examples": "Примеры — DomStudio",
     "title.studio": "Студия — DomStudio",
     "title.pricing": "Тарифы — DomStudio",
     "title.account": "Аккаунт — DomStudio",
@@ -291,6 +301,7 @@ const T = {
     // nav
     "nav.home": "Home",
     "nav.studio": "Studio",
+    "nav.examples": "Examples",
     "nav.pricing": "Pricing",
     "nav.history": "History",
     "nav.presets": "Presets",
@@ -334,6 +345,14 @@ const T = {
     "home.step2p": "Choose the shooting format, style, and output resolution.",
     "home.step3h": "Download",
     "home.step3p": "Get your ready image and put it to work in your listings.",
+    // examples
+    "examples.h1": "Example results",
+    "examples.p": "Real DomStudio generations across catalog, product, creative, lifestyle, fitting, and vertical story modes.",
+    "examples.badge1": "12 generated images",
+    "examples.badge2": "6 shooting modes",
+    "examples.badge3": "Marketplace-ready formats",
+    "examples.ctaH": "Make one from your product photo",
+    "examples.cta": "Open Studio",
     // gate
     "gate.eyebrow": "Dashboard",
     "gate.h1": "Create an account first",
@@ -534,6 +553,7 @@ const T = {
     "planDesc.default": "Ready content for sales",
     // page titles
     "title.home": "DomStudio — AI studio for marketplace sellers",
+    "title.examples": "Examples — DomStudio",
     "title.studio": "Studio — DomStudio",
     "title.pricing": "Pricing — DomStudio",
     "title.account": "Account — DomStudio",

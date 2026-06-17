@@ -39,7 +39,7 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
-  { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: examplePerfumeCatalogUrl, shape: "wide" },
+  { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: examplePerfumeCatalogUrl },
   { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl },
   { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: examplePerfumeCreativeUrl },
   { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: examplePerfumeLifestyleUrl },
@@ -650,7 +650,7 @@ function nav() {
   const navItems = [
     ["home", t("nav.home")],
     ["studio", t("nav.studio")],
-    ["examples", "Examples"],
+    ["examples", t("nav.examples")],
     ["pricing", t("nav.pricing")],
     ...(logged ? [["history", t("nav.history")]] : []),
   ];
@@ -673,7 +673,7 @@ function nav() {
       </div>
       <div class="nav-actions">
         ${logged
-          ? `<button class="token-pill" data-route="account"><span>${state.user.tokens}</span> ${t("nav.tokens", { n: "" }).trim()}</button>
+          ? `<button class="token-pill" data-route="account" title="${state.user.tokens} ${t("nav.tokens", { n: "" }).trim()}"><span>${state.user.tokens}</span></button>
              <button class="profile-pill" data-route="account" title="${t("account.eyebrow")}"><span>${escapeHtml(initials)}</span></button>
              <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`
           : `<button class="button secondary" data-auth="login">${t("nav.login")}</button>
@@ -775,13 +775,13 @@ function examplesPage() {
     <main class="page examples-page">
       <section class="section examples-hero">
         <div class="section-head">
-          <h2>Example results</h2>
-          <p>Real DomStudio generations across catalog, product, creative, lifestyle, fitting, and vertical story modes.</p>
+          <h2>${t("examples.h1")}</h2>
+          <p>${t("examples.p")}</p>
         </div>
         <div class="examples-strip">
-          <span>12 generated images</span>
-          <span>6 shooting modes</span>
-          <span>Marketplace-ready formats</span>
+          <span>${t("examples.badge1")}</span>
+          <span>${t("examples.badge2")}</span>
+          <span>${t("examples.badge3")}</span>
         </div>
       </section>
       <section class="section examples-section">
@@ -799,8 +799,8 @@ function examplesPage() {
             </article>`).join("")}
         </div>
         <div class="examples-cta">
-          <h2>Make one from your product photo</h2>
-          <button class="button gold" data-route="studio">Open Studio</button>
+          <h2>${t("examples.ctaH")}</h2>
+          <button class="button gold" data-route="studio">${t("examples.cta")}</button>
         </div>
       </section>
     </main>`;
