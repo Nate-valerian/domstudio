@@ -418,11 +418,12 @@ h1 em { color: var(--gold); font-style: normal; }
 .token-hint .text-button { font-size: 12px; }
 .history-grid { display: grid; gap: 10px; }
 .history-item { display: grid; grid-template-columns: 58px 1fr 32px; align-items: center; gap: 10px; }
+.history-item > div { min-width: 0; overflow: hidden; }
 .history-thumb { width: 58px; height: 58px; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: white; cursor: pointer; }
 .history-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .history-item b, .history-item span { display: block; }
 .history-item b { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
-.history-item span { color: var(--muted); font-size: 12px; }
+.history-item span { overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .history-delete { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 50%; background: transparent; cursor: pointer; }
 
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }

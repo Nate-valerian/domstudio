@@ -45,7 +45,7 @@ class VideoRequest(BaseModel):
     subject:    str  = Field(min_length=1, max_length=500)
     image:      str | None = None
     style_hint: str  = Field(default="", max_length=500)
-    duration_s: int  = Field(default=3, ge=3, le=5)
+    duration_s: int  = Field(default=3, ge=3, le=12)
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -135,6 +135,9 @@ async def generate_video(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if not req.image:
+        raise HTTPException(400, "Product photo is required for video generation")
+
     balance = await change_balance(db, current_user.id, -VIDEO_TOKEN_COST, require_balance=True)
     if balance is None:
         raise HTTPException(402, "Insufficient tokens")

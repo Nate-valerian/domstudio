@@ -285,6 +285,10 @@ def generation_dimensions(mode: str | None) -> tuple[int, int]:
     return MODE_DIMENSIONS.get(str(mode or "").strip().lower(), (1024, 1024))
 
 
+def video_aspect_ratio(mode: str | None) -> str:
+    return "9:16" if str(mode or "").strip().lower() == "mobile" else "1:1"
+
+
 def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject) or "a clean product photography scene"
     style = sanitize_style_hint_for_image_edit(style_hint)
@@ -415,6 +419,8 @@ def render_workflow(
         "{{height}}": height,
         "{{image_name}}": image_name,
         "{{duration_s}}": int(getattr(request, "duration_s", 3)),
+        "{{video_resolution}}": os.getenv("COMFYUI_VIDEO_RESOLUTION", "720p"),
+        "{{video_aspect_ratio}}": video_aspect_ratio(selected_mode),
         "{{upscale_4k}}": bool(getattr(request, "upscale_4k", False)),
         "{{mode}}": selected_mode,
     }

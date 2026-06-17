@@ -1406,3 +1406,155 @@ COMFYUI_URL=https://jpeg-acts-development-jefferson.trycloudflare.com
 
 Next step: set the same URL as `COMFYUI_URL` in Amvera and test one real
 generation through the live backend/frontend.
+
+## June 18, 2026 - WIP Video Generation + UI Fix Handoff
+
+Current git state at pause:
+
+- Last pushed commit before this WIP: `6fc80c0 Add video generation workflow support`.
+- The following WIP files are modified locally and not yet committed:
+  - `domstudio-backend/.env.example`
+  - `domstudio-backend/routers/generation.py`
+  - `domstudio-backend/services/comfy_client.py`
+  - `domstudio-frontend/src/app.js`
+  - `domstudio-frontend/src/i18n.js`
+  - `domstudio-frontend/src/styles.css`
+  - new file: `domstudio-backend/workflows/product_video.json`
+
+UI fix completed:
+
+- Fixed recent-results overflow in the Studio panel.
+- Cause: `.history-item b` had ellipsis, but the grid child did not have
+  `min-width: 0`, so long prompts forced the whole card wider.
+- Added:
+
+```css
+.history-item > div { min-width: 0; overflow: hidden; }
+.history-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+```
+
+Video duration decision:
+
+- User changed v1 duration range from `3-5 sec` to `3-12 sec`.
+- Backend `VideoRequest.duration_s` is now:
+
+```python
+duration_s: int = Field(default=3, ge=3, le=12)
+```
+
+- Frontend now generates duration options from `3` through `12`:
+
+```js
+const VIDEO_DURATIONS = Array.from({ length: 10 }, (_, index) => index + 3);
+```
+
+- Frontend clamps manual values to `3-12`.
+- RU/EN UI note now says video is a `3-12 second` job.
+
+Video workflow work:
+
+- Inspected available ComfyUI video nodes from `/object_info`.
+- Native/local video model path is not usable yet:
+  - no SVD checkpoint installed
+  - no Wan diffusion model/VAE installed for local Wan video
+- Installed API video nodes include several providers.
+- ByteDance image-to-video node is the best match for the user’s `3-12 sec`
+  requirement because it supports:
+  - `duration` integer min `3`, max `12`
+  - `resolution`: `480p`, `720p`, `1080p`
+  - `aspect_ratio`: `adaptive`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`
+
+Added WIP workflow:
+
+```text
+domstudio-backend/workflows/product_video.json
+```
+
+It uses:
+
+- `LoadImage`
+- `ByteDanceImageToVideoNode`
+- `SaveVideo`
+
+Current workflow settings:
+
+- model: `seedance-1-0-lite-i2v-250428`
+- resolution placeholder: `{{video_resolution}}`
+- aspect ratio placeholder: `{{video_aspect_ratio}}`
+- duration placeholder: `{{duration_s}}`
+- output: `mp4`, `h264`
+- watermark: `false`
+
+Backend Comfy helper changes:
+
+- Added `{{video_resolution}}`, defaulting to env:
+
+```text
+COMFYUI_VIDEO_RESOLUTION=720p
+```
+
+- Added `video_aspect_ratio(mode)`:
+  - `mobile` -> `9:16`
+  - all other modes -> `1:1`
+
+- `.env.example` now includes:
+
+```text
+COMFYUI_VIDEO_WORKFLOW=product_video.json
+COMFYUI_VIDEO_RESOLUTION=720p
+```
+
+Backend route change:
+
+- `/generation/video` now requires an uploaded product photo:
+
+```python
+if not req.image:
+    raise HTTPException(400, "Product photo is required for video generation")
+```
+
+Reason: the selected workflow is image-to-video; allowing no image would fail
+later and feel broken.
+
+Validation already run:
+
+- Frontend build passed:
+
+```text
+npm run build
+```
+
+- Backend compile passed:
+
+```text
+.\venv\Scripts\python.exe -m py_compile main.py routers/generation.py services/comfy_client.py database.py migrate.py
+```
+
+- Static workflow input check passed against the node schema captured from
+  ComfyUI earlier.
+- Local render test for `product_video.json` passed:
+  - image placeholder became `upload_test.jpg`
+  - duration rendered as integer `12`
+  - resolution rendered as `720p`
+  - mobile aspect ratio rendered as `9:16`
+  - output format rendered as `mp4 h264`
+
+Known blocker / next check:
+
+- The Comfy URL that worked earlier stopped resolving during the final live
+  schema validation attempt (`getaddrinfo failed`).
+- Tomorrow first step: confirm the Cloudflare/Comfy URL is alive, then run one
+  actual video generation through Comfy using `product_video.json`.
+
+Tomorrow plan:
+
+1. Restore/check Comfy Cloudflare tunnel and `/object_info`.
+2. Run one direct backend/Comfy smoke test for `/generation/video`.
+3. If ByteDance node requires provider credentials, capture the exact error and
+   decide whether to configure that provider or switch to another installed API
+   node.
+4. Confirm output MP4 downloads through `/generation/jobs/{job_id}`.
+5. Commit and push the WIP changes only after one real video smoke succeeds or
+   after we intentionally decide to ship the UI with a provider-config warning.
+6. After video works, decide together which video examples to show on the
+   Examples page.

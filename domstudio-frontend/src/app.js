@@ -193,6 +193,8 @@ const TOKEN_PACKS = [
   { pack_id: "pack_5000", tokens: 5000, price_rub: 699, label: "5 000 токенов" },
 ];
 
+const VIDEO_DURATIONS = Array.from({ length: 10 }, (_, index) => index + 3);
+
 const DEFAULT_BRAND_PREFS = {
   brand_colors: "",
   preferred_background: "",
@@ -467,7 +469,7 @@ function composeVideoPayload(values) {
     subject: payload.subject,
     style_hint: payload.style_hint,
     image: state.selectedImage,
-    duration_s: Number.isFinite(duration) ? Math.min(Math.max(duration, 3), 5) : 3,
+    duration_s: Number.isFinite(duration) ? Math.min(Math.max(duration, 3), 12) : 3,
   };
 }
 
@@ -885,9 +887,7 @@ function studioPage() {
             <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${template.label}</option>`).join("")}</select></div>
             <div class="field"><label for="mode">${t("studio.mode")}</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${t("mode." + mode[0] + ".name")} — ${t("mode." + mode[0] + ".desc")}</option>`).join("")}</select></div>
             ${state.generationKind === "video" ? `<div class="field"><label for="duration_s">${t("video.duration")}</label><select class="select" id="duration_s" name="duration_s">
-              <option value="3" ${selectedAttr(String(state.formDraft.duration_s || "3"), "3")}>3s</option>
-              <option value="4" ${selectedAttr(String(state.formDraft.duration_s || "3"), "4")}>4s</option>
-              <option value="5" ${selectedAttr(String(state.formDraft.duration_s || "3"), "5")}>5s</option>
+              ${VIDEO_DURATIONS.map((seconds) => `<option value="${seconds}" ${selectedAttr(String(state.formDraft.duration_s || "3"), String(seconds))}>${seconds}s</option>`).join("")}
             </select></div>` : ""}
           </div>
           <div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
