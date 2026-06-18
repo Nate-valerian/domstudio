@@ -1880,3 +1880,40 @@ Next step:
 Deploy/push the backend patch to Amvera, then rerun
 `POST /generation/video`. Expected result after deploy: job should finish with
 `output_data` populated as a base64 MP4 and `output_format=MP4`.
+
+## June 18, 2026 - Live Amvera Video Generation Passed
+
+After Amvera picked up commit:
+
+```text
+1d92d07 Enable Comfy partner video auth
+```
+
+Ran a fresh live video job against:
+
+```text
+https://domstudio1-nate.amvera.io/generation/video
+```
+
+Result:
+
+```text
+job_id=adaaf0c7-fbff-40e6-a95a-29ea6d7b2e4e
+status=queued -> processing -> done
+output_format=MP4
+output_data_len=2970236
+```
+
+Downloaded decoded MP4 locally:
+
+```text
+live-smoke/video-live-amvera-final.mp4
+size=2,227,677 bytes
+```
+
+Conclusion:
+
+- Live Amvera backend can now run ByteDance/Comfy Partner video generation.
+- The Comfy account API key is being passed correctly.
+- The backend MP4 extractor fix works.
+- `/generation/jobs/{job_id}` returns `output_data` and `output_format=MP4`.
