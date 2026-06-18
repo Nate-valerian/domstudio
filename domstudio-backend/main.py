@@ -18,6 +18,7 @@ import os
 
 from database import engine, Base
 from routers import auth, generation, users, payments, subscriptions, tokens
+from runtime_info import runtime_version_payload
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("domstudio")
@@ -72,3 +73,8 @@ def health():
         "v": 8,
         "prompt_version": "preserve-label-image-edit-2026-06-17",
     }
+
+
+@app.get("/version")
+def version():
+    return runtime_version_payload()

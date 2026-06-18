@@ -1917,3 +1917,53 @@ Conclusion:
 - The Comfy account API key is being passed correctly.
 - The backend MP4 extractor fix works.
 - `/generation/jobs/{job_id}` returns `output_data` and `output_format=MP4`.
+
+## June 18, 2026 - Amvera Observability Endpoint Added
+
+Problem:
+
+Amvera's Web IDE shell is not the same as the running app container, so runtime
+checks from the IDE can be misleading. Earlier this caused confusion around
+missing Python packages and whether the deployed code had actually restarted.
+
+Fix:
+
+Added public, secret-safe endpoint:
+
+```text
+GET /version
+```
+
+It returns:
+
+- short git commit and branch when discoverable
+- Python version and current working directory
+- `GENERATION_PROVIDER`
+- `GENERATION_API_URL` host only
+- `COMFYUI_URL` host only
+- Comfy port, video resolution, poll timeout
+- booleans for whether sensitive keys are present:
+  - `COMFYUI_API_KEY`
+  - `COMFYUI_ACCOUNT_API_KEY`
+  - `DATABASE_URL`
+  - `DEEPSEEK_API_KEY`
+  - `RESEND_API_KEY`
+  - `SMS_API_KEY`
+- configured image/video workflow filenames and whether the files exist
+
+No secrets or full database URLs are returned.
+
+Validation:
+
+```text
+python -m unittest tests.test_runtime_info tests.test_comfy_client tests.test_generation tests.test_config tests.test_tokens tests.test_payments
+35 tests OK
+```
+
+After deploy, use:
+
+```text
+https://domstudio1-nate.amvera.io/version
+```
+
+to verify whether Amvera is running the expected commit and env configuration.
