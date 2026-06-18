@@ -1558,3 +1558,325 @@ Tomorrow plan:
    after we intentionally decide to ship the UI with a provider-config warning.
 6. After video works, decide together which video examples to show on the
    Examples page.
+
+## June 18, 2026 - New AutoDL Instance + Cloudflare URL Updated
+
+User provided a new AutoDL instance:
+
+```text
+ssh -p 31079 root@connect.westd.seetacloud.com
+```
+
+Instance status:
+
+- Hostname: `autodl-container-233rvqugpm-c59b3946`
+- GPU: NVIDIA GeForce RTX 4080 SUPER, 32760 MiB VRAM
+- ComfyUI path: `/root/autodl-tmp/ComfyUI`
+- ComfyUI is running on port `6006`
+- `cloudflared` binary is installed at:
+
+```text
+/usr/local/bin/cloudflared-domstudio
+```
+
+New public ComfyUI tunnel:
+
+```text
+https://path-preparation-emerald-answered.trycloudflare.com
+```
+
+Set Amvera backend variable:
+
+```text
+COMFYUI_URL=https://path-preparation-emerald-answered.trycloudflare.com
+```
+
+Amvera backend URL to remember:
+
+```text
+https://domstudio1-nate.amvera.io/
+```
+
+Important note:
+
+The user said Codex can access Amvera too. Use the Amvera backend above for
+live backend checks when validating deployed generation.
+
+Verification already completed:
+
+- Public `/system_stats` returned HTTP 200.
+- GPU reported as RTX 4080 SUPER.
+- Public `/object_info` confirmed required nodes:
+  - `NunchakuQwenImageDiTLoader`
+  - `AutoDownloadBiRefNetModel`
+  - `ByteDanceImageToVideoNode`
+
+Next step:
+
+After Amvera env var is updated/restarted, run a live backend generation check
+against `https://domstudio1-nate.amvera.io/`.
+
+## June 18, 2026 - Live Amvera Smoke Started, Blocked On Backend Env Restart
+
+User asked to proceed one by one.
+
+Step 1: Amvera health check passed:
+
+```text
+GET https://domstudio1-nate.amvera.io/health
+HTTP 200
+{"status":"ok","service":"domstudio-api","v":8,"prompt_version":"preserve-label-image-edit-2026-06-17"}
+```
+
+Step 2: First live catalog generation smoke reached the Amvera backend, but
+generation failed before reaching Comfy:
+
+```text
+POST https://domstudio1-nate.amvera.io/generation/generate
+mode=catalog
+HTTP 502
+{"detail":"Generation failed: [Errno -2] Name or service not known"}
+```
+
+Interpretation:
+
+- Auth/login worked.
+- The live backend is running.
+- The failure is DNS resolution from the Amvera backend process, almost
+  certainly because `COMFYUI_URL` is still the old/dead trycloudflare hostname
+  or the backend was not restarted after updating the env var.
+- The new Comfy tunnel itself was verified live:
+
+```text
+COMFYUI_URL=https://path-preparation-emerald-answered.trycloudflare.com
+```
+
+Required next action in Amvera:
+
+```text
+GENERATION_PROVIDER=comfy
+COMFYUI_URL=https://path-preparation-emerald-answered.trycloudflare.com
+```
+
+Then restart/redeploy the Amvera backend and rerun the catalog smoke before
+moving to product or video.
+
+## June 18, 2026 - Live Catalog/Product Passed, Video Provider Blocked
+
+After Amvera picked up the new Cloudflare URL, the live image smoke tests
+passed through the deployed backend:
+
+```text
+COMFYUI_URL=https://path-preparation-emerald-answered.trycloudflare.com
+```
+
+Catalog smoke:
+
+```text
+POST https://domstudio1-nate.amvera.io/generation/generate
+mode=catalog
+HTTP 200
+status=success
+size=960x599
+output=live-smoke/catalog-live.png
+```
+
+Visual check:
+
+- Clean white-background bottle cutout.
+- Output was a real generated PNG, not a blank/broken response.
+
+Product smoke:
+
+```text
+POST https://domstudio1-nate.amvera.io/generation/generate
+mode=product
+HTTP 200
+status=success
+size=1024x1024
+output=live-smoke/product-live.png
+```
+
+Video smoke through Amvera:
+
+```text
+POST https://domstudio1-nate.amvera.io/generation/video
+HTTP 200
+job_id=e9e2b8af-a80a-4ca8-a72b-ad62c387e27e
+status=queued -> processing -> done
+```
+
+But the completed job had no downloadable media:
+
+```text
+output_url=None
+output_format=None
+output_data_len=0
+error=None
+```
+
+Direct Comfy video workflow test against the new tunnel gave the real provider
+blocker:
+
+```text
+ComfyUI job failed: ByteDanceImageToVideoNode: Unauthorized: Please login first to use this node.
+```
+
+Interpretation:
+
+- Image generation is live again on Amvera.
+- The ByteDance video node is installed and the workflow queues.
+- Video generation cannot produce MP4 until the ByteDance/Comfy API node is
+  authenticated on the AutoDL ComfyUI instance, or DomStudio switches to a
+  different installed video provider/model.
+- The deployed Amvera video endpoint also needs a stricter failure check so a
+  provider/no-output result cannot be marked as `done` without `output_data` or
+  `output_url`.
+
+Next step:
+
+Authenticate the ByteDance video node in ComfyUI, then rerun the same direct
+Comfy smoke before relying on the deployed `/generation/video` endpoint.
+
+## June 18, 2026 - Video Auth Path Identified + Backend Patched
+
+Question:
+
+Use another video node, or how to fix:
+
+```text
+ByteDanceImageToVideoNode: Unauthorized: Please login first to use this node.
+```
+
+Findings:
+
+- The error comes from ComfyUI's built-in `comfy_api_nodes`, not from
+  DomStudio's workflow.
+- ByteDance, Kling, Luma, Runway, Vidu, Wan API, LTXV API, etc. are Comfy
+  Partner/API nodes and use the same Comfy.org account auth mechanism.
+- The AutoDL box does not currently have a real local video model installed:
+  - SVD checkpoint list is empty.
+  - Wan model loader only sees the Qwen image models and `z_image_turbo`.
+  - No Wan/SVD/LTXV/Hunyuan video weights were found in model folders.
+- Therefore switching to another serious video node does not avoid auth unless
+  we first download/install a full local video model workflow.
+
+Official Comfy headless API-node solution:
+
+Create a ComfyUI Account API Key at:
+
+```text
+https://platform.comfy.org/login
+```
+
+The Comfy account must have enough credits. For headless workflows, the key is
+sent in the `/prompt` payload as:
+
+```json
+{
+  "extra_data": {
+    "api_key_comfy_org": "comfyui-..."
+  }
+}
+```
+
+Code change made:
+
+- Added backend env var:
+
+```text
+COMFYUI_ACCOUNT_API_KEY=
+```
+
+- `domstudio-backend/services/comfy_client.py` now includes
+  `extra_data.api_key_comfy_org` when queueing Comfy prompts if
+  `COMFYUI_ACCOUNT_API_KEY` is set.
+- `.env.example` documents the new variable.
+- Added unit coverage to verify the queued `/prompt` JSON includes the Comfy
+  account API key.
+
+Validation:
+
+```text
+python -m unittest tests.test_comfy_client tests.test_generation
+22 tests OK
+```
+
+Next operational step:
+
+Set in Amvera:
+
+```text
+COMFYUI_ACCOUNT_API_KEY=<ComfyUI Account API key with credits>
+```
+
+Then redeploy/restart Amvera and rerun the direct video smoke. If the account
+has credits, the existing ByteDance workflow should authenticate. If it fails
+with `402 Payment Required`, add credits on Comfy.org.
+
+## June 18, 2026 - ByteDance Video Auth Confirmed, MP4 Generated
+
+After the user added the Comfy account API key locally and in Amvera, direct
+Comfy testing showed:
+
+1. Auth key was passed correctly. The previous `Unauthorized: Please login
+   first` error disappeared.
+2. `seedance-1-0-lite-i2v-250428` failed with:
+
+```text
+The model or endpoint seedance-1-0-lite-i2v-250428 does not exist or you do not have access to it.
+```
+
+3. Switched `product_video.json` to:
+
+```text
+seedance-1-0-pro-250528
+```
+
+4. The ByteDance node requires `seed` even though the schema marks it optional.
+   DomStudio's random `{{seed}}` can exceed the node max of `2147483647`, so
+   the video workflow now uses a fixed safe seed:
+
+```json
+"seed": 0
+```
+
+5. Direct Comfy video generation succeeded. Comfy log showed:
+
+```text
+ByteDanceImageToVideoNode: 170.90s
+SaveVideo: 0.04s
+Prompt executed in 170.96 seconds
+```
+
+6. MP4 downloaded successfully:
+
+```text
+live-smoke/video-direct-comfy-auth.mp4
+size=1,962,019 bytes
+content-type=video/mp4
+```
+
+Important backend fix:
+
+Comfy `SaveVideo` reported the MP4 under the `images` history key:
+
+```text
+images: product_00001_.mp4
+```
+
+The backend media extractor now treats video file extensions (`.mp4`, `.mov`,
+`.webm`, `.mkv`) as `videos` even if Comfy reports them under `images`.
+
+Validation:
+
+```text
+python -m unittest tests.test_comfy_client tests.test_generation
+23 tests OK
+```
+
+Next step:
+
+Deploy/push the backend patch to Amvera, then rerun
+`POST /generation/video`. Expected result after deploy: job should finish with
+`output_data` populated as a base64 MP4 and `output_format=MP4`.

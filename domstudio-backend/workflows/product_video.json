@@ -8,13 +8,13 @@
   "2": {
     "class_type": "ByteDanceImageToVideoNode",
     "inputs": {
-      "model": "seedance-1-0-lite-i2v-250428",
+      "model": "seedance-1-0-pro-250528",
       "prompt": "{{prompt}}",
       "image": ["1", 0],
       "resolution": "{{video_resolution}}",
       "aspect_ratio": "{{video_aspect_ratio}}",
       "duration": "{{duration_s}}",
-      "seed": "{{seed}}",
+      "seed": 0,
       "camera_fixed": false,
       "watermark": false
     }

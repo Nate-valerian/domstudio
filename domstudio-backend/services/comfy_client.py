@@ -55,6 +55,14 @@ def _headers(api_key: str | None = None) -> dict[str, str]:
     return headers
 
 
+def _comfy_account_extra_data() -> dict[str, str]:
+    """Return Comfy.org Partner Node auth payload for headless API workflows."""
+    api_key = os.getenv("COMFYUI_ACCOUNT_API_KEY", "").strip()
+    if not api_key:
+        return {}
+    return {"api_key_comfy_org": api_key}
+
+
 async def discover_autodl_comfy_url(
     token: str | None = None,
     instance_uuid: str | None = None,
@@ -473,11 +481,16 @@ class ComfyClient:
             return response.json()["name"]
 
     async def queue_prompt(self, workflow: dict[str, Any]) -> str:
+        payload: dict[str, Any] = {"prompt": workflow, "client_id": str(uuid.uuid4())}
+        extra_data = _comfy_account_extra_data()
+        if extra_data:
+            payload["extra_data"] = extra_data
+
         async with httpx.AsyncClient(timeout=_env_int("COMFYUI_REQUEST_TIMEOUT", 60)) as client:
             response = await client.post(
                 f"{self.base_url}/prompt",
                 headers=_headers(self.api_key),
-                json={"prompt": workflow, "client_id": str(uuid.uuid4())},
+                json=payload,
             )
             if response.is_error:
                 raise ComfyGenerationError(f"ComfyUI rejected workflow: {_response_error(response)}")
@@ -576,8 +589,14 @@ def _extract_outputs(job: dict[str, Any]) -> list[dict[str, Any]]:
         for key in ("images", "gifs", "videos"):
             for item in node_output.get(key, []) or []:
                 if isinstance(item, dict) and item.get("filename"):
-                    outputs.append({"kind": key, **item})
+                    filename = str(item.get("filename") or "")
+                    kind = "videos" if _is_video_filename(filename) else key
+                    outputs.append({"kind": kind, **item})
     return outputs
+
+
+def _is_video_filename(filename: str) -> bool:
+    return Path(filename).suffix.lower() in {".mp4", ".mov", ".webm", ".mkv"}
 
 
 def _extract_error(job: dict[str, Any]) -> str | None:

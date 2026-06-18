@@ -53,6 +53,23 @@ class FakeComfyRunner:
         return {"status": "success", "image": "base64", "format": "PNG"}
 
 
+class FakePromptClient:
+    last_json = None
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        return None
+
+    async def post(self, *args, **kwargs):
+        FakePromptClient.last_json = kwargs.get("json")
+        return httpx.Response(200, json={"prompt_id": "prompt-123"})
+
+
 class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
     async def test_discovers_running_autodl_service_url(self):
         with patch.object(comfy_client.httpx, "AsyncClient", FakeAutoDlClient):
@@ -91,6 +108,20 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(inputs["seed"], 42)
         self.assertIs(inputs["upscale"], True)
         self.assertEqual(inputs["mode"], "mode=catalog")
+
+    async def test_queue_prompt_passes_comfy_account_api_key_as_extra_data(self):
+        FakePromptClient.last_json = None
+        client = comfy_client.ComfyClient("https://comfy.example")
+
+        with patch.dict("os.environ", {"COMFYUI_ACCOUNT_API_KEY": "comfyui-test-key"}):
+            with patch.object(comfy_client.httpx, "AsyncClient", FakePromptClient):
+                prompt_id = await client.queue_prompt({"1": {"class_type": "Test", "inputs": {}}})
+
+        self.assertEqual(prompt_id, "prompt-123")
+        self.assertEqual(
+            FakePromptClient.last_json["extra_data"],
+            {"api_key_comfy_org": "comfyui-test-key"},
+        )
 
     async def test_img2img_fallback_corrects_scene_typos_and_keeps_props(self):
         prompt = comfy_client.compose_img2img_prompt(
@@ -334,6 +365,20 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(outputs[0]["filename"], "result.png")
         self.assertEqual(outputs[0]["kind"], "images")
+
+    async def test_extracts_mp4_outputs_as_video_even_when_reported_as_image(self):
+        outputs = comfy_client._extract_outputs({
+            "outputs": {
+                "3": {
+                    "images": [
+                        {"filename": "product_00001_.mp4", "subfolder": "domstudio/video", "type": "output"}
+                    ]
+                }
+            }
+        })
+
+        self.assertEqual(outputs[0]["filename"], "product_00001_.mp4")
+        self.assertEqual(outputs[0]["kind"], "videos")
 
     async def test_extracts_execution_error_from_history_payload(self):
         error = comfy_client._extract_error({
