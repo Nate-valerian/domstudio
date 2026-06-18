@@ -26,6 +26,9 @@ import exampleBottleCreativeUrl from "./assets/examples/example-bottle-creative.
 import exampleBottleLifestyleUrl from "./assets/examples/example-bottle-lifestyle.webp";
 import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.webp";
 import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
+import perfumeProductVideoUrl from "./assets/examples/videos/perfume-product-5s.mp4";
+import wineProductVideoUrl from "./assets/examples/videos/wine-product-5s.mp4";
+import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.mp4";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -40,17 +43,18 @@ const MODES = [
 
 const EXAMPLE_IMAGES = [
   { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: examplePerfumeCatalogUrl },
-  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl },
+  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
   { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: examplePerfumeCreativeUrl },
   { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: examplePerfumeLifestyleUrl },
   { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: examplePerfumeFittingUrl },
   { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: examplePerfumeMobileUrl, shape: "portrait" },
   { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card", src: exampleBottleCatalogUrl, shape: "portrait" },
-  { mode: "Product", product: "Pomegranate bottle", title: "Marble table studio setup", src: exampleBottleProductUrl },
+  { mode: "Product", product: "Wine bottle", title: "Marble table studio setup", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
   { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame", src: exampleBottleCreativeUrl },
   { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene", src: exampleBottleLifestyleUrl },
   { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context", src: exampleBottleFittingUrl },
   { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame", src: exampleBottleMobileUrl, shape: "portrait" },
+  { mode: "Fitting", product: "Beige suit outfit", title: "Virtual fitting motion preview", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -805,10 +809,21 @@ function examplesPage() {
       <section class="section examples-section">
         <div class="examples-grid">
           ${EXAMPLE_IMAGES.map((item) => `
-            <article class="example-card ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
-              <figure>
-                <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />
-              </figure>
+            <article class="example-card ${item.videoSrc ? "has-video" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
+              ${item.videoSrc ? `
+                <div class="example-media-pair">
+                  <figure class="example-media">
+                    <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />
+                  </figure>
+                  <figure class="example-media">
+                    <video src="${item.videoSrc}" aria-label="${escapeHtml(`${item.title} video`)}" autoplay muted loop playsinline controls preload="metadata"></video>
+                  </figure>
+                </div>
+              ` : `
+                <figure class="example-media">
+                  <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />
+                </figure>
+              `}
               <div class="example-card-copy">
                 <span>${escapeHtml(item.mode)}</span>
                 <h3>${escapeHtml(item.title)}</h3>

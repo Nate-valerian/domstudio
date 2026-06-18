@@ -1967,3 +1967,49 @@ https://domstudio1-nate.amvera.io/version
 ```
 
 to verify whether Amvera is running the expected commit and env configuration.
+
+## June 18, 2026 - Frontend Examples With 3 Product Videos
+
+Scope was reduced to exactly three total videos:
+
+- perfume product video, 5 seconds
+- wine bottle product video, 5 seconds
+- fashion fitting video, 5 seconds
+
+Generated through the live Amvera backend:
+
+```text
+https://domstudio1-nate.amvera.io/generation/video
+```
+
+Saved frontend assets:
+
+```text
+domstudio-frontend/src/assets/examples/videos/perfume-product-5s.mp4
+domstudio-frontend/src/assets/examples/videos/wine-product-5s.mp4
+domstudio-frontend/src/assets/examples/videos/fashion-fitting-5s.mp4
+```
+
+Live job IDs:
+
+```text
+perfume: 53aee59a-ad61-4e11-8037-fb093067464e
+wine:    53d61f5a-d025-4296-b086-7067617e305d
+fashion: da6dd036-c49a-49f0-82da-458d5f436970
+```
+
+Frontend update:
+
+- `domstudio-frontend/src/app.js` imports the three MP4s.
+- Only the three selected examples render video media pairs.
+- `domstudio-frontend/src/styles.css` keeps image and video panes equal size in
+  one card, including mobile.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm run build
+```
+
+Build passed and bundled all three MP4 assets.
