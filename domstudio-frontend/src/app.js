@@ -731,7 +731,14 @@ function homePage() {
               <span>Mini studio</span>
               <b>WB · Ozon · Yandex · Avito</b>
             </div>
-            <div class="hero-proof-frame"><img src="${productProofUrl}" alt="DomStudio AI" /></div>
+            <div class="hero-proof-frame media-pair-card">
+              <figure class="landing-media">
+                <img src="${productProofUrl}" alt="DomStudio AI" />
+              </figure>
+              <figure class="landing-media">
+                <video src="${perfumeProductVideoUrl}" aria-label="DomStudio product video" autoplay muted loop playsinline controls preload="metadata"></video>
+              </figure>
+            </div>
             <div class="mini-studio-controls">
               <label><span>${t("home.miniPhoto")}</span><button type="button" data-route="studio">${t("home.miniUpload")}</button></label>
               <label><span>${t("home.miniPromptLabel")}</span><input value="${t("home.miniPromptValue")}" readonly /></label>
@@ -749,7 +756,14 @@ function homePage() {
           <p>${t("home.proofP")}</p>
         </div>
         <div class="proof-grid">
-          <article class="proof-visual"><img src="${productProofUrl}" alt="DomStudio AI" /></article>
+          <article class="proof-visual media-pair-card">
+            <figure class="landing-media">
+              <img src="${productProofUrl}" alt="DomStudio AI" />
+            </figure>
+            <figure class="landing-media">
+              <video src="${perfumeProductVideoUrl}" aria-label="DomStudio product video" autoplay muted loop playsinline controls preload="metadata"></video>
+            </figure>
+          </article>
           <div class="proof-copy">
             <div class="proof-stat"><b>30</b><span>${t("home.stat1s")}</span></div>
             <div class="proof-stat"><b>270 ₽</b><span>${t("home.stat2s")}</span></div>

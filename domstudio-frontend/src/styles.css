@@ -143,7 +143,12 @@ h1 em { color: var(--gold); font-style: normal; }
 .hero .studio-card-top { color: rgba(246,241,232,.58); }
 .hero .studio-card-top b { color: #f6f1e8; }
 .hero-proof-frame { margin: 0 14px; overflow: hidden; border-radius: 20px; background: #e9e3d7; }
-.hero-proof-frame img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.media-pair-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
+.landing-media { margin: 0; min-width: 0; overflow: hidden; background: #e9e3d7; aspect-ratio: 1 / 1; }
+.hero-proof-frame .landing-media { aspect-ratio: 1 / 1; }
+.landing-media img,
+.landing-media video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.landing-media video { background: #111; }
 .mini-studio-controls { display: grid; gap: 10px; padding: 14px; }
 .mini-studio-controls label { display: grid; grid-template-columns: 105px 1fr; align-items: center; gap: 10px; min-height: 44px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 14px; background: white; }
 .hero .mini-studio-controls label { border-color: rgba(255,255,255,.10); background: rgba(255,255,255,.08); }
@@ -175,7 +180,7 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .proof-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; align-items: stretch; }
 .proof-visual { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 24px; background: var(--card); box-shadow: 0 24px 70px rgba(32,25,14,.10); }
-.proof-visual img { display: block; width: 100%; height: 100%; min-height: 390px; object-fit: cover; }
+.proof-visual .landing-media { min-height: 390px; }
 .proof-copy { display: grid; gap: 12px; }
 .proof-stat { display: grid; align-content: center; min-height: 118px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); }
 .proof-stat b { color: var(--gold); font: 700 38px "Unbounded"; }
@@ -560,7 +565,6 @@ h1 em { color: var(--gold); font-style: normal; }
   .hero-studio-card { width: 100%; border-radius: 16px; }
   .studio-card-top { padding: 10px 12px; font-size: 9px; line-height: 1.3; }
   .hero-proof-frame { margin: 0 10px; border-radius: 14px; }
-  .hero-proof-frame img { aspect-ratio: 16 / 11; }
   .mini-studio-controls { display: grid; gap: 8px; padding: 10px; }
   .mini-studio-controls label { grid-template-columns: 1fr; min-height: auto; padding: 10px; gap: 8px; }
   .mini-studio-controls label button { width: 100%; }
@@ -573,7 +577,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .section-head p { font-size: 15px; line-height: 1.6; }
   .proof-copy { grid-template-columns: 1fr; }
   .proof-visual { border-radius: 16px; }
-  .proof-visual img { min-height: 0; aspect-ratio: 4 / 3; }
+  .proof-visual .landing-media { min-height: 0; aspect-ratio: 1 / 1; }
   .proof-stat { min-height: 0; padding: 18px; border-radius: 16px; }
   .proof-stat b { font-size: 30px; }
   .section-head, .workspace-head, .footer { align-items: start; flex-direction: column; }

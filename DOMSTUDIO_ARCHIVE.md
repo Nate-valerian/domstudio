@@ -2013,3 +2013,9 @@ npm run build
 ```
 
 Build passed and bundled all three MP4 assets.
+
+Follow-up landing page update:
+
+- Homepage hero mini-studio preview now shows still image + video in one card.
+- Homepage proof section now shows still image + video in one card.
+- Both media panes use the same responsive dimensions on mobile.
