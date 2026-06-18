@@ -29,6 +29,9 @@ import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp
 import perfumeProductVideoUrl from "./assets/examples/videos/perfume-product-5s.mp4";
 import wineProductVideoUrl from "./assets/examples/videos/wine-product-5s.mp4";
 import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.mp4";
+import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
+import landingWineAfterUrl from "./assets/landing/wine-after-smoke.png";
+import landingWineVideoUrl from "./assets/landing/wine-after-smoke-5s.mp4";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -731,12 +734,18 @@ function homePage() {
               <span>Mini studio</span>
               <b>WB · Ozon · Yandex · Avito</b>
             </div>
-            <div class="hero-proof-frame media-pair-card">
-              <figure class="landing-media">
-                <img src="${productProofUrl}" alt="DomStudio AI" />
+            <div class="hero-proof-frame media-pair-card media-story-card">
+              <figure class="landing-media before-media">
+                <span class="media-tag dark">${t("home.before")}</span>
+                <img src="${landingWineBeforeUrl}" alt="Original wine bottle photo" />
               </figure>
-              <figure class="landing-media">
-                <video src="${perfumeProductVideoUrl}" aria-label="DomStudio product video" autoplay muted loop playsinline controls preload="metadata"></video>
+              <figure class="landing-media after-media">
+                <span class="media-tag">${t("home.after")}</span>
+                <img src="${landingWineAfterUrl}" alt="Generated wine bottle product image" />
+              </figure>
+              <figure class="landing-media video-media">
+                <span class="media-tag">Video</span>
+                <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
               </figure>
             </div>
             <div class="mini-studio-controls">
@@ -756,12 +765,18 @@ function homePage() {
           <p>${t("home.proofP")}</p>
         </div>
         <div class="proof-grid">
-          <article class="proof-visual media-pair-card">
-            <figure class="landing-media">
-              <img src="${productProofUrl}" alt="DomStudio AI" />
+          <article class="proof-visual media-pair-card media-story-card">
+            <figure class="landing-media before-media">
+              <span class="media-tag dark">${t("home.before")}</span>
+              <img src="${landingWineBeforeUrl}" alt="Original wine bottle photo" />
             </figure>
-            <figure class="landing-media">
-              <video src="${perfumeProductVideoUrl}" aria-label="DomStudio product video" autoplay muted loop playsinline controls preload="metadata"></video>
+            <figure class="landing-media after-media">
+              <span class="media-tag">${t("home.after")}</span>
+              <img src="${landingWineAfterUrl}" alt="Generated wine bottle product image" />
+            </figure>
+            <figure class="landing-media video-media">
+              <span class="media-tag">Video</span>
+              <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
             </figure>
           </article>
           <div class="proof-copy">

@@ -2027,3 +2027,34 @@ Playback follow-up:
   calling `video.play()`.
 - If mobile autoplay is blocked, the first pointer/touch/key interaction retries
   playback.
+
+## June 18, 2026 - Homepage Bottle Proof Replacement
+
+Visible homepage UI was changed from the perfume/serum proof to a wine-bottle
+story:
+
+- before: original phone photo from `9439B3EC-2AF7-4260-91CB-95E7DB240904.jpeg`
+- after: generated product image from `domstudio-autodl-smoke.png`
+- video: new 5-second MP4 generated from the after image
+
+Frontend assets:
+
+```text
+domstudio-frontend/src/assets/landing/wine-before-original.jpeg
+domstudio-frontend/src/assets/landing/wine-after-smoke.png
+domstudio-frontend/src/assets/landing/wine-after-smoke-5s.mp4
+```
+
+Live video job:
+
+```text
+job_id=4bed557f-e2c1-4afe-9977-d3f9a1a28f95
+status=done
+output_format=MP4
+```
+
+Homepage updates:
+
+- hero mini-studio card now has three equal panes: before, after, video
+- proof section now has the same three-pane bottle story
+- mobile keeps the three panes equal-width/equal-height inside the card
