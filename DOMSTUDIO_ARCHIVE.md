@@ -2019,3 +2019,11 @@ Follow-up landing page update:
 - Homepage hero mini-studio preview now shows still image + video in one card.
 - Homepage proof section now shows still image + video in one card.
 - Both media panes use the same responsive dimensions on mobile.
+
+Playback follow-up:
+
+- Demo videos are explicitly initialized after each frontend render.
+- The frontend sets muted/defaultMuted/autoplay/loop/playsInline/preload before
+  calling `video.play()`.
+- If mobile autoplay is blocked, the first pointer/touch/key interaction retries
+  playback.

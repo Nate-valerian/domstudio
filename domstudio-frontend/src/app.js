@@ -1214,8 +1214,43 @@ function render(options = {}) {
   app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${authModal()}</div>`;
   bind();
   runMotion({ entrance: shouldAnimateEntrance });
+  prepareDemoVideos();
   lastMotionKey = motionKey;
 }
+
+function prepareDemoVideos() {
+  const videos = [...document.querySelectorAll(".landing-media video, .example-media video")];
+  videos.forEach((video) => {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.setAttribute("muted", "");
+    video.setAttribute("autoplay", "");
+    video.setAttribute("loop", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+
+    const play = () => {
+      const attempt = video.play();
+      if (attempt && typeof attempt.catch === "function") attempt.catch(() => {});
+    };
+
+    if (video.readyState >= 2) {
+      requestAnimationFrame(play);
+    } else {
+      video.addEventListener("loadeddata", play, { once: true });
+      video.addEventListener("canplay", play, { once: true });
+    }
+    video.addEventListener("click", play, { passive: true });
+  });
+}
+
+["pointerdown", "touchstart", "keydown"].forEach((eventName) => {
+  window.addEventListener(eventName, prepareDemoVideos, { once: true, passive: true });
+});
 
 function bind() {
   document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => navigate(el.dataset.route)));
