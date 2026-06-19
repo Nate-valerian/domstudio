@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --night: #160d21;
+        --panel: #2a2036;
+        --line: #6a432d;
+        --muted: #c7bec9;
+        --cream: #f6f1e8;
+        --acid: #ff9d2e;
+        --ink: #11110f;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(90deg, rgba(255,157,46,.08) 1px, transparent 1px),
+          linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px),
+          var(--night);
+        background-size: 84px 84px;
+        font-family: Arial, sans-serif;
+      }
+
+      .card {
+        position: relative;
+        width: min(1180px, calc(100vw - 64px));
+        padding: 30px 30px 32px;
+        border: 2px solid var(--line);
+        border-radius: 34px;
+        background: var(--panel);
+        box-shadow: 0 40px 100px rgba(0,0,0,.34);
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 24px;
+        color: var(--muted);
+        font-size: 24px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .top b {
+        color: white;
+        font-size: 20px;
+        text-transform: none;
+      }
+
+      .media-strip {
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        min-height: 430px;
+        border-radius: 24px;
+        background: #e9e3d7;
+      }
+
+      .pane {
+        position: relative;
+        margin: 0;
+        min-width: 0;
+        overflow: hidden;
+        background: #eee7dc;
+        border-right: 3px solid rgba(255,255,255,.86);
+      }
+
+      .pane:last-child { border-right: 0; }
+
+      .pane img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #efe8de;
+      }
+
+      .after img,
+      .video img {
+        object-fit: cover;
+      }
+
+      .tag {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 2;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(17,17,15,.72);
+        color: white;
+        font-size: 17px;
+        font-weight: 900;
+      }
+
+      .after .tag,
+      .video .tag {
+        background: var(--acid);
+        color: var(--ink);
+      }
+
+      .play {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+      }
+
+      .play span {
+        width: 76px;
+        height: 76px;
+        display: grid;
+        place-items: center;
+        border: 2px solid rgba(255,255,255,.72);
+        border-radius: 50%;
+        background: rgba(17,17,15,.54);
+        color: white;
+        font-size: 32px;
+        line-height: 1;
+      }
+
+      .field {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        align-items: center;
+        gap: 18px;
+        min-height: 78px;
+        margin-top: 18px;
+        padding: 10px 18px 10px 24px;
+        border: 2px solid #64576e;
+        border-radius: 24px;
+        background: #3a2e47;
+        color: var(--muted);
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .field b {
+        color: white;
+        font-size: 26px;
+      }
+
+      .button {
+        display: grid;
+        place-items: center;
+        min-height: 58px;
+        border-radius: 999px;
+        background: var(--acid);
+        color: var(--ink);
+        font-size: 28px;
+        font-weight: 900;
+      }
+
+      .float {
+        position: absolute;
+        right: -248px;
+        top: 140px;
+        width: 300px;
+        padding: 32px;
+        border-radius: 26px;
+        background: var(--acid);
+        color: var(--ink);
+      }
+
+      .float b {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 56px;
+      }
+
+      .float span {
+        color: #563a15;
+        font-size: 18px;
+      }
+
+      @media (max-width: 620px) {
+        body { align-items: start; padding: 18px; }
+        .card { width: 100%; padding: 14px; border-radius: 20px; }
+        .top { margin-bottom: 14px; font-size: 13px; }
+        .top b { font-size: 12px; }
+        .media-strip {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          min-height: 0;
+          border-radius: 14px;
+        }
+        .pane {
+          aspect-ratio: 1 / 1;
+          border-right-width: 2px;
+        }
+        .pane img {
+          object-fit: contain;
+        }
+        .after img,
+        .video img {
+          object-fit: cover;
+        }
+        .tag {
+          top: 10px;
+          left: 10px;
+          padding: 6px 9px;
+          font-size: 12px;
+        }
+        .play span {
+          width: 46px;
+          height: 46px;
+          font-size: 20px;
+        }
+        .field {
+          grid-template-columns: 1fr;
+          min-height: auto;
+          padding: 14px;
+          font-size: 16px;
+        }
+        .field b {
+          font-size: 21px;
+        }
+        .button {
+          min-height: 52px;
+          font-size: 24px;
+        }
+        .float { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card">
+      <div class="top">
+        <span>Mini studio</span>
+        <b>WB · Ozon · Yandex · Avito</b>
+      </div>
+
+      <div class="media-strip">
+        <figure class="pane before">
+          <span class="tag">before</span>
+          <img src="./original-bottle-before.jpeg" alt="Original bottle photo" />
+        </figure>
+        <figure class="pane after">
+          <span class="tag">after</span>
+          <img src="./bottle-smoke-after.png" alt="Generated bottle image" />
+        </figure>
+        <figure class="pane video">
+          <span class="tag">video</span>
+          <img src="./bottle-smoke-after.png" alt="Video preview from generated bottle image" />
+          <div class="play"><span>▶</span></div>
+        </figure>
+      </div>
+
+      <div class="field">
+        <span>Product photo</span>
+        <div class="button">Upload</div>
+      </div>
+      <div class="field">
+        <span>Prompt</span>
+        <b>wine bottle on marble table</b>
+      </div>
+
+      <aside class="float">
+        <b>AI</b>
+        <span>original photo → ready image → video</span>
+      </aside>
+    </section>
+  </body>
+</html>

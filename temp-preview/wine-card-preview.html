@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --night: #160d21;
+        --panel: #2a2036;
+        --line: #6a432d;
+        --muted: #b8afba;
+        --cream: #f6f1e8;
+        --acid: #ff9d2e;
+        --ink: #11110f;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          linear-gradient(90deg, rgba(255,157,46,.08) 1px, transparent 1px),
+          linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px),
+          var(--night);
+        background-size: 84px 84px;
+        font-family: Arial, sans-serif;
+      }
+
+      .card {
+        position: relative;
+        width: 840px;
+        padding: 28px 26px 26px;
+        border: 2px solid var(--line);
+        border-radius: 34px;
+        background: var(--panel);
+        box-shadow: 0 40px 100px rgba(0,0,0,.34);
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+        color: var(--muted);
+        font-size: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .top b {
+        color: var(--cream);
+        font-size: 18px;
+        text-transform: none;
+      }
+
+      .media-pair {
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-radius: 24px;
+        background: #e9e3d7;
+      }
+
+      .pane {
+        position: relative;
+        margin: 0;
+        min-height: 338px;
+        overflow: hidden;
+        background: #ede6dc;
+      }
+
+      .before-after {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+        background: white;
+      }
+
+      .pane img,
+      .pane video {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+      }
+
+      .before-after img {
+        object-fit: contain;
+        background: #eee7dc;
+        padding: 10px;
+      }
+
+      .tag {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 2;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(17,17,15,.75);
+        color: white;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .tag.after,
+      .tag.video {
+        background: var(--acid);
+        color: var(--ink);
+      }
+
+      .tag.after { left: calc(50% + 14px); }
+
+      .play {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+      }
+
+      .play span {
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+        border: 2px solid rgba(255,255,255,.7);
+        border-radius: 50%;
+        background: rgba(17,17,15,.58);
+        color: white;
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      .field {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        align-items: center;
+        gap: 12px;
+        min-height: 58px;
+        margin-top: 16px;
+        padding: 8px 12px 8px 18px;
+        border: 2px solid #594c62;
+        border-radius: 20px;
+        background: #3a2e47;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .field b {
+        color: var(--cream);
+        font-size: 22px;
+      }
+
+      .button {
+        display: grid;
+        place-items: center;
+        min-height: 54px;
+        border-radius: 999px;
+        background: var(--acid);
+        color: var(--ink);
+        font-size: 22px;
+        font-weight: 900;
+      }
+
+      .float {
+        position: absolute;
+        right: -232px;
+        top: 78px;
+        width: 286px;
+        padding: 26px;
+        border-radius: 26px;
+        background: var(--acid);
+        color: var(--ink);
+      }
+
+      .float b {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 44px;
+      }
+
+      .float span { color: #563a15; }
+
+      @media (max-width: 520px) {
+        body { align-items: start; padding: 18px; }
+        .card { width: 100%; padding: 14px; border-radius: 20px; }
+        .top { font-size: 13px; }
+        .top b { font-size: 12px; }
+        .media-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 14px; }
+        .pane { min-height: auto; aspect-ratio: 1 / 1; }
+        .before-after img { padding: 4px; }
+        .field { grid-template-columns: 1fr; }
+        .float { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card">
+      <div class="top">
+        <span>Mini studio</span>
+        <b>WB · Ozon · Yandex · Avito</b>
+      </div>
+
+      <div class="media-pair">
+        <figure class="pane before-after">
+          <span class="tag">before</span>
+          <span class="tag after">after</span>
+          <img src="../domstudio-frontend/src/assets/examples/example-bottle-catalog.webp" alt="Wine bottle before" />
+          <img src="../domstudio-frontend/src/assets/examples/example-bottle-product.webp" alt="Wine bottle after" />
+        </figure>
+        <figure class="pane">
+          <span class="tag video">video</span>
+          <video src="../domstudio-frontend/src/assets/examples/videos/wine-product-5s.mp4" poster="./wine-video-frame.jpg" autoplay muted loop playsinline></video>
+          <div class="play"><span>▶</span></div>
+        </figure>
+      </div>
+
+      <div class="field">
+        <span>Product photo</span>
+        <div class="button">Upload</div>
+      </div>
+      <div class="field">
+        <span>Prompt</span>
+        <b>wine bottle on marble table</b>
+      </div>
+
+      <aside class="float">
+        <b>AI</b>
+        <span>before + after + video</span>
+      </aside>
+    </section>
+  </body>
+</html>
