@@ -83,6 +83,32 @@ MIGRATIONS: list[tuple[str, str, str]] = [
             ADD COLUMN IF NOT EXISTS error TEXT;
         """,
     ),
+    (
+        "005",
+        "Add subscription video quotas",
+        """
+        ALTER TABLE subscriptions
+            ADD COLUMN IF NOT EXISTS videos_used INTEGER NOT NULL DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS videos_limit INTEGER NOT NULL DEFAULT 5,
+            ADD COLUMN IF NOT EXISTS premium_videos_used INTEGER NOT NULL DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS premium_videos_limit INTEGER NOT NULL DEFAULT 0;
+
+        UPDATE subscriptions
+        SET
+            videos_limit = CASE plan
+                WHEN 'basic' THEN 30
+                WHEN 'pro' THEN 50
+                WHEN 'business' THEN 100
+                ELSE 5
+            END,
+            premium_videos_limit = CASE plan
+                WHEN 'basic' THEN 10
+                WHEN 'pro' THEN 33
+                WHEN 'business' THEN 99
+                ELSE 0
+            END;
+        """,
+    ),
 ]
 
 

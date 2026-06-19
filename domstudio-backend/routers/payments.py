@@ -400,6 +400,10 @@ async def activate_subscription(user_id, plan: PlanName, db: AsyncSession):
         user.subscription.plan         = plan
         user.subscription.photos_used  = 0
         user.subscription.photos_limit = plan_cfg["photos"]
+        user.subscription.videos_used  = 0
+        user.subscription.videos_limit = plan_cfg["videos"]
+        user.subscription.premium_videos_used  = 0
+        user.subscription.premium_videos_limit = plan_cfg["premium_videos"]
         user.subscription.renews_at    = renews_at
 
     if user.token_balance:

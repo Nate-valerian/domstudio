@@ -23,12 +23,24 @@ async def my_subscription(
 ):
     sub = await db.scalar(select(Subscription).where(Subscription.user_id == current_user.id))
     if not sub:
-        return {"plan": "free", "photos_used": 0, "photos_limit": 5, **plan_limits("free")}
+        limits = plan_limits("free")
+        return {
+            "plan": "free",
+            "photos_used": 0,
+            "photos_limit": 5,
+            "videos_used": 0,
+            "videos_limit": limits["videos_limit"],
+            "premium_videos_used": 0,
+            "premium_videos_limit": limits["premium_videos_limit"],
+        }
     return {
         "plan":         sub.plan,
         "photos_used":  sub.photos_used,
         "photos_limit": sub.photos_limit,
-        **plan_limits(sub.plan),
+        "videos_used":  sub.videos_used,
+        "videos_limit": sub.videos_limit,
+        "premium_videos_used":  sub.premium_videos_used,
+        "premium_videos_limit": sub.premium_videos_limit,
         "renews_at":    sub.renews_at,
     }
 

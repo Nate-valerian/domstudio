@@ -74,6 +74,42 @@ def video_token_cost(req: "VideoRequest") -> int:
     return VIDEO_TOKEN_COST if req.video_provider == "premium" else 0
 
 
+def video_quota_columns(provider: str):
+    if provider == "premium":
+        return Subscription.premium_videos_used, Subscription.premium_videos_limit
+    return Subscription.videos_used, Subscription.videos_limit
+
+
+def video_quota_error(provider: str) -> str:
+    return "Premium video quota exceeded" if provider == "premium" else "Video quota exceeded"
+
+
+async def reserve_video_quota(db: AsyncSession, user_id, provider: str):
+    used_col, limit_col = video_quota_columns(provider)
+    result = await db.execute(
+        update(Subscription)
+        .where(
+            Subscription.user_id == user_id,
+            used_col < limit_col,
+        )
+        .values({used_col.key: used_col + 1})
+        .returning(used_col, limit_col)
+    )
+    return result.first()
+
+
+async def release_video_quota(db: AsyncSession, user_id, provider: str) -> None:
+    used_col, _ = video_quota_columns(provider)
+    await db.execute(
+        update(Subscription)
+        .where(
+            Subscription.user_id == user_id,
+            used_col > 0,
+        )
+        .values({used_col.key: used_col - 1})
+    )
+
+
 async def increment_photos_used(db: AsyncSession, user_id) -> None:
     await db.execute(
         update(Subscription)
@@ -148,10 +184,15 @@ async def generate_video(
     if not req.image:
         raise HTTPException(400, "Product photo is required for video generation")
 
+    quota = await reserve_video_quota(db, current_user.id, req.video_provider)
+    if not quota:
+        raise HTTPException(402, video_quota_error(req.video_provider))
+
     token_cost = video_token_cost(req)
     if token_cost:
         balance = await change_balance(db, current_user.id, -token_cost, require_balance=True)
         if balance is None:
+            await release_video_quota(db, current_user.id, req.video_provider)
             raise HTTPException(402, "Insufficient tokens")
     else:
         balance = await get_balance(db, current_user.id)
@@ -176,6 +217,8 @@ async def generate_video(
         "tokens_charged":  token_cost,
         "token_balance":   balance,
         "video_provider":  req.video_provider,
+        "quota_used":      quota[0],
+        "quota_limit":     quota[1],
     }
 
 
@@ -226,6 +269,13 @@ async def _run_video_job(job_id: str, req: VideoRequest) -> None:
             job = await db.get(GenerationJob, job_id)
             if job and job.tokens_used:
                 await change_balance(db, job.user_id, job.tokens_used)
+                await db.commit()
+
+        # Release reserved monthly video quota on failure.
+        async with AsyncSessionLocal() as db:
+            job = await db.get(GenerationJob, job_id)
+            if job:
+                await release_video_quota(db, job.user_id, req.video_provider)
                 await db.commit()
 
 

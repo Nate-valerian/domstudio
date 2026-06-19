@@ -105,6 +105,10 @@ async def create_user_with_defaults(db: AsyncSession, email=None, phone=None, pa
         plan=PlanName.free,
         photos_used=0,
         photos_limit=plan_cfg["photos"],
+        videos_used=0,
+        videos_limit=plan_cfg["videos"],
+        premium_videos_used=0,
+        premium_videos_limit=plan_cfg["premium_videos"],
     )
     db.add(sub)
 

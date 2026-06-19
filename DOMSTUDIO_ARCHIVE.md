@@ -2058,3 +2058,103 @@ Homepage updates:
 - hero mini-studio card now has three equal panes: before, after, video
 - proof section now has the same three-pane bottle story
 - mobile keeps the three panes equal-width/equal-height inside the card
+
+## June 19, 2026 - Mobile UI, Pricing Video Limits, And Video Quota Enforcement
+
+Committed and pushed state:
+
+```text
+fa37346 Refine hero mobile language UI
+2421f4e Show video limits in pricing plans
+5cabcc6 Fix mobile language toggle
+```
+
+Frontend/UI changes now on `origin/main`:
+
+- Mobile portrait navbar shows the language control correctly.
+- Outside Russian-market timezones, first visit defaults to English.
+- Outside Russian-market timezones, the top `RU/EN` language pill is hidden and
+  language switching is available inside the burger menu.
+- Russia-market visitors still get the top language pill.
+- Hero autoplay video previews no longer show a permanent play-arrow overlay.
+- The floating orange `AI` card was removed because it blocked the video preview.
+- Desktop hero preview card was enlarged from the old 560px cap to a responsive
+  600-760px width.
+
+Pricing now displays explicit plan video allowances:
+
+```text
+Free:    5 photos + 5 videos
+Starter: 30 photos + 30 videos + 10 premium videos
+Seller:  100 photos + 50 videos + 33 premium videos
+Growth:  300+ photos + 100 videos + 99 premium videos
+```
+
+Backend plan config and `/subscriptions/plans` expose:
+
+```text
+videos
+premium_videos
+```
+
+Current uncommitted backend work in the local tree:
+
+```text
+domstudio-backend/database.py
+domstudio-backend/migrate.py
+domstudio-backend/routers/auth.py
+domstudio-backend/routers/generation.py
+domstudio-backend/routers/payments.py
+domstudio-backend/routers/subscriptions.py
+domstudio-backend/routers/users.py
+domstudio-backend/tests/test_generation.py
+```
+
+Purpose of the uncommitted backend work:
+
+- Add real monthly video quota counters to `subscriptions`:
+  - `videos_used`
+  - `videos_limit`
+  - `premium_videos_used`
+  - `premium_videos_limit`
+- Add migration `005` to create the new columns and backfill limits by plan.
+- New users receive the Free plan video counters.
+- Paid plan activation resets video counters and applies the correct limits.
+- `/subscriptions/me` and `/users/me/full` return video used/limit counters.
+- `/generation/video` atomically reserves either local or premium video quota
+  before queueing the job.
+- Local video quota exhaustion returns `402 Video quota exceeded`.
+- Premium video quota exhaustion returns `402 Premium video quota exceeded`.
+- If premium token charging fails, the reserved premium video quota is released.
+- If the queued video job fails, reserved video quota is released and any charged
+  premium tokens are refunded.
+
+Validation run for the uncommitted backend quota work:
+
+```text
+cd domstudio-backend
+python -m unittest discover -s tests -v
+
+Ran 44 tests
+OK
+
+cd domstudio-frontend
+npm run build
+
+build passed
+```
+
+Important deployment note:
+
+```text
+python migrate.py
+```
+
+must be run on the deployed backend database before relying on video quota
+enforcement in production.
+
+Live AutoDL sample status:
+
+- A new live sample was requested but not started.
+- The user then asked to archive the changes instead, so no new AutoDL generation
+  was run in this step.
