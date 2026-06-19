@@ -122,6 +122,18 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(raised.exception.status_code, 402)
 
+    async def test_video_token_cost_is_free_for_local_and_paid_for_premium(self):
+        self.assertEqual(
+            generation.video_token_cost(generation.VideoRequest(subject="product", image="base64")),
+            0,
+        )
+        self.assertEqual(
+            generation.video_token_cost(
+                generation.VideoRequest(subject="product", image="base64", video_provider="premium")
+            ),
+            generation.VIDEO_TOKEN_COST,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

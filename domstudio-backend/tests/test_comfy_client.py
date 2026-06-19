@@ -149,6 +149,23 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(comfy_client.video_num_frames(5, 16), 81)
         self.assertEqual(comfy_client.video_num_frames(3, 16), 49)
 
+    async def test_video_workflow_selection_supports_local_and_premium(self):
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(
+                comfy_client.video_workflow_for_request(SimpleNamespace(video_provider="local")),
+                "product_video_wan_local.json",
+            )
+            self.assertEqual(
+                comfy_client.video_workflow_for_request(SimpleNamespace(video_provider="premium")),
+                "product_video.json",
+            )
+
+        with patch.dict("os.environ", {"COMFYUI_PREMIUM_VIDEO_WORKFLOW": "premium_custom.json"}):
+            self.assertEqual(
+                comfy_client.video_workflow_for_request(SimpleNamespace(video_provider="premium")),
+                "premium_custom.json",
+            )
+
     async def test_img2img_fallback_corrects_scene_typos_and_keeps_props(self):
         prompt = comfy_client.compose_img2img_prompt(
             "ON THE MABEL TABEL WITH CANDELS.",

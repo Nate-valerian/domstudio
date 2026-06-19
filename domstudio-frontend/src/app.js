@@ -201,6 +201,10 @@ const TOKEN_PACKS = [
 ];
 
 const VIDEO_DURATIONS = Array.from({ length: 10 }, (_, index) => index + 3);
+const VIDEO_PROVIDERS = [
+  { id: "local", labelKey: "video.providerLocal", metaKey: "video.providerLocalMeta", descKey: "video.providerLocalDesc" },
+  { id: "premium", labelKey: "video.providerPremium", metaKey: "video.providerPremiumMeta", descKey: "video.providerPremiumDesc" },
+];
 
 const DEFAULT_BRAND_PREFS = {
   brand_colors: "",
@@ -270,6 +274,7 @@ const state = {
     marketplace: initialBrandPrefs.default_marketplace,
     style_template: initialBrandPrefs.default_style_template,
     brand_colors: initialBrandPrefs.brand_colors,
+    video_provider: "local",
   },
 };
 
@@ -471,12 +476,14 @@ function composeGenerationPayload(values) {
 function composeVideoPayload(values) {
   const payload = composeGenerationPayload(values);
   const duration = Number.parseInt(values.duration_s || state.formDraft.duration_s || "3", 10);
+  const provider = VIDEO_PROVIDERS.some((item) => item.id === values.video_provider) ? values.video_provider : "local";
   return {
     mode: payload.mode === "catalog" ? "product" : payload.mode,
     subject: payload.subject,
     style_hint: payload.style_hint,
     image: state.selectedImage,
     duration_s: Number.isFinite(duration) ? Math.min(Math.max(duration, 3), 12) : 3,
+    video_provider: provider,
   };
 }
 
@@ -744,8 +751,9 @@ function homePage() {
                 <img src="${landingWineAfterUrl}" alt="Generated wine bottle product image" />
               </figure>
               <figure class="landing-media video-media">
-                <span class="media-tag">Video</span>
+                <span class="media-tag">${t("home.video")}</span>
                 <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
+                <span class="video-play" aria-hidden="true"></span>
               </figure>
             </div>
             <div class="mini-studio-controls">
@@ -775,8 +783,9 @@ function homePage() {
               <img src="${landingWineAfterUrl}" alt="Generated wine bottle product image" />
             </figure>
             <figure class="landing-media video-media">
-              <span class="media-tag">Video</span>
+              <span class="media-tag">${t("home.video")}</span>
               <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
+              <span class="video-play" aria-hidden="true"></span>
             </figure>
           </article>
           <div class="proof-copy">
@@ -884,7 +893,15 @@ function appSidebar(active) {
 }
 
 function generationCost() {
-  return state.generationKind === "video" ? 300 : 100;
+  return state.generationKind === "video" ? videoTokenCost() : 100;
+}
+
+function currentVideoProvider() {
+  return VIDEO_PROVIDERS.find((provider) => provider.id === state.formDraft.video_provider) || VIDEO_PROVIDERS[0];
+}
+
+function videoTokenCost() {
+  return currentVideoProvider().id === "premium" ? 300 : 0;
 }
 
 function videoSourceFromJob(job) {
@@ -901,12 +918,14 @@ function videoJobPanel() {
   const status = state.videoJob.status || "queued";
   const label = t(`video.status.${status}`) || status;
   const error = state.videoJob.error ? `<p class="video-error">${escapeHtml(state.videoJob.error)}</p>` : "";
+  const tokensUsed = state.videoJob.tokens_used ?? state.videoJob.tokens_charged ?? 300;
+  const jobSub = tokensUsed === 0 ? t("video.jobSubFree") : t("video.jobSub", { n: tokensUsed });
   const download = state.generatedVideo
     ? `<a class="button secondary" href="${state.generatedVideo}" download="domstudio-video.${String(state.videoJob.output_format || "mp4").toLowerCase()}">${t("video.download")}</a>`
     : "";
   return `<div class="video-job-card ${status}">
     <div class="mini-head"><h3>${t("video.jobTitle")}</h3><span>${label}</span></div>
-    <p>${t("video.jobSub", { n: state.videoJob.tokens_used || 300 })}</p>
+    <p>${jobSub}</p>
     ${error}
     ${download}
   </div>`;
@@ -916,6 +935,13 @@ function studioPage() {
   if (!state.user) return gatePage();
   const sceneModeNotice = state.formDraft.mode === "catalog" && hasSceneIntent(state.formDraft.subject);
   const cost = generationCost();
+  const selectedVideoProvider = currentVideoProvider();
+  const videoSubmitLabel = selectedVideoProvider.id === "premium" ? t("video.submitCta") : t("video.submitFreeCta");
+  const tokenHint = state.generationKind === "video" && cost === 0
+    ? t("video.tokenFree")
+    : state.generationKind === "video"
+    ? t("video.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / cost) })
+    : t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) });
   return `<main class="app-layout">
     ${appSidebar("studio")}
     <section class="workspace">
@@ -934,6 +960,20 @@ function studioPage() {
               ${VIDEO_DURATIONS.map((seconds) => `<option value="${seconds}" ${selectedAttr(String(state.formDraft.duration_s || "3"), String(seconds))}>${seconds}s</option>`).join("")}
             </select></div>` : ""}
           </div>
+          ${state.generationKind === "video" ? `
+            <div class="video-provider-section">
+              <div class="mini-head"><h3>${t("video.providerTitle")}</h3><span>${t("video.providerHint")}</span></div>
+              <div class="video-provider-grid">
+                ${VIDEO_PROVIDERS.map(provider => `
+                  <label class="video-provider-option ${selectedVideoProvider.id === provider.id ? "active" : ""}">
+                    <input type="radio" name="video_provider" value="${provider.id}" ${checkedAttr(selectedVideoProvider.id === provider.id)} />
+                    <span><b>${t(provider.labelKey)}</b><small>${t(provider.metaKey)}</small></span>
+                    <p>${t(provider.descKey)}</p>
+                  </label>
+                `).join("")}
+              </div>
+            </div>
+          ` : ""}
           <div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
             <button class="collapsible-head" type="button" data-toggle-brand>
               <span><h3>${t("studio.brandTitle")}</h3><small>${t("studio.brandSub")}</small></span>
@@ -968,10 +1008,10 @@ function studioPage() {
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
           ${state.generationKind === "photo" ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>` : `<p class="video-note">${t("video.note")}</p>`}
-          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating")) : (state.generationKind === "video" ? t("video.submitCta") : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"))}</button>
+          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating")) : (state.generationKind === "video" ? videoSubmitLabel : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"))}</button>
           ${state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
-            : `<p class="token-hint">${state.generationKind === "video" ? t("video.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 300) }) : t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) })}</p>`}
+            : `<p class="token-hint">${tokenHint}</p>`}
         </form>
         <div class="panel">
           <div class="result ${state.generating && !state.generatedImage && !state.generatedVideo ? "loading" : ""} ${state.generationKind === "video" || state.generatedVideo ? "video-result" : ""}">
@@ -2036,6 +2076,7 @@ window.addEventListener("hashchange", () => {
 });
 window.addEventListener("scroll", handleScroll, { passive: true });
 
-await Promise.all([loadUser(), loadPlans(), loadHistory()]);
-checkPaymentReturn();
 render();
+Promise.all([loadUser(), loadPlans(), loadHistory()])
+  .then(checkPaymentReturn)
+  .finally(render);

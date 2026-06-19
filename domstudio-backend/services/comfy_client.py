@@ -23,6 +23,7 @@ DEFAULT_AUTODL_API_URL = "https://api.autodl.com"
 DEFAULT_COMFY_PORT = "6006"
 DEFAULT_WORKFLOW_DIR = Path(__file__).resolve().parents[1] / "workflows"
 DEFAULT_VIDEO_WORKFLOW = "product_video_wan_local.json"
+DEFAULT_PREMIUM_VIDEO_WORKFLOW = "product_video.json"
 PAID_PARTNER_NODE_TYPES = frozenset({
     "ByteDanceImageToVideoNode",
 })
@@ -332,6 +333,13 @@ def video_num_frames(duration_s: int | float | str | None, fps: int | None = Non
     target = max(1, round(duration * frame_rate))
     # Wan I2V works best with frame counts in the 4n + 1 cadence, e.g. 81 frames for 5s at 16fps.
     return max(17, (((target - 1) + 3) // 4) * 4 + 1)
+
+
+def video_workflow_for_request(request: Any) -> str:
+    provider = str(getattr(request, "video_provider", "local") or "local").strip().lower()
+    if provider == "premium":
+        return os.getenv("COMFYUI_PREMIUM_VIDEO_WORKFLOW", DEFAULT_PREMIUM_VIDEO_WORKFLOW)
+    return os.getenv("COMFYUI_VIDEO_WORKFLOW", DEFAULT_VIDEO_WORKFLOW)
 
 
 def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
@@ -769,10 +777,11 @@ async def generate_video_with_comfy(request: Any) -> dict[str, Any]:
     if getattr(request, "image", None):
         image_name = await client.upload_image(request.image)
 
-    workflow_file = os.getenv("COMFYUI_VIDEO_WORKFLOW", DEFAULT_VIDEO_WORKFLOW)
+    workflow_file = video_workflow_for_request(request)
     logger.info(
-        "[VIDEO] mode=%s has_image=%s workflow=%s duration=%s",
+        "[VIDEO] mode=%s provider=%s has_image=%s workflow=%s duration=%s",
         getattr(request, "mode", "?"),
+        getattr(request, "video_provider", "local"),
         bool(image_name),
         workflow_file,
         getattr(request, "duration_s", 3),
@@ -792,6 +801,7 @@ async def generate_video_with_comfy(request: Any) -> dict[str, Any]:
         "prompt_id": result.get("prompt_id"),
         "filename": result.get("filename"),
         "mode": getattr(request, "mode", None),
+        "video_provider": getattr(request, "video_provider", "local"),
     }
 
 

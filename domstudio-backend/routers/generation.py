@@ -1,7 +1,7 @@
 """
 DomStudio — Generation Router
 POST /generation/generate      — synchronous image generation (deducts 100 tokens)
-POST /generation/video         — async video job (deducts 300 tokens, returns job_id)
+POST /generation/video         — async video job (local 0 tokens, premium 300 tokens)
 GET  /generation/jobs          — list user's recent jobs
 GET  /generation/jobs/{job_id} — poll a single job by id
 """
@@ -46,6 +46,7 @@ class VideoRequest(BaseModel):
     image:      str | None = None
     style_hint: str  = Field(default="", max_length=500)
     duration_s: int  = Field(default=3, ge=3, le=12)
+    video_provider: str = Field(default="local", pattern="^(local|premium)$")
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -62,6 +63,15 @@ async def change_balance(db: AsyncSession, user_id, amount: int, require_balance
         .returning(TokenBalance.balance)
     )
     return result.scalar_one_or_none()
+
+
+async def get_balance(db: AsyncSession, user_id) -> int:
+    result = await db.execute(select(TokenBalance.balance).where(TokenBalance.user_id == user_id))
+    return int(result.scalar_one_or_none() or 0)
+
+
+def video_token_cost(req: "VideoRequest") -> int:
+    return VIDEO_TOKEN_COST if req.video_provider == "premium" else 0
 
 
 async def increment_photos_used(db: AsyncSession, user_id) -> None:
@@ -138,16 +148,20 @@ async def generate_video(
     if not req.image:
         raise HTTPException(400, "Product photo is required for video generation")
 
-    balance = await change_balance(db, current_user.id, -VIDEO_TOKEN_COST, require_balance=True)
-    if balance is None:
-        raise HTTPException(402, "Insufficient tokens")
+    token_cost = video_token_cost(req)
+    if token_cost:
+        balance = await change_balance(db, current_user.id, -token_cost, require_balance=True)
+        if balance is None:
+            raise HTTPException(402, "Insufficient tokens")
+    else:
+        balance = await get_balance(db, current_user.id)
 
     job = GenerationJob(
         user_id=current_user.id,
         mode=req.mode,
         subject=req.subject,
         status=JobStatus.queued,
-        tokens_used=VIDEO_TOKEN_COST,
+        tokens_used=token_cost,
     )
     db.add(job)
     await db.flush()
@@ -159,8 +173,9 @@ async def generate_video(
     return {
         "job_id":          job_id,
         "status":          "queued",
-        "tokens_charged":  VIDEO_TOKEN_COST,
+        "tokens_charged":  token_cost,
         "token_balance":   balance,
+        "video_provider":  req.video_provider,
     }
 
 
@@ -209,8 +224,8 @@ async def _run_video_job(job_id: str, req: VideoRequest) -> None:
         # Refund tokens on failure
         async with AsyncSessionLocal() as db:
             job = await db.get(GenerationJob, job_id)
-            if job:
-                await change_balance(db, job.user_id, VIDEO_TOKEN_COST)
+            if job and job.tokens_used:
+                await change_balance(db, job.user_id, job.tokens_used)
                 await db.commit()
 
 

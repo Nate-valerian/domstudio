@@ -97,6 +97,7 @@ def _workflow_status(filename: str | None) -> dict[str, object]:
 def runtime_version_payload() -> dict[str, object]:
     image_workflow = os.getenv("COMFYUI_IMAGE_WORKFLOW", "product_image.json")
     video_workflow = os.getenv("COMFYUI_VIDEO_WORKFLOW", "product_video_wan_local.json")
+    premium_video_workflow = os.getenv("COMFYUI_PREMIUM_VIDEO_WORKFLOW", "product_video.json")
 
     return {
         "service": "domstudio-api",
@@ -122,6 +123,7 @@ def runtime_version_payload() -> dict[str, object]:
         "workflows": {
             "image": _workflow_status(image_workflow),
             "video": _workflow_status(video_workflow),
+            "premium_video": _workflow_status(premium_video_workflow),
         },
         "integrations": {
             "database_url_present": _env_present("DATABASE_URL"),

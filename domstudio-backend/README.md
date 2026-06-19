@@ -77,12 +77,14 @@ backend replaces these placeholders anywhere in the workflow before queueing it:
 Video has two workflow options:
 
 - `product_video_wan_local.json` is the default local Wan I2V workflow. It uses
-  AutoDL GPU time only and does not spend Comfy.org Partner credits.
+  AutoDL GPU time only, costs 0 DomStudio app tokens, and does not spend
+  Comfy.org Partner credits.
 - `product_video.json` keeps the paid ByteDance Partner workflow available as a
-  premium fallback. To run it deliberately, set:
+  premium fallback. It costs 300 DomStudio app tokens and spends Comfy.org
+  credits. To run it deliberately, set:
 
 ```powershell
-COMFYUI_VIDEO_WORKFLOW=product_video.json
+COMFYUI_PREMIUM_VIDEO_WORKFLOW=product_video.json
 COMFYUI_ACCOUNT_API_KEY=your-comfy-account-key
 COMFYUI_ALLOW_PAID_PARTNER_NODES=true
 COMFYUI_VIDEO_RESOLUTION=720p
