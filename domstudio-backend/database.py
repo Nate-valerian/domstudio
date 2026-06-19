@@ -52,10 +52,10 @@ class JobStatus(str, enum.Enum):
 
 # ─── PLANS CONFIG ────────────────────────────────────────────────────────────
 PLANS = {
-    PlanName.free:     {"price_rub": 0,      "photos": 5,   "tokens": 500},
-    PlanName.basic:    {"price_rub": 270,    "photos": 30,  "tokens": 3000},
-    PlanName.pro:      {"price_rub": 790,    "photos": 100, "tokens": 10000},
-    PlanName.business: {"price_rub": 1490,   "photos": 300, "tokens": 30000},
+    PlanName.free:     {"price_rub": 0,      "photos": 5,   "videos": 5,   "premium_videos": 0,  "tokens": 500},
+    PlanName.basic:    {"price_rub": 270,    "photos": 30,  "videos": 30,  "premium_videos": 10, "tokens": 3000},
+    PlanName.pro:      {"price_rub": 790,    "photos": 100, "videos": 50,  "premium_videos": 33, "tokens": 10000},
+    PlanName.business: {"price_rub": 1490,   "photos": 300, "videos": 100, "premium_videos": 99, "tokens": 30000},
 }
 
 # ─── TOKEN TOP-UP PACKS ──────────────────────────────────────────────────────

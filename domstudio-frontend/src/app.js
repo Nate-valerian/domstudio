@@ -188,10 +188,10 @@ const PLAN_DESCRIPTIONS = {
 };
 
 const FALLBACK_PLANS = [
-  { name: "free", price_rub: 0, photos: 5, tokens: 500 },
-  { name: "basic", price_rub: 270, photos: 30, tokens: 3000 },
-  { name: "pro", price_rub: 790, photos: 100, tokens: 10000 },
-  { name: "business", price_rub: 1490, photos: 300, tokens: 30000 },
+  { name: "free", price_rub: 0, photos: 5, videos: 5, premium_videos: 0, tokens: 500 },
+  { name: "basic", price_rub: 270, photos: 30, videos: 30, premium_videos: 10, tokens: 3000 },
+  { name: "pro", price_rub: 790, photos: 100, videos: 50, premium_videos: 33, tokens: 10000 },
+  { name: "business", price_rub: 1490, photos: 300, videos: 100, premium_videos: 99, tokens: 30000 },
 ];
 
 const TOKEN_PACKS = [
@@ -405,6 +405,15 @@ function pricePerPhoto(plan) {
 
 function planPhotos(plan) {
   return plan.name === "business" ? t("pricing.photos300") : `${plan.photos} ${t("pricing.photos")}`;
+}
+
+function planVideos(plan) {
+  return t("pricing.videoCount", { n: plan.videos ?? 0 });
+}
+
+function planPremiumVideos(plan) {
+  const count = plan.premium_videos ?? 0;
+  return count ? t("pricing.premiumVideoCount", { n: count }) : "";
 }
 
 function truncate(value, maxLength = 500) {
@@ -1166,7 +1175,7 @@ function pricingPage() {
             <div class="plan-kicker">${planDescription(plan.name)}</div>
             <h3>${planLabel(plan.name)}</h3>
             <div class="price">${plan.price_rub.toLocaleString("ru-RU")} ₽ <small>${t("pricing.perMonth")}</small></div>
-            <ul class="price-list"><li>${planPhotos(plan)}</li><li>${pricePerPhoto(plan)}</li><li>${plan.tokens.toLocaleString("ru-RU")} ${t("studio.tokens", { n: "" }).trim()}</li><li>${t("pricing.allModes")}</li></ul>
+            <ul class="price-list"><li>${planPhotos(plan)}</li><li>${planVideos(plan)}</li>${planPremiumVideos(plan) ? `<li>${planPremiumVideos(plan)}</li>` : ""}<li>${pricePerPhoto(plan)}</li><li>${plan.tokens.toLocaleString("ru-RU")} ${t("studio.tokens", { n: "" }).trim()}</li><li>${t("pricing.allModes")}</li></ul>
             <button class="button ${plan.name === "pro" ? "gold" : ""}" data-plan="${plan.name}">${plan.price_rub ? t("pricing.choose") : t("pricing.startFree")}</button>
           </article>`).join("")}
       </div>

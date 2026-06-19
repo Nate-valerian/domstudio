@@ -111,7 +111,7 @@ async def tinkoff_init(
     result = await tinkoff_request("Init", {
         "Amount":      amount_kop,
         "OrderId":     str(payment.id),
-        "Description": f"DomStudio {req.plan.value} — {plan_cfg['photos']} фото/мес",
+        "Description": f"DomStudio {req.plan.value} — {plan_cfg['photos']} фото + {plan_cfg['videos']} видео/мес",
         "NotificationURL": f"{os.getenv('API_URL','https://api.domstudio.ru')}/payments/tinkoff/webhook",
         "SuccessURL":  f"{FRONTEND_URL}/dashboard?payment=success",
         "FailURL":     f"{FRONTEND_URL}/pricing?payment=failed",
