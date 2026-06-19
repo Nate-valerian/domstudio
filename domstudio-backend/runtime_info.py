@@ -96,7 +96,7 @@ def _workflow_status(filename: str | None) -> dict[str, object]:
 
 def runtime_version_payload() -> dict[str, object]:
     image_workflow = os.getenv("COMFYUI_IMAGE_WORKFLOW", "product_image.json")
-    video_workflow = os.getenv("COMFYUI_VIDEO_WORKFLOW", "product_video.json")
+    video_workflow = os.getenv("COMFYUI_VIDEO_WORKFLOW", "product_video_wan_local.json")
 
     return {
         "service": "domstudio-api",
@@ -114,6 +114,8 @@ def runtime_version_payload() -> dict[str, object]:
             "port": os.getenv("COMFYUI_PORT", "6006"),
             "api_key_present": _env_present("COMFYUI_API_KEY"),
             "account_api_key_present": _env_present("COMFYUI_ACCOUNT_API_KEY"),
+            "allow_paid_partner_nodes": os.getenv("COMFYUI_ALLOW_PAID_PARTNER_NODES", "").strip().lower()
+            in {"1", "true", "yes", "on"},
             "video_resolution": os.getenv("COMFYUI_VIDEO_RESOLUTION", "720p"),
             "poll_timeout": os.getenv("COMFYUI_POLL_TIMEOUT", "600"),
         },

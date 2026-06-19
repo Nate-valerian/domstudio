@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 DEFAULT_AUTODL_API_URL = "https://api.autodl.com"
 DEFAULT_COMFY_PORT = "6006"
 DEFAULT_WORKFLOW_DIR = Path(__file__).resolve().parents[1] / "workflows"
+DEFAULT_VIDEO_WORKFLOW = "product_video_wan_local.json"
+PAID_PARTNER_NODE_TYPES = frozenset({
+    "ByteDanceImageToVideoNode",
+})
 
 
 class ComfyConfigError(RuntimeError):
@@ -46,6 +50,13 @@ def _env_float(name: str, default: float) -> float:
         return default
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _headers(api_key: str | None = None) -> dict[str, str]:
     headers: dict[str, str] = {}
     if api_key:
@@ -61,6 +72,16 @@ def _comfy_account_extra_data() -> dict[str, str]:
     if not api_key:
         return {}
     return {"api_key_comfy_org": api_key}
+
+
+def _paid_partner_nodes(workflow: dict[str, Any]) -> set[str]:
+    nodes: set[str] = set()
+    for node in workflow.values():
+        if isinstance(node, dict):
+            class_type = node.get("class_type")
+            if class_type in PAID_PARTNER_NODE_TYPES:
+                nodes.add(str(class_type))
+    return nodes
 
 
 async def discover_autodl_comfy_url(
@@ -297,6 +318,22 @@ def video_aspect_ratio(mode: str | None) -> str:
     return "9:16" if str(mode or "").strip().lower() == "mobile" else "1:1"
 
 
+def video_frame_rate() -> int:
+    return max(1, _env_int("COMFYUI_VIDEO_FPS", 16))
+
+
+def video_num_frames(duration_s: int | float | str | None, fps: int | None = None) -> int:
+    try:
+        duration = float(duration_s if duration_s is not None else 5)
+    except (TypeError, ValueError):
+        duration = 5.0
+    duration = max(1.0, duration)
+    frame_rate = fps or video_frame_rate()
+    target = max(1, round(duration * frame_rate))
+    # Wan I2V works best with frame counts in the 4n + 1 cadence, e.g. 81 frames for 5s at 16fps.
+    return max(17, (((target - 1) + 3) // 4) * 4 + 1)
+
+
 def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject) or "a clean product photography scene"
     style = sanitize_style_hint_for_image_edit(style_hint)
@@ -417,6 +454,8 @@ def render_workflow(
     request_seed = int(getattr(request, "seed", -1))
     seed = int(request_seed if request_seed >= 0 else time.time_ns() % (2**32))
     width, height = generation_dimensions(selected_mode)
+    duration_s = int(getattr(request, "duration_s", 5))
+    fps = video_frame_rate()
     replacements = {
         "{{prompt}}": prompt,
         "{{subject}}": request.subject,
@@ -426,7 +465,9 @@ def render_workflow(
         "{{width}}": width,
         "{{height}}": height,
         "{{image_name}}": image_name,
-        "{{duration_s}}": int(getattr(request, "duration_s", 3)),
+        "{{duration_s}}": duration_s,
+        "{{video_fps}}": fps,
+        "{{video_num_frames}}": video_num_frames(duration_s, fps),
         "{{video_resolution}}": os.getenv("COMFYUI_VIDEO_RESOLUTION", "720p"),
         "{{video_aspect_ratio}}": video_aspect_ratio(selected_mode),
         "{{upscale_4k}}": bool(getattr(request, "upscale_4k", False)),
@@ -481,6 +522,14 @@ class ComfyClient:
             return response.json()["name"]
 
     async def queue_prompt(self, workflow: dict[str, Any]) -> str:
+        paid_nodes = _paid_partner_nodes(workflow)
+        if paid_nodes and not _env_bool("COMFYUI_ALLOW_PAID_PARTNER_NODES"):
+            names = ", ".join(sorted(paid_nodes))
+            raise ComfyGenerationError(
+                f"Workflow contains paid Comfy Partner node(s): {names}. "
+                "Set COMFYUI_ALLOW_PAID_PARTNER_NODES=true to run the premium workflow deliberately."
+            )
+
         payload: dict[str, Any] = {"prompt": workflow, "client_id": str(uuid.uuid4())}
         extra_data = _comfy_account_extra_data()
         if extra_data:
@@ -720,7 +769,7 @@ async def generate_video_with_comfy(request: Any) -> dict[str, Any]:
     if getattr(request, "image", None):
         image_name = await client.upload_image(request.image)
 
-    workflow_file = os.getenv("COMFYUI_VIDEO_WORKFLOW", "product_video.json")
+    workflow_file = os.getenv("COMFYUI_VIDEO_WORKFLOW", DEFAULT_VIDEO_WORKFLOW)
     logger.info(
         "[VIDEO] mode=%s has_image=%s workflow=%s duration=%s",
         getattr(request, "mode", "?"),

@@ -123,6 +123,32 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
             {"api_key_comfy_org": "comfyui-test-key"},
         )
 
+    async def test_queue_prompt_blocks_paid_partner_nodes_unless_explicitly_allowed(self):
+        client = comfy_client.ComfyClient("https://comfy.example")
+        workflow = {"1": {"class_type": "ByteDanceImageToVideoNode", "inputs": {}}}
+
+        with patch.dict("os.environ", {}, clear=True):
+            with self.assertRaises(comfy_client.ComfyGenerationError) as raised:
+                await client.queue_prompt(workflow)
+
+        self.assertIn("COMFYUI_ALLOW_PAID_PARTNER_NODES=true", str(raised.exception))
+
+    async def test_queue_prompt_allows_paid_partner_nodes_when_enabled(self):
+        FakePromptClient.last_json = None
+        client = comfy_client.ComfyClient("https://comfy.example")
+        workflow = {"1": {"class_type": "ByteDanceImageToVideoNode", "inputs": {}}}
+
+        with patch.dict("os.environ", {"COMFYUI_ALLOW_PAID_PARTNER_NODES": "true"}):
+            with patch.object(comfy_client.httpx, "AsyncClient", FakePromptClient):
+                prompt_id = await client.queue_prompt(workflow)
+
+        self.assertEqual(prompt_id, "prompt-123")
+        self.assertEqual(FakePromptClient.last_json["prompt"], workflow)
+
+    async def test_video_frame_count_uses_wan_cadence(self):
+        self.assertEqual(comfy_client.video_num_frames(5, 16), 81)
+        self.assertEqual(comfy_client.video_num_frames(3, 16), 49)
+
     async def test_img2img_fallback_corrects_scene_typos_and_keeps_props(self):
         prompt = comfy_client.compose_img2img_prompt(
             "ON THE MABEL TABEL WITH CANDELS.",
