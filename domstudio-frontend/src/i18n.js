@@ -1,6 +1,5 @@
 export const LANG_KEY = "domstudio_lang";
 const SUPPORTED_LANGS = new Set(["ru", "en"]);
-const RU_REGIONS = new Set(["RU", "BY", "KZ", "KG"]);
 const RU_TIMEZONES = new Set([
   "Europe/Kaliningrad",
   "Europe/Moscow",
@@ -21,29 +20,13 @@ function normalizeLang(lang) {
   return SUPPORTED_LANGS.has(base) ? base : null;
 }
 
-function localeRegion(locale) {
-  try {
-    return new Intl.Locale(locale).region;
-  } catch {
-    return "";
-  }
+export function isRussianMarket() {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return RU_TIMEZONES.has(timezone);
 }
 
 function detectLang() {
-  const languages = Array.isArray(navigator.languages) && navigator.languages.length
-    ? navigator.languages
-    : [navigator.language];
-  if (languages.some((lang) => normalizeLang(lang) === "ru")) return "ru";
-
-  const region = languages.map(localeRegion).find(Boolean);
-  if (RU_REGIONS.has(region)) return "ru";
-
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  if (RU_TIMEZONES.has(timezone)) return "ru";
-
-  if (languages.some((lang) => normalizeLang(lang) === "en")) return "en";
-
-  return "en";
+  return isRussianMarket() ? "ru" : "en";
 }
 
 export function getLang() {
@@ -86,7 +69,6 @@ const T = {
     "home.miniPromptLabel": "Промпт",
     "home.miniPromptValue": "бутылка вина на мраморном столе",
     "home.miniCta": "Создать бесплатно",
-    "home.floatCard": "обычный снимок → готовый кадр",
     "home.proofH2": "Сначала покажите результат. Потом объясняйте.",
     "home.proofP": "DomStudio должен сразу доказывать ценность: обычный снимок превращается в карточку товара, баннер или social creative без тяжёлого хранения на сервере.",
     "home.stat1s": "фото в первом платном пакете",
@@ -408,7 +390,6 @@ const T = {
     "home.miniPromptLabel": "Prompt",
     "home.miniPromptValue": "wine bottle on marble table",
     "home.miniCta": "Create for free",
-    "home.floatCard": "basic shot → ready image",
     "home.proofH2": "Show the result first. Explain later.",
     "home.proofP": "DomStudio proves its value immediately: a plain photo becomes a product card, banner or social creative — with no heavy server-side image storage.",
     "home.stat1s": "photos in the first paid plan",

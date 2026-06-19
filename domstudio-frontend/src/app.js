@@ -1,6 +1,6 @@
 import "./styles.css";
 import { gsap } from "gsap";
-import { t, getLang, setLang } from "./i18n.js";
+import { t, getLang, setLang, isRussianMarket } from "./i18n.js";
 import productProofUrl from "./assets/product-proof.webp";
 import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
 import modeProductUrl from "./assets/mode-product-real-v3.webp";
@@ -688,6 +688,8 @@ function contentPackTools() {
 function nav() {
   const logged = Boolean(state.user);
   const lang = state.lang;
+  const showPrimaryLangToggle = isRussianMarket();
+  const langToggle = `<button class="lang-toggle" type="button" data-toggle-lang aria-label="Switch language" title="Switch language">${lang === "ru" ? "EN" : "RU"}</button>`;
   const navItems = [
     ["home", t("nav.home")],
     ["studio", t("nav.studio")],
@@ -711,6 +713,7 @@ function nav() {
             }).join("")}
           </div>
         </div>
+        ${showPrimaryLangToggle ? "" : `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>`}
       </div>
       <div class="nav-actions">
         ${logged
@@ -719,7 +722,7 @@ function nav() {
              <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`
           : `<button class="button secondary" data-auth="login">${t("nav.login")}</button>
              <button class="button gold nav-cta" data-auth="register">${t("nav.register")}</button>`}
-        <button class="lang-toggle" type="button" data-toggle-lang aria-label="Switch language" title="Switch language">${lang === "ru" ? "EN" : "RU"}</button>
+        ${showPrimaryLangToggle ? langToggle : ""}
         <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Menu"><span></span><span></span></button>
       </div>
       </div>
@@ -762,7 +765,6 @@ function homePage() {
               <figure class="landing-media video-media">
                 <span class="media-tag">${t("home.video")}</span>
                 <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
-                <span class="video-play" aria-hidden="true"></span>
               </figure>
             </div>
             <div class="mini-studio-controls">
@@ -772,7 +774,6 @@ function homePage() {
               <button class="button gold block" type="button" data-route="studio">${t("home.miniCta")}</button>
             </div>
           </div>
-          <div class="float-card"><b>AI</b><span>${t("home.floatCard")}</span></div>
         </div>
       </section>
 
@@ -794,7 +795,6 @@ function homePage() {
             <figure class="landing-media video-media">
               <span class="media-tag">${t("home.video")}</span>
               <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
-              <span class="video-play" aria-hidden="true"></span>
             </figure>
           </article>
           <div class="proof-copy">
@@ -1438,7 +1438,6 @@ function runMotion({ entrance = true } = {}) {
     ".hero-copy > *",
     ".hero-visual",
     ".hero-studio-card",
-    ".float-card",
     ".proof-visual",
     ".proof-stat",
     ".mode-card",
@@ -1468,7 +1467,6 @@ function runMotion({ entrance = true } = {}) {
     });
     animateFrom(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
     animateTo(".hero-studio-card", { y: -10, rotation: 0.4, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    animateTo(".float-card", { y: 12, duration: 3.7, repeat: -1, yoyo: true, ease: "sine.inOut" });
     animateFrom(".proof-visual, .proof-stat, .mode-card, .step", {
       y: 26,
       opacity: 0,
