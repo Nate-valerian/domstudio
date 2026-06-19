@@ -1,11 +1,58 @@
 export const LANG_KEY = "domstudio_lang";
+const SUPPORTED_LANGS = new Set(["ru", "en"]);
+const RU_REGIONS = new Set(["RU", "BY", "KZ", "KG"]);
+const RU_TIMEZONES = new Set([
+  "Europe/Kaliningrad",
+  "Europe/Moscow",
+  "Europe/Samara",
+  "Asia/Yekaterinburg",
+  "Asia/Omsk",
+  "Asia/Novosibirsk",
+  "Asia/Krasnoyarsk",
+  "Asia/Irkutsk",
+  "Asia/Yakutsk",
+  "Asia/Vladivostok",
+  "Asia/Magadan",
+  "Asia/Kamchatka",
+]);
+
+function normalizeLang(lang) {
+  const base = String(lang || "").toLowerCase().split("-")[0];
+  return SUPPORTED_LANGS.has(base) ? base : null;
+}
+
+function localeRegion(locale) {
+  try {
+    return new Intl.Locale(locale).region;
+  } catch {
+    return "";
+  }
+}
+
+function detectLang() {
+  const languages = Array.isArray(navigator.languages) && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language];
+  if (languages.some((lang) => normalizeLang(lang) === "ru")) return "ru";
+
+  const region = languages.map(localeRegion).find(Boolean);
+  if (RU_REGIONS.has(region)) return "ru";
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (RU_TIMEZONES.has(timezone)) return "ru";
+
+  if (languages.some((lang) => normalizeLang(lang) === "en")) return "en";
+
+  return "en";
+}
 
 export function getLang() {
-  return localStorage.getItem(LANG_KEY) || "ru";
+  const saved = normalizeLang(localStorage.getItem(LANG_KEY));
+  return saved || detectLang();
 }
 
 export function setLang(lang) {
-  localStorage.setItem(LANG_KEY, lang);
+  localStorage.setItem(LANG_KEY, normalizeLang(lang) || "ru");
 }
 
 // Flat key → string. Use {var} for interpolation.

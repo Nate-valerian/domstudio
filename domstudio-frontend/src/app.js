@@ -710,7 +710,7 @@ function nav() {
              <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`
           : `<button class="button secondary" data-auth="login">${t("nav.login")}</button>
              <button class="button gold nav-cta" data-auth="register">${t("nav.register")}</button>`}
-        <button class="lang-toggle" type="button" data-toggle-lang>${lang === "ru" ? "EN" : "RU"}</button>
+        <button class="lang-toggle" type="button" data-toggle-lang aria-label="Switch language" title="Switch language">${lang === "ru" ? "EN" : "RU"}</button>
         <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Menu"><span></span><span></span></button>
       </div>
       </div>

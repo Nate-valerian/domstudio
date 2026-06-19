@@ -579,7 +579,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .token-pill { display: none; }
   .profile-pill,
   .nav-menu-button { width: 38px; height: 38px; }
-  .lang-toggle { display: none; }
+  .lang-toggle { display: inline-flex; width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 10px; letter-spacing: .02em; background: white; color: var(--ink); }
   .nav-cta { display: none; }
   .nav-links { left: 0; right: 0; top: calc(100% + 8px); max-height: calc(100vh - 86px); overflow-y: auto; }
   .nav-link { padding: 13px 14px; }
