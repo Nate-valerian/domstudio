@@ -79,6 +79,39 @@ Local dev server started for review:
 http://127.0.0.1:5173/
 ```
 
+Follow-up QA/fix:
+
+- User requested that the upper mobile nav and footer/bottom nav be identical
+  in size.
+- Adjusted mobile CSS so the top nav shell and bottom tab shell both use the
+  same 64px visual height.
+- Follow-up clarification: user said height and length must both be the same.
+- Adjusted the top mobile nav side padding from 10px to 8px so both visible
+  shells use the same viewport width:
+  - top nav visible shell: `left/right 8px`
+  - bottom nav visible shell: `left 8px`, `width: calc(100vw - 16px)`
+- Increased mobile top nav controls from 38px to 42px to match the bottom tab
+  proportions.
+- Forced fixed mobile bars to use explicit viewport widths to avoid screenshot
+  or layout clipping.
+- Reduced mobile heading scale and added safer word wrapping after QA showed
+  Russian headings and body text could clip at 390px width.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm run build
+npx -y playwright@latest screenshot --channel chrome --block-service-workers --viewport-size=390,844 http://127.0.0.1:5173/ temp-preview\mobile-pwa-home-nav-match.png
+npx -y playwright@latest screenshot --channel chrome --block-service-workers --viewport-size=390,844 http://127.0.0.1:5173/ temp-preview\mobile-pwa-nav-size-equal.png
+```
+
+Result:
+
+- Build passed.
+- Playwright screenshot showed matching top and bottom mobile nav shells in
+  both height and width.
+
 ## June 7, 2026 - Midday Status Note
 
 User asked:
