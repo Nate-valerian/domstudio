@@ -237,6 +237,51 @@ Conclusion:
 - Remaining blocker for premium ByteDance video is only the env flag:
   `COMFYUI_ALLOW_PAID_PARTNER_NODES=true`.
 
+## June 20, 2026 - Premium Partner Node Flag Verified Live
+
+User reported:
+
+```text
+done : COMFYUI_ALLOW_PAID_PARTNER_NODES=true
+```
+
+Verification:
+
+- Polled live Amvera `/version`.
+- The running app initially still reported:
+
+```text
+allow_paid_partner_nodes=false
+commit=3f5abaf90bd3
+```
+
+- Since the env change had not restarted the app, created an empty operational
+  commit to trigger Amvera redeploy:
+
+```text
+bd9b1a4 Restart Amvera for premium video env
+```
+
+- Pushed to GitHub `main` and Amvera `master`.
+- After temporary `503 Service Unavailable` responses during restart, live
+  `/version` reported:
+
+```text
+commit=bd9b1a44ff0d
+COMFYUI_URL host=aaron-firm-meeting-cattle.trycloudflare.com
+COMFYUI_ACCOUNT_API_KEY present=true
+allow_paid_partner_nodes=true
+premium_video_workflow=product_video.json
+premium_video_workflow exists=true
+```
+
+Conclusion:
+
+- Premium ByteDance/Comfy Partner node execution is now enabled on the live
+  Amvera backend.
+- The remaining validation step is to run one authenticated premium video job
+  through `/generation/video` with `video_provider=premium`.
+
 ## June 20, 2026 - Standing Archive Rule + Mobile Version Question
 
 User asked:
