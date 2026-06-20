@@ -1,5 +1,50 @@
 # DomStudio Archive
 
+## June 21, 2026 - Expo Go Overlay Fix + Web Login Diagnosis
+
+### Expo Go overlay fix (commits d89366f, b0ccbfe)
+
+Two issues were blocking iPhone Expo Go testing:
+
+1. Service worker registered in dev mode, interfering with Metro hot reload.
+   Fix: auto-unregister SW and clear caches in `registerServiceWorker()` when
+   `import.meta.env.DEV` is true.
+
+2. Expo dev warning overlay was dimming the screen and eating touches.
+   Fix:
+   - Replaced deprecated RN `SafeAreaView` with `react-native-safe-area-context`
+     `SafeAreaView` + `SafeAreaProvider`.
+   - Removed startup `expo-media-library` import that triggered the Android
+     permission warning on startup.
+   - Added `LogBox.ignoreAllLogs(true)` in dev to suppress overlay.
+   - Removed `KeyboardAvoidingView` from auth screen.
+   - Set auth `ScrollView` to `keyboardShouldPersistTaps="always"`.
+
+Validation: `npm run typecheck` + `npx expo install --check` + iOS bundle 200.
+
+After these fixes: force-close Expo Go, rescan QR, overlay should be gone.
+
+### Web login issue (open, unresolved)
+
+User reported "login failed" on `domstudio.vercel.app`.
+
+Diagnosis run:
+
+- `GET /health` → 200, backend is alive.
+- `GET /version` → Amvera running commit `e4d2174`, `GENERATION_PROVIDER=comfy`.
+- CORS preflight for `domstudio.vercel.app` → 200, headers correct.
+- `POST /auth/login/email` with wrong credentials → 401 `Invalid credentials`.
+  Route itself works.
+
+Root cause is account-specific — either wrong password, unverified account,
+or the account was registered with phone not email.
+
+**Resolution path:** use "Забыли пароль?" / "Forgot password?" on the web
+login form to reset via email OTP. If that also fails, the account may be
+phone-only — try the phone login tab.
+
+---
+
 ## June 21, 2026 - Mobile V1 Pass + iPhone 8 Plus Expo Go Compatibility
 
 User asked to build the next mobile pieces that do not require AutoDL. AutoDL is
