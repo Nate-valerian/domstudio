@@ -2158,3 +2158,180 @@ Live AutoDL sample status:
 - A new live sample was requested but not started.
 - The user then asked to archive the changes instead, so no new AutoDL generation
   was run in this step.
+
+## June 20, 2026 - AutoDL Persistent Storage, Cloudflare Tunnel, And Wan Live Samples
+
+Remote box:
+
+```text
+ssh -p 16715 root@connect.westd.seetacloud.com
+hostname: autodl-container-66u5p3yxk3-4614f861
+GPU: NVIDIA GeForce RTX 4080 SUPER, 32760 MiB VRAM
+ComfyUI: 0.3.75 on port 6006
+```
+
+New Cloudflare quick tunnel for Amvera:
+
+```text
+https://aaron-firm-meeting-cattle.trycloudflare.com
+```
+
+Amvera must update:
+
+```env
+COMFYUI_URL=https://aaron-firm-meeting-cattle.trycloudflare.com
+```
+
+Current Amvera `/version` before this update still pointed at:
+
+```text
+ballot-ide-shakira-vienna.trycloudflare.com
+```
+
+Persistent storage work:
+
+- `/root/autodl-fs` is mounted and persists across compatible west-B instances.
+- Comfy `output` and `temp` were moved to `/root/autodl-fs/ComfyUI`.
+- Existing model files were moved from `/root/autodl-tmp/models` to
+  `/root/autodl-fs/models` with symlinks left behind.
+- To reduce paid file-storage use, non-production extras were moved back to
+  `/root/autodl-tmp`:
+  - `z_image_turbo_bf16.safetensors`
+  - `qwen_3_4b.safetensors`
+  - `ae.safetensors`
+  - `sdxl_vae_fp16_fix.safetensors`
+
+Disk state after cleanup:
+
+```text
+/root/autodl-fs: 50GB used, 151GB free
+/root/autodl-tmp: 27GB used, 24GB free
+```
+
+Wan production files downloaded into `/root/autodl-fs/models`:
+
+```text
+diffusion_models/WanVideo/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors
+text_encoders/umt5-xxl-enc-bf16.safetensors
+vae/wanvideo/Wan2_1_VAE_bf16.safetensors
+clip_vision/clip_vision_h.safetensors
+loras/WanVideo/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors
+```
+
+Comfy visibility was verified for all Wan files:
+
+```text
+WanVideoModelLoader.model: OK
+LoadWanVideoT5TextEncoder.model_name: OK
+WanVideoVAELoader.model_name: OK
+CLIPVisionLoader.clip_name: OK
+WanVideoLoraSelect.lora: OK
+```
+
+Premium ByteDance route:
+
+- `ByteDanceImageToVideoNode` is installed and visible.
+- `SaveVideo` is installed and visible.
+- Amvera `/version` reports `COMFYUI_ACCOUNT_API_KEY` present.
+- Premium still requires:
+
+```env
+COMFYUI_PREMIUM_VIDEO_WORKFLOW=product_video.json
+COMFYUI_ALLOW_PAID_PARTNER_NODES=true
+COMFYUI_VIDEO_RESOLUTION=720p
+```
+
+Live local Wan sample 1:
+
+```text
+prompt_id=9760d02d-f4b0-43d4-b2df-5c48da39f20e
+remote=/root/autodl-tmp/ComfyUI/output/domstudio/video/product-live-sample_00001.mp4
+local=temp-preview/wan-live-sample-1781954113-product-live-sample_00001.mp4
+frame=temp-preview/wan-live-sample-frame.jpg
+duration=3.0625s
+size=832x480
+fps=16
+```
+
+Committed sample artifact:
+
+```text
+d536481 Add Wan live sample preview
+```
+
+Outcome:
+
+- The pipeline works and generated a real MP4.
+- It is not production-ready for marketplace use.
+- The model changed the clean product setup into a candle/lifestyle scene.
+- Label text drifted and should not be considered preserved.
+
+Live local Wan sample 2 with stricter marketplace prompt:
+
+```text
+prompt_id=8f666123-0100-4f78-ae12-af2c5d226d38
+remote=/root/autodl-tmp/ComfyUI/output/domstudio/video/marketplace-live-sample_00001.mp4
+local=temp-preview/wan-marketplace-sample-1781955113-marketplace-live-sample_00001.mp4
+frame=temp-preview/wan-marketplace-sample-frame.jpg
+duration=3.0625s
+size=832x480
+fps=16
+```
+
+Outcome:
+
+- Technically successful MP4.
+- The stricter prompt still produced the same candle/lifestyle drift.
+- Current `product_video_wan_local.json` should not be marketed as reliable
+  marketplace/product-preserving video yet.
+
+Next steps:
+
+1. Update Amvera `COMFYUI_URL` to the new Cloudflare URL above.
+2. Keep local Wan as preview/experimental until product preservation is solved.
+3. Try workflow-level fixes before more sample spending:
+   - remove or reduce the LightX2V LoRA if it causes lifestyle drift
+   - lower `noise_aug_strength`
+   - test locked-background prompts with a clean white input
+   - consider fewer/more conservative motion instructions
+4. Premium ByteDance route is available as the higher-quality paid path, but it
+   should be tested separately with `COMFYUI_ALLOW_PAID_PARTNER_NODES=true`.
+
+Follow-up Wan motion tests:
+
+```text
+static_9s_prompt_id=4dd7fb14-d27c-4c97-9890-602331f4a294
+static_9s_local=temp-preview/wan-9s-live-1781955669-wine-product-9s-live_00001.mp4
+static_9s_duration=9.0625s
+static_9s_size=832x480
+```
+
+Outcome:
+
+- The file was the requested 9 seconds, but motion was too weak.
+- The result behaved like a nearly static image held for 9 seconds.
+
+```text
+motion_3s_prompt_id=5d8283d8-03bd-4c8d-978f-b323c2bb45e9
+motion_3s_local=temp-preview/wan-motion-test-1781956431-wine-motion-test_00001.mp4
+motion_3s_duration=3.0625s
+motion_3s_size=832x480
+
+motion_9s_prompt_id=38cc56b7-0af2-433e-bb2a-b3bf4f461361
+motion_9s_local=temp-preview/wan-motion-9s-live-1781957319-wine-motion-9s-live_00001.mp4
+motion_9s_duration=9.0625s
+motion_9s_size=832x480
+motion_9s_fps=16
+```
+
+Outcome:
+
+- Stronger Wan settings produced visible motion/aliveness:
+  - `noise_aug_strength=0.12`
+  - `steps=6`
+  - `cfg=2.0`
+  - `shift=6.0`
+- The 9-second version has camera/orbit movement, candle flicker, and moving
+  reflections.
+- Tradeoff: it adds a wine glass and changes the composition, so it is alive but
+  still not strict product-preserving marketplace video.
