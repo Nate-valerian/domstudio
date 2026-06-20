@@ -1,5 +1,204 @@
 # DomStudio Archive
 
+## June 20, 2026 - Archive Read + Current Continuation Point
+
+User asked twice:
+
+```text
+continue,read archive
+```
+
+What was done:
+
+- Read `DOMSTUDIO_ARCHIVE.md`, `DOMSTUDIO_TOMORROW.md`, and
+  `DOMSTUDIO_COMFY_HANDOFF.md`.
+- Checked the repository status and recent commits before continuing.
+- Confirmed the local tree has no product-code diffs at this checkpoint.
+- The older archive note saying video quota work was uncommitted is now stale:
+  that work is committed as:
+
+```text
+c9c4b93 Enforce video plan quotas
+```
+
+Recent committed state:
+
+```text
+d89366f Bypass service worker in dev mode
+0590b17 Fix service worker media caching
+9af9ee1 Polish PWA install metadata
+8afbd3f Polish mobile result flow
+889828f Match mobile nav bar dimensions
+4b67ce6 Start mobile PWA shell
+011ad64 Archive Wan motion samples
+d536481 Add Wan live sample preview
+a185111 Shorten video provider copy
+c9c4b93 Enforce video plan quotas
+```
+
+Current continuation point:
+
+1. Frontend mobile/PWA shell and service-worker fixes are committed.
+2. Backend video plan quota enforcement is committed.
+3. Local Wan video works technically but still drifts product composition and
+   should remain experimental, not marketed as reliable marketplace video.
+4. Premium ByteDance video is the higher-quality paid path and should be tested
+   separately when `COMFYUI_ALLOW_PAID_PARTNER_NODES=true`.
+5. Production still needs deployed database migration:
+
+```text
+python migrate.py
+```
+
+6. Live Amvera env still needs operational verification for the current tunnel:
+
+```env
+COMFYUI_URL=https://aaron-firm-meeting-cattle.trycloudflare.com
+```
+
+Recommended next work:
+
+- If continuing product/code locally: verify backend tests and frontend build,
+  then improve the Wan workflow conservatively before spending more samples.
+- If continuing deployment: update/verify Amvera env, run `python migrate.py`
+  on the deployed backend DB, then run live `/version`, image, premium video,
+  and quota smoke checks.
+
+Validation after reading archive:
+
+```text
+cd domstudio-backend
+python -m unittest discover -s tests -v
+Ran 44 tests
+OK
+
+cd domstudio-frontend
+npm.cmd run build
+vite build passed
+```
+
+Note:
+
+- `npm run build` through PowerShell hit local script policy on `npm.ps1`.
+- `npm.cmd run build` in the sandbox initially hit a parent-directory read
+  boundary while esbuild resolved `vite.config.js`.
+- Running the same `npm.cmd run build` with normal filesystem access passed.
+
+## June 20, 2026 - Amvera Deploy Verification + Migration Start Command
+
+User said:
+
+```text
+next
+```
+
+Deployment verification performed:
+
+- Checked live Amvera `/health`: service was healthy.
+- Checked live Amvera `/version` before deploy:
+  - commit: `3bb8b51ead17`
+  - branch: `master`
+  - `COMFYUI_URL` host: `ballot-ide-shakira-vienna.trycloudflare.com`
+- Checked old Comfy tunnel:
+  - `ballot-ide-shakira-vienna.trycloudflare.com` no longer resolved.
+- Checked archived new Comfy tunnel:
+  - `aaron-firm-meeting-cattle.trycloudflare.com/system_stats` returned HTTP
+    200.
+  - GPU: RTX 4080 SUPER.
+- Confirmed Amvera `master` was 15 commits behind local/GitHub `main`.
+- Pushed local `main` to Amvera deploy branch:
+
+```text
+git push amvera main:master
+3bb8b51..d89366f  main -> master
+```
+
+After Amvera restarted, live `/version` reported:
+
+```text
+commit=d89366f2ad86
+branch=master
+COMFYUI_URL host=aaron-firm-meeting-cattle.trycloudflare.com
+COMFYUI_ACCOUNT_API_KEY present=true
+COMFYUI_ALLOW_PAID_PARTNER_NODES=false
+COMFYUI_VIDEO_WORKFLOW=product_video_wan_local.json
+COMFYUI_PREMIUM_VIDEO_WORKFLOW=product_video.json
+```
+
+Public plan check after deploy:
+
+```text
+GET /subscriptions/plans
+```
+
+now returns video limits:
+
+```text
+Free: videos=5, premium_videos=0
+Basic: videos=30, premium_videos=10
+Pro: videos=50, premium_videos=33
+Business: videos=100, premium_videos=99
+```
+
+Migration smoke:
+
+- Tried throwaway email registration:
+
+```text
+POST /auth/register/email
+email=domstudio-smoke-20260620200412@example.com
+```
+
+- Result:
+
+```text
+HTTP 500 Internal Server Error
+```
+
+Interpretation:
+
+- Since the new code creates a `Subscription` with `videos_used`,
+  `videos_limit`, `premium_videos_used`, and `premium_videos_limit`, this 500 is
+  consistent with migration `005` not having been applied yet.
+- No local Amvera CLI or production `DATABASE_URL` was available, so the
+  migration could not be run manually from this machine.
+
+Code/deploy fix made:
+
+- Updated `amvera.yml` so Amvera runs the idempotent migration runner before
+  starting Uvicorn:
+
+```text
+python domstudio-backend/migrate.py && python -m uvicorn --app-dir domstudio-backend main:app --host 0.0.0.0 --port 80
+```
+
+Files changed:
+
+```text
+amvera.yml
+DOMSTUDIO_ARCHIVE.md
+```
+
+Validation:
+
+```text
+python -m py_compile domstudio-backend/migrate.py
+cd domstudio-backend
+python -m unittest discover -s tests -v
+Ran 44 tests
+OK
+```
+
+Remaining live configuration note:
+
+- Premium ByteDance video will still be blocked until Amvera env has:
+
+```env
+COMFYUI_ALLOW_PAID_PARTNER_NODES=true
+```
+
+- The Comfy account API key is present, and the premium workflow file exists.
+
 ## June 20, 2026 - Standing Archive Rule + Mobile Version Question
 
 User asked:
