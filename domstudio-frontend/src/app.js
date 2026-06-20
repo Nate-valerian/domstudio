@@ -163,6 +163,7 @@ const HISTORY_DB = "domstudio_history";
 const HISTORY_STORE = "results";
 const HISTORY_LIMIT = 20;
 const BRAND_PREFS_KEY = "domstudio_brand_preferences";
+const PWA_INSTALL_DISMISSED_KEY = "domstudio_pwa_install_dismissed";
 
 const PAGE_TITLES = {
   home:    "DomStudio — AI-студия для продавцов маркетплейсов",
@@ -269,6 +270,10 @@ const state = {
   batchQueue: [],
   batchTotal: 0,
   batchIndex: 0,
+  online: navigator.onLine,
+  installPrompt: null,
+  installAvailable: false,
+  installDismissed: localStorage.getItem(PWA_INSTALL_DISMISSED_KEY) === "true",
   formDraft: {
     mode: "catalog",
     marketplace: initialBrandPrefs.default_marketplace,
@@ -299,6 +304,7 @@ function toast(message) {
 }
 
 async function api(path, options = {}, retry = true) {
+  if (!navigator.onLine) throw new Error(t("pwa.offlineAction"));
   const headers = { ...(options.headers || {}) };
   if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
   if (state.accessToken) headers.Authorization = `Bearer ${state.accessToken}`;
@@ -685,6 +691,24 @@ function contentPackTools() {
   </div>`;
 }
 
+function isStandaloneApp() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function pwaInstallBanner() {
+  if (!state.installAvailable || state.installDismissed || isStandaloneApp()) return "";
+  return `<aside class="pwa-install" aria-label="${t("pwa.installTitle")}">
+    <div><b>${t("pwa.installTitle")}</b><span>${t("pwa.installSub")}</span></div>
+    <button class="button gold compact-button" type="button" data-install-pwa>${t("pwa.installCta")}</button>
+    <button class="pwa-dismiss" type="button" data-dismiss-pwa aria-label="${t("pwa.dismiss")}">×</button>
+  </aside>`;
+}
+
+function offlineBanner() {
+  if (state.online) return "";
+  return `<aside class="offline-banner" role="status"><b>${t("pwa.offlineTitle")}</b><span>${t("pwa.offlineSub")}</span></aside>`;
+}
+
 function nav() {
   const logged = Boolean(state.user);
   const lang = state.lang;
@@ -968,7 +992,10 @@ function videoJobPanel() {
   const tokensUsed = state.videoJob.tokens_used ?? state.videoJob.tokens_charged ?? 300;
   const jobSub = tokensUsed === 0 ? t("video.jobSubFree") : t("video.jobSub", { n: tokensUsed });
   const download = state.generatedVideo
-    ? `<a class="button secondary" href="${state.generatedVideo}" download="domstudio-video.${String(state.videoJob.output_format || "mp4").toLowerCase()}">${t("video.download")}</a>`
+    ? `<div class="video-actions">
+        <a class="button secondary" href="${state.generatedVideo}" download="domstudio-video.${String(state.videoJob.output_format || "mp4").toLowerCase()}">${t("video.download")}</a>
+        <button class="button secondary" type="button" data-share>${t("export.share")}</button>
+      </div>`
     : "";
   return `<div class="video-job-card ${status}">
     <div class="mini-head"><h3>${t("video.jobTitle")}</h3><span>${label}</span></div>
@@ -1063,7 +1090,7 @@ function studioPage() {
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
           ${state.generationKind === "photo" ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>` : `<p class="video-note">${t("video.note")}</p>`}
-          <button class="button gold block desktop-submit" type="submit" ${state.generating ? "disabled" : ""}>${submitLabel}</button>
+          <button class="button gold block desktop-submit" type="submit" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
           ${state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
             : `<p class="token-hint">${tokenHint}</p>`}
@@ -1090,7 +1117,7 @@ function studioPage() {
           <span>${state.generationKind === "video" ? t("studio.videoTab") : t("studio.photoTab")}</span>
           <b>${cost ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : "Free"}</b>
         </div>
-        <button class="button gold" type="submit" form="generate-form" ${state.generating ? "disabled" : ""}>${submitLabel}</button>
+        <button class="button gold" type="submit" form="generate-form" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
       </div>
     </section>
   </main>`;
@@ -1328,7 +1355,7 @@ function render(options = {}) {
   document.title = t(`title.${state.route}`) || t("title.home");
   const motionKey = `${state.route}:${state.authMode || "none"}`;
   const shouldAnimateEntrance = options.motion ?? motionKey !== lastMotionKey;
-  app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${mobileTabBar()}${authModal()}</div>`;
+  app.innerHTML = `<div class="shell">${nav()}${offlineBanner()}${pwaInstallBanner()}${page}${footer()}${mobileTabBar()}${authModal()}</div>`;
   bind();
   runMotion({ entrance: shouldAnimateEntrance });
   prepareDemoVideos();
@@ -1412,7 +1439,9 @@ function bind() {
   document.querySelectorAll("[data-delete-history]").forEach(el => el.addEventListener("click", () => removeHistoryItem(el.dataset.deleteHistory)));
   document.querySelectorAll("[data-history-filter]").forEach(el => el.addEventListener("click", () => { state.historyFilter = el.dataset.historyFilter; render({ motion: false }); }));
   document.querySelector("[data-clear-history]")?.addEventListener("click", clearAllHistory);
-  document.querySelector("[data-share]")?.addEventListener("click", shareResult);
+  document.querySelectorAll("[data-share]").forEach(el => el.addEventListener("click", shareResult));
+  document.querySelector("[data-install-pwa]")?.addEventListener("click", installPwa);
+  document.querySelector("[data-dismiss-pwa]")?.addEventListener("click", dismissPwaInstall);
   document.querySelector("#image")?.addEventListener("change", selectImage);
   document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
 }
@@ -1738,6 +1767,7 @@ async function exportGeneratedImage() {
     link.href = dataUrl;
     link.download = `domstudio-${sizeId}.${format === "jpeg" ? "jpg" : format}`;
     link.click();
+    toast(t("toast.downloaded", { name: EXPORT_SIZES[sizeId]?.label || sizeId }));
   } catch {
     toast(t("toast.exportFailed"));
   }
@@ -2104,32 +2134,62 @@ function checkPaymentReturn() {
 }
 
 async function shareResult() {
-  if (!state.generatedImage) return;
+  const source = state.generatedVideo || state.generatedImage;
+  if (!source) return;
   const subject = state.generatedMeta?.subject || "";
   try {
+    const blob = await (await fetch(source)).blob();
+    const isVideo = Boolean(state.generatedVideo);
+    const extension = isVideo
+      ? String(state.videoJob?.output_format || "mp4").toLowerCase()
+      : blob.type.includes("png") ? "png" : blob.type.includes("webp") ? "webp" : "jpg";
+    const fallbackType = isVideo ? "video/mp4" : "image/jpeg";
+    const file = new File([blob], `domstudio-result.${extension}`, { type: blob.type || fallbackType });
+
     if (typeof navigator.canShare === "function") {
-      const blob = await (await fetch(state.generatedImage)).blob();
-      const file = new File([blob], "domstudio-result.jpg", { type: blob.type });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: "DomStudio",
-          text: subject || "DomStudio AI",
+          text: subject || t("pwa.shareText"),
           files: [file],
         });
         return;
       }
     }
-    const blob = await (await fetch(state.generatedImage)).blob();
-    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-    toast(t("toast.imageCopied"));
+
+    if (!isVideo && navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type || "image/jpeg"]: blob })]);
+      toast(t("toast.imageCopied"));
+      return;
+    }
+
+    throw new Error("share-fallback");
   } catch (error) {
     if (error.name !== "AbortError") {
       const link = document.createElement("a");
-      link.href = state.generatedImage;
-      link.download = "domstudio-result.jpg";
+      link.href = source;
+      link.download = state.generatedVideo ? "domstudio-result.mp4" : "domstudio-result.jpg";
       link.click();
+      toast(t("toast.shareFallback"));
     }
   }
+}
+
+async function installPwa() {
+  const prompt = state.installPrompt;
+  if (!prompt) return;
+  prompt.prompt();
+  const choice = await prompt.userChoice.catch(() => null);
+  state.installPrompt = null;
+  state.installAvailable = false;
+  if (choice?.outcome === "accepted") toast(t("pwa.installed"));
+  render({ motion: false });
+}
+
+function dismissPwaInstall() {
+  state.installDismissed = true;
+  localStorage.setItem(PWA_INSTALL_DISMISSED_KEY, "true");
+  render({ motion: false });
 }
 
 function registerServiceWorker() {
@@ -2157,6 +2217,31 @@ window.addEventListener("hashchange", () => {
   render();
 });
 window.addEventListener("scroll", handleScroll, { passive: true });
+window.addEventListener("online", () => {
+  state.online = true;
+  toast(t("pwa.online"));
+  render({ motion: false });
+});
+window.addEventListener("offline", () => {
+  state.online = false;
+  toast(t("pwa.offlineTitle"));
+  render({ motion: false });
+});
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  state.installPrompt = event;
+  state.installAvailable = true;
+  state.installDismissed = localStorage.getItem(PWA_INSTALL_DISMISSED_KEY) === "true";
+  render({ motion: false });
+});
+window.addEventListener("appinstalled", () => {
+  state.installPrompt = null;
+  state.installAvailable = false;
+  state.installDismissed = true;
+  localStorage.setItem(PWA_INSTALL_DISMISSED_KEY, "true");
+  toast(t("pwa.installed"));
+  render({ motion: false });
+});
 
 registerServiceWorker();
 render();

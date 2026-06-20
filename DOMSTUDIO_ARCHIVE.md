@@ -1,5 +1,80 @@
 # DomStudio Archive
 
+## June 20, 2026 - PWA Phase 1 Completion + 6 Formats Copy Fix
+
+User asked to finish Phase 1 PWA before starting React Native.
+
+What was done:
+
+- Confirmed the frontend already had PWA foundations:
+  - `domstudio-frontend/public/manifest.json`
+  - `domstudio-frontend/public/sw.js`
+  - app icons
+  - mobile web app meta tags
+  - production-only service worker registration
+- Added a product-facing PWA install banner around the browser
+  `beforeinstallprompt` event.
+- Added install/dismiss handling with local persistence:
+  - `PWA_INSTALL_DISMISSED_KEY=domstudio_pwa_install_dismissed`
+  - install prompt hidden after install or dismissal
+- Added online/offline state tracking:
+  - offline banner
+  - online/offline toasts
+  - API requests fail early with a clear offline message
+  - generate buttons disabled while offline
+- Improved mobile result sharing:
+  - image results use native file share when available
+  - image fallback copies to clipboard or downloads
+  - video results now get a share button too
+  - video share uses native file share where supported, else downloads
+- Added download success feedback for manual image export.
+- Bumped service worker shell cache:
+
+```text
+domstudio-shell-v2 -> domstudio-shell-v3
+```
+
+- Fixed homepage proof stat copy:
+
+```text
+3 formats -> 6 formats
+3 формата -> 6 форматов
+```
+
+Files changed:
+
+```text
+domstudio-frontend/src/app.js
+domstudio-frontend/src/styles.css
+domstudio-frontend/src/i18n.js
+domstudio-frontend/public/sw.js
+```
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm run build
+vite build passed
+```
+
+Production preview was started locally and verified:
+
+```text
+http://127.0.0.1:4174/
+/manifest.json -> 200
+/sw.js -> 200
+sw.js includes domstudio-shell-v3
+```
+
+Current note:
+
+- These changes are implemented and verified locally.
+- They are not yet committed at this archive point.
+- Next sensible step after deploying this PWA polish is real-device testing:
+  Android Chrome install, iPhone Safari Add to Home Screen, upload/camera,
+  share/download, offline banner, and installed-app launch.
+
 ## June 20, 2026 - Archive Read + Current Continuation Point
 
 User asked twice:

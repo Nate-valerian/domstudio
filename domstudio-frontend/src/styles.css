@@ -96,7 +96,26 @@ img { max-width: 100%; }
 .hero .button.secondary { color: #f6f1e8; border-color: rgba(246,241,232,.28); background: rgba(255,255,255,.04); }
 .button.gold { color: var(--ink); background: var(--acid); border-color: var(--acid); box-shadow: 0 10px 24px rgba(255,157,46,.22); }
 .button.block { width: 100%; }
+.compact-button { min-height: 38px; padding: 0 14px; }
 .button:disabled { opacity: .5; cursor: wait; transform: none; }
+.pwa-install,
+.offline-banner {
+  position: relative; z-index: 28; display: grid; align-items: center; width: min(100% - 28px, 980px); margin: 8px auto 0;
+  border: 1px solid var(--line); border-radius: 16px; background: rgba(255,253,248,.96);
+  box-shadow: 0 18px 48px rgba(32,25,14,.10); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+}
+.pwa-install { grid-template-columns: 1fr auto 34px; gap: 12px; padding: 10px 10px 10px 16px; }
+.pwa-install b,
+.offline-banner b { display: block; font-size: 13px; font-weight: 900; }
+.pwa-install span,
+.offline-banner span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; font-weight: 750; line-height: 1.35; }
+.pwa-dismiss {
+  display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%;
+  background: white; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1;
+}
+.offline-banner {
+  grid-template-columns: 1fr; padding: 11px 16px; border-color: rgba(164,65,55,.24); background: #fff4f2;
+}
 .motion-shimmer {
   pointer-events: none; position: absolute; top: -40%; bottom: -40%; left: 0; z-index: 0; width: 44%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent);
@@ -400,6 +419,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .video-job-card p { margin: 0; color: var(--muted); font-size: 13px; font-weight: 750; line-height: 1.45; }
 .video-job-card.failed { border-color: rgba(164,65,55,.32); background: #fff4f2; }
 .video-error { color: var(--danger) !important; }
+.video-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .mobile-sticky-generate { display: none; }
 .export-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -573,6 +593,11 @@ h1 em { color: var(--gold); font-style: normal; }
   .nav-cta { display: none; }
   .nav-links { left: 0; right: 0; top: calc(100% + 8px); max-height: calc(100vh - 86px); overflow-y: auto; }
   .nav-link { padding: 13px 14px; }
+  .pwa-install {
+    width: calc(100vw - 20px); grid-template-columns: 1fr 34px; gap: 10px; padding: 12px;
+  }
+  .pwa-install .button { grid-column: 1 / -1; width: 100%; }
+  .offline-banner { width: calc(100vw - 20px); }
 
   .button { width: 100%; min-height: 46px; padding: 0 14px; }
   .page { min-height: auto; }
@@ -684,6 +709,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .compare-panel { padding: 14px; border-radius: 14px; }
   .mini-head { align-items: start; flex-direction: column; gap: 4px; }
   .export-row .select, .export-row .button { width: 100%; }
+  .video-actions { display: grid; grid-template-columns: 1fr; }
   .pack-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   .desktop-submit { display: none; }
   .mobile-sticky-generate {
