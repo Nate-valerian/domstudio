@@ -142,6 +142,38 @@ Result:
 vite build passed
 ```
 
+PWA install metadata polish:
+
+- Updated `domstudio-frontend/public/manifest.json` with:
+  - `id`
+  - `scope`
+  - `orientation: portrait`
+  - app shortcuts for Studio and Pricing
+- This makes the mobile-web install metadata more complete for Chrome/Android
+  and standalone PWA launches.
+
+Files changed:
+
+```text
+domstudio-frontend/public/manifest.json
+DOMSTUDIO_ARCHIVE.md
+```
+
+Validation:
+
+```text
+node -e "JSON.parse(require('fs').readFileSync('domstudio-frontend/public/manifest.json','utf8')); console.log('manifest ok')"
+cd domstudio-frontend
+npm run build
+```
+
+Result:
+
+```text
+manifest ok
+vite build passed
+```
+
 ## June 7, 2026 - Midday Status Note
 
 User asked:
