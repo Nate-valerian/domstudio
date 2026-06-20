@@ -199,6 +199,44 @@ COMFYUI_ALLOW_PAID_PARTNER_NODES=true
 
 - The Comfy account API key is present, and the premium workflow file exists.
 
+Follow-up after committing and pushing the migration start command:
+
+```text
+commit=582ca69 Run migrations before Amvera startup
+git push origin main
+git push amvera main:master
+```
+
+Amvera restart verification:
+
+```text
+GET /version
+commit=582ca696f620
+branch=master
+COMFYUI_URL host=aaron-firm-meeting-cattle.trycloudflare.com
+```
+
+The app returned to healthy status after several temporary `503 Service
+Unavailable` responses during the rebuild/restart window.
+
+Production migration verification:
+
+```text
+POST /auth/register/email
+email=domstudio-smoke-20260620200732@example.com
+HTTP 201
+message=Verification code sent to email
+user_id=abf9c5e8-7f12-4fca-830f-175ba6a047ad
+```
+
+Conclusion:
+
+- Migration `005` was applied successfully in the deployed Amvera environment.
+- New user creation now works with the video quota subscription columns.
+- Public plans expose video and premium video limits.
+- Remaining blocker for premium ByteDance video is only the env flag:
+  `COMFYUI_ALLOW_PAID_PARTNER_NODES=true`.
+
 ## June 20, 2026 - Standing Archive Rule + Mobile Version Question
 
 User asked:
