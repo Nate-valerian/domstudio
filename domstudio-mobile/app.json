@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "DomStudio",
+    "slug": "domstudio-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "domstudio",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#f4f0e8"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "site.domstudio.app"
+    },
+    "android": {
+      "package": "site.domstudio.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#ff9d2e"
+      }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "DomStudio needs photo access to turn your product shots into marketplace content."
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:8000"
+    }
+  }
+}
+

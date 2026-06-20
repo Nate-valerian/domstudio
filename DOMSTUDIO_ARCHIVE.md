@@ -1,5 +1,73 @@
 # DomStudio Archive
 
+## June 20, 2026 - React Native Mobile Scaffold Started
+
+User asked whether to create a mobile folder and start React Native after PWA
+Phase 1.
+
+What was done:
+
+- Created `domstudio-mobile/` as a separate Expo/React Native app.
+- Started from current npm package versions, then aligned to Expo SDK 56's
+  compatibility set:
+  - `expo@56.0.12`
+  - `react-native@0.85.3`
+  - `react@19.2.3`
+  - `typescript@~6.0.3`
+- Added native project files:
+
+```text
+domstudio-mobile/App.tsx
+domstudio-mobile/src/api.ts
+domstudio-mobile/src/theme.ts
+domstudio-mobile/app.json
+domstudio-mobile/package.json
+domstudio-mobile/tsconfig.json
+domstudio-mobile/babel.config.js
+domstudio-mobile/.env.example
+domstudio-mobile/README.md
+```
+
+Current mobile scope:
+
+- Email login via existing backend `/auth/login/email`.
+- Secure token storage via `expo-secure-store`.
+- Account load via `/users/me/full`.
+- Product image picker via `expo-image-picker`.
+- Photo generation via `/generation/generate`.
+- Result preview and native sharing via `expo-sharing`.
+- In-session history tab.
+- Account tab with token/plan view and sign out.
+
+Validation:
+
+```text
+cd domstudio-mobile
+npm install
+npx expo install --check
+npm run typecheck
+Dependencies are up to date
+tsc --noEmit passed
+```
+
+Notes:
+
+- `npx create-expo-app@latest` timed out before creating files, so the Expo
+  scaffold was created manually.
+- `npm install` completed and created `package-lock.json`.
+- npm reported 11 moderate dependency vulnerabilities from the fresh Expo/RN
+  dependency tree; no app code vulnerability was identified in this pass.
+- The app currently uses `EXPO_PUBLIC_API_URL`; physical phones need a LAN URL,
+  Android emulator usually needs `http://10.0.2.2:8000`.
+- Final checkpoint before commit:
+  - `npm run typecheck` passed.
+  - `npx expo install --check` passed.
+  - Metro was listening on `http://localhost:8082`.
+  - Native result sharing was cleaned up to preserve the returned image format
+    instead of always writing a `.jpg`.
+- Next pass: registration/OTP, video jobs, persistent native history, payments,
+  and real-device smoke testing.
+
 ## June 20, 2026 - PWA Phase 1 Completion + 6 Formats Copy Fix
 
 User asked to finish Phase 1 PWA before starting React Native.
