@@ -729,6 +729,30 @@ function nav() {
     </nav>`;
 }
 
+function mobileTabBar() {
+  const logged = Boolean(state.user);
+  const items = logged
+    ? [
+        ["home", t("nav.home"), "H"],
+        ["studio", t("nav.studio"), "S"],
+        ["history", t("nav.history"), "R"],
+        ["account", t("account.eyebrow"), "A"],
+      ]
+    : [
+        ["home", t("nav.home"), "H"],
+        ["studio", t("nav.studio"), "S"],
+        ["examples", t("nav.examples"), "E"],
+        ["pricing", t("nav.pricing"), "P"],
+      ];
+  return `<nav class="mobile-tabbar" aria-label="Mobile navigation">
+    ${items.map(([route, label, icon]) => `
+      <button class="${state.route === route ? "active" : ""}" type="button" data-route="${route}">
+        <span>${icon}</span>
+        <b>${label}</b>
+      </button>`).join("")}
+  </nav>`;
+}
+
 function footer() {
   return `<footer class="footer"><b>DomStudio</b><span>${t("footer.tagline")}</span></footer>`;
 }
@@ -946,6 +970,9 @@ function studioPage() {
   const cost = generationCost();
   const selectedVideoProvider = currentVideoProvider();
   const videoSubmitLabel = selectedVideoProvider.id === "premium" ? t("video.submitCta") : t("video.submitFreeCta");
+  const submitLabel = state.generating
+    ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating"))
+    : (state.generationKind === "video" ? videoSubmitLabel : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"));
   const tokenHint = state.generationKind === "video" && cost === 0
     ? t("video.tokenFree")
     : state.generationKind === "video"
@@ -956,10 +983,15 @@ function studioPage() {
     <section class="workspace">
       <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div><div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div></header>
       <div class="studio-grid">
-        <form class="panel" id="generate-form">
+        <form class="panel studio-form" id="generate-form">
           <div class="media-toggle" role="group" aria-label="${t("studio.outputType")}">
             <button type="button" class="${state.generationKind === "photo" ? "active" : ""}" data-generation-kind="photo">${t("studio.photoTab")}</button>
             <button type="button" class="${state.generationKind === "video" ? "active" : ""}" data-generation-kind="video">${t("studio.videoTab")}</button>
+          </div>
+          <div class="mobile-flow-steps" aria-label="Mobile creation flow">
+            <span class="active"><b>1</b>Setup</span>
+            <span class="${state.selectedImage ? "active" : ""}"><b>2</b>Upload</span>
+            <span class="${state.generatedImage || state.generatedVideo ? "active" : ""}"><b>3</b>Result</span>
           </div>
           <div class="form-section">
             <div class="field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select></div>
@@ -1017,12 +1049,12 @@ function studioPage() {
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
           ${state.generationKind === "photo" ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>` : `<p class="video-note">${t("video.note")}</p>`}
-          <button class="button gold block" type="submit" ${state.generating ? "disabled" : ""}>${state.generating ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating")) : (state.generationKind === "video" ? videoSubmitLabel : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"))}</button>
+          <button class="button gold block desktop-submit" type="submit" ${state.generating ? "disabled" : ""}>${submitLabel}</button>
           ${state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
             : `<p class="token-hint">${tokenHint}</p>`}
         </form>
-        <div class="panel">
+        <div class="panel result-panel">
           <div class="result ${state.generating && !state.generatedImage && !state.generatedVideo ? "loading" : ""} ${state.generationKind === "video" || state.generatedVideo ? "video-result" : ""}">
             ${state.generatedVideo
               ? `<video src="${state.generatedVideo}" controls playsinline loop></video>${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("video.submitGenerating"))}</div>` : ""}`
@@ -1038,6 +1070,13 @@ function studioPage() {
           ${variationTools()}
           ${historyPanel()}
         </div>
+      </div>
+      <div class="mobile-sticky-generate">
+        <div>
+          <span>${state.generationKind === "video" ? t("studio.videoTab") : t("studio.photoTab")}</span>
+          <b>${cost ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : "Free"}</b>
+        </div>
+        <button class="button gold" type="submit" form="generate-form" ${state.generating ? "disabled" : ""}>${submitLabel}</button>
       </div>
     </section>
   </main>`;
@@ -1275,7 +1314,7 @@ function render(options = {}) {
   document.title = t(`title.${state.route}`) || t("title.home");
   const motionKey = `${state.route}:${state.authMode || "none"}`;
   const shouldAnimateEntrance = options.motion ?? motionKey !== lastMotionKey;
-  app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${authModal()}</div>`;
+  app.innerHTML = `<div class="shell">${nav()}${page}${footer()}${mobileTabBar()}${authModal()}</div>`;
   bind();
   runMotion({ entrance: shouldAnimateEntrance });
   prepareDemoVideos();
@@ -2075,6 +2114,13 @@ async function shareResult() {
   }
 }
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 window.addEventListener("hashchange", () => {
   state.route = location.hash.slice(1) || "home";
   state.navMenuOpen = false;
@@ -2083,6 +2129,7 @@ window.addEventListener("hashchange", () => {
 });
 window.addEventListener("scroll", handleScroll, { passive: true });
 
+registerServiceWorker();
 render();
 Promise.all([loadUser(), loadPlans(), loadHistory()])
   .then(checkPaymentReturn)

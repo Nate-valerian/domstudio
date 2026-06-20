@@ -1,5 +1,84 @@
 # DomStudio Archive
 
+## June 20, 2026 - Standing Archive Rule + Mobile Version Question
+
+User asked:
+
+```text
+can we build mobile version now ? btw always take note, always archive our convo and cchanges
+```
+
+Standing instruction going forward:
+
+- Always keep notes in this archive for meaningful conversation decisions,
+  operational findings, and code/product changes.
+- When code changes are made, archive what changed, why it changed, files
+  touched, validation run, and any remaining risks.
+- Preserve important deployment URLs, env requirements, live smoke results,
+  blockers, and next steps.
+
+Mobile direction at this point:
+
+- Yes, a mobile version can be started now.
+- The recommended first mobile version is still the mobile-web/PWA product flow
+  unless the user explicitly wants native iOS/Android/RuStore first.
+- Reason: DomStudio already has a Vite frontend and FastAPI backend, real
+  generation routes, pricing, auth, and PWA basics. The fastest useful mobile
+  milestone is to make the existing seller workflow feel app-native on phones:
+  upload photo, choose marketplace/mode, generate image or video, export.
+- Native app can follow after the mobile web flow is polished and the paid
+  workflow is stable.
+
+Implementation started in the same session:
+
+- Added a mobile-only bottom tab bar to make the PWA feel more like an app.
+  Logged-in users see Home, Studio, History, Account. Logged-out users see
+  Home, Studio, Examples, Pricing.
+- Added a compact mobile creation step strip in Studio:
+  `Setup -> Upload -> Result`.
+- Added a mobile-only sticky generate bar above the bottom tabs so the main
+  create action stays reachable while scrolling the form.
+- Kept the desktop layout unchanged by hiding the new app shell controls above
+  640px.
+- Improved mobile Studio spacing: tighter workspace padding, larger input tap
+  targets, result panel padding, sticky Photo/Video toggle, and safe-area
+  spacing for iPhone home indicators.
+- Added a lightweight PWA service worker:
+  - caches the app shell, manifest, and icons
+  - caches same-origin static assets after first load
+  - uses a network-first strategy for page navigations with cached shell
+    fallback
+  - avoids caching auth, generation, and payment routes
+
+Files changed:
+
+```text
+domstudio-frontend/src/app.js
+domstudio-frontend/src/styles.css
+domstudio-frontend/public/sw.js
+DOMSTUDIO_ARCHIVE.md
+```
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm run build
+```
+
+Result:
+
+```text
+vite build passed
+dist/sw.js present
+```
+
+Local dev server started for review:
+
+```text
+http://127.0.0.1:5173/
+```
+
 ## June 7, 2026 - Midday Status Note
 
 User asked:
