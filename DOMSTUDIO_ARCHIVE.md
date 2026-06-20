@@ -1,5 +1,26 @@
 # DomStudio Archive
 
+## June 21, 2026 - Mobile Env Config + Web Login Resolved
+
+### `.env.local` created for mobile
+
+Created `domstudio-mobile/.env.local` (not committed — local only):
+
+```
+EXPO_PUBLIC_API_URL=https://domstudio1-nate.amvera.io
+```
+
+This points the Expo Go dev build at the live Amvera backend so physical iPhone
+auth and generation calls work without needing a LAN backend running.
+
+Web login that appeared broken was resolved — user signed in successfully.
+The backend was fine; the issue was account credentials.
+
+Next step: restart Metro with `npm run start:lan -- --clear`, rescan QR on
+iPhone, verify login/register against the live backend from the phone.
+
+---
+
 ## June 21, 2026 - Expo Go Overlay Fix + Web Login Diagnosis
 
 ### Expo Go overlay fix (commits d89366f, b0ccbfe)
