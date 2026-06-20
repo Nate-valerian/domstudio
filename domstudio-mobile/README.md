@@ -2,6 +2,9 @@
 
 Expo/React Native shell for DomStudio.
 
+Pinned to Expo SDK 54 for compatibility with App Store Expo Go on older iOS
+devices such as iPhone 8 Plus.
+
 ## Setup
 
 ```bash
@@ -19,12 +22,19 @@ Set `EXPO_PUBLIC_API_URL` to the backend reachable from the device:
 ## Current Scope
 
 - Email login against `/auth/login/email`
+- Email registration and email OTP verification
+- Phone OTP login
+- Forgot/reset password
 - Secure token storage
+- Token refresh on app boot
 - Account load from `/users/me/full`
-- Product photo picker
+- Product camera capture and gallery picker
 - Image generation through `/generation/generate`
-- Native share sheet for generated results
-- In-session native history
+- Video job queueing and job list refresh through `/generation/video` and `/generation/jobs`
+- Native share sheet and save-to-gallery for generated results
+- Persistent local native history
+- Native bottom-tab navigation
+- Offline/auth/loading/empty states
+- Account usage limits and settings screens
 
-Video, registration/OTP, paid plans, and persistent native history are next-pass items.
-
+Paid plans, final app icon/splash assets, store compliance, and real generation/video quality testing are next-pass items.

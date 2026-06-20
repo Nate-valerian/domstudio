@@ -3,10 +3,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  KeyboardAvoidingView,
-  Platform,
+  LogBox,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -15,41 +13,77 @@ import {
   TextInput,
   View
 } from "react-native";
+import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
 import {
   API_URL,
   GenerateResult,
+  Tokens,
   UserProfile,
+  VideoJob,
   clearTokens,
+  forgotPassword,
   generateImage,
+  generateVideo,
+  listVideoJobs,
   loadMe,
   loadTokens,
   loginEmail,
-  saveTokens
+  loginPhone,
+  logout,
+  refreshTokens,
+  registerEmail,
+  resetPassword,
+  saveTokens,
+  verifyEmail,
+  verifyPhone
 } from "./src/api";
+import { LocalHistoryItem, clearLocalHistory, loadLocalHistory, saveLocalHistory } from "./src/storage";
 import { colors, radii } from "./src/theme";
 
-type Route = "studio" | "history" | "account";
-
-type HistoryItem = {
-  id: string;
-  subject: string;
-  mode: string;
-  uri: string;
-  createdAt: number;
-  width?: number;
-  height?: number;
+type RootStackParamList = {
+  Auth: undefined;
+  Main: undefined;
 };
 
+type MainTabParamList = {
+  Studio: undefined;
+  History: undefined;
+  Account: undefined;
+  Settings: undefined;
+};
+
+type AuthMode = "login" | "register" | "verifyEmail" | "phone" | "verifyPhone" | "forgot" | "reset";
+
+type PickedImage = {
+  uri: string;
+  base64: string;
+  name?: string;
+};
+
+type ResultState = {
+  uri: string;
+  meta: GenerateResult;
+  subject: string;
+  modeLabel: string;
+};
+
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+const Tabs = createBottomTabNavigator<MainTabParamList>();
+
 const modes = [
-  { id: "catalog", label: "Catalog" },
-  { id: "product", label: "Product" },
-  { id: "creative", label: "Creative" },
-  { id: "image", label: "Lifestyle" },
-  { id: "fitting", label: "Fitting" },
-  { id: "mobile", label: "Stories" }
+  { id: "catalog", label: "Catalog", hint: "Marketplace-safe hero image" },
+  { id: "product", label: "Product", hint: "Clean product card" },
+  { id: "creative", label: "Creative", hint: "Ad-style campaign image" },
+  { id: "image", label: "Lifestyle", hint: "Scene with real context" },
+  { id: "fitting", label: "Fitting", hint: "Fashion fit preview" },
+  { id: "mobile", label: "Stories", hint: "Vertical social result" }
 ];
 
 const stylesList = [
@@ -59,151 +93,123 @@ const stylesList = [
   "warm lifestyle scene",
   "story-safe vertical composition"
 ];
+
 const defaultStyleHint = stylesList[0] || "";
 
+LogBox.ignoreAllLogs(true);
+
+function friendlyError(error: unknown, fallback = "Please try again.") {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
+function isOfflineState(value: ReturnType<typeof useNetInfo>) {
+  return value.isConnected === false || value.isInternetReachable === false;
+}
+
+function planText(value?: number, limit?: number) {
+  if (typeof value !== "number" || typeof limit !== "number") return "0 / 0";
+  return `${value} / ${limit}`;
+}
+
+async function resultToFile(result: ResultState): Promise<{ path: string; mimeType: string }> {
+  const base64 = result.uri.split(",")[1];
+  if (!base64) throw new Error("Missing result data");
+  const rawFormat = String(result.meta.format || "png").toLowerCase();
+  const format = rawFormat === "jpg" ? "jpeg" : rawFormat;
+  const extension = format === "jpeg" ? "jpg" : format;
+  const path = `${FileSystem.cacheDirectory}domstudio-result-${Date.now()}.${extension}`;
+  await FileSystem.writeAsStringAsync(path, base64, {
+    encoding: FileSystem.EncodingType.Base64
+  });
+  return { path, mimeType: `image/${format}` };
+}
+
 export default function App() {
-  const [route, setRoute] = useState<Route>("studio");
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const netInfo = useNetInfo();
+  const offline = isOfflineState(netInfo);
+  const [tokens, setTokens] = useState<Tokens | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [booting, setBooting] = useState(true);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [mode, setMode] = useState("catalog");
-  const [subject, setSubject] = useState("");
-  const [styleHint, setStyleHint] = useState(defaultStyleHint);
-  const [upscale, setUpscale] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{ uri: string; base64: string; name?: string } | null>(null);
-  const [result, setResult] = useState<{ uri: string; meta: GenerateResult } | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [generating, setGenerating] = useState(false);
+  const [history, setHistory] = useState<LocalHistoryItem[]>([]);
+  const [result, setResult] = useState<ResultState | null>(null);
 
-  const activeMode = useMemo(() => modes.find((item) => item.id === mode) || modes[0] || null, [mode]);
+  async function completeAuth(nextTokens: Tokens) {
+    await saveTokens(nextTokens);
+    const profile = await loadMe(nextTokens.access_token);
+    setTokens(nextTokens);
+    setUser(profile);
+  }
+
+  async function refreshProfile(nextTokens = tokens) {
+    if (!nextTokens) return;
+    const profile = await loadMe(nextTokens.access_token);
+    setUser(profile);
+  }
 
   useEffect(() => {
-    loadTokens()
-      .then(async (tokens) => {
-        if (!tokens) return;
-        setAccessToken(tokens.access_token);
-        const profile = await loadMe(tokens.access_token);
-        setUser(profile);
-      })
-      .catch(() => clearTokens())
-      .finally(() => setBooting(false));
+    let active = true;
+    async function boot() {
+      try {
+        const [savedTokens, savedHistory] = await Promise.all([loadTokens(), loadLocalHistory()]);
+        if (!active) return;
+        setHistory(savedHistory);
+        if (!savedTokens) return;
+        try {
+          const profile = await loadMe(savedTokens.access_token);
+          if (!active) return;
+          setTokens(savedTokens);
+          setUser(profile);
+        } catch {
+          const rotated = await refreshTokens(savedTokens.refresh_token);
+          await saveTokens(rotated);
+          const profile = await loadMe(rotated.access_token);
+          if (!active) return;
+          setTokens(rotated);
+          setUser(profile);
+        }
+      } catch {
+        await clearTokens();
+      } finally {
+        if (active) setBooting(false);
+      }
+    }
+    boot();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  async function signIn() {
-    if (!email.trim() || !password) {
-      Alert.alert("Missing login", "Enter your email and password.");
-      return;
-    }
-    setAuthLoading(true);
-    try {
-      const tokens = await loginEmail(email.trim(), password);
-      await saveTokens(tokens);
-      const profile = await loadMe(tokens.access_token);
-      setAccessToken(tokens.access_token);
-      setUser(profile);
-    } catch (error) {
-      Alert.alert("Login failed", error instanceof Error ? error.message : "Please try again.");
-    } finally {
-      setAuthLoading(false);
-    }
-  }
-
   async function signOut() {
+    const refresh = tokens?.refresh_token;
     await clearTokens();
-    setAccessToken(null);
+    if (refresh) logout(refresh).catch(() => undefined);
+    setTokens(null);
     setUser(null);
     setResult(null);
-    setSelectedImage(null);
-    setRoute("studio");
   }
 
-  async function pickImage() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert("Photo access needed", "Allow photo access to upload product shots.");
-      return;
-    }
-    const picked = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.88,
-      base64: true
-    });
-    if (picked.canceled) return;
-    const asset = picked.assets[0];
-    if (!asset?.uri || !asset.base64) return;
-    setSelectedImage({
-      uri: asset.uri,
-      base64: asset.base64,
-      name: asset.fileName || "product-photo"
+  function rememberResult(nextResult: ResultState) {
+    const item: LocalHistoryItem = {
+      id: String(Date.now()),
+      subject: nextResult.subject,
+      mode: nextResult.modeLabel,
+      uri: nextResult.uri,
+      createdAt: Date.now(),
+      width: nextResult.meta.width,
+      height: nextResult.meta.height,
+      format: nextResult.meta.format
+    };
+    setHistory((items) => {
+      const next = [item, ...items].slice(0, 30);
+      saveLocalHistory(next).catch(() => undefined);
+      return next;
     });
   }
 
-  async function createPhoto() {
-    if (!accessToken) return;
-    if (!subject.trim()) {
-      Alert.alert("Add a prompt", "Describe the product and the result you want.");
-      return;
-    }
-    setGenerating(true);
-    try {
-      const response = await generateImage(accessToken, {
-        mode,
-        subject: subject.trim(),
-        style_hint: styleHint.trim(),
-        image: selectedImage?.base64 || null,
-        upscale_4k: upscale
-      });
-      if (!response.image) throw new Error("No image returned");
-      const format = String(response.format || "png").toLowerCase();
-      const uri = `data:image/${format};base64,${response.image}`;
-      setResult({ uri, meta: response });
-      setHistory((items) => [
-        {
-          id: String(Date.now()),
-          subject: subject.trim(),
-          mode: activeMode?.label || mode,
-          uri,
-          createdAt: Date.now(),
-          width: response.width,
-          height: response.height
-        },
-        ...items
-      ].slice(0, 20));
-      const profile = await loadMe(accessToken);
-      setUser(profile);
-    } catch (error) {
-      Alert.alert("Generation failed", error instanceof Error ? error.message : "Please try again.");
-    } finally {
-      setGenerating(false);
-    }
-  }
-
-  async function shareResult() {
-    if (!result) return;
-    try {
-      const base64 = result.uri.split(",")[1];
-      if (!base64) throw new Error("Missing result data");
-      const rawFormat = String(result.meta.format || "png").toLowerCase();
-      const format = rawFormat === "jpg" ? "jpeg" : rawFormat;
-      const extension = format === "jpeg" ? "jpg" : format;
-      const path = `${FileSystem.cacheDirectory}domstudio-result.${extension}`;
-      await FileSystem.writeAsStringAsync(path, base64, {
-        encoding: FileSystem.EncodingType.Base64
-      });
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(path, {
-          mimeType: `image/${format}`,
-          dialogTitle: "Share DomStudio result"
-        });
-      } else {
-        Alert.alert("Saved", `Result saved to ${path}`);
-      }
-    } catch (error) {
-      Alert.alert("Share failed", error instanceof Error ? error.message : "Please try again.");
-    }
+  async function clearHistory() {
+    await clearLocalHistory();
+    setHistory([]);
   }
 
   if (booting) {
@@ -217,164 +223,790 @@ export default function App() {
     );
   }
 
-  if (!user || !accessToken) {
-    return (
-      <SafeAreaView style={styles.safe}>
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
         <StatusBar barStyle="dark-content" />
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
-          <ScrollView contentContainerStyle={styles.authPage}>
-            <View style={styles.brandMark}><Text style={styles.brandMarkText}>DS</Text></View>
-            <Text style={styles.title}>DomStudio</Text>
-            <Text style={styles.subtitle}>Native mobile shell for marketplace photo generation.</Text>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Sign in</Text>
-              <TextInput
-                autoCapitalize="none"
-                keyboardType="email-address"
-                placeholder="Email"
-                placeholderTextColor={colors.muted}
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-              />
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor={colors.muted}
-                secureTextEntry
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <Pressable style={styles.primaryButton} onPress={signIn} disabled={authLoading}>
-                {authLoading ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.primaryButtonText}>Open studio</Text>}
-              </Pressable>
-              <Text style={styles.smallMuted}>API: {API_URL}</Text>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          {!user || !tokens ? (
+            <RootStack.Screen name="Auth">
+              {() => <AuthScreen completeAuth={completeAuth} offline={offline} />}
+            </RootStack.Screen>
+          ) : (
+            <RootStack.Screen name="Main">
+              {() => (
+                <MainTabs
+                  clearHistory={clearHistory}
+                  history={history}
+                  offline={offline}
+                  refreshProfile={refreshProfile}
+                  rememberResult={rememberResult}
+                  result={result}
+                  setResult={setResult}
+                  signOut={signOut}
+                  tokens={tokens}
+                  user={user}
+                />
+              )}
+            </RootStack.Screen>
+          )}
+        </RootStack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
+}
+
+function AuthScreen({
+  completeAuth,
+  offline
+}: {
+  completeAuth: (tokens: Tokens) => Promise<void>;
+  offline: boolean;
+}) {
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [pendingContact, setPendingContact] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function runNetworkTask(task: () => Promise<void>, title: string) {
+    if (offline) {
+      Alert.alert("Offline", "Connect to the internet to continue.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await task();
+    } catch (error) {
+      Alert.alert(title, friendlyError(error));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function authTitle() {
+    if (mode === "register") return "Create account";
+    if (mode === "verifyEmail" || mode === "verifyPhone") return "Enter code";
+    if (mode === "phone") return "Phone login";
+    if (mode === "forgot") return "Reset password";
+    if (mode === "reset") return "New password";
+    return "Sign in";
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.kicker}>DomStudio mobile</Text>
-          <Text style={styles.headerTitle}>{route === "studio" ? "Studio" : route === "history" ? "History" : "Account"}</Text>
-        </View>
-        <View style={styles.tokenPill}><Text style={styles.tokenText}>{user.tokens ?? 0}</Text></View>
-      </View>
+      <ScrollView contentContainerStyle={styles.authPage} keyboardShouldPersistTaps="always">
+        <View style={styles.brandMark}><Text style={styles.brandMarkText}>DS</Text></View>
+        <Text style={styles.title}>DomStudio</Text>
+        <Text style={styles.subtitle}>Mobile studio for product content, ready for Expo Go testing.</Text>
+        {offline ? <Banner tone="warn" text="Offline. Auth and generation are paused until the network returns." /> : null}
 
-      {route === "studio" ? (
-        <ScrollView contentContainerStyle={styles.page}>
-          <View style={styles.segmentRow}>
-            {modes.map((item) => (
-              <Pressable key={item.id} style={[styles.segment, mode === item.id && styles.segmentActive]} onPress={() => setMode(item.id)}>
-                <Text style={[styles.segmentText, mode === item.id && styles.segmentTextActive]}>{item.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{authTitle()}</Text>
 
-          <View style={styles.card}>
-            <Text style={styles.label}>Product prompt</Text>
+          {mode === "login" || mode === "register" || mode === "forgot" || mode === "reset" ? (
             <TextInput
-              multiline
-              placeholder="Wine bottle on marble table, premium product card"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              placeholder="Email"
               placeholderTextColor={colors.muted}
-              style={[styles.input, styles.textarea]}
-              value={subject}
-              onChangeText={setSubject}
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
             />
-            <Text style={styles.label}>Style</Text>
-            <View style={styles.chipWrap}>
-              {stylesList.map((item) => (
-                <Pressable key={item} style={[styles.chip, styleHint === item && styles.chipActive]} onPress={() => setStyleHint(item)}>
-                  <Text style={[styles.chipText, styleHint === item && styles.chipTextActive]}>{item}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>Upscale 4K</Text>
-              <Switch value={upscale} onValueChange={setUpscale} trackColor={{ true: colors.acid, false: colors.line }} />
-            </View>
+          ) : null}
+
+          {mode === "login" || mode === "register" ? (
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor={colors.muted}
+              secureTextEntry
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+            />
+          ) : null}
+
+          {mode === "phone" ? (
+            <TextInput
+              keyboardType="phone-pad"
+              placeholder="Phone"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+            />
+          ) : null}
+
+          {mode === "verifyEmail" || mode === "verifyPhone" || mode === "reset" ? (
+            <TextInput
+              keyboardType="number-pad"
+              maxLength={8}
+              placeholder="Code"
+              placeholderTextColor={colors.muted}
+              style={styles.input}
+              value={code}
+              onChangeText={setCode}
+            />
+          ) : null}
+
+          {mode === "reset" ? (
+            <TextInput
+              placeholder="New password"
+              placeholderTextColor={colors.muted}
+              secureTextEntry
+              style={styles.input}
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+          ) : null}
+
+          {mode === "login" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Open studio"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!email.trim() || !password) throw new Error("Enter your email and password.");
+                  await completeAuth(await loginEmail(email.trim(), password));
+                }, "Login failed")
+              }
+            />
+          ) : null}
+
+          {mode === "register" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Send email code"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!email.trim() || password.length < 8) throw new Error("Use an email and an 8+ character password.");
+                  await registerEmail(email.trim(), password);
+                  setPendingContact(email.trim());
+                  setCode("");
+                  setMode("verifyEmail");
+                }, "Registration failed")
+              }
+            />
+          ) : null}
+
+          {mode === "verifyEmail" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Verify email"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!pendingContact || !code.trim()) throw new Error("Enter the code from your email.");
+                  await completeAuth(await verifyEmail(pendingContact, code.trim()));
+                }, "Verification failed")
+              }
+            />
+          ) : null}
+
+          {mode === "phone" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Send phone code"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!phone.trim()) throw new Error("Enter your phone number.");
+                  await loginPhone(phone.trim());
+                  setPendingContact(phone.trim());
+                  setCode("");
+                  setMode("verifyPhone");
+                }, "Phone login failed")
+              }
+            />
+          ) : null}
+
+          {mode === "verifyPhone" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Verify phone"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!pendingContact || !code.trim()) throw new Error("Enter the SMS code.");
+                  await completeAuth(await verifyPhone(pendingContact, code.trim()));
+                }, "Verification failed")
+              }
+            />
+          ) : null}
+
+          {mode === "forgot" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Send reset code"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!email.trim()) throw new Error("Enter your email.");
+                  await forgotPassword(email.trim());
+                  setCode("");
+                  setMode("reset");
+                }, "Reset failed")
+              }
+            />
+          ) : null}
+
+          {mode === "reset" ? (
+            <PrimaryButton
+              disabled={loading}
+              label="Save new password"
+              loading={loading}
+              onPress={() =>
+                runNetworkTask(async () => {
+                  if (!email.trim() || !code.trim() || newPassword.length < 8) {
+                    throw new Error("Enter email, code, and an 8+ character password.");
+                  }
+                  await completeAuth(await resetPassword(email.trim(), code.trim(), newPassword));
+                }, "Password reset failed")
+              }
+            />
+          ) : null}
+
+          <View style={styles.linkRow}>
+            <LinkButton label={mode === "login" ? "Create account" : "Email login"} onPress={() => setMode(mode === "login" ? "register" : "login")} />
+            <LinkButton label="Phone OTP" onPress={() => setMode("phone")} />
+            <LinkButton label="Forgot" onPress={() => setMode("forgot")} />
           </View>
+          <Text style={styles.smallMuted}>API: {API_URL}</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
-          <Pressable style={styles.upload} onPress={pickImage}>
-            {selectedImage ? (
-              <>
-                <Image source={{ uri: selectedImage.uri }} style={styles.uploadPreview} />
-                <Text style={styles.uploadText}>{selectedImage.name}</Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.uploadTitle}>Upload product photo</Text>
-                <Text style={styles.uploadText}>Choose from camera roll</Text>
-              </>
-            )}
-          </Pressable>
+function MainTabs(props: {
+  clearHistory: () => Promise<void>;
+  history: LocalHistoryItem[];
+  offline: boolean;
+  refreshProfile: () => Promise<void>;
+  rememberResult: (result: ResultState) => void;
+  result: ResultState | null;
+  setResult: (result: ResultState | null) => void;
+  signOut: () => Promise<void>;
+  tokens: Tokens;
+  user: UserProfile;
+}) {
+  return (
+    <Tabs.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.ink,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: styles.nativeTabBar,
+        tabBarLabelStyle: styles.nativeTabText
+      }}
+    >
+      <Tabs.Screen name="Studio" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="S" /> }}>
+        {() => <StudioScreen {...props} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="History" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="H" /> }}>
+        {() => <HistoryScreen {...props} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="Account" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="A" /> }}>
+        {() => <AccountScreen {...props} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="Settings" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="G" /> }}>
+        {() => <SettingsScreen {...props} />}
+      </Tabs.Screen>
+    </Tabs.Navigator>
+  );
+}
 
-          <Pressable style={styles.primaryButton} onPress={createPhoto} disabled={generating}>
-            {generating ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.primaryButtonText}>Generate photo</Text>}
-          </Pressable>
+function StudioScreen({
+  offline,
+  refreshProfile,
+  rememberResult,
+  result,
+  setResult,
+  tokens,
+  user
+}: {
+  offline: boolean;
+  refreshProfile: () => Promise<void>;
+  rememberResult: (result: ResultState) => void;
+  result: ResultState | null;
+  setResult: (result: ResultState | null) => void;
+  tokens: Tokens;
+  user: UserProfile;
+}) {
+  const [mode, setMode] = useState("catalog");
+  const [subject, setSubject] = useState("");
+  const [styleHint, setStyleHint] = useState(defaultStyleHint);
+  const [upscale, setUpscale] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<PickedImage | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
 
-          <View style={styles.resultBox}>
-            {result ? (
-              <>
-                <Image source={{ uri: result.uri }} style={styles.resultImage} />
-                <Text style={styles.resultMeta}>{result.meta.width || "?"} x {result.meta.height || "?"} · {activeMode?.label}</Text>
-                <Pressable style={styles.secondaryButton} onPress={shareResult}>
-                  <Text style={styles.secondaryButtonText}>Share result</Text>
-                </Pressable>
-              </>
-            ) : (
-              <View style={styles.emptyResult}>
-                <Text style={styles.emptyTitle}>Result appears here</Text>
-                <Text style={styles.muted}>Generate from your product photo, then share it from the phone.</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      ) : route === "history" ? (
-        <ScrollView contentContainerStyle={styles.page}>
-          {history.length ? history.map((item) => (
-            <Pressable key={item.id} style={styles.historyItem} onPress={() => setResult({ uri: item.uri, meta: { width: item.width, height: item.height, mode: item.mode } })}>
-              <Image source={{ uri: item.uri }} style={styles.historyThumb} />
-              <View style={styles.historyCopy}>
-                <Text style={styles.historyTitle} numberOfLines={1}>{item.subject}</Text>
-                <Text style={styles.muted}>{item.mode} · {new Date(item.createdAt).toLocaleDateString()}</Text>
-              </View>
-            </Pressable>
-          )) : (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>No mobile history yet</Text>
-              <Text style={styles.muted}>Generated results from this native session will appear here.</Text>
-            </View>
-          )}
-        </ScrollView>
-      ) : (
-        <ScrollView contentContainerStyle={styles.page}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
-            <Text style={styles.muted}>Plan: {user.subscription?.plan || "free"}</Text>
-            <Text style={styles.muted}>Tokens: {user.tokens ?? 0}</Text>
-            <Text style={styles.smallMuted}>API: {API_URL}</Text>
-            <Pressable style={styles.secondaryButton} onPress={signOut}>
-              <Text style={styles.secondaryButtonText}>Sign out</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
-      )}
+  const activeMode = useMemo(() => modes.find((item) => item.id === mode) || modes[0], [mode]);
 
-      <View style={styles.tabBar}>
-        {(["studio", "history", "account"] as Route[]).map((item) => (
-          <Pressable key={item} style={[styles.tab, route === item && styles.tabActive]} onPress={() => setRoute(item)}>
-            <Text style={[styles.tabText, route === item && styles.tabTextActive]}>{item}</Text>
+  async function pickImage(source: "camera" | "library") {
+    const permission =
+      source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission needed", source === "camera" ? "Allow camera access to capture product shots." : "Allow photo access to upload product shots.");
+      return;
+    }
+    const picked =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.88, base64: true })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.88, base64: true });
+    if (picked.canceled) return;
+    const asset = picked.assets[0];
+    if (!asset?.uri || !asset.base64) return;
+    setSelectedImage({
+      uri: asset.uri,
+      base64: asset.base64,
+      name: asset.fileName || (source === "camera" ? "camera-photo" : "product-photo")
+    });
+  }
+
+  async function createPhoto() {
+    if (offline) {
+      Alert.alert("Offline", "Connect to generate a new result.");
+      return;
+    }
+    if (!subject.trim()) {
+      Alert.alert("Add a prompt", "Describe the product and the result you want.");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const response = await generateImage(tokens.access_token, {
+        mode,
+        subject: subject.trim(),
+        style_hint: styleHint.trim(),
+        image: selectedImage?.base64 || null,
+        upscale_4k: upscale
+      });
+      if (!response.image) throw new Error("No image returned");
+      const format = String(response.format || "png").toLowerCase();
+      const nextResult = {
+        uri: `data:image/${format};base64,${response.image}`,
+        meta: response,
+        subject: subject.trim(),
+        modeLabel: activeMode?.label || mode
+      };
+      setResult(nextResult);
+      rememberResult(nextResult);
+      await refreshProfile();
+    } catch (error) {
+      Alert.alert("Generation failed", friendlyError(error));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function queueVideo() {
+    if (offline) {
+      Alert.alert("Offline", "Connect to queue a video job.");
+      return;
+    }
+    if (!selectedImage?.base64) {
+      Alert.alert("Photo required", "Choose or capture a product photo before queueing video.");
+      return;
+    }
+    if (!subject.trim()) {
+      Alert.alert("Add a prompt", "Describe the product video you want.");
+      return;
+    }
+    setVideoLoading(true);
+    try {
+      const job = await generateVideo(tokens.access_token, {
+        mode,
+        subject: subject.trim(),
+        style_hint: styleHint.trim(),
+        image: selectedImage.base64,
+        duration_s: 3,
+        video_provider: "local"
+      });
+      Alert.alert("Video queued", `Job ${job.job_id} is ${job.status}. Check History to refresh jobs.`);
+      await refreshProfile();
+    } catch (error) {
+      Alert.alert("Video failed", friendlyError(error));
+    } finally {
+      setVideoLoading(false);
+    }
+  }
+
+  return (
+    <Screen title="Studio" kicker={`${user.tokens ?? 0} tokens`}>
+      {offline ? <Banner tone="warn" text="Offline. You can edit the prompt and inspect history; generation waits for network." /> : null}
+
+      <View style={styles.modeGrid}>
+        {modes.map((item) => (
+          <Pressable key={item.id} style={[styles.modeTile, mode === item.id && styles.modeTileActive]} onPress={() => setMode(item.id)}>
+            <Text style={[styles.modeTitle, mode === item.id && styles.modeTitleActive]}>{item.label}</Text>
+            <Text style={[styles.modeHint, mode === item.id && styles.modeHintActive]}>{item.hint}</Text>
           </Pressable>
         ))}
       </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Product prompt</Text>
+        <TextInput
+          multiline
+          placeholder="Wine bottle on marble table, premium product card"
+          placeholderTextColor={colors.muted}
+          style={[styles.input, styles.textarea]}
+          value={subject}
+          onChangeText={setSubject}
+        />
+        <Text style={styles.label}>Style</Text>
+        <View style={styles.chipWrap}>
+          {stylesList.map((item) => (
+            <Pressable key={item} style={[styles.chip, styleHint === item && styles.chipActive]} onPress={() => setStyleHint(item)}>
+              <Text style={[styles.chipText, styleHint === item && styles.chipTextActive]}>{item}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <View style={styles.switchRow}>
+          <View>
+            <Text style={styles.label}>Upscale 4K</Text>
+            <Text style={styles.smallMuted}>Uses backend generation setting</Text>
+          </View>
+          <Switch value={upscale} onValueChange={setUpscale} trackColor={{ true: colors.acid, false: colors.line }} />
+        </View>
+      </View>
+
+      <View style={styles.upload}>
+        {selectedImage ? (
+          <>
+            <Image source={{ uri: selectedImage.uri }} style={styles.uploadPreview} />
+            <Text style={styles.uploadText} numberOfLines={1}>{selectedImage.name}</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.uploadTitle}>Product photo</Text>
+            <Text style={styles.uploadText}>Capture with camera or choose from gallery</Text>
+          </>
+        )}
+        <View style={styles.buttonRow}>
+          <SecondaryButton label="Camera" onPress={() => pickImage("camera")} />
+          <SecondaryButton label="Gallery" onPress={() => pickImage("library")} />
+        </View>
+      </View>
+
+      <PrimaryButton disabled={generating || offline} label="Generate photo" loading={generating} onPress={createPhoto} />
+      <SecondaryButton disabled={videoLoading || offline} label={videoLoading ? "Queueing video..." : "Queue 3s video"} onPress={queueVideo} />
+
+      <ResultPanel result={result} />
+    </Screen>
+  );
+}
+
+function ResultPanel({ result }: { result: ResultState | null }) {
+  if (!result) {
+    return (
+      <View style={styles.resultBox}>
+        <View style={styles.emptyResult}>
+          <Text style={styles.emptyTitle}>Result appears here</Text>
+          <Text style={styles.muted}>Generate from your product photo, then save or share it from the phone.</Text>
+        </View>
+      </View>
+    );
+  }
+  const currentResult = result;
+
+  async function shareResult() {
+    try {
+      const file = await resultToFile(currentResult);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.path, {
+          mimeType: file.mimeType,
+          dialogTitle: "Share DomStudio result"
+        });
+      } else {
+        Alert.alert("Sharing unavailable", `Result prepared at ${file.path}`);
+      }
+    } catch (error) {
+      Alert.alert("Share failed", friendlyError(error));
+    }
+  }
+
+  async function saveToGallery() {
+    try {
+      const MediaLibrary = await import("expo-media-library");
+      const permission = await MediaLibrary.requestPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Permission needed", "Allow photo library access to save generated results.");
+        return;
+      }
+      const file = await resultToFile(currentResult);
+      await MediaLibrary.saveToLibraryAsync(file.path);
+      Alert.alert("Saved", "Result saved to your photo library.");
+    } catch (error) {
+      Alert.alert("Save failed", friendlyError(error));
+    }
+  }
+
+  return (
+    <View style={styles.resultBox}>
+      <Image source={{ uri: result.uri }} style={styles.resultImage} />
+      <Text style={styles.resultMeta}>
+        {result.meta.width || "?"} x {result.meta.height || "?"} - {result.modeLabel}
+      </Text>
+      <View style={styles.buttonRow}>
+        <SecondaryButton label="Share" onPress={shareResult} />
+        <SecondaryButton label="Save" onPress={saveToGallery} />
+      </View>
+    </View>
+  );
+}
+
+function HistoryScreen({
+  clearHistory,
+  history,
+  offline,
+  setResult,
+  tokens
+}: {
+  clearHistory: () => Promise<void>;
+  history: LocalHistoryItem[];
+  offline: boolean;
+  setResult: (result: ResultState | null) => void;
+  tokens: Tokens;
+}) {
+  const [jobs, setJobs] = useState<VideoJob[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+
+  async function refreshJobs() {
+    if (offline) {
+      Alert.alert("Offline", "Reconnect to refresh video jobs.");
+      return;
+    }
+    setLoadingJobs(true);
+    try {
+      setJobs(await listVideoJobs(tokens.access_token));
+    } catch (error) {
+      Alert.alert("Jobs failed", friendlyError(error));
+    } finally {
+      setLoadingJobs(false);
+    }
+  }
+
+  useEffect(() => {
+    const sub = NetInfo.addEventListener((state) => {
+      if (state.isConnected && state.isInternetReachable !== false) {
+        refreshJobs().catch(() => undefined);
+      }
+    });
+    return () => sub();
+  }, []);
+
+  return (
+    <Screen title="History" kicker={`${history.length} saved`}>
+      <View style={styles.buttonRow}>
+        <SecondaryButton disabled={!history.length} label="Clear local" onPress={clearHistory} />
+        <SecondaryButton disabled={loadingJobs || offline} label={loadingJobs ? "Refreshing..." : "Refresh jobs"} onPress={refreshJobs} />
+      </View>
+
+      {history.length ? (
+        history.map((item) => (
+          <Pressable
+            key={item.id}
+            style={styles.historyItem}
+            onPress={() =>
+              setResult({
+                uri: item.uri,
+                meta: { width: item.width, height: item.height, format: item.format },
+                subject: item.subject,
+                modeLabel: item.mode
+              })
+            }
+          >
+            <Image source={{ uri: item.uri }} style={styles.historyThumb} />
+            <View style={styles.historyCopy}>
+              <Text style={styles.historyTitle} numberOfLines={1}>{item.subject}</Text>
+              <Text style={styles.muted}>{item.mode} - {new Date(item.createdAt).toLocaleDateString()}</Text>
+            </View>
+          </Pressable>
+        ))
+      ) : (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>No saved results yet</Text>
+          <Text style={styles.muted}>Generated photos are stored locally on this device for quick reuse.</Text>
+        </View>
+      )}
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Video jobs</Text>
+        {jobs.length ? (
+          jobs.map((job) => (
+            <View key={job.job_id} style={styles.jobRow}>
+              <View style={styles.historyCopy}>
+                <Text style={styles.historyTitle} numberOfLines={1}>{job.subject || "Video job"}</Text>
+                <Text style={styles.muted}>{job.status} - {job.mode || "video"} - {job.tokens_used || 0} tokens</Text>
+              </View>
+              <Text style={styles.jobStatus}>{job.has_output ? "Ready" : job.status}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.muted}>Queue a video from Studio, then refresh here. Output quality still depends on the backend worker.</Text>
+        )}
+      </View>
+    </Screen>
+  );
+}
+
+function AccountScreen({
+  offline,
+  refreshProfile,
+  signOut,
+  user
+}: {
+  offline: boolean;
+  refreshProfile: () => Promise<void>;
+  signOut: () => Promise<void>;
+  user: UserProfile;
+}) {
+  const sub = user.subscription;
+
+  return (
+    <Screen title="Account" kicker={user.subscription?.plan || "free"}>
+      {offline ? <Banner tone="warn" text="Offline. Account numbers may be stale." /> : null}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
+        <Text style={styles.muted}>Verified: {user.is_verified === false ? "No" : "Yes"}</Text>
+        <Text style={styles.muted}>Tokens: {user.tokens ?? 0}</Text>
+        <SecondaryButton disabled={offline} label="Refresh account" onPress={refreshProfile} />
+      </View>
+
+      <View style={styles.statsGrid}>
+        <StatCard label="Photos" value={planText(sub?.photos_used, sub?.photos_limit)} />
+        <StatCard label="Videos" value={planText(sub?.videos_used, sub?.videos_limit)} />
+        <StatCard label="Premium videos" value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
+        <StatCard label="Plan" value={sub?.plan || "free"} />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Plan status</Text>
+        <Text style={styles.muted}>Renewal: {sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : "Not scheduled"}</Text>
+        <Text style={styles.muted}>Payments and subscriptions can be added here once native compliance decisions are final.</Text>
+      </View>
+
+      <SecondaryButton label="Sign out" onPress={signOut} />
+    </Screen>
+  );
+}
+
+function SettingsScreen({
+  clearHistory,
+  offline
+}: {
+  clearHistory: () => Promise<void>;
+  offline: boolean;
+}) {
+  return (
+    <Screen title="Settings" kicker={offline ? "offline" : "online"}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Environment</Text>
+        <Text style={styles.muted}>API URL</Text>
+        <Text style={styles.mono}>{API_URL}</Text>
+        <Text style={styles.smallMuted}>
+          Use your computer LAN IP for Expo Go on a physical phone. Android emulator usually uses http://10.0.2.2:8000.
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Device storage</Text>
+        <Text style={styles.muted}>Local generated-photo history is stored on this device and can be cleared any time.</Text>
+        <SecondaryButton label="Clear local history" onPress={clearHistory} />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Build readiness</Text>
+        <Text style={styles.muted}>Camera, gallery picker, media-library save, secure tokens, and native tabs are enabled.</Text>
+        <Text style={styles.muted}>Icons and splash are placeholders until final brand assets are supplied.</Text>
+      </View>
+    </Screen>
+  );
+}
+
+function Screen({ children, kicker, title }: { children: React.ReactNode; kicker?: string; title: string }) {
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.kicker}>DomStudio mobile</Text>
+            <Text style={styles.headerTitle}>{title}</Text>
+          </View>
+          {kicker ? <View style={styles.tokenPill}><Text style={styles.tokenText}>{kicker}</Text></View> : null}
+        </View>
+        {children}
+      </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function PrimaryButton({
+  disabled,
+  label,
+  loading,
+  onPress
+}: {
+  disabled?: boolean;
+  label: string;
+  loading?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable style={[styles.primaryButton, disabled && styles.buttonDisabled]} onPress={onPress} disabled={disabled}>
+      {loading ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.primaryButtonText}>{label}</Text>}
+    </Pressable>
+  );
+}
+
+function SecondaryButton({ disabled, label, onPress }: { disabled?: boolean; label: string; onPress: () => void }) {
+  return (
+    <Pressable style={[styles.secondaryButton, disabled && styles.buttonDisabled]} onPress={onPress} disabled={disabled}>
+      <Text style={styles.secondaryButtonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function LinkButton({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={styles.linkButton}>
+      <Text style={styles.linkText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function Banner({ text, tone }: { text: string; tone: "warn" | "ok" }) {
+  return (
+    <View style={[styles.banner, tone === "warn" && styles.bannerWarn]}>
+      <Text style={styles.bannerText}>{text}</Text>
+    </View>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+    </View>
+  );
+}
+
+function TabGlyph({ color, label }: { color: string; label: string }) {
+  return (
+    <View style={[styles.tabGlyph, { borderColor: color }]}>
+      <Text style={[styles.tabGlyphText, { color }]}>{label}</Text>
+    </View>
   );
 }
 
@@ -420,12 +1052,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22
   },
+  page: {
+    padding: 16,
+    paddingBottom: 108,
+    gap: 14
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingVertical: 12
+    gap: 12
   },
   kicker: {
     color: colors.green,
@@ -439,11 +1075,12 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   tokenPill: {
-    minWidth: 58,
+    maxWidth: 150,
     minHeight: 40,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 12,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line
@@ -451,11 +1088,6 @@ const styles = StyleSheet.create({
   tokenText: {
     color: colors.acid,
     fontWeight: "900"
-  },
-  page: {
-    padding: 16,
-    paddingBottom: 104,
-    gap: 14
   },
   card: {
     padding: 16,
@@ -509,10 +1141,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.line,
-    backgroundColor: colors.card
+    backgroundColor: colors.card,
+    paddingHorizontal: 16,
+    flex: 1
   },
   secondaryButtonText: {
     color: colors.ink,
+    fontWeight: "900"
+  },
+  buttonDisabled: {
+    opacity: 0.45
+  },
+  linkRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  linkButton: {
+    minHeight: 32,
+    justifyContent: "center"
+  },
+  linkText: {
+    color: colors.green,
     fontWeight: "900"
   },
   muted: {
@@ -525,31 +1175,61 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16
   },
-  segmentRow: {
+  mono: {
+    color: colors.ink,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  banner: {
+    padding: 12,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.green,
+    backgroundColor: "#eef7f1"
+  },
+  bannerWarn: {
+    borderColor: colors.acid,
+    backgroundColor: "#fff6e4"
+  },
+  bannerText: {
+    color: colors.ink,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800"
+  },
+  modeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8
   },
-  segment: {
-    paddingHorizontal: 12,
-    minHeight: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.card,
+  modeTile: {
+    width: "48.5%",
+    minHeight: 78,
+    borderRadius: radii.md,
+    padding: 12,
     borderWidth: 1,
-    borderColor: colors.line
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    justifyContent: "space-between"
   },
-  segmentActive: {
+  modeTileActive: {
     backgroundColor: colors.ink,
     borderColor: colors.ink
   },
-  segmentText: {
-    color: colors.muted,
-    fontWeight: "800"
+  modeTitle: {
+    color: colors.ink,
+    fontWeight: "900"
   },
-  segmentTextActive: {
+  modeTitleActive: {
     color: "#ffffff"
+  },
+  modeHint: {
+    color: colors.muted,
+    fontSize: 11,
+    lineHeight: 15
+  },
+  modeHintActive: {
+    color: "#f4f0e8"
   },
   chipWrap: {
     flexDirection: "row",
@@ -579,10 +1259,11 @@ const styles = StyleSheet.create({
   switchRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    gap: 12
   },
   upload: {
-    minHeight: 168,
+    minHeight: 178,
     borderRadius: radii.md,
     borderWidth: 1,
     borderStyle: "dashed",
@@ -591,11 +1272,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    gap: 8
+    gap: 10,
+    padding: 12
   },
   uploadPreview: {
     width: "100%",
     height: 220,
+    borderRadius: 12,
     resizeMode: "cover"
   },
   uploadTitle: {
@@ -641,6 +1324,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900"
   },
+  buttonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    width: "100%"
+  },
   historyItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -665,35 +1354,65 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontWeight: "900"
   },
-  tabBar: {
-    position: "absolute",
-    left: 10,
-    right: 10,
-    bottom: 10,
+  jobRow: {
+    minHeight: 58,
     flexDirection: "row",
-    gap: 6,
-    padding: 8,
-    borderRadius: radii.lg,
-    backgroundColor: "rgba(255,253,248,0.96)",
-    borderWidth: 1,
-    borderColor: colors.line
+    alignItems: "center",
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    paddingTop: 10
   },
-  tab: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 16,
+  jobStatus: {
+    color: colors.green,
+    fontWeight: "900"
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  statCard: {
+    width: "48.5%",
+    minHeight: 82,
+    borderRadius: radii.md,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    justifyContent: "space-between"
+  },
+  statLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  statValue: {
+    color: colors.ink,
+    fontSize: 19,
+    fontWeight: "900"
+  },
+  nativeTabBar: {
+    minHeight: 70,
+    paddingTop: 8,
+    paddingBottom: 10,
+    backgroundColor: colors.card,
+    borderTopColor: colors.line
+  },
+  nativeTabText: {
+    fontWeight: "900",
+    fontSize: 11
+  },
+  tabGlyph: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center"
   },
-  tabActive: {
-    backgroundColor: "#fff3d8"
-  },
-  tabText: {
-    color: colors.muted,
-    fontWeight: "900",
-    textTransform: "capitalize"
-  },
-  tabTextActive: {
-    color: colors.ink
+  tabGlyphText: {
+    fontSize: 10,
+    fontWeight: "900"
   }
 });

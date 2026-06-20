@@ -4,18 +4,33 @@
     "slug": "domstudio-mobile",
     "version": "0.1.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "domstudio",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
       "backgroundColor": "#f4f0e8"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "site.domstudio.app"
+      "bundleIdentifier": "site.domstudio.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "DomStudio uses the camera to capture product photos.",
+        "NSPhotoLibraryUsageDescription": "DomStudio uses your photo library to choose product images.",
+        "NSPhotoLibraryAddUsageDescription": "DomStudio saves generated results to your photo library."
+      }
     },
     "android": {
       "package": "site.domstudio.app",
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ff9d2e"
       }
     },
@@ -26,6 +41,14 @@
           "photosPermission": "DomStudio needs photo access to turn your product shots into marketplace content."
         }
       ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "DomStudio saves generated images to your photo library.",
+          "savePhotosPermission": "DomStudio saves generated images to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       "expo-secure-store"
     ],
     "extra": {
@@ -33,4 +56,3 @@
     }
   }
 }
-

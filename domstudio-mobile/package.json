@@ -5,22 +5,32 @@
   "main": "expo/AppEntry",
   "scripts": {
     "start": "expo start",
+    "start:lan": "expo start --lan",
+    "start:tunnel": "expo start --tunnel",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "expo": "56.0.12",
-    "expo-file-system": "56.0.8",
-    "expo-image-picker": "56.0.18",
-    "expo-secure-store": "56.0.4",
-    "expo-sharing": "56.0.18",
-    "react": "19.2.3",
-    "react-native": "0.85.3"
+    "@react-native-community/netinfo": "11.4.1",
+    "@react-navigation/bottom-tabs": "^7.18.2",
+    "@react-navigation/native": "^7.3.3",
+    "@react-navigation/native-stack": "^7.17.5",
+    "babel-preset-expo": "~54.0.10",
+    "expo": "~54.0.0",
+    "expo-file-system": "~19.0.23",
+    "expo-image-picker": "~17.0.11",
+    "expo-media-library": "~18.2.1",
+    "expo-secure-store": "~15.0.8",
+    "expo-sharing": "~14.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.7",
-    "typescript": "~6.0.3"
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
   }
 }

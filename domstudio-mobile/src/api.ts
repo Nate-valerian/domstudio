@@ -3,12 +3,14 @@ import * as SecureStore from "expo-secure-store";
 export type Tokens = {
   access_token: string;
   refresh_token: string;
+  token_type?: string;
 };
 
 export type UserProfile = {
   id?: string;
   email?: string;
   phone?: string;
+  is_verified?: boolean;
   tokens: number;
   subscription?: {
     plan?: string;
@@ -18,6 +20,7 @@ export type UserProfile = {
     videos_limit?: number;
     premium_videos_used?: number;
     premium_videos_limit?: number;
+    renews_at?: string | null;
   };
 };
 
@@ -36,6 +39,22 @@ export type GenerateResult = {
   width?: number;
   height?: number;
   mode?: string;
+  tokens_charged?: number;
+  token_balance?: number;
+};
+
+export type VideoJob = {
+  job_id: string;
+  status: string;
+  mode?: string;
+  subject?: string;
+  output_url?: string | null;
+  output_data?: string | null;
+  output_format?: string | null;
+  has_output?: boolean;
+  error?: string | null;
+  tokens_used?: number;
+  created_at?: string;
 };
 
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
@@ -96,6 +115,62 @@ export function loginEmail(email: string, password: string): Promise<Tokens> {
   });
 }
 
+export function registerEmail(email: string, password: string): Promise<{ message: string; user_id?: string }> {
+  return request<{ message: string; user_id?: string }>("/auth/register/email", {
+    method: "POST",
+    body: JSON.stringify({ email, password })
+  });
+}
+
+export function verifyEmail(contact: string, code: string): Promise<Tokens> {
+  return request<Tokens>("/auth/verify/email", {
+    method: "POST",
+    body: JSON.stringify({ contact, code })
+  });
+}
+
+export function loginPhone(phone: string): Promise<{ message: string }> {
+  return request<{ message: string }>("/auth/login/phone", {
+    method: "POST",
+    body: JSON.stringify({ phone })
+  });
+}
+
+export function verifyPhone(contact: string, code: string): Promise<Tokens> {
+  return request<Tokens>("/auth/verify/phone", {
+    method: "POST",
+    body: JSON.stringify({ contact, code })
+  });
+}
+
+export function refreshTokens(refresh_token: string): Promise<Tokens> {
+  return request<Tokens>("/auth/refresh", {
+    method: "POST",
+    body: JSON.stringify({ refresh_token })
+  });
+}
+
+export function logout(refresh_token: string): Promise<{ message: string }> {
+  return request<{ message: string }>("/auth/logout", {
+    method: "POST",
+    body: JSON.stringify({ refresh_token })
+  });
+}
+
+export function forgotPassword(email: string): Promise<{ message: string }> {
+  return request<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email })
+  });
+}
+
+export function resetPassword(email: string, code: string, new_password: string): Promise<Tokens> {
+  return request<Tokens>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, code, new_password })
+  });
+}
+
 export function loadMe(accessToken: string): Promise<UserProfile> {
   return request<UserProfile>("/users/me/full", {}, accessToken);
 }
@@ -111,3 +186,24 @@ export function generateImage(accessToken: string, payload: GeneratePayload): Pr
   );
 }
 
+export function generateVideo(
+  accessToken: string,
+  payload: GeneratePayload & { duration_s?: number; video_provider?: "local" | "premium" }
+): Promise<VideoJob> {
+  return request<VideoJob>(
+    "/generation/video",
+    {
+      method: "POST",
+      body: JSON.stringify(payload)
+    },
+    accessToken
+  );
+}
+
+export function listVideoJobs(accessToken: string): Promise<VideoJob[]> {
+  return request<VideoJob[]>("/generation/jobs", {}, accessToken);
+}
+
+export function getVideoJob(accessToken: string, jobId: string): Promise<VideoJob> {
+  return request<VideoJob>(`/generation/jobs/${jobId}`, {}, accessToken);
+}

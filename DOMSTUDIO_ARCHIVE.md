@@ -1,5 +1,126 @@
 # DomStudio Archive
 
+## June 21, 2026 - Mobile V1 Pass + iPhone 8 Plus Expo Go Compatibility
+
+User asked to build the next mobile pieces that do not require AutoDL. AutoDL is
+not needed for mobile app development; it is only needed later for real
+generation/video quality tests.
+
+What was built in `domstudio-mobile/`:
+
+- Reworked the starter Expo shell into native bottom-tab navigation:
+  - Studio
+  - History
+  - Account
+  - Settings
+- Added auth polish against existing backend routes:
+  - email login via `/auth/login/email`
+  - email registration via `/auth/register/email`
+  - email OTP verification via `/auth/verify/email`
+  - phone OTP login via `/auth/login/phone`
+  - phone OTP verification via `/auth/verify/phone`
+  - forgot password via `/auth/forgot-password`
+  - reset password via `/auth/reset-password`
+  - refresh-token rotation on app boot via `/auth/refresh`
+  - logout via `/auth/logout`
+- Added camera capture and gallery picker via `expo-image-picker`.
+- Added persistent local generated-image history in
+  `domstudio-mobile/src/storage.ts`.
+- Added native share and save-to-gallery for generated results.
+- Added offline/network state using `@react-native-community/netinfo`.
+- Added loading, empty, and error states around auth, generation, video jobs,
+  history, account refresh, and network transitions.
+- Added account usage cards for tokens, plan, photos, videos, and premium video
+  quotas from `/users/me/full`.
+- Added Settings screen with API URL/device setup guidance.
+- Added video job queueing through `/generation/video` and job refresh through
+  `/generation/jobs`. This is UI/API-ready, but real video output still depends
+  on a backend generation worker.
+- Added placeholder app assets:
+
+```text
+domstudio-mobile/assets/icon.png
+domstudio-mobile/assets/adaptive-icon.png
+domstudio-mobile/assets/splash-icon.png
+```
+
+Expo/iPhone compatibility:
+
+- Initial mobile scaffold used Expo SDK 56.
+- iPhone 8 Plus running App Store Expo Go rejected SDK 56 with:
+
+```text
+Project is incompatible with this version of Expo Go.
+The project you requested requires a newer version of Expo Go.
+```
+
+- Checked current Expo status: App Store Expo Go is effectively on the SDK 54
+  line, while SDK 56 Expo Go is not available through the normal iOS App Store
+  path.
+- Downgraded `domstudio-mobile` to Expo SDK 54 for iPhone 8 Plus / Expo Go
+  testing:
+
+```text
+expo@~54.0.0
+react@19.1.0
+react-native@0.81.5
+typescript@~5.9.2
+```
+
+- Aligned Expo native packages to SDK 54 with `npx expo install --check`.
+- Added README note explaining the SDK 54 pin.
+
+Validation:
+
+```text
+cd domstudio-mobile
+npx expo install --check
+npm run typecheck
+npx expo config --type public
+```
+
+Outcome:
+
+- Dependency check passes.
+- TypeScript passes.
+- Expo config resolves with `sdkVersion: 54.0.0`.
+- Test Metro start with cache clear succeeded on port `8087`.
+
+Metro/Windows note:
+
+- During the SDK downgrade, Metro briefly crashed with:
+
+```text
+ENOENT: no such file or directory, watch
+node_modules\@react-native\.gradle-plugin-...\react-native-gradle-plugin\src\test\kotlin...
+```
+
+- Cause: Windows Metro file watcher tried to watch a transient React Native
+  Gradle plugin folder while `node_modules` was changing during install.
+- After dependency install settled, `expo start --lan --port 8087 --clear`
+  started successfully.
+- Machine currently reports `node v24.15.0`. If Expo/Metro shows more odd
+  Windows watcher or ESM loader behavior, switch to Node 20 LTS before deeper
+  debugging.
+
+Recommended phone test command:
+
+```bash
+cd domstudio-mobile
+npm run start:lan -- --clear
+```
+
+What still needs real-device/backend testing:
+
+- Scan QR on iPhone 8 Plus in Expo Go after SDK 54 downgrade.
+- Set `EXPO_PUBLIC_API_URL` to a LAN-reachable backend URL for physical phone
+  auth/API testing.
+- Login/register/OTP/password reset against a running backend.
+- Camera/gallery permissions on the physical phone.
+- Save/share result behavior on iOS.
+- Real image/video generation only after a generation worker/provider is
+  available again.
+
 ## June 20, 2026 - React Native Mobile Scaffold Started
 
 User asked whether to create a mobile folder and start React Native after PWA
