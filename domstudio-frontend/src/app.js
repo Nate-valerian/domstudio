@@ -2134,6 +2134,17 @@ async function shareResult() {
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+  if (import.meta.env.DEV) {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .catch(() => {});
+    if ("caches" in window) {
+      caches.keys()
+        .then((keys) => Promise.all(keys.filter((key) => key.startsWith("domstudio-")).map((key) => caches.delete(key))))
+        .catch(() => {});
+    }
+    return;
+  }
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   });
