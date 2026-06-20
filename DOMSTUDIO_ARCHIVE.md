@@ -174,6 +174,56 @@ manifest ok
 vite build passed
 ```
 
+Service worker media cache error fix:
+
+User reported browser console errors:
+
+```text
+Failed to execute 'put' on 'Cache': Partial response (status code 206) is unsupported
+GET .../perfume-product-5s.mp4 net::ERR_FAILED
+GET .../wine-product-5s.mp4 net::ERR_FAILED
+GET .../fashion-fitting-5s.mp4 net::ERR_FAILED
+```
+
+Cause:
+
+- The service worker tried to cache MP4 requests.
+- Browsers request video files with `Range` headers.
+- Range responses return HTTP `206 Partial Content`.
+- Cache Storage does not allow `cache.put()` for partial `206` responses.
+
+Fix:
+
+- Bumped service worker cache version to `domstudio-shell-v2`.
+- Bypassed service-worker handling for requests with a `Range` header.
+- Bypassed service-worker handling for media file extensions:
+  `.mp4`, `.mov`, `.webm`, `.mkv`, `.mp3`, `.m4a`, `.wav`, `.ogg`.
+- Limited cache writes to full `200` responses only.
+- Added `.catch(() => {})` around async cache writes so a cache write failure
+  cannot break the fetch response.
+
+Files changed:
+
+```text
+domstudio-frontend/public/sw.js
+DOMSTUDIO_ARCHIVE.md
+```
+
+Validation:
+
+```text
+node --check domstudio-frontend/public/sw.js
+cd domstudio-frontend
+npm run build
+```
+
+Result:
+
+```text
+service worker syntax OK
+vite build passed
+```
+
 ## June 7, 2026 - Midday Status Note
 
 User asked:

@@ -1,4 +1,5 @@
-const CACHE_NAME = "domstudio-shell-v1";
+const CACHE_NAME = "domstudio-shell-v2";
+const UNCACHEABLE_EXTENSIONS = /\.(mp4|mov|webm|mkv|mp3|m4a|wav|ogg)$/i;
 const SHELL_URLS = [
   "/",
   "/manifest.json",
@@ -27,14 +28,17 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET" || url.pathname.startsWith("/api/")) return;
+  if (request.headers.has("range") || UNCACHEABLE_EXTENSIONS.test(url.pathname)) return;
   if (url.pathname.startsWith("/auth") || url.pathname.startsWith("/generation") || url.pathname.startsWith("/payments")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
+          if (response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("/", copy)).catch(() => {});
+          }
           return response;
         })
         .catch(() => caches.match("/"))
@@ -47,9 +51,9 @@ self.addEventListener("fetch", (event) => {
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
-          if (response.ok) {
+          if (response.status === 200) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
           }
           return response;
         });
