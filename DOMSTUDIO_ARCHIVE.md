@@ -16,8 +16,9 @@ auth and generation calls work without needing a LAN backend running.
 Web login that appeared broken was resolved — user signed in successfully.
 The backend was fine; the issue was account credentials.
 
-Next step: restart Metro with `npm run start:lan -- --clear`, rescan QR on
-iPhone, verify login/register against the live backend from the phone.
+Result: confirmed working. iPhone Expo Go rescanned QR, user signed in
+successfully against the live Amvera backend. Auth flow end-to-end verified
+on physical device.
 
 ---
 
