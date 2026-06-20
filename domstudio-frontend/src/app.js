@@ -946,6 +946,20 @@ function videoSourceFromJob(job) {
   return `data:${mime};base64,${job.output_data}`;
 }
 
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 640px)").matches;
+}
+
+function revealResultOnMobile() {
+  if (!isMobileViewport()) return;
+  requestAnimationFrame(() => {
+    document.querySelector(".result-panel")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+}
+
 function videoJobPanel() {
   if (!state.videoJob) return "";
   const status = state.videoJob.status || "queued";
@@ -1973,6 +1987,7 @@ async function pollVideoJob(jobId, attempt = 0) {
       await loadUser();
       toast(source ? t("video.done") : t("video.doneNoOutput"));
       render({ motion: false });
+      if (source) revealResultOnMobile();
       return;
     }
     if (job.status === "failed") {
@@ -2004,6 +2019,7 @@ async function pollVideoJob(jobId, attempt = 0) {
 async function generateWithPayload(payload, options = {}) {
   const previousImage = options.keepCurrentImage ? state.generatedImage : null;
   const previousMeta = options.keepCurrentImage ? state.generatedMeta : null;
+  let generated = false;
   state.generating = true;
   state.generationLabel = options.label ? `${t("studio.submitGenerating").replace("…", "")} ${options.label}…` : t("studio.submitGenerating");
   if (!options.keepCurrentImage) {
@@ -2031,6 +2047,7 @@ async function generateWithPayload(payload, options = {}) {
     state.generatedMeta = resultMeta;
     await rememberResult(resultMeta, dataUrl, payload);
     await loadUser();
+    generated = true;
     toast(options.label ? t("toast.variationDone", { label: options.label }) : t("toast.photoDone"));
   } catch (error) {
     toast(error.message);
@@ -2038,6 +2055,7 @@ async function generateWithPayload(payload, options = {}) {
     state.generating = false;
     state.generationLabel = "";
     render();
+    if (generated) revealResultOnMobile();
   }
 }
 

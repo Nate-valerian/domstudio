@@ -112,6 +112,36 @@ Result:
 - Playwright screenshot showed matching top and bottom mobile nav shells in
   both height and width.
 
+Next mobile Studio polish:
+
+- Added mobile-only result reveal behavior after generation completes.
+- When a photo generation succeeds on a phone viewport, the app now scrolls the
+  result panel into view automatically.
+- When a video job completes with output on a phone viewport, the app also
+  scrolls to the result panel.
+- This keeps the long mobile Studio form from feeling stuck at the submit area
+  after generation finishes.
+
+Files changed:
+
+```text
+domstudio-frontend/src/app.js
+DOMSTUDIO_ARCHIVE.md
+```
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm run build
+```
+
+Result:
+
+```text
+vite build passed
+```
+
 ## June 7, 2026 - Midday Status Note
 
 User asked:
