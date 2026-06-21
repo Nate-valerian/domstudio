@@ -9,17 +9,20 @@ import {
   Pressable,
   ScrollView,
   StatusBar,
+  StyleProp,
   StyleSheet,
   Switch,
   Text,
   TextInput,
-  View
+  View,
+  ViewStyle
 } from "react-native";
 import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { VideoSource, VideoView, useVideoPlayer } from "expo-video";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
@@ -92,6 +95,10 @@ type ModeOption = {
 
 const proofBefore = require("./assets/visual/wine-before-original.jpeg") as ImageSourcePropType;
 const proofAfter = require("./assets/visual/wine-after-smoke.png") as ImageSourcePropType;
+const proofVideo = require("./assets/visual/wine-after-smoke-5s.mp4") as number;
+const perfumeProductVideo = require("./assets/visual/perfume-product-5s.mp4") as number;
+const wineProductVideo = require("./assets/visual/wine-product-5s.mp4") as number;
+const fashionFittingVideo = require("./assets/visual/fashion-fitting-5s.mp4") as number;
 
 const modes = [
   {
@@ -165,17 +172,22 @@ const pricingPlans = [
 
 const exampleImages = [
   { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
-  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, wide: true },
+  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, video: perfumeProductVideo, wide: true },
   { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
   { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
   { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
   { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card", src: require("./assets/visual/example-bottle-catalog.webp") as ImageSourcePropType, portrait: true },
-  { mode: "Product", product: "Wine bottle", title: "Marble table studio setup", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, wide: true },
+  { mode: "Product", product: "Wine bottle", title: "Marble table studio setup", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, video: wineProductVideo, wide: true },
   { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame", src: require("./assets/visual/example-bottle-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene", src: require("./assets/visual/example-bottle-lifestyle.webp") as ImageSourcePropType },
   { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
   { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
+];
+
+const motionExamples = [
+  { mode: "Product video", product: "Wine bottle", title: "Autoplay product motion", src: proofAfter, video: proofVideo },
+  { mode: "Fitting video", product: "Beige suit outfit", title: "Virtual fitting motion preview", src: require("./assets/visual/mode-fitting-real-v2.webp") as ImageSourcePropType, video: fashionFittingVideo }
 ];
 
 const workflowSteps = [
@@ -341,6 +353,22 @@ function isOfflineState(value: ReturnType<typeof useNetInfo>) {
 function planText(value?: number, limit?: number) {
   if (typeof value !== "number" || typeof limit !== "number") return "0 / 0";
   return `${value} / ${limit}`;
+}
+
+function usageStatus(value?: number, limit?: number) {
+  const display = planText(value, limit);
+  if (typeof value !== "number" || typeof limit !== "number") {
+    return { display, overLimit: false, helper: "" };
+  }
+  if (limit <= 0) {
+    return value > 0
+      ? { display, overLimit: true, helper: `${value} used with no allowance on this plan` }
+      : { display, overLimit: false, helper: "No allowance on this plan" };
+  }
+  if (value > limit) {
+    return { display, overLimit: true, helper: `${value - limit} over plan limit` };
+  }
+  return { display, overLimit: false, helper: `${limit - value} remaining` };
 }
 
 async function resultToFile(result: ResultState): Promise<{ path: string; mimeType: string }> {
@@ -743,11 +771,10 @@ function MainTabs(props: {
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: styles.nativeTabBar,
         tabBarItemStyle: styles.nativeTabItem,
-        tabBarActiveBackgroundColor: "#fff4cf",
         tabBarLabelStyle: styles.nativeTabText
       }}
     >
-      <Tabs.Screen name="Home" options={{ tabBarLabel: copy.tabs.home, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="home" /> }}>
+      <Tabs.Screen name="Home" options={{ tabBarLabel: copy.tabs.home, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="home" /> }}>
         {({ navigation }) => (
           <HomeScreen
             language={props.language}
@@ -760,13 +787,13 @@ function MainTabs(props: {
           />
         )}
       </Tabs.Screen>
-      <Tabs.Screen name="Studio" options={{ tabBarLabel: copy.tabs.studio, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="studio" /> }}>
+      <Tabs.Screen name="Studio" options={{ tabBarLabel: copy.tabs.studio, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="studio" /> }}>
         {() => <StudioScreen {...props} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Examples" options={{ tabBarLabel: copy.tabs.examples, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="examples" /> }}>
+      <Tabs.Screen name="Examples" options={{ tabBarLabel: copy.tabs.examples, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="examples" /> }}>
         {({ navigation }) => <ExamplesScreen language={props.language} onCreate={() => navigation.navigate("Studio")} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Pricing" options={{ tabBarLabel: copy.tabs.pricing, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="pricing" /> }}>
+      <Tabs.Screen name="Pricing" options={{ tabBarLabel: copy.tabs.pricing, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="pricing" /> }}>
         {() => <PricingScreen {...props} language={props.language} />}
       </Tabs.Screen>
     </Tabs.Navigator>
@@ -867,7 +894,7 @@ function HomeScreen({
               <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.after}</Text></View>
             </View>
             <View style={styles.homeProofSlot}>
-              <Image source={proofAfter} style={styles.homeProofCoverZoom} />
+              <AutoplayVideo source={proofVideo} style={styles.homeProofVideo} />
               <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.video}</Text></View>
             </View>
           </View>
@@ -904,7 +931,7 @@ function HomeScreen({
               <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.after}</Text></View>
             </View>
             <View style={styles.homeProofSlot}>
-              <Image source={proofAfter} style={styles.homeProofCoverZoom} />
+              <AutoplayVideo source={proofVideo} style={styles.homeProofVideo} />
               <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.video}</Text></View>
             </View>
           </View>
@@ -1021,8 +1048,35 @@ function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreat
         <View style={styles.exampleGalleryGrid}>
           {exampleImages.map((item) => (
             <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, item.wide && styles.exampleGalleryWide]}>
-              <View style={styles.exampleImageWrap}>
-                <Image source={item.src} style={[styles.exampleImage, item.portrait && styles.exampleImagePortrait]} />
+              {item.video ? (
+                <View style={styles.exampleVideoPair}>
+                  <View style={styles.exampleVideoHalf}>
+                    <Image source={item.src} style={styles.exampleImage} />
+                  </View>
+                  <View style={styles.exampleVideoHalf}>
+                    <AutoplayVideo source={item.video} style={styles.exampleVideo} />
+                  </View>
+                  <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.mode}</Text></View>
+                </View>
+              ) : (
+                <View style={styles.exampleImageWrap}>
+                  <Image source={item.src} style={[styles.exampleImage, item.portrait && styles.exampleImagePortrait]} />
+                  <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.mode}</Text></View>
+                </View>
+              )}
+              <Text style={styles.exampleTitle}>{item.title}</Text>
+              <Text style={styles.exampleText}>{item.product}</Text>
+            </View>
+          ))}
+          {motionExamples.map((item) => (
+            <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, styles.exampleGalleryWide]}>
+              <View style={styles.exampleVideoPair}>
+                <View style={styles.exampleVideoHalf}>
+                  <Image source={item.src} style={styles.exampleImage} />
+                </View>
+                <View style={styles.exampleVideoHalf}>
+                  <AutoplayVideo source={item.video} style={styles.exampleVideo} />
+                </View>
                 <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.mode}</Text></View>
               </View>
               <Text style={styles.exampleTitle}>{item.title}</Text>
@@ -1056,6 +1110,9 @@ function PricingScreen({
 }) {
   const sub = user.subscription;
   const copy = mobileCopy[language].pricing;
+  const photosUsage = usageStatus(sub?.photos_used, sub?.photos_limit);
+  const videosUsage = usageStatus(sub?.videos_used, sub?.videos_limit);
+  const premiumUsage = usageStatus(sub?.premium_videos_used, sub?.premium_videos_limit);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -1076,9 +1133,9 @@ function PricingScreen({
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard label={copy.photos} value={planText(sub?.photos_used, sub?.photos_limit)} />
-          <StatCard label={copy.videos} value={planText(sub?.videos_used, sub?.videos_limit)} />
-          <StatCard label={copy.premium} value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
+          <StatCard helper={photosUsage.helper} label={copy.photos} tone={photosUsage.overLimit ? "warn" : "default"} value={photosUsage.display} />
+          <StatCard helper={videosUsage.helper} label={copy.videos} tone={videosUsage.overLimit ? "warn" : "default"} value={videosUsage.display} />
+          <StatCard helper={premiumUsage.helper} label={copy.premium} tone={premiumUsage.overLimit ? "warn" : "default"} value={premiumUsage.display} />
           <StatCard label={copy.renewal} value={sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : copy.none} />
         </View>
 
@@ -1114,6 +1171,25 @@ function GridBackdrop() {
       <View style={[styles.gridGlow, { left: "18%", bottom: -60 }]} />
       <View style={[styles.gridGlow, { right: "12%", bottom: 30 }]} />
     </View>
+  );
+}
+
+function AutoplayVideo({ source, style }: { source: VideoSource; style?: StyleProp<ViewStyle> }) {
+  const player = useVideoPlayer(source, (nextPlayer) => {
+    nextPlayer.loop = true;
+    nextPlayer.muted = true;
+    nextPlayer.play();
+  });
+
+  return (
+    <VideoView
+      allowsFullscreen={false}
+      contentFit="cover"
+      nativeControls={false}
+      player={player}
+      playsInline
+      style={style}
+    />
   );
 }
 
@@ -1660,19 +1736,31 @@ function Banner({ text, tone }: { text: string; tone: "warn" | "ok" }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({
+  helper,
+  label,
+  tone = "default",
+  value
+}: {
+  helper?: string;
+  label: string;
+  tone?: "default" | "warn";
+  value: string;
+}) {
   return (
-    <View style={styles.statCard}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+    <View style={[styles.statCard, tone === "warn" && styles.statCardWarn]}>
+      <Text style={[styles.statLabel, tone === "warn" && styles.statLabelWarn]}>{label}</Text>
+      <Text style={[styles.statValue, tone === "warn" && styles.statValueWarn]}>{value}</Text>
+      {helper ? <Text style={[styles.statHelper, tone === "warn" && styles.statHelperWarn]}>{helper}</Text> : null}
     </View>
   );
 }
 
-function TabGlyph({ color, kind }: { color: string; kind: "home" | "studio" | "examples" | "pricing" }) {
+function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "examples" | "pricing" }) {
+  const wrapStyle = [styles.tabGlyph, focused && styles.tabGlyphActive];
   if (kind === "home") {
     return (
-      <View style={styles.tabGlyph}>
+      <View style={wrapStyle}>
         <View style={[styles.tabHomeRoof, { borderColor: color }]} />
         <View style={[styles.tabHomeBase, { borderColor: color }]} />
       </View>
@@ -1680,7 +1768,7 @@ function TabGlyph({ color, kind }: { color: string; kind: "home" | "studio" | "e
   }
   if (kind === "examples") {
     return (
-      <View style={styles.tabGlyph}>
+      <View style={wrapStyle}>
         <View style={[styles.tabLine, { backgroundColor: color, width: 18 }]} />
         <View style={[styles.tabLine, { backgroundColor: color, width: 13 }]} />
         <View style={[styles.tabLine, { backgroundColor: color, width: 16 }]} />
@@ -1689,14 +1777,14 @@ function TabGlyph({ color, kind }: { color: string; kind: "home" | "studio" | "e
   }
   if (kind === "pricing") {
     return (
-      <View style={styles.tabGlyph}>
+      <View style={wrapStyle}>
         <View style={[styles.tabRing, { borderColor: color }]} />
         <View style={[styles.tabPriceLine, { backgroundColor: color }]} />
       </View>
     );
   }
   return (
-    <View style={styles.tabGlyph}>
+    <View style={wrapStyle}>
       <View style={[styles.tabStudioFrame, { borderColor: color }]} />
       <View style={[styles.tabStudioSpark, { backgroundColor: color }]} />
     </View>
@@ -1955,6 +2043,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "contain"
+  },
+  homeProofVideo: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#11110f"
   },
   homeDarkBadge: {
     position: "absolute",
@@ -2439,6 +2532,25 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover"
+  },
+  exampleVideoPair: {
+    position: "relative",
+    flexDirection: "row",
+    gap: 8,
+    padding: 8,
+    backgroundColor: "#efe8de"
+  },
+  exampleVideoHalf: {
+    flex: 1,
+    overflow: "hidden",
+    height: 150,
+    borderRadius: 6,
+    backgroundColor: "#11110f"
+  },
+  exampleVideo: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#11110f"
   },
   exampleImagePortrait: {
     resizeMode: "cover"
@@ -3151,7 +3263,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: "48.5%",
-    minHeight: 82,
+    minHeight: 104,
     borderRadius: radii.md,
     padding: 14,
     borderWidth: 1,
@@ -3159,15 +3271,35 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     justifyContent: "space-between"
   },
+  statCardWarn: {
+    borderColor: "rgba(164, 65, 55, 0.38)",
+    backgroundColor: "#fff4f2"
+  },
   statLabel: {
     color: colors.muted,
     fontSize: 12,
     fontWeight: "900"
   },
+  statLabelWarn: {
+    color: colors.danger
+  },
   statValue: {
     color: colors.ink,
     fontSize: 19,
     fontWeight: "900"
+  },
+  statValueWarn: {
+    color: colors.danger
+  },
+  statHelper: {
+    marginTop: 6,
+    color: colors.muted,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "800"
+  },
+  statHelperWarn: {
+    color: colors.danger
   },
   nativeTabBar: {
     position: "absolute",
@@ -3186,18 +3318,23 @@ const styles = StyleSheet.create({
   },
   nativeTabItem: {
     marginHorizontal: 2,
-    borderRadius: 28
+    borderRadius: 28,
+    backgroundColor: "transparent"
   },
   nativeTabText: {
     fontWeight: "900",
     fontSize: 11
   },
   tabGlyph: {
-    width: 24,
-    height: 24,
+    width: 38,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
     gap: 3
+  },
+  tabGlyphActive: {
+    backgroundColor: "#fff4cf"
   },
   tabHomeRoof: {
     width: 16,
