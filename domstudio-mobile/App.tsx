@@ -1752,10 +1752,10 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   homeMiniStudio: {
-    marginHorizontal: 22,
-    marginTop: -4,
-    padding: 14,
-    borderRadius: 24,
+    marginHorizontal: 16,
+    marginTop: 0,
+    padding: 12,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "rgba(255, 157, 46, 0.34)",
     backgroundColor: colors.nightPanel,
@@ -1780,8 +1780,8 @@ const styles = StyleSheet.create({
   },
   homeProofStrip: {
     overflow: "hidden",
-    minHeight: 154,
-    borderRadius: 18,
+    height: 168,
+    borderRadius: 14,
     flexDirection: "row",
     backgroundColor: "#efe8de"
   },
@@ -1800,49 +1800,48 @@ const styles = StyleSheet.create({
   homeProofCover: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover"
+    resizeMode: "contain"
   },
   homeProofCoverZoom: {
-    width: "118%",
+    width: "100%",
     height: "100%",
-    marginLeft: -12,
-    resizeMode: "cover"
+    resizeMode: "contain"
   },
   homeDarkBadge: {
     position: "absolute",
-    left: 8,
-    top: 10,
-    minHeight: 30,
-    borderRadius: 15,
-    paddingHorizontal: 10,
+    left: 7,
+    top: 7,
+    minHeight: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
     justifyContent: "center",
     backgroundColor: "rgba(17, 17, 15, 0.72)"
   },
   homeDarkBadgeText: {
     color: "#ffffff",
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "900",
     textTransform: "uppercase"
   },
   homeGoldBadge: {
     position: "absolute",
-    left: 8,
-    top: 10,
-    minHeight: 30,
-    borderRadius: 15,
-    paddingHorizontal: 10,
+    left: 7,
+    top: 7,
+    minHeight: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
     justifyContent: "center",
     backgroundColor: colors.acid
   },
   homeGoldBadgeText: {
     color: colors.ink,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "900",
     textTransform: "uppercase"
   },
   homeUploadBox: {
-    padding: 14,
-    borderRadius: 20,
+    padding: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "rgba(255, 253, 248, 0.12)",
     backgroundColor: "rgba(255, 255, 255, 0.08)",
@@ -1850,19 +1849,19 @@ const styles = StyleSheet.create({
   },
   homeUploadLabel: {
     color: "rgba(246, 241, 232, 0.68)",
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "900"
   },
   homeUploadButton: {
-    minHeight: 56,
-    borderRadius: 28,
+    minHeight: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.acid
   },
   homeUploadText: {
     color: colors.ink,
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "900"
   },
   homeModeTeaser: {
@@ -1947,7 +1946,7 @@ const styles = StyleSheet.create({
   },
   homeProofLarge: {
     overflow: "hidden",
-    minHeight: 210,
+    height: 210,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.line,

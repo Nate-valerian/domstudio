@@ -1,5 +1,29 @@
 # DomStudio Archive
 
+## June 21, 2026 - Fix Native Proof Media Blowout
+
+User shared iPhone screenshots showing the native Home proof strip stretching
+into a tall cropped mess after the web-parity pass.
+
+Fixed in `domstudio-mobile/App.tsx`:
+
+- Replaced unbounded `minHeight` proof media rows with fixed heights.
+- Removed destructive cover/zoom cropping from the Home proof images.
+- Tightened mini studio spacing, badge sizes, and upload control scale.
+- Applied the same fixed-height guard to the larger proof section.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 21, 2026 - Native Web-Parity Mobile Pass
 
 User asked to make the mobile app identical to the web app.
