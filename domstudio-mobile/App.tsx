@@ -155,10 +155,32 @@ const samplePrompts = [
   "Marketplace card, clean shadow"
 ];
 
-const mobilePlans = [
-  { name: "Free", price: "0 ₽", photos: "5 photos", videos: "5 local videos", premium: "No premium video" },
-  { name: "Basic", price: "270 ₽", photos: "30 photos", videos: "30 local videos", premium: "10 premium videos" },
-  { name: "Pro", price: "790 ₽", photos: "100 photos", videos: "50 local videos", premium: "33 premium videos" }
+const pricingPlans = [
+  { name: "Free", kicker: "First product tests", price: "0 RUB", photos: "5 photos", videos: "5 local videos", premium: "No premium video" },
+  { name: "Basic", kicker: "Validate product cards", price: "270 RUB", photos: "30 photos", videos: "30 local videos", premium: "10 premium videos" },
+  { name: "Pro", kicker: "Regular seller content", price: "790 RUB", photos: "100 photos", videos: "50 local videos", premium: "33 premium videos", featured: true },
+  { name: "Business", kicker: "Store and marketplace growth", price: "1490 RUB", photos: "300 photos", videos: "100 local videos", premium: "99 premium videos" }
+];
+
+const exampleImages = [
+  { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
+  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, wide: true },
+  { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
+  { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
+  { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
+  { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
+  { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card", src: require("./assets/visual/example-bottle-catalog.webp") as ImageSourcePropType, portrait: true },
+  { mode: "Product", product: "Wine bottle", title: "Marble table studio setup", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, wide: true },
+  { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame", src: require("./assets/visual/example-bottle-creative.webp") as ImageSourcePropType },
+  { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene", src: require("./assets/visual/example-bottle-lifestyle.webp") as ImageSourcePropType },
+  { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
+  { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
+];
+
+const workflowSteps = [
+  { number: "01", title: "Upload product photo", text: "Start with an ordinary phone shot or a supplier image." },
+  { number: "02", title: "Choose marketplace format", text: "Pick Catalog, Product, Creative, Lifestyle, Fitting, or Stories." },
+  { number: "03", title: "Export content that sells", text: "Save or share a photo, queue video, and reuse the result in history." }
 ];
 
 const stylesList = [
@@ -634,7 +656,10 @@ function HomeScreen({
     <SafeAreaView style={styles.homeSafe}>
       <ScrollView contentContainerStyle={styles.homePage} keyboardShouldPersistTaps="handled">
         <View style={styles.homeTopBar}>
-          <View style={styles.homeBrandMark}><Text style={styles.homeBrandText}>DS</Text></View>
+          <View style={styles.homeBrandWrap}>
+            <View style={styles.homeBrandMark}><Text style={styles.homeBrandText}>DS</Text></View>
+            <Text style={styles.homeBrandWord}>Dom<Text style={styles.homeBrandWordAccent}>Studio</Text></Text>
+          </View>
           <View style={styles.homeTopActions}>
             <Pressable
               accessibilityRole="button"
@@ -671,6 +696,14 @@ function HomeScreen({
           <Pressable style={styles.homeCta} onPress={onCreate}>
             <Text style={styles.homeCtaText}>Create first photo</Text>
           </Pressable>
+          <Pressable style={styles.homeSecondaryCta} onPress={onPricing}>
+            <Text style={styles.homeSecondaryCtaText}>See pricing</Text>
+          </Pressable>
+          <View style={styles.homeTrustRow}>
+            <Text style={styles.homeTrustText}>Ready for marketplaces</Text>
+            <Text style={styles.homeTrustText}>Photo and video flow</Text>
+            <Text style={styles.homeTrustText}>Mobile-first export</Text>
+          </View>
           {offline ? <Text style={styles.homeOffline}>Offline now. You can still browse the flow.</Text> : null}
         </View>
 
@@ -710,6 +743,84 @@ function HomeScreen({
             <Text style={styles.homeTokenLabel}>tokens ready</Text>
           </View>
         </View>
+
+        <View style={styles.homeProofSection}>
+          <View style={styles.webSectionHead}>
+            <Text style={styles.webSectionTitleHighlight}>Real product proof.</Text>
+            <Text style={styles.webSectionCopy}>The same before, after, and video story from the web home screen is now part of the native first impression.</Text>
+          </View>
+          <View style={styles.homeProofLarge}>
+            <View style={styles.homeProofSlot}>
+              <Image source={proofBefore} style={styles.homeProofContain} />
+              <View style={styles.homeDarkBadge}><Text style={styles.homeDarkBadgeText}>Before</Text></View>
+            </View>
+            <View style={styles.homeProofSlot}>
+              <Image source={proofAfter} style={styles.homeProofCover} />
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>After</Text></View>
+            </View>
+            <View style={styles.homeProofSlot}>
+              <Image source={proofAfter} style={styles.homeProofCoverZoom} />
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>Video</Text></View>
+            </View>
+          </View>
+          <View style={styles.homeProofStats}>
+            <View style={styles.homeProofStat}>
+              <Text style={styles.homeProofStatValue}>30</Text>
+              <Text style={styles.homeProofStatText}>photos in the starter seller plan.</Text>
+            </View>
+            <View style={styles.homeProofStat}>
+              <Text style={styles.homeProofStatValue}>270 RUB</Text>
+              <Text style={styles.homeProofStatText}>entry price for a real content batch.</Text>
+            </View>
+            <View style={styles.homeProofStat}>
+              <Text style={styles.homeProofStatValue}>9:16</Text>
+              <Text style={styles.homeProofStatText}>story-ready vertical assets for social sales.</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.homeModesSection}>
+          <View style={styles.webSectionHead}>
+            <Text style={styles.webSectionTitle}>Six web modes, native.</Text>
+            <Text style={styles.webSectionCopy}>Catalog, Product, Creative, Lifestyle, Fitting, and Stories use the same proof cards as the web page.</Text>
+          </View>
+          <View style={styles.homeModesList}>
+            {modes.map((item, index) => (
+              <View key={item.id} style={styles.homeWebModeCard}>
+                <View style={styles.homeWebModeVisual}>
+                  <Image source={item.preview} style={styles.homeWebModeImage} />
+                  <View style={styles.homeWebModeBefore}>
+                    <Image source={item.before} style={styles.homeWebModeBeforeImage} />
+                    <Text style={styles.homeWebModeBeforeLabel}>Before</Text>
+                  </View>
+                  <View style={styles.homeWebModeAfterLabel}><Text style={styles.homeGoldBadgeText}>After</Text></View>
+                </View>
+                <View style={styles.homeWebModeBody}>
+                  <View style={styles.homeWebModeTopline}>
+                    <Text style={styles.homeWebModeNumber}>0{index + 1}</Text>
+                    <Text style={styles.homeWebModeTag}>{item.tag}</Text>
+                  </View>
+                  <Text style={styles.homeWebModeTitle}>{item.label}</Text>
+                  <Text style={styles.homeWebModeText}>{item.hint}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.homeWorkflowSection}>
+          <View style={styles.webSectionHead}>
+            <Text style={styles.homeWorkflowTitle}>How sellers move from photo to content.</Text>
+            <Text style={styles.homeWorkflowCopy}>The native app should feel like the web product, then stay useful in the actual phone workflow.</Text>
+          </View>
+          {workflowSteps.map((step) => (
+            <View key={step.number} style={styles.homeWorkflowStep}>
+              <Text style={styles.homeWorkflowNumber}>{step.number}</Text>
+              <Text style={styles.homeWorkflowStepTitle}>{step.title}</Text>
+              <Text style={styles.homeWorkflowStepText}>{step.text}</Text>
+            </View>
+          ))}
+        </View>
       </ScrollView>
       <Modal animationType="fade" transparent visible={menuOpen} onRequestClose={() => setMenuOpen(false)}>
         <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
@@ -745,25 +856,39 @@ function ExamplesScreen({ onCreate }: { onCreate: () => void }) {
       <ScrollView contentContainerStyle={styles.examplesPage}>
         <View style={styles.examplesHero}>
           <GridBackdrop />
-          <Text style={styles.homeEyebrow}>Examples</Text>
-          <Text style={styles.examplesTitle}>Pick the format before you shoot.</Text>
-          <Text style={styles.examplesSub}>These are the same proof modes from the web app, now inside the native flow.</Text>
+          <View style={styles.homeEyebrowRow}>
+            <View style={styles.homeEyebrowLine} />
+            <Text style={styles.homeEyebrow}>Examples</Text>
+          </View>
+          <Text style={styles.examplesTitle}>Product content examples.</Text>
+          <Text style={styles.examplesSub}>The same perfume, bottle, marketplace, product, creative, lifestyle, fitting, and story gallery from the web app.</Text>
+          <View style={styles.examplesStrip}>
+            <Text style={styles.examplesBadge}>Marketplace cards</Text>
+            <Text style={styles.examplesBadge}>Social crops</Text>
+            <Text style={styles.examplesBadge}>Video-ready frames</Text>
+          </View>
           <Pressable style={styles.examplesCta} onPress={onCreate}>
             <Text style={styles.examplesCtaText}>Create from example</Text>
           </Pressable>
         </View>
 
-        <View style={styles.exampleModeGrid}>
-          {modes.map((item) => (
-            <View key={item.id} style={styles.exampleModeCard}>
+        <View style={styles.exampleGalleryGrid}>
+          {exampleImages.map((item) => (
+            <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, item.wide && styles.exampleGalleryWide]}>
               <View style={styles.exampleImageWrap}>
-                <Image source={item.preview} style={styles.exampleImage} />
-                <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.tag}</Text></View>
+                <Image source={item.src} style={[styles.exampleImage, item.portrait && styles.exampleImagePortrait]} />
+                <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.mode}</Text></View>
               </View>
-              <Text style={styles.exampleTitle}>{item.label}</Text>
-              <Text style={styles.exampleText}>{item.hint}</Text>
+              <Text style={styles.exampleTitle}>{item.title}</Text>
+              <Text style={styles.exampleText}>{item.product}</Text>
             </View>
           ))}
+        </View>
+        <View style={styles.examplesBottomCta}>
+          <Text style={styles.examplesBottomTitle}>Ready to make your product set?</Text>
+          <Pressable style={styles.examplesCta} onPress={onCreate}>
+            <Text style={styles.examplesCtaText}>Open Studio</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -789,7 +914,7 @@ function PricingScreen({
         <View style={styles.pricingHero}>
           <Text style={styles.kicker}>Pricing</Text>
           <Text style={styles.pricingTitle}>Choose the amount of content you need.</Text>
-          <Text style={styles.muted}>Native checkout is still a later compliance pass. Current plan and limits are visible here.</Text>
+          <Text style={styles.muted}>The native screen mirrors the web tariff structure while payment handoff remains a later compliance pass.</Text>
         </View>
 
         {offline ? <Banner tone="warn" text="Offline. Account numbers may be stale." /> : null}
@@ -809,15 +934,16 @@ function PricingScreen({
         </View>
 
         <View style={styles.planList}>
-          {mobilePlans.map((plan) => (
-            <View key={plan.name} style={styles.planCard}>
+          {pricingPlans.map((plan) => (
+            <View key={plan.name} style={[styles.planCard, plan.featured && styles.planCardFeatured]}>
+              <Text style={[styles.planKicker, plan.featured && styles.planKickerFeatured]}>{plan.kicker}</Text>
               <View style={styles.planTopRow}>
-                <Text style={styles.planName}>{plan.name}</Text>
-                <Text style={styles.planPrice}>{plan.price}</Text>
+                <Text style={[styles.planName, plan.featured && styles.planFeaturedText]}>{plan.name}</Text>
+                <Text style={[styles.planPrice, plan.featured && styles.planPriceFeatured]}>{plan.price}</Text>
               </View>
-              <Text style={styles.planLine}>{plan.photos}</Text>
-              <Text style={styles.planLine}>{plan.videos}</Text>
-              <Text style={styles.planLine}>{plan.premium}</Text>
+              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.photos}</Text>
+              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.videos}</Text>
+              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.premium}</Text>
             </View>
           ))}
         </View>
@@ -1443,12 +1569,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.night
   },
   homeTopBar: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 12,
-    minHeight: 84,
-    borderRadius: 32,
-    padding: 14,
+    marginHorizontal: 8,
+    marginTop: 8,
+    marginBottom: 4,
+    minHeight: 64,
+    borderRadius: 22,
+    padding: 7,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1456,27 +1582,41 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(17, 17, 15, 0.08)"
   },
+  homeBrandWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    minWidth: 0
+  },
   homeBrandMark: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.acid
   },
   homeBrandText: {
     color: colors.ink,
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: "900"
+  },
+  homeBrandWord: {
+    color: colors.ink,
+    fontSize: 17,
+    fontWeight: "900"
+  },
+  homeBrandWordAccent: {
+    color: colors.violet
   },
   homeTopActions: {
     flexDirection: "row",
-    gap: 10
+    gap: 6
   },
   homeRoundButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
@@ -1490,22 +1630,22 @@ const styles = StyleSheet.create({
   },
   homeRoundText: {
     color: colors.ink,
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: "900"
   },
   homeMenuLine: {
-    width: 22,
-    height: 4,
-    borderRadius: 2,
+    width: 16,
+    height: 2,
+    borderRadius: 1,
     backgroundColor: colors.ink
   },
   homeHero: {
     position: "relative",
     overflow: "hidden",
-    paddingHorizontal: 22,
-    paddingTop: 52,
-    paddingBottom: 28,
-    minHeight: 442,
+    paddingHorizontal: 16,
+    paddingTop: 22,
+    paddingBottom: 34,
+    minHeight: 0,
     justifyContent: "flex-start",
     backgroundColor: colors.night
   },
@@ -1536,26 +1676,26 @@ const styles = StyleSheet.create({
   homeEyebrowRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 22
+    gap: 8,
+    marginBottom: 10
   },
   homeEyebrowLine: {
-    width: 36,
-    height: 2,
+    width: 24,
+    height: 1,
     backgroundColor: colors.acid
   },
   homeEyebrow: {
     flex: 1,
     color: colors.acid,
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: 10,
+    lineHeight: 14,
     fontWeight: "900",
     textTransform: "uppercase"
   },
   homeTitle: {
     color: "#f6f1e8",
-    fontSize: 48,
-    lineHeight: 54,
+    fontSize: 30,
+    lineHeight: 32,
     fontWeight: "900"
   },
   homeSellText: {
@@ -1563,24 +1703,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.acid
   },
   homeCopy: {
-    marginTop: 22,
+    marginTop: 14,
     color: "rgba(246, 241, 232, 0.72)",
-    fontSize: 21,
-    lineHeight: 31,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: "600"
   },
   homeCta: {
-    marginTop: 30,
-    minHeight: 66,
-    borderRadius: 34,
+    marginTop: 16,
+    minHeight: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.acid
   },
   homeCtaText: {
     color: colors.ink,
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "900"
+  },
+  homeSecondaryCta: {
+    marginTop: 10,
+    minHeight: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(246, 241, 232, 0.28)",
+    backgroundColor: "rgba(255, 255, 255, 0.04)"
+  },
+  homeSecondaryCtaText: {
+    color: "#f6f1e8",
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  homeTrustRow: {
+    display: "none"
+  },
+  homeTrustText: {
+    color: "rgba(246, 241, 232, 0.68)",
+    fontSize: 12,
+    fontWeight: "800"
   },
   homeOffline: {
     marginTop: 12,
@@ -1748,6 +1911,220 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     textTransform: "uppercase"
   },
+  homeProofSection: {
+    paddingHorizontal: 16,
+    paddingTop: 46,
+    paddingBottom: 46,
+    backgroundColor: "#fffaf0",
+    gap: 18
+  },
+  webSectionHead: {
+    gap: 12
+  },
+  webSectionTitle: {
+    color: colors.ink,
+    fontSize: 30,
+    lineHeight: 34,
+    fontWeight: "900"
+  },
+  webSectionTitleHighlight: {
+    alignSelf: "flex-start",
+    overflow: "hidden",
+    borderRadius: 12,
+    paddingHorizontal: 7,
+    paddingBottom: 3,
+    color: colors.ink,
+    backgroundColor: colors.acid,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "900"
+  },
+  webSectionCopy: {
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 24,
+    fontWeight: "700"
+  },
+  homeProofLarge: {
+    overflow: "hidden",
+    minHeight: 210,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.line,
+    flexDirection: "row",
+    backgroundColor: "#efe8de"
+  },
+  homeProofStats: {
+    gap: 10
+  },
+  homeProofStat: {
+    minHeight: 92,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    padding: 18,
+    justifyContent: "center"
+  },
+  homeProofStatValue: {
+    color: colors.gold,
+    fontSize: 30,
+    fontWeight: "900"
+  },
+  homeProofStatText: {
+    marginTop: 8,
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "800"
+  },
+  homeModesSection: {
+    paddingHorizontal: 16,
+    paddingTop: 46,
+    paddingBottom: 46,
+    backgroundColor: "#f7f3ea",
+    gap: 24
+  },
+  homeModesList: {
+    gap: 12
+  },
+  homeWebModeCard: {
+    overflow: "hidden",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card
+  },
+  homeWebModeVisual: {
+    position: "relative",
+    height: 234,
+    backgroundColor: colors.paper
+  },
+  homeWebModeImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  homeWebModeBefore: {
+    position: "absolute",
+    left: 9,
+    bottom: 9,
+    width: "38%",
+    overflow: "hidden",
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "rgba(255, 253, 248, 0.92)",
+    backgroundColor: colors.paper
+  },
+  homeWebModeBeforeImage: {
+    width: "100%",
+    height: 82,
+    resizeMode: "cover"
+  },
+  homeWebModeBeforeLabel: {
+    position: "absolute",
+    left: 7,
+    top: 7,
+    overflow: "hidden",
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    color: "#ffffff",
+    backgroundColor: "rgba(17, 17, 15, 0.72)",
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  homeWebModeAfterLabel: {
+    position: "absolute",
+    right: 9,
+    top: 9,
+    minHeight: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  homeWebModeBody: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 18,
+    gap: 10
+  },
+  homeWebModeTopline: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12
+  },
+  homeWebModeNumber: {
+    color: colors.violet,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  homeWebModeTag: {
+    overflow: "hidden",
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    color: colors.muted,
+    backgroundColor: "#faf7f0",
+    fontSize: 11,
+    fontWeight: "900"
+  },
+  homeWebModeTitle: {
+    color: colors.ink,
+    fontSize: 19,
+    fontWeight: "900"
+  },
+  homeWebModeText: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: "700"
+  },
+  homeWorkflowSection: {
+    paddingHorizontal: 16,
+    paddingTop: 46,
+    paddingBottom: 46,
+    backgroundColor: colors.night,
+    gap: 0
+  },
+  homeWorkflowTitle: {
+    color: "#f6f1e8",
+    fontSize: 30,
+    lineHeight: 35,
+    fontWeight: "900"
+  },
+  homeWorkflowCopy: {
+    color: "#aaa69f",
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: "700"
+  },
+  homeWorkflowStep: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(246, 241, 232, 0.18)",
+    paddingVertical: 28,
+    gap: 12
+  },
+  homeWorkflowNumber: {
+    color: colors.acid,
+    fontSize: 38,
+    fontWeight: "900"
+  },
+  homeWorkflowStepTitle: {
+    color: "#f6f1e8",
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  homeWorkflowStepText: {
+    color: "#aaa69f",
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: "700"
+  },
   menuBackdrop: {
     flex: 1,
     justifyContent: "flex-end",
@@ -1845,6 +2222,24 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: "700"
   },
+  examplesStrip: {
+    marginTop: 14,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  examplesBadge: {
+    overflow: "hidden",
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.26)",
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    color: "rgba(246, 241, 232, 0.72)",
+    backgroundColor: "rgba(255, 157, 46, 0.12)",
+    fontSize: 12,
+    fontWeight: "900"
+  },
   examplesCta: {
     marginTop: 16,
     minHeight: 50,
@@ -1863,6 +2258,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10
   },
+  exampleGalleryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
   exampleModeCard: {
     width: "48.5%",
     overflow: "hidden",
@@ -1870,6 +2270,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 157, 46, 0.18)",
     backgroundColor: colors.card
+  },
+  exampleGalleryCard: {
+    width: "48.5%",
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card
+  },
+  exampleGalleryWide: {
+    width: "100%"
   },
   exampleImageWrap: {
     position: "relative",
@@ -1879,6 +2290,9 @@ const styles = StyleSheet.create({
   exampleImage: {
     width: "100%",
     height: "100%",
+    resizeMode: "cover"
+  },
+  exampleImagePortrait: {
     resizeMode: "cover"
   },
   exampleTitle: {
@@ -1896,6 +2310,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     fontWeight: "700"
+  },
+  examplesBottomCta: {
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 157, 46, 0.24)",
+    gap: 8
+  },
+  examplesBottomTitle: {
+    color: "#f6f1e8",
+    fontSize: 24,
+    lineHeight: 29,
+    fontWeight: "900"
   },
   pricingPage: {
     flexGrow: 1,
@@ -1921,12 +2347,28 @@ const styles = StyleSheet.create({
     gap: 10
   },
   planCard: {
-    padding: 16,
-    borderRadius: radii.md,
+    minHeight: 260,
+    padding: 24,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.card,
-    gap: 7
+    gap: 10
+  },
+  planCardFeatured: {
+    backgroundColor: colors.ink,
+    borderColor: colors.ink
+  },
+  planKicker: {
+    minHeight: 34,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  planKickerFeatured: {
+    color: "#bbb7af"
   },
   planTopRow: {
     flexDirection: "row",
@@ -1939,16 +2381,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900"
   },
+  planFeaturedText: {
+    color: "#ffffff"
+  },
   planPrice: {
-    color: colors.acid,
-    fontSize: 18,
+    color: colors.ink,
+    fontSize: 26,
     fontWeight: "900"
+  },
+  planPriceFeatured: {
+    color: "#ffffff"
   },
   planLine: {
     color: colors.muted,
     fontSize: 13,
     lineHeight: 18,
     fontWeight: "800"
+  },
+  planLineFeatured: {
+    color: "#bbb7af"
   },
   flex: {
     flex: 1

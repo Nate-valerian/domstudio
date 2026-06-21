@@ -1,5 +1,37 @@
 # DomStudio Archive
 
+## June 21, 2026 - Native Web-Parity Mobile Pass
+
+User asked to make the mobile app identical to the web app.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Tightened the native Home header to match the web mobile pill nav scale.
+- Expanded Home to follow the web page order:
+  - dark grid hero
+  - primary and secondary CTA
+  - mini studio before / after / video proof card
+  - warm proof section with stats
+  - six mode cards with before overlays and after labels
+  - dark workflow section with three steps
+- Copied the web example gallery images into `domstudio-mobile/assets/visual/`.
+- Rebuilt the native Examples screen around the same perfume/bottle gallery set
+  used by web.
+- Updated Pricing to mirror the web tariff structure:
+  Free, Basic, Pro, Business, with Pro as the dark featured plan.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 21, 2026 - Native Home Controls + Mobile Branding Pass
 
 User reported the native Home screen felt unresponsive because the burger/menu
