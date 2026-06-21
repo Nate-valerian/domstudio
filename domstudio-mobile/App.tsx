@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  ImageSourcePropType,
   LogBox,
   Pressable,
   ScrollView,
@@ -77,13 +78,80 @@ type ResultState = {
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 
+type ModeOption = {
+  id: string;
+  label: string;
+  hint: string;
+  tag: string;
+  ratio: string;
+  preview: ImageSourcePropType;
+  before: ImageSourcePropType;
+};
+
+const proofBefore = require("./assets/visual/wine-before-original.jpeg") as ImageSourcePropType;
+const proofAfter = require("./assets/visual/wine-after-smoke.png") as ImageSourcePropType;
+
 const modes = [
-  { id: "catalog", label: "Catalog", hint: "Marketplace-safe hero image" },
-  { id: "product", label: "Product", hint: "Clean product card" },
-  { id: "creative", label: "Creative", hint: "Ad-style campaign image" },
-  { id: "image", label: "Lifestyle", hint: "Scene with real context" },
-  { id: "fitting", label: "Fitting", hint: "Fashion fit preview" },
-  { id: "mobile", label: "Stories", hint: "Vertical social result" }
+  {
+    id: "catalog",
+    label: "Catalog",
+    hint: "Marketplace-safe hero image",
+    tag: "WB / Ozon",
+    ratio: "4:3",
+    preview: require("./assets/visual/mode-catalog-real-v3.webp"),
+    before: require("./assets/visual/mode-catalog-before.webp")
+  },
+  {
+    id: "product",
+    label: "Product",
+    hint: "Clean product card",
+    tag: "Studio",
+    ratio: "1:1",
+    preview: require("./assets/visual/mode-product-real-v3.webp"),
+    before: require("./assets/visual/mode-product-before.webp")
+  },
+  {
+    id: "creative",
+    label: "Creative",
+    hint: "Ad-style campaign image",
+    tag: "Ads",
+    ratio: "1:1",
+    preview: require("./assets/visual/mode-creative-real-v3.webp"),
+    before: require("./assets/visual/mode-creative-before.webp")
+  },
+  {
+    id: "image",
+    label: "Lifestyle",
+    hint: "Scene with real context",
+    tag: "Scene",
+    ratio: "4:5",
+    preview: require("./assets/visual/mode-lifestyle-real-v3.webp"),
+    before: require("./assets/visual/mode-lifestyle-before.webp")
+  },
+  {
+    id: "fitting",
+    label: "Fitting",
+    hint: "Fashion fit preview",
+    tag: "Try-on",
+    ratio: "3:4",
+    preview: require("./assets/visual/mode-fitting-real-v2.webp"),
+    before: require("./assets/visual/mode-fitting-before.webp")
+  },
+  {
+    id: "mobile",
+    label: "Stories",
+    hint: "Vertical social result",
+    tag: "9:16",
+    ratio: "Story",
+    preview: require("./assets/visual/mode-stories-real-v3.webp"),
+    before: require("./assets/visual/mode-stories-before.webp")
+  }
+] satisfies ModeOption[];
+
+const samplePrompts = [
+  "Wine bottle on marble table",
+  "Perfume in warm boutique light",
+  "Marketplace card, clean shadow"
 ];
 
 const stylesList = [
@@ -301,7 +369,8 @@ function AuthScreen({
       <ScrollView contentContainerStyle={styles.authPage} keyboardShouldPersistTaps="always">
         <View style={styles.brandMark}><Text style={styles.brandMarkText}>DS</Text></View>
         <Text style={styles.title}>DomStudio</Text>
-        <Text style={styles.subtitle}>Mobile studio for product content, ready for Expo Go testing.</Text>
+        <Text style={styles.subtitle}>Product photos, marketplace cards, and short content from one phone workflow.</Text>
+        <ProofShowcase />
         {offline ? <Banner tone="warn" text="Offline. Auth and generation are paused until the network returns." /> : null}
 
         <View style={styles.card}>
@@ -506,16 +575,16 @@ function MainTabs(props: {
         tabBarLabelStyle: styles.nativeTabText
       }}
     >
-      <Tabs.Screen name="Studio" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="S" /> }}>
+      <Tabs.Screen name="Studio" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="studio" /> }}>
         {() => <StudioScreen {...props} />}
       </Tabs.Screen>
-      <Tabs.Screen name="History" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="H" /> }}>
+      <Tabs.Screen name="History" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="history" /> }}>
         {() => <HistoryScreen {...props} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Account" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="A" /> }}>
+      <Tabs.Screen name="Account" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="account" /> }}>
         {() => <AccountScreen {...props} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Settings" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} label="G" /> }}>
+      <Tabs.Screen name="Settings" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="settings" /> }}>
         {() => <SettingsScreen {...props} />}
       </Tabs.Screen>
     </Tabs.Navigator>
@@ -643,17 +712,22 @@ function StudioScreen({
   return (
     <Screen title="Studio" kicker={`${user.tokens ?? 0} tokens`}>
       {offline ? <Banner tone="warn" text="Offline. You can edit the prompt and inspect history; generation waits for network." /> : null}
+      <StudioHero tokens={user.tokens ?? 0} />
 
       <View style={styles.modeGrid}>
         {modes.map((item) => (
-          <Pressable key={item.id} style={[styles.modeTile, mode === item.id && styles.modeTileActive]} onPress={() => setMode(item.id)}>
-            <Text style={[styles.modeTitle, mode === item.id && styles.modeTitleActive]}>{item.label}</Text>
-            <Text style={[styles.modeHint, mode === item.id && styles.modeHintActive]}>{item.hint}</Text>
-          </Pressable>
+          <ModeTile key={item.id} active={mode === item.id} item={item} onPress={() => setMode(item.id)} />
         ))}
       </View>
 
       <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <View>
+            <Text style={styles.cardTitle}>{activeMode?.label || "Catalog"} setup</Text>
+            <Text style={styles.muted}>{activeMode?.hint || "Marketplace-safe hero image"}</Text>
+          </View>
+          <View style={styles.modeRatioPill}><Text style={styles.modeRatioText}>{activeMode?.ratio || "4:3"}</Text></View>
+        </View>
         <Text style={styles.label}>Product prompt</Text>
         <TextInput
           multiline
@@ -665,6 +739,11 @@ function StudioScreen({
         />
         <Text style={styles.label}>Style</Text>
         <View style={styles.chipWrap}>
+          {samplePrompts.map((item) => (
+            <Pressable key={item} style={styles.promptChip} onPress={() => setSubject(item)}>
+              <Text style={styles.promptChipText}>{item}</Text>
+            </Pressable>
+          ))}
           {stylesList.map((item) => (
             <Pressable key={item} style={[styles.chip, styleHint === item && styles.chipActive]} onPress={() => setStyleHint(item)}>
               <Text style={[styles.chipText, styleHint === item && styles.chipTextActive]}>{item}</Text>
@@ -703,6 +782,27 @@ function StudioScreen({
 
       <ResultPanel result={result} />
     </Screen>
+  );
+}
+
+function ProofShowcase() {
+  return (
+    <View style={styles.proofCard}>
+      <View style={styles.proofMediaRow}>
+        <View style={styles.proofMedia}>
+          <Image source={proofBefore} style={styles.proofImageContain} />
+          <View style={styles.darkBadge}><Text style={styles.darkBadgeText}>Before</Text></View>
+        </View>
+        <View style={styles.proofMedia}>
+          <Image source={proofAfter} style={styles.proofImageCover} />
+          <View style={styles.goldBadge}><Text style={styles.goldBadgeText}>After</Text></View>
+        </View>
+      </View>
+      <View style={styles.proofFooter}>
+        <Text style={styles.proofTitle}>Ready-to-sell visuals</Text>
+        <Text style={styles.proofSub}>Reuse the same modes and proof assets from the web product.</Text>
+      </View>
+    </View>
   );
 }
 
@@ -762,6 +862,47 @@ function ResultPanel({ result }: { result: ResultState | null }) {
         <SecondaryButton label="Save" onPress={saveToGallery} />
       </View>
     </View>
+  );
+}
+
+function StudioHero({ tokens }: { tokens: number }) {
+  return (
+    <View style={styles.studioHero}>
+      <View style={styles.studioHeroCopy}>
+        <Text style={styles.heroKicker}>Mobile product studio</Text>
+        <Text style={styles.heroTitle}>Shoot, style, export.</Text>
+        <Text style={styles.heroSub}>Choose a proven format, add a product photo, then generate seller-ready content.</Text>
+      </View>
+      <View style={styles.heroTokenBadge}>
+        <Text style={styles.heroTokenValue}>{tokens}</Text>
+        <Text style={styles.heroTokenLabel}>tokens</Text>
+      </View>
+      <View style={styles.heroPreviewRail}>
+        <Image source={modes[1]?.preview || proofAfter} style={[styles.heroPreviewImage, styles.heroPreviewTall]} />
+        <Image source={modes[2]?.preview || proofAfter} style={styles.heroPreviewImage} />
+      </View>
+    </View>
+  );
+}
+
+function ModeTile({ active, item, onPress }: { active: boolean; item: ModeOption; onPress: () => void }) {
+  return (
+    <Pressable style={[styles.modeTile, active && styles.modeTileActive]} onPress={onPress}>
+      <View style={styles.modeVisual}>
+        <Image source={item.preview} style={styles.modePreviewImage} />
+        <View style={styles.modeBeforeWrap}>
+          <Image source={item.before} style={styles.modeBeforeImage} />
+        </View>
+        <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.tag}</Text></View>
+      </View>
+      <View style={styles.modeTileBody}>
+        <View>
+          <Text style={[styles.modeTitle, active && styles.modeTitleActive]}>{item.label}</Text>
+          <Text style={[styles.modeHint, active && styles.modeHintActive]}>{item.hint}</Text>
+        </View>
+        <Text style={[styles.modeRatio, active && styles.modeRatioActive]}>{item.ratio}</Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -1002,10 +1143,36 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TabGlyph({ color, label }: { color: string; label: string }) {
+function TabGlyph({ color, kind }: { color: string; kind: "studio" | "history" | "account" | "settings" }) {
+  if (kind === "history") {
+    return (
+      <View style={styles.tabGlyph}>
+        <View style={[styles.tabLine, { backgroundColor: color, width: 18 }]} />
+        <View style={[styles.tabLine, { backgroundColor: color, width: 13 }]} />
+        <View style={[styles.tabLine, { backgroundColor: color, width: 16 }]} />
+      </View>
+    );
+  }
+  if (kind === "account") {
+    return (
+      <View style={styles.tabGlyph}>
+        <View style={[styles.tabHead, { borderColor: color }]} />
+        <View style={[styles.tabShoulders, { borderColor: color }]} />
+      </View>
+    );
+  }
+  if (kind === "settings") {
+    return (
+      <View style={styles.tabGlyph}>
+        <View style={[styles.tabRing, { borderColor: color }]} />
+        <View style={[styles.tabDot, { backgroundColor: color }]} />
+      </View>
+    );
+  }
   return (
-    <View style={[styles.tabGlyph, { borderColor: color }]}>
-      <Text style={[styles.tabGlyphText, { color }]}>{label}</Text>
+    <View style={styles.tabGlyph}>
+      <View style={[styles.tabStudioFrame, { borderColor: color }]} />
+      <View style={[styles.tabStudioSpark, { backgroundColor: color }]} />
     </View>
   );
 }
@@ -1052,6 +1219,77 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22
   },
+  proofCard: {
+    overflow: "hidden",
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.28)",
+    backgroundColor: colors.nightPanel
+  },
+  proofMediaRow: {
+    flexDirection: "row",
+    minHeight: 150
+  },
+  proofMedia: {
+    flex: 1,
+    position: "relative",
+    backgroundColor: "#efe8de"
+  },
+  proofImageContain: {
+    width: "100%",
+    height: 168,
+    resizeMode: "contain"
+  },
+  proofImageCover: {
+    width: "100%",
+    height: 168,
+    resizeMode: "cover"
+  },
+  proofFooter: {
+    padding: 14,
+    gap: 4
+  },
+  proofTitle: {
+    color: "#f6f1e8",
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  proofSub: {
+    color: "rgba(246, 241, 232, 0.68)",
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "700"
+  },
+  darkBadge: {
+    position: "absolute",
+    left: 8,
+    top: 8,
+    minHeight: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    justifyContent: "center",
+    backgroundColor: "rgba(17, 17, 15, 0.72)"
+  },
+  darkBadgeText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  goldBadge: {
+    position: "absolute",
+    left: 8,
+    top: 8,
+    minHeight: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  goldBadgeText: {
+    color: colors.ink,
+    fontSize: 10,
+    fontWeight: "900"
+  },
   page: {
     padding: 16,
     paddingBottom: 108,
@@ -1095,6 +1333,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.line,
+    gap: 12
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     gap: 12
   },
   cardTitle: {
@@ -1197,24 +1441,150 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "800"
   },
+  studioHero: {
+    position: "relative",
+    overflow: "hidden",
+    minHeight: 222,
+    borderRadius: radii.lg,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.26)",
+    backgroundColor: colors.night
+  },
+  studioHeroCopy: {
+    width: "62%",
+    gap: 8
+  },
+  heroKicker: {
+    color: colors.acid,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  heroTitle: {
+    color: "#f6f1e8",
+    fontSize: 28,
+    lineHeight: 32,
+    fontWeight: "900"
+  },
+  heroSub: {
+    color: "rgba(246, 241, 232, 0.72)",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700"
+  },
+  heroTokenBadge: {
+    position: "absolute",
+    left: 18,
+    bottom: 16,
+    minWidth: 86,
+    minHeight: 48,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)"
+  },
+  heroTokenValue: {
+    color: colors.acid,
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  heroTokenLabel: {
+    color: "rgba(246, 241, 232, 0.62)",
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  heroPreviewRail: {
+    position: "absolute",
+    right: -8,
+    bottom: -18,
+    width: "42%",
+    height: 214,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    transform: [{ rotate: "-4deg" }]
+  },
+  heroPreviewImage: {
+    flex: 1,
+    height: 150,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: "rgba(255, 253, 248, 0.84)",
+    resizeMode: "cover",
+    backgroundColor: "#efe8de"
+  },
+  heroPreviewTall: {
+    height: 196
+  },
   modeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8
+    gap: 10
   },
   modeTile: {
     width: "48.5%",
-    minHeight: 78,
+    minHeight: 214,
     borderRadius: radii.md,
-    padding: 12,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.card,
-    justifyContent: "space-between"
+    overflow: "hidden"
   },
   modeTileActive: {
     backgroundColor: colors.ink,
-    borderColor: colors.ink
+    borderColor: colors.acid
+  },
+  modeVisual: {
+    position: "relative",
+    height: 126,
+    backgroundColor: "#efe8de"
+  },
+  modePreviewImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  modeBeforeWrap: {
+    position: "absolute",
+    left: 8,
+    bottom: 8,
+    width: 54,
+    height: 42,
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "rgba(255, 253, 248, 0.92)",
+    backgroundColor: colors.paper
+  },
+  modeBeforeImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  modeTag: {
+    position: "absolute",
+    right: 8,
+    top: 8,
+    minHeight: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  modeTagText: {
+    color: colors.ink,
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  modeTileBody: {
+    flex: 1,
+    padding: 12,
+    justifyContent: "space-between",
+    gap: 8
   },
   modeTitle: {
     color: colors.ink,
@@ -1231,10 +1601,50 @@ const styles = StyleSheet.create({
   modeHintActive: {
     color: "#f4f0e8"
   },
+  modeRatio: {
+    alignSelf: "flex-start",
+    overflow: "hidden",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: colors.muted,
+    backgroundColor: "#faf7f0",
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  modeRatioActive: {
+    color: colors.ink,
+    backgroundColor: colors.acid
+  },
+  modeRatioPill: {
+    minHeight: 30,
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    justifyContent: "center",
+    backgroundColor: colors.ink
+  },
+  modeRatioText: {
+    color: colors.acid,
+    fontSize: 11,
+    fontWeight: "900"
+  },
   chipWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8
+  },
+  promptChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.45)",
+    backgroundColor: "#fff7df"
+  },
+  promptChipText: {
+    color: colors.ink,
+    fontWeight: "900",
+    fontSize: 12
   },
   chip: {
     paddingHorizontal: 10,
@@ -1406,13 +1816,52 @@ const styles = StyleSheet.create({
   tabGlyph: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    gap: 3
   },
-  tabGlyphText: {
-    fontSize: 10,
-    fontWeight: "900"
+  tabLine: {
+    height: 3,
+    borderRadius: 2
+  },
+  tabHead: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 2
+  },
+  tabShoulders: {
+    width: 18,
+    height: 9,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderWidth: 2,
+    borderBottomWidth: 0
+  },
+  tabRing: {
+    width: 19,
+    height: 19,
+    borderRadius: 10,
+    borderWidth: 2
+  },
+  tabDot: {
+    position: "absolute",
+    width: 5,
+    height: 5,
+    borderRadius: 3
+  },
+  tabStudioFrame: {
+    width: 18,
+    height: 18,
+    borderRadius: 6,
+    borderWidth: 2
+  },
+  tabStudioSpark: {
+    position: "absolute",
+    right: 2,
+    top: 2,
+    width: 7,
+    height: 7,
+    borderRadius: 4
   }
 });

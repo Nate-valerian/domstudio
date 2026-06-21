@@ -1,5 +1,104 @@
 # DomStudio Archive
 
+## June 21, 2026 - Mobile Visual Parity Pass 1
+
+User asked to do point 1 from the five-point audit: native visual parity.
+
+Implemented in `domstudio-mobile/`:
+
+- Copied selected web proof assets into `domstudio-mobile/assets/visual/`:
+  - landing before/after wine assets
+  - six mode before/after assets for Catalog, Product, Creative, Lifestyle,
+    Fitting, and Stories
+- Expanded mobile theme tokens with web brand colors:
+  - `gold`
+  - `night`
+  - `nightPanel`
+  - `violet`
+- Reworked mobile auth intro:
+  - stronger product-focused subtitle
+  - native before/after proof showcase using the web landing assets
+- Reworked mobile Studio:
+  - added dark branded Studio hero with token badge and preview rail
+  - replaced plain text-only mode tiles with image-led before/after mode cards
+  - added mode tags and ratio pills
+  - added sample prompt chips for faster seller workflow
+  - added selected-mode setup header above prompt controls
+- Replaced bottom-tab letter placeholders with simple native-drawn glyphs using
+  `View` shapes, avoiding a new icon dependency for this pass.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed. Expo Metro bundle request returned HTTP 200.
+
+Remaining visual work after this pass:
+
+- Real final app icon/splash direction.
+- Native examples/gallery screen using the web example sets.
+- Better generated-video preview/playback UI once video output handling is
+  expanded.
+- Real-device visual QA in Expo Go on iPhone 8 Plus and Android.
+
+---
+
+## June 21, 2026 - Mobile/Web Gap Audit
+
+User asked to check the archive and current state because the React Native
+mobile version does not feel as attractive as the web version.
+
+Current state:
+
+- Web frontend build passes.
+- Mobile React Native typecheck passes.
+- Mobile `.env.local` points Expo Go at the live Amvera backend:
+  `https://domstudio1-nate.amvera.io`.
+- Mobile has the functional V1 shell: auth, OTP, secure tokens, Studio,
+  image generation, 3s local video queueing, jobs refresh, local history,
+  share/save, account usage cards, settings, offline states.
+
+Why mobile feels weaker than web:
+
+- Web has real product proof assets: before/after images, example galleries,
+  landing media, and video previews.
+- Mobile uses mostly plain React Native cards, text tabs, and utility screens.
+- Mobile tab icons are placeholder letters.
+- Mobile does not yet expose pricing/top-ups or native payment handoff.
+- Mobile video flow queues a local 3s job only; it does not expose premium
+  provider, duration choice, playback, output preview, or share/save video.
+- Mobile has no native onboarding/home proof screen, example gallery, before/
+  after mode cards, or sample prompts.
+- App icon/splash are placeholders.
+
+Recommended next pass:
+
+1. Native visual parity pass: import/reuse web example assets, add branded
+   onboarding/home, before/after mode cards, stronger Studio header/result
+   reveal, real icons, and final splash/icon direction.
+2. Feature parity pass: pricing/plans/top-ups, premium video provider and
+   duration selector, video playback/share/save, payment history.
+3. Real-device QA: iPhone Expo Go auth/generation/history/settings, then
+   Android Expo Go, then one authenticated premium video job against live
+   backend.
+4. Store-readiness later: EAS build config, privacy/compliance copy, app store
+   screenshots, final native payment strategy.
+
+Validation run:
+
+```bash
+cd domstudio-mobile && npm run typecheck
+cd domstudio-frontend && npm run build
+```
+
+Both passed.
+
+---
+
 ## June 21, 2026 - Mobile Env Config + Web Login Resolved
 
 ### `.env.local` created for mobile
