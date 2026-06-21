@@ -54,10 +54,10 @@ type RootStackParamList = {
 };
 
 type MainTabParamList = {
+  Home: undefined;
   Studio: undefined;
-  History: undefined;
-  Account: undefined;
-  Settings: undefined;
+  Examples: undefined;
+  Pricing: undefined;
 };
 
 type AuthMode = "login" | "register" | "verifyEmail" | "phone" | "verifyPhone" | "forgot" | "reset";
@@ -152,6 +152,12 @@ const samplePrompts = [
   "Wine bottle on marble table",
   "Perfume in warm boutique light",
   "Marketplace card, clean shadow"
+];
+
+const mobilePlans = [
+  { name: "Free", price: "0 ₽", photos: "5 photos", videos: "5 local videos", premium: "No premium video" },
+  { name: "Basic", price: "270 ₽", photos: "30 photos", videos: "30 local videos", premium: "10 premium videos" },
+  { name: "Pro", price: "790 ₽", photos: "100 photos", videos: "50 local videos", premium: "33 premium videos" }
 ];
 
 const stylesList = [
@@ -567,27 +573,207 @@ function MainTabs(props: {
 }) {
   return (
     <Tabs.Navigator
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.ink,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: styles.nativeTabBar,
+        tabBarItemStyle: styles.nativeTabItem,
+        tabBarActiveBackgroundColor: "#fff4cf",
         tabBarLabelStyle: styles.nativeTabText
       }}
     >
+      <Tabs.Screen name="Home" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="home" /> }}>
+        {({ navigation }) => <HomeScreen offline={props.offline} tokens={props.user.tokens ?? 0} onCreate={() => navigation.navigate("Studio")} />}
+      </Tabs.Screen>
       <Tabs.Screen name="Studio" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="studio" /> }}>
         {() => <StudioScreen {...props} />}
       </Tabs.Screen>
-      <Tabs.Screen name="History" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="history" /> }}>
-        {() => <HistoryScreen {...props} />}
+      <Tabs.Screen name="Examples" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="examples" /> }}>
+        {({ navigation }) => <ExamplesScreen onCreate={() => navigation.navigate("Studio")} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Account" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="account" /> }}>
-        {() => <AccountScreen {...props} />}
-      </Tabs.Screen>
-      <Tabs.Screen name="Settings" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="settings" /> }}>
-        {() => <SettingsScreen {...props} />}
+      <Tabs.Screen name="Pricing" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="pricing" /> }}>
+        {() => <PricingScreen {...props} />}
       </Tabs.Screen>
     </Tabs.Navigator>
+  );
+}
+
+function HomeScreen({ offline, onCreate, tokens }: { offline: boolean; onCreate: () => void; tokens: number }) {
+  return (
+    <SafeAreaView style={styles.homeSafe}>
+      <ScrollView contentContainerStyle={styles.homePage} keyboardShouldPersistTaps="handled">
+        <View style={styles.homeTopBar}>
+          <View style={styles.homeBrandMark}><Text style={styles.homeBrandText}>DS</Text></View>
+          <View style={styles.homeTopActions}>
+            <View style={styles.homeRoundButton}><Text style={styles.homeRoundText}>RU</Text></View>
+            <View style={styles.homeRoundButton}>
+              <View style={styles.homeMenuLine} />
+              <View style={styles.homeMenuLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.homeHero}>
+          <GridBackdrop />
+          <View style={styles.homeEyebrowRow}>
+            <View style={styles.homeEyebrowLine} />
+            <Text style={styles.homeEyebrow}>AI studio for marketplace sellers</Text>
+          </View>
+          <Text style={styles.homeTitle}>
+            Content that <Text style={styles.homeSellText}>sells</Text>
+          </Text>
+          <Text style={styles.homeCopy}>
+            Upload a plain product photo, choose your platform - Wildberries, Ozon, Yandex, Avito - and get a ready card, story or banner in minutes.
+          </Text>
+          <Pressable style={styles.homeCta} onPress={onCreate}>
+            <Text style={styles.homeCtaText}>Create first photo</Text>
+          </Pressable>
+          {offline ? <Text style={styles.homeOffline}>Offline now. You can still browse the flow.</Text> : null}
+        </View>
+
+        <View style={styles.homeMiniStudio}>
+          <View style={styles.homeMiniHead}>
+            <Text style={styles.homeMiniKicker}>Mini studio</Text>
+            <Text style={styles.homeMiniMeta}>WB · Ozon · Yandex · Avito</Text>
+          </View>
+          <View style={styles.homeProofStrip}>
+            <View style={styles.homeProofSlot}>
+              <Image source={proofBefore} style={styles.homeProofContain} />
+              <View style={styles.homeDarkBadge}><Text style={styles.homeDarkBadgeText}>Before</Text></View>
+            </View>
+            <View style={styles.homeProofSlot}>
+              <Image source={proofAfter} style={styles.homeProofCover} />
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>After</Text></View>
+            </View>
+            <View style={styles.homeProofSlot}>
+              <Image source={proofAfter} style={styles.homeProofCoverZoom} />
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>Video</Text></View>
+            </View>
+          </View>
+
+          <View style={styles.homeUploadBox}>
+            <Text style={styles.homeUploadLabel}>Product photo</Text>
+            <Pressable style={styles.homeUploadButton} onPress={onCreate}>
+              <Text style={styles.homeUploadText}>Upload</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.homeModeTeaser}>
+          <Text style={styles.homeModeTitle}>Wine bottle on marble table</Text>
+          <Text style={styles.homeModeSub}>Try the Product mode first, then make a story or catalog card from the same photo.</Text>
+          <View style={styles.homeTokenInline}>
+            <Text style={styles.homeTokenValue}>{tokens}</Text>
+            <Text style={styles.homeTokenLabel}>tokens ready</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function ExamplesScreen({ onCreate }: { onCreate: () => void }) {
+  return (
+    <SafeAreaView style={styles.homeSafe}>
+      <ScrollView contentContainerStyle={styles.examplesPage}>
+        <View style={styles.examplesHero}>
+          <GridBackdrop />
+          <Text style={styles.homeEyebrow}>Examples</Text>
+          <Text style={styles.examplesTitle}>Pick the format before you shoot.</Text>
+          <Text style={styles.examplesSub}>These are the same proof modes from the web app, now inside the native flow.</Text>
+          <Pressable style={styles.examplesCta} onPress={onCreate}>
+            <Text style={styles.examplesCtaText}>Create from example</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.exampleModeGrid}>
+          {modes.map((item) => (
+            <View key={item.id} style={styles.exampleModeCard}>
+              <View style={styles.exampleImageWrap}>
+                <Image source={item.preview} style={styles.exampleImage} />
+                <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.tag}</Text></View>
+              </View>
+              <Text style={styles.exampleTitle}>{item.label}</Text>
+              <Text style={styles.exampleText}>{item.hint}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function PricingScreen({
+  offline,
+  refreshProfile,
+  signOut,
+  user
+}: {
+  offline: boolean;
+  refreshProfile: () => Promise<void>;
+  signOut: () => Promise<void>;
+  user: UserProfile;
+}) {
+  const sub = user.subscription;
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.pricingPage}>
+        <View style={styles.pricingHero}>
+          <Text style={styles.kicker}>Pricing</Text>
+          <Text style={styles.pricingTitle}>Choose the amount of content you need.</Text>
+          <Text style={styles.muted}>Native checkout is still a later compliance pass. Current plan and limits are visible here.</Text>
+        </View>
+
+        {offline ? <Banner tone="warn" text="Offline. Account numbers may be stale." /> : null}
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
+          <Text style={styles.muted}>Current plan: {sub?.plan || "free"}</Text>
+          <Text style={styles.muted}>Tokens: {user.tokens ?? 0}</Text>
+          <SecondaryButton disabled={offline} label="Refresh account" onPress={refreshProfile} />
+        </View>
+
+        <View style={styles.statsGrid}>
+          <StatCard label="Photos" value={planText(sub?.photos_used, sub?.photos_limit)} />
+          <StatCard label="Videos" value={planText(sub?.videos_used, sub?.videos_limit)} />
+          <StatCard label="Premium" value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
+          <StatCard label="Renewal" value={sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : "None"} />
+        </View>
+
+        <View style={styles.planList}>
+          {mobilePlans.map((plan) => (
+            <View key={plan.name} style={styles.planCard}>
+              <View style={styles.planTopRow}>
+                <Text style={styles.planName}>{plan.name}</Text>
+                <Text style={styles.planPrice}>{plan.price}</Text>
+              </View>
+              <Text style={styles.planLine}>{plan.photos}</Text>
+              <Text style={styles.planLine}>{plan.videos}</Text>
+              <Text style={styles.planLine}>{plan.premium}</Text>
+            </View>
+          ))}
+        </View>
+
+        <SecondaryButton label="Sign out" onPress={signOut} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function GridBackdrop() {
+  return (
+    <View pointerEvents="none" style={styles.gridBackdrop}>
+      <View style={[styles.gridLineVertical, { left: "22%" }]} />
+      <View style={[styles.gridLineVertical, { left: "48%" }]} />
+      <View style={[styles.gridLineVertical, { left: "74%" }]} />
+      <View style={[styles.gridLineHorizontal, { top: "28%" }]} />
+      <View style={[styles.gridLineHorizontal, { top: "58%" }]} />
+      <View style={[styles.gridGlow, { left: "18%", bottom: -60 }]} />
+      <View style={[styles.gridGlow, { right: "12%", bottom: 30 }]} />
+    </View>
   );
 }
 
@@ -700,7 +886,7 @@ function StudioScreen({
         duration_s: 3,
         video_provider: "local"
       });
-      Alert.alert("Video queued", `Job ${job.job_id} is ${job.status}. Check History to refresh jobs.`);
+      Alert.alert("Video queued", `Job ${job.job_id} is ${job.status}. Video playback is the next native pass.`);
       await refreshProfile();
     } catch (error) {
       Alert.alert("Video failed", friendlyError(error));
@@ -1143,8 +1329,16 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TabGlyph({ color, kind }: { color: string; kind: "studio" | "history" | "account" | "settings" }) {
-  if (kind === "history") {
+function TabGlyph({ color, kind }: { color: string; kind: "home" | "studio" | "examples" | "pricing" }) {
+  if (kind === "home") {
+    return (
+      <View style={styles.tabGlyph}>
+        <View style={[styles.tabHomeRoof, { borderColor: color }]} />
+        <View style={[styles.tabHomeBase, { borderColor: color }]} />
+      </View>
+    );
+  }
+  if (kind === "examples") {
     return (
       <View style={styles.tabGlyph}>
         <View style={[styles.tabLine, { backgroundColor: color, width: 18 }]} />
@@ -1153,19 +1347,11 @@ function TabGlyph({ color, kind }: { color: string; kind: "studio" | "history" |
       </View>
     );
   }
-  if (kind === "account") {
-    return (
-      <View style={styles.tabGlyph}>
-        <View style={[styles.tabHead, { borderColor: color }]} />
-        <View style={[styles.tabShoulders, { borderColor: color }]} />
-      </View>
-    );
-  }
-  if (kind === "settings") {
+  if (kind === "pricing") {
     return (
       <View style={styles.tabGlyph}>
         <View style={[styles.tabRing, { borderColor: color }]} />
-        <View style={[styles.tabDot, { backgroundColor: color }]} />
+        <View style={[styles.tabPriceLine, { backgroundColor: color }]} />
       </View>
     );
   }
@@ -1181,6 +1367,453 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.paper
+  },
+  homeSafe: {
+    flex: 1,
+    backgroundColor: colors.night
+  },
+  homePage: {
+    flexGrow: 1,
+    paddingBottom: 128,
+    backgroundColor: colors.night
+  },
+  homeTopBar: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 12,
+    minHeight: 84,
+    borderRadius: 32,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f6f4ee",
+    borderWidth: 1,
+    borderColor: "rgba(17, 17, 15, 0.08)"
+  },
+  homeBrandMark: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  homeBrandText: {
+    color: colors.ink,
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  homeTopActions: {
+    flexDirection: "row",
+    gap: 10
+  },
+  homeRoundButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(17, 17, 15, 0.12)"
+  },
+  homeRoundText: {
+    color: colors.ink,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  homeMenuLine: {
+    width: 22,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.ink
+  },
+  homeHero: {
+    position: "relative",
+    overflow: "hidden",
+    paddingHorizontal: 22,
+    paddingTop: 52,
+    paddingBottom: 28,
+    minHeight: 442,
+    justifyContent: "flex-start",
+    backgroundColor: colors.night
+  },
+  gridBackdrop: {
+    ...StyleSheet.absoluteFillObject
+  },
+  gridLineVertical: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 1,
+    backgroundColor: "rgba(255, 157, 46, 0.12)"
+  },
+  gridLineHorizontal: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: "rgba(255, 253, 248, 0.05)"
+  },
+  gridGlow: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(255, 157, 46, 0.12)"
+  },
+  homeEyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 22
+  },
+  homeEyebrowLine: {
+    width: 36,
+    height: 2,
+    backgroundColor: colors.acid
+  },
+  homeEyebrow: {
+    flex: 1,
+    color: colors.acid,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  homeTitle: {
+    color: "#f6f1e8",
+    fontSize: 48,
+    lineHeight: 54,
+    fontWeight: "900"
+  },
+  homeSellText: {
+    color: colors.ink,
+    backgroundColor: colors.acid
+  },
+  homeCopy: {
+    marginTop: 22,
+    color: "rgba(246, 241, 232, 0.72)",
+    fontSize: 21,
+    lineHeight: 31,
+    fontWeight: "600"
+  },
+  homeCta: {
+    marginTop: 30,
+    minHeight: 66,
+    borderRadius: 34,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  homeCtaText: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: "900"
+  },
+  homeOffline: {
+    marginTop: 12,
+    color: colors.acid,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  homeMiniStudio: {
+    marginHorizontal: 22,
+    marginTop: -4,
+    padding: 14,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.34)",
+    backgroundColor: colors.nightPanel,
+    gap: 14
+  },
+  homeMiniHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12
+  },
+  homeMiniKicker: {
+    color: "rgba(246, 241, 232, 0.58)",
+    fontSize: 13,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  homeMiniMeta: {
+    color: "#f6f1e8",
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  homeProofStrip: {
+    overflow: "hidden",
+    minHeight: 154,
+    borderRadius: 18,
+    flexDirection: "row",
+    backgroundColor: "#efe8de"
+  },
+  homeProofSlot: {
+    flex: 1,
+    position: "relative",
+    overflow: "hidden",
+    borderRightWidth: 1,
+    borderRightColor: "rgba(255, 253, 248, 0.88)"
+  },
+  homeProofContain: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain"
+  },
+  homeProofCover: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  homeProofCoverZoom: {
+    width: "118%",
+    height: "100%",
+    marginLeft: -12,
+    resizeMode: "cover"
+  },
+  homeDarkBadge: {
+    position: "absolute",
+    left: 8,
+    top: 10,
+    minHeight: 30,
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    justifyContent: "center",
+    backgroundColor: "rgba(17, 17, 15, 0.72)"
+  },
+  homeDarkBadgeText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  homeGoldBadge: {
+    position: "absolute",
+    left: 8,
+    top: 10,
+    minHeight: 30,
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  homeGoldBadgeText: {
+    color: colors.ink,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  homeUploadBox: {
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 253, 248, 0.12)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    gap: 12
+  },
+  homeUploadLabel: {
+    color: "rgba(246, 241, 232, 0.68)",
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  homeUploadButton: {
+    minHeight: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  homeUploadText: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: "900"
+  },
+  homeModeTeaser: {
+    marginHorizontal: 22,
+    marginTop: 18,
+    padding: 18,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.24)",
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    gap: 8
+  },
+  homeModeTitle: {
+    color: "#f6f1e8",
+    fontSize: 22,
+    lineHeight: 27,
+    fontWeight: "900"
+  },
+  homeModeSub: {
+    color: "rgba(246, 241, 232, 0.66)",
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "700"
+  },
+  homeTokenInline: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    minHeight: 34,
+    borderRadius: 17,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(255, 157, 46, 0.14)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.28)"
+  },
+  homeTokenValue: {
+    color: colors.acid,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  homeTokenLabel: {
+    color: "rgba(246, 241, 232, 0.72)",
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  examplesPage: {
+    flexGrow: 1,
+    padding: 16,
+    paddingBottom: 128,
+    gap: 14,
+    backgroundColor: colors.night
+  },
+  examplesHero: {
+    position: "relative",
+    overflow: "hidden",
+    minHeight: 238,
+    borderRadius: radii.lg,
+    padding: 20,
+    justifyContent: "flex-end",
+    backgroundColor: colors.nightPanel,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.24)"
+  },
+  examplesTitle: {
+    color: "#f6f1e8",
+    fontSize: 31,
+    lineHeight: 36,
+    fontWeight: "900"
+  },
+  examplesSub: {
+    marginTop: 10,
+    color: "rgba(246, 241, 232, 0.68)",
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "700"
+  },
+  examplesCta: {
+    marginTop: 16,
+    minHeight: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  examplesCtaText: {
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  exampleModeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  exampleModeCard: {
+    width: "48.5%",
+    overflow: "hidden",
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.18)",
+    backgroundColor: colors.card
+  },
+  exampleImageWrap: {
+    position: "relative",
+    height: 142,
+    backgroundColor: "#efe8de"
+  },
+  exampleImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  exampleTitle: {
+    marginTop: 12,
+    marginHorizontal: 12,
+    color: colors.ink,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  exampleText: {
+    marginHorizontal: 12,
+    marginTop: 4,
+    marginBottom: 14,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "700"
+  },
+  pricingPage: {
+    flexGrow: 1,
+    padding: 16,
+    paddingBottom: 128,
+    gap: 14
+  },
+  pricingHero: {
+    padding: 18,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    gap: 8
+  },
+  pricingTitle: {
+    color: colors.ink,
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "900"
+  },
+  planList: {
+    gap: 10
+  },
+  planCard: {
+    padding: 16,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    gap: 7
+  },
+  planTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12
+  },
+  planName: {
+    color: colors.ink,
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  planPrice: {
+    color: colors.acid,
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  planLine: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800"
   },
   flex: {
     flex: 1
@@ -1803,11 +2436,23 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   nativeTabBar: {
-    minHeight: 70,
-    paddingTop: 8,
-    paddingBottom: 10,
+    position: "absolute",
+    left: 14,
+    right: 14,
+    bottom: 14,
+    minHeight: 76,
+    paddingTop: 9,
+    paddingBottom: 9,
+    paddingHorizontal: 8,
+    borderRadius: 34,
     backgroundColor: colors.card,
-    borderTopColor: colors.line
+    borderTopWidth: 0,
+    borderWidth: 1,
+    borderColor: colors.line
+  },
+  nativeTabItem: {
+    marginHorizontal: 2,
+    borderRadius: 28
   },
   nativeTabText: {
     fontWeight: "900",
@@ -1819,6 +2464,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 3
+  },
+  tabHomeRoof: {
+    width: 16,
+    height: 12,
+    borderLeftWidth: 2,
+    borderTopWidth: 2,
+    transform: [{ rotate: "45deg" }],
+    marginBottom: -5
+  },
+  tabHomeBase: {
+    width: 16,
+    height: 11,
+    borderWidth: 2,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3
   },
   tabLine: {
     height: 3,
@@ -1849,6 +2510,12 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 3
+  },
+  tabPriceLine: {
+    position: "absolute",
+    width: 11,
+    height: 3,
+    borderRadius: 2
   },
   tabStudioFrame: {
     width: 18,

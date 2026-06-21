@@ -1,5 +1,46 @@
 # DomStudio Archive
 
+## June 21, 2026 - Mobile Home Screen Matched To Web Energy
+
+User shared an iPhone Safari screenshot of the web mobile home screen and noted
+that it feels attractive and alive. The key gap was that native mobile opened
+like a tool shell, while web opens with a real first-impression Home surface.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Added a `Home` tab as the initial logged-in tab.
+- Built a native Home screen inspired by the web screenshot:
+  - white rounded top nav shell with DS mark, RU pill, and menu glyph
+  - dark hero with subtle grid lines/glow
+  - "Content that sells" headline with orange highlight
+  - orange "Create first photo" CTA that routes to Studio
+  - mini studio proof card with Before / After / Video slots
+  - product photo upload panel that routes to Studio
+  - token/status teaser below the proof card
+- Updated the bottom tab bar to feel more app-like:
+  - floating rounded white shell
+  - warm active-tab background
+  - added Home tab glyph
+- Aligned visible native tabs with the web mobile screenshot:
+  - Home
+  - Studio
+  - Examples
+  - Pricing
+- Added lightweight native Examples and Pricing screens so the app no longer
+  opens as an internal utility shell.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed. Expo Metro bundle request returned HTTP 200.
+
+---
+
 ## June 21, 2026 - Mobile Visual Parity Pass 1
 
 User asked to do point 1 from the five-point audit: native visual parity.
