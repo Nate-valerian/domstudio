@@ -62,6 +62,7 @@ type MainTabParamList = {
 };
 
 type AuthMode = "login" | "register" | "verifyEmail" | "phone" | "verifyPhone" | "forgot" | "reset";
+type AppLanguage = "en" | "ru";
 
 type PickedImage = {
   uri: string;
@@ -183,6 +184,139 @@ const workflowSteps = [
   { number: "03", title: "Export content that sells", text: "Save or share a photo, queue video, and reuse the result in history." }
 ];
 
+const mobileCopy = {
+  en: {
+    tabs: { home: "Home", studio: "Studio", examples: "Examples", pricing: "Pricing" },
+    home: {
+      eyebrow: "AI studio for marketplace sellers",
+      titleA: "Content that",
+      titleB: "sells",
+      body: "Upload a plain product photo, choose your platform - Wildberries, Ozon, Yandex, Avito - and get a ready card, story or banner in minutes.",
+      create: "Create first photo",
+      pricing: "See pricing",
+      offline: "Offline now. You can still browse the flow.",
+      mini: "Mini studio",
+      platforms: "WB / Ozon / Yandex / Avito",
+      before: "Before",
+      after: "After",
+      video: "Video",
+      productPhoto: "Product photo",
+      upload: "Upload",
+      teaserTitle: "Wine bottle on marble table",
+      teaserBody: "Try the Product mode first, then make a story or catalog card from the same photo.",
+      tokensReady: "tokens ready",
+      proofTitle: "Real product proof.",
+      proofBody: "The same before, after, and video story from the web home screen is now part of the native first impression.",
+      stat1: "photos in the starter seller plan.",
+      stat2: "entry price for a real content batch.",
+      stat3: "story-ready vertical assets for social sales.",
+      modesTitle: "Six web modes, native.",
+      modesBody: "Catalog, Product, Creative, Lifestyle, Fitting, and Stories use the same proof cards as the web page.",
+      workflowTitle: "How sellers move from photo to content.",
+      workflowBody: "The native app should feel like the web product, then stay useful in the actual phone workflow.",
+      menuSub: "Move through the seller workflow.",
+      menuCreate: "Create photo",
+      menuCreateMeta: "Open Studio",
+      menuExamples: "Examples",
+      menuExamplesMeta: "See formats",
+      menuPricing: "Pricing",
+      menuPricingMeta: "Plans and limits",
+      close: "Close"
+    },
+    examples: {
+      eyebrow: "Examples",
+      title: "Product content examples.",
+      body: "The same perfume, bottle, marketplace, product, creative, lifestyle, fitting, and story gallery from the web app.",
+      badge1: "Marketplace cards",
+      badge2: "Social crops",
+      badge3: "Video-ready frames",
+      cta: "Create from example",
+      bottom: "Ready to make your product set?",
+      openStudio: "Open Studio"
+    },
+    pricing: {
+      eyebrow: "Pricing",
+      title: "Choose the amount of content you need.",
+      body: "The native screen mirrors the web tariff structure while payment handoff remains a later compliance pass.",
+      offline: "Offline. Account numbers may be stale.",
+      currentPlan: "Current plan",
+      tokens: "Tokens",
+      refresh: "Refresh account",
+      photos: "Photos",
+      videos: "Videos",
+      premium: "Premium",
+      renewal: "Renewal",
+      none: "None",
+      signOut: "Sign out"
+    }
+  },
+  ru: {
+    tabs: { home: "Главная", studio: "Студия", examples: "Примеры", pricing: "Тарифы" },
+    home: {
+      eyebrow: "AI-студия для продавцов маркетплейсов",
+      titleA: "Контент, который",
+      titleB: "продает",
+      body: "Загрузите обычное фото товара, выберите площадку - Wildberries, Ozon, Yandex, Avito - и получите готовую карточку, сторис или баннер за минуты.",
+      create: "Создать первое фото",
+      pricing: "Смотреть тарифы",
+      offline: "Сейчас офлайн. Поток можно посмотреть, но генерация недоступна.",
+      mini: "Мини-студия",
+      platforms: "WB / Ozon / Yandex / Avito",
+      before: "До",
+      after: "После",
+      video: "Видео",
+      productPhoto: "Фото товара",
+      upload: "Загрузить",
+      teaserTitle: "Бутылка вина на мраморном столе",
+      teaserBody: "Сначала попробуйте режим Product, затем сделайте сторис или карточку каталога из того же фото.",
+      tokensReady: "токенов доступно",
+      proofTitle: "Реальный пример.",
+      proofBody: "Тот же сценарий до, после и видео с веб-экрана теперь виден в первом экране приложения.",
+      stat1: "фото в стартовом плане продавца.",
+      stat2: "входная цена за реальный пакет контента.",
+      stat3: "вертикальные 9:16 материалы для соцсетей.",
+      modesTitle: "Шесть веб-режимов в приложении.",
+      modesBody: "Catalog, Product, Creative, Lifestyle, Fitting и Stories используют те же proof-карточки, что и веб.",
+      workflowTitle: "Как продавец идет от фото к контенту.",
+      workflowBody: "Нативное приложение должно ощущаться как веб-продукт и оставаться удобным в телефонном сценарии.",
+      menuSub: "Переходите по рабочему процессу продавца.",
+      menuCreate: "Создать фото",
+      menuCreateMeta: "Открыть студию",
+      menuExamples: "Примеры",
+      menuExamplesMeta: "Смотреть форматы",
+      menuPricing: "Тарифы",
+      menuPricingMeta: "Планы и лимиты",
+      close: "Закрыть"
+    },
+    examples: {
+      eyebrow: "Примеры",
+      title: "Примеры товарного контента.",
+      body: "Та же галерея с парфюмом, бутылками, карточками, креативами, lifestyle, fitting и stories, что и в вебе.",
+      badge1: "Карточки маркетплейсов",
+      badge2: "Кропы для соцсетей",
+      badge3: "Кадры для видео",
+      cta: "Создать по примеру",
+      bottom: "Готовы собрать набор для товара?",
+      openStudio: "Открыть студию"
+    },
+    pricing: {
+      eyebrow: "Тарифы",
+      title: "Выберите нужный объем контента.",
+      body: "Нативный экран повторяет структуру веб-тарифов; платежный переход будет отдельным compliance-этапом.",
+      offline: "Офлайн. Данные аккаунта могут быть устаревшими.",
+      currentPlan: "Текущий план",
+      tokens: "Токены",
+      refresh: "Обновить аккаунт",
+      photos: "Фото",
+      videos: "Видео",
+      premium: "Премиум",
+      renewal: "Продление",
+      none: "Нет",
+      signOut: "Выйти"
+    }
+  }
+} as const;
+
 const stylesList = [
   "clean marketplace card",
   "premium studio lighting",
@@ -230,6 +364,7 @@ export default function App() {
   const [booting, setBooting] = useState(true);
   const [history, setHistory] = useState<LocalHistoryItem[]>([]);
   const [result, setResult] = useState<ResultState | null>(null);
+  const [language, setLanguage] = useState<AppLanguage>("en");
 
   async function completeAuth(nextTokens: Tokens) {
     await saveTokens(nextTokens);
@@ -335,10 +470,12 @@ export default function App() {
                 <MainTabs
                   clearHistory={clearHistory}
                   history={history}
+                  language={language}
                   offline={offline}
                   refreshProfile={refreshProfile}
                   rememberResult={rememberResult}
                   result={result}
+                  setLanguage={setLanguage}
                   setResult={setResult}
                   signOut={signOut}
                   tokens={tokens}
@@ -585,15 +722,18 @@ function AuthScreen({
 function MainTabs(props: {
   clearHistory: () => Promise<void>;
   history: LocalHistoryItem[];
+  language: AppLanguage;
   offline: boolean;
   refreshProfile: () => Promise<void>;
   rememberResult: (result: ResultState) => void;
   result: ResultState | null;
+  setLanguage: (language: AppLanguage) => void;
   setResult: (result: ResultState | null) => void;
   signOut: () => Promise<void>;
   tokens: Tokens;
   user: UserProfile;
 }) {
+  const copy = mobileCopy[props.language];
   return (
     <Tabs.Navigator
       initialRouteName="Home"
@@ -607,10 +747,12 @@ function MainTabs(props: {
         tabBarLabelStyle: styles.nativeTabText
       }}
     >
-      <Tabs.Screen name="Home" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="home" /> }}>
+      <Tabs.Screen name="Home" options={{ tabBarLabel: copy.tabs.home, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="home" /> }}>
         {({ navigation }) => (
           <HomeScreen
+            language={props.language}
             offline={props.offline}
+            setLanguage={props.setLanguage}
             tokens={props.user.tokens ?? 0}
             onCreate={() => navigation.navigate("Studio")}
             onExamples={() => navigation.navigate("Examples")}
@@ -618,34 +760,39 @@ function MainTabs(props: {
           />
         )}
       </Tabs.Screen>
-      <Tabs.Screen name="Studio" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="studio" /> }}>
+      <Tabs.Screen name="Studio" options={{ tabBarLabel: copy.tabs.studio, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="studio" /> }}>
         {() => <StudioScreen {...props} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Examples" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="examples" /> }}>
-        {({ navigation }) => <ExamplesScreen onCreate={() => navigation.navigate("Studio")} />}
+      <Tabs.Screen name="Examples" options={{ tabBarLabel: copy.tabs.examples, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="examples" /> }}>
+        {({ navigation }) => <ExamplesScreen language={props.language} onCreate={() => navigation.navigate("Studio")} />}
       </Tabs.Screen>
-      <Tabs.Screen name="Pricing" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="pricing" /> }}>
-        {() => <PricingScreen {...props} />}
+      <Tabs.Screen name="Pricing" options={{ tabBarLabel: copy.tabs.pricing, tabBarIcon: ({ color }) => <TabGlyph color={color} kind="pricing" /> }}>
+        {() => <PricingScreen {...props} language={props.language} />}
       </Tabs.Screen>
     </Tabs.Navigator>
   );
 }
 
 function HomeScreen({
+  language,
   offline,
   onCreate,
   onExamples,
   onPricing,
+  setLanguage,
   tokens
 }: {
+  language: AppLanguage;
   offline: boolean;
   onCreate: () => void;
   onExamples: () => void;
   onPricing: () => void;
+  setLanguage: (language: AppLanguage) => void;
   tokens: number;
 }) {
-  const [language, setLanguage] = useState<"RU" | "EN">("RU");
   const [menuOpen, setMenuOpen] = useState(false);
+  const copy = mobileCopy[language].home;
+  const nextLanguage: AppLanguage = language === "en" ? "ru" : "en";
 
   function runMenuAction(action: () => void) {
     setMenuOpen(false);
@@ -665,9 +812,9 @@ function HomeScreen({
               accessibilityRole="button"
               accessibilityLabel="Toggle language"
               style={({ pressed }) => [styles.homeRoundButton, pressed && styles.homeRoundButtonPressed]}
-              onPress={() => setLanguage((value) => (value === "RU" ? "EN" : "RU"))}
+              onPress={() => setLanguage(nextLanguage)}
             >
-              <Text style={styles.homeRoundText}>{language}</Text>
+              <Text style={styles.homeRoundText}>{nextLanguage.toUpperCase()}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -685,104 +832,102 @@ function HomeScreen({
           <GridBackdrop />
           <View style={styles.homeEyebrowRow}>
             <View style={styles.homeEyebrowLine} />
-            <Text style={styles.homeEyebrow}>AI studio for marketplace sellers</Text>
+            <Text style={styles.homeEyebrow}>{copy.eyebrow}</Text>
           </View>
           <Text style={styles.homeTitle}>
-            Content that <Text style={styles.homeSellText}>sells</Text>
+            {copy.titleA} <Text style={styles.homeSellText}>{copy.titleB}</Text>
           </Text>
-          <Text style={styles.homeCopy}>
-            Upload a plain product photo, choose your platform - Wildberries, Ozon, Yandex, Avito - and get a ready card, story or banner in minutes.
-          </Text>
+          <Text style={styles.homeCopy}>{copy.body}</Text>
           <Pressable style={styles.homeCta} onPress={onCreate}>
-            <Text style={styles.homeCtaText}>Create first photo</Text>
+            <Text style={styles.homeCtaText}>{copy.create}</Text>
           </Pressable>
           <Pressable style={styles.homeSecondaryCta} onPress={onPricing}>
-            <Text style={styles.homeSecondaryCtaText}>See pricing</Text>
+            <Text style={styles.homeSecondaryCtaText}>{copy.pricing}</Text>
           </Pressable>
           <View style={styles.homeTrustRow}>
             <Text style={styles.homeTrustText}>Ready for marketplaces</Text>
             <Text style={styles.homeTrustText}>Photo and video flow</Text>
             <Text style={styles.homeTrustText}>Mobile-first export</Text>
           </View>
-          {offline ? <Text style={styles.homeOffline}>Offline now. You can still browse the flow.</Text> : null}
+          {offline ? <Text style={styles.homeOffline}>{copy.offline}</Text> : null}
         </View>
 
         <View style={styles.homeMiniStudio}>
           <View style={styles.homeMiniHead}>
-            <Text style={styles.homeMiniKicker}>Mini studio</Text>
-            <Text style={styles.homeMiniMeta}>WB / Ozon / Yandex / Avito</Text>
+            <Text style={styles.homeMiniKicker}>{copy.mini}</Text>
+            <Text style={styles.homeMiniMeta}>{copy.platforms}</Text>
           </View>
           <View style={styles.homeProofStrip}>
             <View style={styles.homeProofSlot}>
               <Image source={proofBefore} style={styles.homeProofContain} />
-              <View style={styles.homeDarkBadge}><Text style={styles.homeDarkBadgeText}>Before</Text></View>
+              <View style={styles.homeDarkBadge}><Text style={styles.homeDarkBadgeText}>{copy.before}</Text></View>
             </View>
             <View style={styles.homeProofSlot}>
               <Image source={proofAfter} style={styles.homeProofCover} />
-              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>After</Text></View>
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.after}</Text></View>
             </View>
             <View style={styles.homeProofSlot}>
               <Image source={proofAfter} style={styles.homeProofCoverZoom} />
-              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>Video</Text></View>
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.video}</Text></View>
             </View>
           </View>
 
           <View style={styles.homeUploadBox}>
-            <Text style={styles.homeUploadLabel}>Product photo</Text>
+            <Text style={styles.homeUploadLabel}>{copy.productPhoto}</Text>
             <Pressable style={styles.homeUploadButton} onPress={onCreate}>
-              <Text style={styles.homeUploadText}>Upload</Text>
+              <Text style={styles.homeUploadText}>{copy.upload}</Text>
             </Pressable>
           </View>
         </View>
 
         <View style={styles.homeModeTeaser}>
-          <Text style={styles.homeModeTitle}>Wine bottle on marble table</Text>
-          <Text style={styles.homeModeSub}>Try the Product mode first, then make a story or catalog card from the same photo.</Text>
+          <Text style={styles.homeModeTitle}>{copy.teaserTitle}</Text>
+          <Text style={styles.homeModeSub}>{copy.teaserBody}</Text>
           <View style={styles.homeTokenInline}>
             <Text style={styles.homeTokenValue}>{tokens}</Text>
-            <Text style={styles.homeTokenLabel}>tokens ready</Text>
+            <Text style={styles.homeTokenLabel}>{copy.tokensReady}</Text>
           </View>
         </View>
 
         <View style={styles.homeProofSection}>
           <View style={styles.webSectionHead}>
-            <Text style={styles.webSectionTitleHighlight}>Real product proof.</Text>
-            <Text style={styles.webSectionCopy}>The same before, after, and video story from the web home screen is now part of the native first impression.</Text>
+            <Text style={styles.webSectionTitleHighlight}>{copy.proofTitle}</Text>
+            <Text style={styles.webSectionCopy}>{copy.proofBody}</Text>
           </View>
           <View style={styles.homeProofLarge}>
             <View style={styles.homeProofSlot}>
               <Image source={proofBefore} style={styles.homeProofContain} />
-              <View style={styles.homeDarkBadge}><Text style={styles.homeDarkBadgeText}>Before</Text></View>
+              <View style={styles.homeDarkBadge}><Text style={styles.homeDarkBadgeText}>{copy.before}</Text></View>
             </View>
             <View style={styles.homeProofSlot}>
               <Image source={proofAfter} style={styles.homeProofCover} />
-              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>After</Text></View>
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.after}</Text></View>
             </View>
             <View style={styles.homeProofSlot}>
               <Image source={proofAfter} style={styles.homeProofCoverZoom} />
-              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>Video</Text></View>
+              <View style={styles.homeGoldBadge}><Text style={styles.homeGoldBadgeText}>{copy.video}</Text></View>
             </View>
           </View>
           <View style={styles.homeProofStats}>
             <View style={styles.homeProofStat}>
               <Text style={styles.homeProofStatValue}>30</Text>
-              <Text style={styles.homeProofStatText}>photos in the starter seller plan.</Text>
+              <Text style={styles.homeProofStatText}>{copy.stat1}</Text>
             </View>
             <View style={styles.homeProofStat}>
               <Text style={styles.homeProofStatValue}>270 RUB</Text>
-              <Text style={styles.homeProofStatText}>entry price for a real content batch.</Text>
+              <Text style={styles.homeProofStatText}>{copy.stat2}</Text>
             </View>
             <View style={styles.homeProofStat}>
               <Text style={styles.homeProofStatValue}>9:16</Text>
-              <Text style={styles.homeProofStatText}>story-ready vertical assets for social sales.</Text>
+              <Text style={styles.homeProofStatText}>{copy.stat3}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.homeModesSection}>
           <View style={styles.webSectionHead}>
-            <Text style={styles.webSectionTitle}>Six web modes, native.</Text>
-            <Text style={styles.webSectionCopy}>Catalog, Product, Creative, Lifestyle, Fitting, and Stories use the same proof cards as the web page.</Text>
+            <Text style={styles.webSectionTitle}>{copy.modesTitle}</Text>
+            <Text style={styles.webSectionCopy}>{copy.modesBody}</Text>
           </View>
           <View style={styles.homeModesList}>
             {modes.map((item, index) => (
@@ -791,9 +936,9 @@ function HomeScreen({
                   <Image source={item.preview} style={styles.homeWebModeImage} />
                   <View style={styles.homeWebModeBefore}>
                     <Image source={item.before} style={styles.homeWebModeBeforeImage} />
-                    <Text style={styles.homeWebModeBeforeLabel}>Before</Text>
+                    <Text style={styles.homeWebModeBeforeLabel}>{copy.before}</Text>
                   </View>
-                  <View style={styles.homeWebModeAfterLabel}><Text style={styles.homeGoldBadgeText}>After</Text></View>
+                  <View style={styles.homeWebModeAfterLabel}><Text style={styles.homeGoldBadgeText}>{copy.after}</Text></View>
                 </View>
                 <View style={styles.homeWebModeBody}>
                   <View style={styles.homeWebModeTopline}>
@@ -810,8 +955,8 @@ function HomeScreen({
 
         <View style={styles.homeWorkflowSection}>
           <View style={styles.webSectionHead}>
-            <Text style={styles.homeWorkflowTitle}>How sellers move from photo to content.</Text>
-            <Text style={styles.homeWorkflowCopy}>The native app should feel like the web product, then stay useful in the actual phone workflow.</Text>
+            <Text style={styles.homeWorkflowTitle}>{copy.workflowTitle}</Text>
+            <Text style={styles.homeWorkflowCopy}>{copy.workflowBody}</Text>
           </View>
           {workflowSteps.map((step) => (
             <View key={step.number} style={styles.homeWorkflowStep}>
@@ -827,21 +972,21 @@ function HomeScreen({
           <Pressable style={styles.homeMenuPanel} onPress={() => undefined}>
             <View style={styles.menuHandle} />
             <Text style={styles.menuTitle}>DomStudio</Text>
-            <Text style={styles.menuSub}>Move through the seller workflow.</Text>
+            <Text style={styles.menuSub}>{copy.menuSub}</Text>
             <Pressable style={styles.menuItem} onPress={() => runMenuAction(onCreate)}>
-              <Text style={styles.menuItemText}>Create photo</Text>
-              <Text style={styles.menuItemMeta}>Open Studio</Text>
+              <Text style={styles.menuItemText}>{copy.menuCreate}</Text>
+              <Text style={styles.menuItemMeta}>{copy.menuCreateMeta}</Text>
             </Pressable>
             <Pressable style={styles.menuItem} onPress={() => runMenuAction(onExamples)}>
-              <Text style={styles.menuItemText}>Examples</Text>
-              <Text style={styles.menuItemMeta}>See formats</Text>
+              <Text style={styles.menuItemText}>{copy.menuExamples}</Text>
+              <Text style={styles.menuItemMeta}>{copy.menuExamplesMeta}</Text>
             </Pressable>
             <Pressable style={styles.menuItem} onPress={() => runMenuAction(onPricing)}>
-              <Text style={styles.menuItemText}>Pricing</Text>
-              <Text style={styles.menuItemMeta}>Plans and limits</Text>
+              <Text style={styles.menuItemText}>{copy.menuPricing}</Text>
+              <Text style={styles.menuItemMeta}>{copy.menuPricingMeta}</Text>
             </Pressable>
             <Pressable style={styles.menuCloseButton} onPress={() => setMenuOpen(false)}>
-              <Text style={styles.menuCloseText}>Close</Text>
+              <Text style={styles.menuCloseText}>{copy.close}</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -850,7 +995,8 @@ function HomeScreen({
   );
 }
 
-function ExamplesScreen({ onCreate }: { onCreate: () => void }) {
+function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreate: () => void }) {
+  const copy = mobileCopy[language].examples;
   return (
     <SafeAreaView style={styles.homeSafe}>
       <ScrollView contentContainerStyle={styles.examplesPage}>
@@ -858,17 +1004,17 @@ function ExamplesScreen({ onCreate }: { onCreate: () => void }) {
           <GridBackdrop />
           <View style={styles.homeEyebrowRow}>
             <View style={styles.homeEyebrowLine} />
-            <Text style={styles.homeEyebrow}>Examples</Text>
+            <Text style={styles.homeEyebrow}>{copy.eyebrow}</Text>
           </View>
-          <Text style={styles.examplesTitle}>Product content examples.</Text>
-          <Text style={styles.examplesSub}>The same perfume, bottle, marketplace, product, creative, lifestyle, fitting, and story gallery from the web app.</Text>
+          <Text style={styles.examplesTitle}>{copy.title}</Text>
+          <Text style={styles.examplesSub}>{copy.body}</Text>
           <View style={styles.examplesStrip}>
-            <Text style={styles.examplesBadge}>Marketplace cards</Text>
-            <Text style={styles.examplesBadge}>Social crops</Text>
-            <Text style={styles.examplesBadge}>Video-ready frames</Text>
+            <Text style={styles.examplesBadge}>{copy.badge1}</Text>
+            <Text style={styles.examplesBadge}>{copy.badge2}</Text>
+            <Text style={styles.examplesBadge}>{copy.badge3}</Text>
           </View>
           <Pressable style={styles.examplesCta} onPress={onCreate}>
-            <Text style={styles.examplesCtaText}>Create from example</Text>
+            <Text style={styles.examplesCtaText}>{copy.cta}</Text>
           </Pressable>
         </View>
 
@@ -885,9 +1031,9 @@ function ExamplesScreen({ onCreate }: { onCreate: () => void }) {
           ))}
         </View>
         <View style={styles.examplesBottomCta}>
-          <Text style={styles.examplesBottomTitle}>Ready to make your product set?</Text>
+          <Text style={styles.examplesBottomTitle}>{copy.bottom}</Text>
           <Pressable style={styles.examplesCta} onPress={onCreate}>
-            <Text style={styles.examplesCtaText}>Open Studio</Text>
+            <Text style={styles.examplesCtaText}>{copy.openStudio}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -896,41 +1042,44 @@ function ExamplesScreen({ onCreate }: { onCreate: () => void }) {
 }
 
 function PricingScreen({
+  language,
   offline,
   refreshProfile,
   signOut,
   user
 }: {
+  language: AppLanguage;
   offline: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   user: UserProfile;
 }) {
   const sub = user.subscription;
+  const copy = mobileCopy[language].pricing;
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.pricingPage}>
         <View style={styles.pricingHero}>
-          <Text style={styles.kicker}>Pricing</Text>
-          <Text style={styles.pricingTitle}>Choose the amount of content you need.</Text>
-          <Text style={styles.muted}>The native screen mirrors the web tariff structure while payment handoff remains a later compliance pass.</Text>
+          <Text style={styles.kicker}>{copy.eyebrow}</Text>
+          <Text style={styles.pricingTitle}>{copy.title}</Text>
+          <Text style={styles.muted}>{copy.body}</Text>
         </View>
 
-        {offline ? <Banner tone="warn" text="Offline. Account numbers may be stale." /> : null}
+        {offline ? <Banner tone="warn" text={copy.offline} /> : null}
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
-          <Text style={styles.muted}>Current plan: {sub?.plan || "free"}</Text>
-          <Text style={styles.muted}>Tokens: {user.tokens ?? 0}</Text>
-          <SecondaryButton disabled={offline} label="Refresh account" onPress={refreshProfile} />
+          <Text style={styles.muted}>{copy.currentPlan}: {sub?.plan || "free"}</Text>
+          <Text style={styles.muted}>{copy.tokens}: {user.tokens ?? 0}</Text>
+          <SecondaryButton disabled={offline} label={copy.refresh} onPress={refreshProfile} />
         </View>
 
         <View style={styles.statsGrid}>
-          <StatCard label="Photos" value={planText(sub?.photos_used, sub?.photos_limit)} />
-          <StatCard label="Videos" value={planText(sub?.videos_used, sub?.videos_limit)} />
-          <StatCard label="Premium" value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
-          <StatCard label="Renewal" value={sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : "None"} />
+          <StatCard label={copy.photos} value={planText(sub?.photos_used, sub?.photos_limit)} />
+          <StatCard label={copy.videos} value={planText(sub?.videos_used, sub?.videos_limit)} />
+          <StatCard label={copy.premium} value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
+          <StatCard label={copy.renewal} value={sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : copy.none} />
         </View>
 
         <View style={styles.planList}>
@@ -948,7 +1097,7 @@ function PricingScreen({
           ))}
         </View>
 
-        <SecondaryButton label="Sign out" onPress={signOut} />
+        <SecondaryButton label={copy.signOut} onPress={signOut} />
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,5 +1,31 @@
 # DomStudio Archive
 
+## June 21, 2026 - Wire Native Language Toggle To App Copy
+
+User reported the Home language toggle only changed the pill text and did not
+change the app language.
+
+Fixed in `domstudio-mobile/App.tsx`:
+
+- Moved language state from `HomeScreen` local state to the root app state.
+- Passed language and setter through `MainTabs`.
+- Updated bottom tab labels from the shared language state.
+- Added English/Russian copy for Home, menu, Examples, and Pricing.
+- The Home language pill now shows the target language (`RU` / `EN`) and
+  updates visible app copy when pressed.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 21, 2026 - Fix Native Proof Media Blowout
 
 User shared iPhone screenshots showing the native Home proof strip stretching
