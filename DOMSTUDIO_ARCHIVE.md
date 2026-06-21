@@ -1,5 +1,49 @@
 # DomStudio Archive
 
+## June 21, 2026 - Native Home Controls + Mobile Branding Pass
+
+User reported the native Home screen felt unresponsive because the burger/menu
+and language controls did not react, then asked to continue with point 2:
+real mobile branding.
+
+Fixes in `domstudio-mobile/App.tsx`:
+
+- Converted Home language pill from static `View` to `Pressable`.
+- Language pill now toggles `RU` / `EN` visibly.
+- Converted burger control from static `View` to `Pressable`.
+- Added a native menu modal with working actions:
+  - Create photo -> Studio
+  - Examples -> Examples tab
+  - Pricing -> Pricing tab
+  - Close
+- Added touch feedback to the top Home buttons.
+- Cleaned Home platform label to ASCII separators:
+  `WB / Ozon / Yandex / Avito`.
+- Updated Settings copy so app assets are no longer described as placeholders.
+
+Branding pass:
+
+- Regenerated native raster assets:
+  - `domstudio-mobile/assets/icon.png`
+  - `domstudio-mobile/assets/adaptive-icon.png`
+  - `domstudio-mobile/assets/splash-icon.png`
+- Updated `app.json` splash/adaptive icon background to dark DomStudio brand
+  color `#1b1322`.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+npx expo config --type public
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed, Expo config resolved, and the iOS Metro bundle request
+returned HTTP 200.
+
+---
+
 ## June 21, 2026 - Mobile Home Screen Matched To Web Energy
 
 User shared an iPhone Safari screenshot of the web mobile home screen and noted

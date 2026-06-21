@@ -5,6 +5,7 @@ import {
   Image,
   ImageSourcePropType,
   LogBox,
+  Modal,
   Pressable,
   ScrollView,
   StatusBar,
@@ -585,7 +586,15 @@ function MainTabs(props: {
       }}
     >
       <Tabs.Screen name="Home" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="home" /> }}>
-        {({ navigation }) => <HomeScreen offline={props.offline} tokens={props.user.tokens ?? 0} onCreate={() => navigation.navigate("Studio")} />}
+        {({ navigation }) => (
+          <HomeScreen
+            offline={props.offline}
+            tokens={props.user.tokens ?? 0}
+            onCreate={() => navigation.navigate("Studio")}
+            onExamples={() => navigation.navigate("Examples")}
+            onPricing={() => navigation.navigate("Pricing")}
+          />
+        )}
       </Tabs.Screen>
       <Tabs.Screen name="Studio" options={{ tabBarIcon: ({ color }) => <TabGlyph color={color} kind="studio" /> }}>
         {() => <StudioScreen {...props} />}
@@ -600,18 +609,50 @@ function MainTabs(props: {
   );
 }
 
-function HomeScreen({ offline, onCreate, tokens }: { offline: boolean; onCreate: () => void; tokens: number }) {
+function HomeScreen({
+  offline,
+  onCreate,
+  onExamples,
+  onPricing,
+  tokens
+}: {
+  offline: boolean;
+  onCreate: () => void;
+  onExamples: () => void;
+  onPricing: () => void;
+  tokens: number;
+}) {
+  const [language, setLanguage] = useState<"RU" | "EN">("RU");
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  function runMenuAction(action: () => void) {
+    setMenuOpen(false);
+    action();
+  }
+
   return (
     <SafeAreaView style={styles.homeSafe}>
       <ScrollView contentContainerStyle={styles.homePage} keyboardShouldPersistTaps="handled">
         <View style={styles.homeTopBar}>
           <View style={styles.homeBrandMark}><Text style={styles.homeBrandText}>DS</Text></View>
           <View style={styles.homeTopActions}>
-            <View style={styles.homeRoundButton}><Text style={styles.homeRoundText}>RU</Text></View>
-            <View style={styles.homeRoundButton}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Toggle language"
+              style={({ pressed }) => [styles.homeRoundButton, pressed && styles.homeRoundButtonPressed]}
+              onPress={() => setLanguage((value) => (value === "RU" ? "EN" : "RU"))}
+            >
+              <Text style={styles.homeRoundText}>{language}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open menu"
+              style={({ pressed }) => [styles.homeRoundButton, pressed && styles.homeRoundButtonPressed]}
+              onPress={() => setMenuOpen(true)}
+            >
               <View style={styles.homeMenuLine} />
               <View style={styles.homeMenuLine} />
-            </View>
+            </Pressable>
           </View>
         </View>
 
@@ -636,7 +677,7 @@ function HomeScreen({ offline, onCreate, tokens }: { offline: boolean; onCreate:
         <View style={styles.homeMiniStudio}>
           <View style={styles.homeMiniHead}>
             <Text style={styles.homeMiniKicker}>Mini studio</Text>
-            <Text style={styles.homeMiniMeta}>WB · Ozon · Yandex · Avito</Text>
+            <Text style={styles.homeMiniMeta}>WB / Ozon / Yandex / Avito</Text>
           </View>
           <View style={styles.homeProofStrip}>
             <View style={styles.homeProofSlot}>
@@ -670,6 +711,30 @@ function HomeScreen({ offline, onCreate, tokens }: { offline: boolean; onCreate:
           </View>
         </View>
       </ScrollView>
+      <Modal animationType="fade" transparent visible={menuOpen} onRequestClose={() => setMenuOpen(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
+          <Pressable style={styles.homeMenuPanel} onPress={() => undefined}>
+            <View style={styles.menuHandle} />
+            <Text style={styles.menuTitle}>DomStudio</Text>
+            <Text style={styles.menuSub}>Move through the seller workflow.</Text>
+            <Pressable style={styles.menuItem} onPress={() => runMenuAction(onCreate)}>
+              <Text style={styles.menuItemText}>Create photo</Text>
+              <Text style={styles.menuItemMeta}>Open Studio</Text>
+            </Pressable>
+            <Pressable style={styles.menuItem} onPress={() => runMenuAction(onExamples)}>
+              <Text style={styles.menuItemText}>Examples</Text>
+              <Text style={styles.menuItemMeta}>See formats</Text>
+            </Pressable>
+            <Pressable style={styles.menuItem} onPress={() => runMenuAction(onPricing)}>
+              <Text style={styles.menuItemText}>Pricing</Text>
+              <Text style={styles.menuItemMeta}>Plans and limits</Text>
+            </Pressable>
+            <Pressable style={styles.menuCloseButton} onPress={() => setMenuOpen(false)}>
+              <Text style={styles.menuCloseText}>Close</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1255,7 +1320,7 @@ function SettingsScreen({
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Build readiness</Text>
         <Text style={styles.muted}>Camera, gallery picker, media-library save, secure tokens, and native tabs are enabled.</Text>
-        <Text style={styles.muted}>Icons and splash are placeholders until final brand assets are supplied.</Text>
+        <Text style={styles.muted}>Native icon, splash, Home, Studio, Examples, and Pricing surfaces now share the DomStudio brand system.</Text>
       </View>
     </Screen>
   );
@@ -1418,6 +1483,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(17, 17, 15, 0.12)"
+  },
+  homeRoundButtonPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.97 }]
   },
   homeRoundText: {
     color: colors.ink,
@@ -1678,6 +1747,72 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "900",
     textTransform: "uppercase"
+  },
+  menuBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 16,
+    backgroundColor: "rgba(17, 17, 15, 0.52)"
+  },
+  homeMenuPanel: {
+    borderRadius: 28,
+    padding: 18,
+    paddingTop: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.24)",
+    backgroundColor: colors.card,
+    gap: 12
+  },
+  menuHandle: {
+    alignSelf: "center",
+    width: 48,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.line,
+    marginBottom: 4
+  },
+  menuTitle: {
+    color: colors.ink,
+    fontSize: 24,
+    fontWeight: "900"
+  },
+  menuSub: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700"
+  },
+  menuItem: {
+    minHeight: 62,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: "#fffaf0"
+  },
+  menuItemText: {
+    color: colors.ink,
+    fontSize: 17,
+    fontWeight: "900"
+  },
+  menuItemMeta: {
+    marginTop: 3,
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  menuCloseButton: {
+    minHeight: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.ink
+  },
+  menuCloseText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "900"
   },
   examplesPage: {
     flexGrow: 1,
