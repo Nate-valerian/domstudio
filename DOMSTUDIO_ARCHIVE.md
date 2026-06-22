@@ -1,5 +1,45 @@
 # DomStudio Archive
 
+## June 22, 2026 - Enforce Photo Quota Before Image Generation
+
+User asked to proceed one by one from the missing project implementation list,
+starting with account/quota correctness.
+
+Fixed in `domstudio-backend/routers/generation.py`:
+
+- Added atomic `reserve_photo_quota` before image generation.
+- Image generation now returns `402 Photo quota exceeded` when
+  `photos_used >= photos_limit`.
+- Photo quota is released if token charging fails.
+- Photo quota and tokens are both released/refunded if the generation worker
+  fails after reservation.
+- Successful image generation now returns `quota_used` and `quota_limit`.
+
+Updated:
+
+- `domstudio-backend/tests/test_generation.py`
+  - Added photo quota exhausted coverage.
+  - Updated token failure and worker failure tests for quota release behavior.
+- `domstudio-mobile/src/api.ts`
+  - Added optional `quota_used` and `quota_limit` fields to `GenerateResult`.
+
+Validation:
+
+```bash
+cd domstudio-backend
+python -m unittest tests.test_generation
+python -m unittest discover -s tests -p "test_*.py"
+
+cd ../domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Generation tests passed, full backend suite passed, mobile typecheck passed,
+and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Video Examples, Motion Gallery, and Usage Limit Feedback
 
 ### Changes

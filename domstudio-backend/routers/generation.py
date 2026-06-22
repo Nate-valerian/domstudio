@@ -110,11 +110,27 @@ async def release_video_quota(db: AsyncSession, user_id, provider: str) -> None:
     )
 
 
-async def increment_photos_used(db: AsyncSession, user_id) -> None:
+async def reserve_photo_quota(db: AsyncSession, user_id):
+    result = await db.execute(
+        update(Subscription)
+        .where(
+            Subscription.user_id == user_id,
+            Subscription.photos_used < Subscription.photos_limit,
+        )
+        .values(photos_used=Subscription.photos_used + 1)
+        .returning(Subscription.photos_used, Subscription.photos_limit)
+    )
+    return result.first()
+
+
+async def release_photo_quota(db: AsyncSession, user_id) -> None:
     await db.execute(
         update(Subscription)
-        .where(Subscription.user_id == user_id)
-        .values(photos_used=Subscription.photos_used + 1)
+        .where(
+            Subscription.user_id == user_id,
+            Subscription.photos_used > 0,
+        )
+        .values(photos_used=Subscription.photos_used - 1)
     )
 
 
@@ -137,8 +153,13 @@ async def generate(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    quota = await reserve_photo_quota(db, current_user.id)
+    if not quota:
+        raise HTTPException(402, "Photo quota exceeded")
+
     balance = await change_balance(db, current_user.id, -IMAGE_TOKEN_COST, require_balance=True)
     if balance is None:
+        await release_photo_quota(db, current_user.id)
         raise HTTPException(402, "Insufficient tokens")
 
     try:
@@ -157,9 +178,8 @@ async def generate(
             raise RuntimeError(result.get("error") or "Generation worker failed")
     except Exception as exc:
         await change_balance(db, current_user.id, IMAGE_TOKEN_COST)
+        await release_photo_quota(db, current_user.id)
         raise HTTPException(502, f"Generation failed: {exc}") from exc
-
-    await increment_photos_used(db, current_user.id)
 
     w, h = _image_dimensions(result.get("image", ""))
 
@@ -169,6 +189,8 @@ async def generate(
         "height":         h or None,
         "tokens_charged": IMAGE_TOKEN_COST,
         "token_balance":  balance,
+        "quota_used":     quota[0],
+        "quota_limit":    quota[1],
     }
 
 

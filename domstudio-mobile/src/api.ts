@@ -41,6 +41,8 @@ export type GenerateResult = {
   mode?: string;
   tokens_charged?: number;
   token_balance?: number;
+  quota_used?: number;
+  quota_limit?: number;
 };
 
 export type VideoJob = {
