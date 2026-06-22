@@ -1,5 +1,44 @@
 # DomStudio Archive
 
+## June 22, 2026 - Mobile Studio Result and Video Workflow Polish
+
+Second implementation step after quota correctness: make the mobile Studio flow
+more useful after generation and video queueing.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Added `videoSourceFromJob` and `videoJobToFile` helpers for backend video
+  outputs from either `output_url` or base64 `output_data`.
+- Added controlled `PlaybackVideo` for generated video output playback with
+  native controls and fullscreen support.
+- Studio now keeps the queued video job visible below the queue action.
+- Added refresh support for the current Studio video job via `/generation/jobs/{id}`.
+- Added reusable `VideoJobCard` with:
+  - status
+  - pending state
+  - playable video when ready
+  - share action
+  - save-to-library action
+  - failure/error display
+- History video jobs now use the same playable `VideoJobCard` instead of
+  text-only rows.
+- Photo result panel now has a clearer "Ready result" reveal header and format
+  badge.
+- Increased generic mobile page bottom padding so Studio/Pricing content clears
+  the floating tab bar more comfortably.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Enforce Photo Quota Before Image Generation
 
 User asked to proceed one by one from the missing project implementation list,

@@ -36,6 +36,7 @@ import {
   forgotPassword,
   generateImage,
   generateVideo,
+  getVideoJob,
   listVideoJobs,
   loadMe,
   loadTokens,
@@ -382,6 +383,43 @@ async function resultToFile(result: ResultState): Promise<{ path: string; mimeTy
     encoding: FileSystem.EncodingType.Base64
   });
   return { path, mimeType: `image/${format}` };
+}
+
+function videoMime(format?: string | null) {
+  const cleanFormat = String(format || "mp4").toLowerCase();
+  if (cleanFormat.includes("webm")) return "video/webm";
+  if (cleanFormat.includes("gif")) return "image/gif";
+  return "video/mp4";
+}
+
+function videoExtension(format?: string | null) {
+  const mime = videoMime(format);
+  if (mime === "video/webm") return "webm";
+  if (mime === "image/gif") return "gif";
+  return "mp4";
+}
+
+function videoSourceFromJob(job: VideoJob): VideoSource | null {
+  if (job.output_url) return { uri: job.output_url };
+  if (!job.output_data) return null;
+  return { uri: `data:${videoMime(job.output_format)};base64,${job.output_data}` };
+}
+
+async function videoJobToFile(job: VideoJob): Promise<{ path: string; mimeType: string }> {
+  const extension = videoExtension(job.output_format);
+  const mimeType = videoMime(job.output_format);
+  const path = `${FileSystem.cacheDirectory}domstudio-video-${job.job_id}.${extension}`;
+  if (job.output_data) {
+    await FileSystem.writeAsStringAsync(path, job.output_data, {
+      encoding: FileSystem.EncodingType.Base64
+    });
+    return { path, mimeType };
+  }
+  if (job.output_url) {
+    const downloaded = await FileSystem.downloadAsync(job.output_url, path);
+    return { path: downloaded.uri, mimeType };
+  }
+  throw new Error("Video output is not ready yet.");
 }
 
 export default function App() {
@@ -1193,6 +1231,24 @@ function AutoplayVideo({ source, style }: { source: VideoSource; style?: StylePr
   );
 }
 
+function PlaybackVideo({ source, style }: { source: VideoSource; style?: StyleProp<ViewStyle> }) {
+  const player = useVideoPlayer(source, (nextPlayer) => {
+    nextPlayer.loop = true;
+    nextPlayer.muted = false;
+  });
+
+  return (
+    <VideoView
+      allowsFullscreen
+      contentFit="contain"
+      nativeControls
+      player={player}
+      playsInline
+      style={style}
+    />
+  );
+}
+
 function StudioScreen({
   offline,
   refreshProfile,
@@ -1217,6 +1273,7 @@ function StudioScreen({
   const [selectedImage, setSelectedImage] = useState<PickedImage | null>(null);
   const [generating, setGenerating] = useState(false);
   const [videoLoading, setVideoLoading] = useState(false);
+  const [videoJob, setVideoJob] = useState<VideoJob | null>(null);
 
   const activeMode = useMemo(() => modes.find((item) => item.id === mode) || modes[0], [mode]);
 
@@ -1302,10 +1359,28 @@ function StudioScreen({
         duration_s: 3,
         video_provider: "local"
       });
-      Alert.alert("Video queued", `Job ${job.job_id} is ${job.status}. Video playback is the next native pass.`);
+      setVideoJob(job);
+      Alert.alert("Video queued", "The job is visible below. Refresh it to pick up the rendered video.");
       await refreshProfile();
     } catch (error) {
       Alert.alert("Video failed", friendlyError(error));
+    } finally {
+      setVideoLoading(false);
+    }
+  }
+
+  async function refreshVideoJob() {
+    if (!videoJob) return;
+    if (offline) {
+      Alert.alert("Offline", "Reconnect to refresh the video job.");
+      return;
+    }
+    setVideoLoading(true);
+    try {
+      setVideoJob(await getVideoJob(tokens.access_token, videoJob.job_id));
+      await refreshProfile();
+    } catch (error) {
+      Alert.alert("Refresh failed", friendlyError(error));
     } finally {
       setVideoLoading(false);
     }
@@ -1382,6 +1457,14 @@ function StudioScreen({
       <PrimaryButton disabled={generating || offline} label="Generate photo" loading={generating} onPress={createPhoto} />
       <SecondaryButton disabled={videoLoading || offline} label={videoLoading ? "Queueing video..." : "Queue 3s video"} onPress={queueVideo} />
 
+      {videoJob ? (
+        <VideoJobCard
+          job={videoJob}
+          loading={videoLoading}
+          onRefresh={refreshVideoJob}
+        />
+      ) : null}
+
       <ResultPanel result={result} />
     </Screen>
   );
@@ -1455,6 +1538,13 @@ function ResultPanel({ result }: { result: ResultState | null }) {
 
   return (
     <View style={styles.resultBox}>
+      <View style={styles.resultTopRow}>
+        <View>
+          <Text style={styles.resultKicker}>Ready result</Text>
+          <Text style={styles.emptyTitle}>{result.modeLabel}</Text>
+        </View>
+        <Text style={styles.resultFormat}>{String(result.meta.format || "PNG").toUpperCase()}</Text>
+      </View>
       <Image source={{ uri: result.uri }} style={styles.resultImage} />
       <Text style={styles.resultMeta}>
         {result.meta.width || "?"} x {result.meta.height || "?"} - {result.modeLabel}
@@ -1462,6 +1552,78 @@ function ResultPanel({ result }: { result: ResultState | null }) {
       <View style={styles.buttonRow}>
         <SecondaryButton label="Share" onPress={shareResult} />
         <SecondaryButton label="Save" onPress={saveToGallery} />
+      </View>
+    </View>
+  );
+}
+
+function VideoJobCard({
+  job,
+  loading,
+  onRefresh
+}: {
+  job: VideoJob;
+  loading?: boolean;
+  onRefresh?: () => void;
+}) {
+  const source = videoSourceFromJob(job);
+  const isReady = Boolean(source);
+  const status = isReady ? "Ready" : job.status || "queued";
+
+  async function shareVideo() {
+    try {
+      const file = await videoJobToFile(job);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.path, {
+          mimeType: file.mimeType,
+          dialogTitle: "Share DomStudio video"
+        });
+      } else {
+        Alert.alert("Sharing unavailable", `Video prepared at ${file.path}`);
+      }
+    } catch (error) {
+      Alert.alert("Share failed", friendlyError(error));
+    }
+  }
+
+  async function saveVideo() {
+    try {
+      const MediaLibrary = await import("expo-media-library");
+      const permission = await MediaLibrary.requestPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Permission needed", "Allow photo library access to save generated videos.");
+        return;
+      }
+      const file = await videoJobToFile(job);
+      await MediaLibrary.saveToLibraryAsync(file.path);
+      Alert.alert("Saved", "Video saved to your photo library.");
+    } catch (error) {
+      Alert.alert("Save failed", friendlyError(error));
+    }
+  }
+
+  return (
+    <View style={[styles.card, styles.videoJobCard, job.status === "failed" && styles.videoJobCardFailed]}>
+      <View style={styles.cardHeaderRow}>
+        <View style={styles.flex}>
+          <Text style={styles.cardTitle}>{job.subject || "Video job"}</Text>
+          <Text style={styles.muted}>{status} - {job.mode || "video"} - {job.tokens_used || 0} tokens</Text>
+        </View>
+        <Text style={[styles.jobStatus, job.status === "failed" && styles.jobStatusFailed]}>{status}</Text>
+      </View>
+      {job.error ? <Text style={styles.videoError}>{job.error}</Text> : null}
+      {source ? (
+        <PlaybackVideo source={source} style={styles.videoPlayback} />
+      ) : (
+        <View style={styles.videoPendingBox}>
+          <ActivityIndicator color={colors.acid} />
+          <Text style={styles.muted}>Queued videos render on the backend. Refresh this card to load the output.</Text>
+        </View>
+      )}
+      <View style={styles.buttonRow}>
+        {onRefresh ? <SecondaryButton disabled={loading} label={loading ? "Refreshing..." : "Refresh"} onPress={onRefresh} /> : null}
+        <SecondaryButton disabled={!isReady} label="Share" onPress={shareVideo} />
+        <SecondaryButton disabled={!isReady} label="Save" onPress={saveVideo} />
       </View>
     </View>
   );
@@ -1587,13 +1749,7 @@ function HistoryScreen({
         <Text style={styles.cardTitle}>Video jobs</Text>
         {jobs.length ? (
           jobs.map((job) => (
-            <View key={job.job_id} style={styles.jobRow}>
-              <View style={styles.historyCopy}>
-                <Text style={styles.historyTitle} numberOfLines={1}>{job.subject || "Video job"}</Text>
-                <Text style={styles.muted}>{job.status} - {job.mode || "video"} - {job.tokens_used || 0} tokens</Text>
-              </View>
-              <Text style={styles.jobStatus}>{job.has_output ? "Ready" : job.status}</Text>
-            </View>
+            <VideoJobCard key={job.job_id} job={job} />
           ))
         ) : (
           <Text style={styles.muted}>Queue a video from Studio, then refresh here. Output quality still depends on the backend worker.</Text>
@@ -2771,7 +2927,7 @@ const styles = StyleSheet.create({
   },
   page: {
     padding: 16,
-    paddingBottom: 108,
+    paddingBottom: 144,
     gap: 14
   },
   header: {
@@ -3188,6 +3344,28 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 12
   },
+  resultTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12
+  },
+  resultKicker: {
+    color: colors.green,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  resultFormat: {
+    overflow: "hidden",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    color: colors.ink,
+    backgroundColor: "#fff4cf",
+    fontSize: 11,
+    fontWeight: "900"
+  },
   resultImage: {
     width: "100%",
     aspectRatio: 1,
@@ -3255,6 +3433,40 @@ const styles = StyleSheet.create({
   jobStatus: {
     color: colors.green,
     fontWeight: "900"
+  },
+  jobStatusFailed: {
+    color: colors.danger
+  },
+  videoJobCard: {
+    gap: 12
+  },
+  videoJobCardFailed: {
+    borderColor: "rgba(164, 65, 55, 0.38)",
+    backgroundColor: "#fff4f2"
+  },
+  videoPlayback: {
+    width: "100%",
+    height: 360,
+    borderRadius: 12,
+    backgroundColor: "#11110f",
+    overflow: "hidden"
+  },
+  videoPendingBox: {
+    minHeight: 148,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: "#faf7f0",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18,
+    gap: 10
+  },
+  videoError: {
+    color: colors.danger,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "800"
   },
   statsGrid: {
     flexDirection: "row",
