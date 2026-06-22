@@ -217,6 +217,61 @@ const workflowSteps = [
 const mobileCopy = {
   en: {
     tabs: { home: "Home", studio: "Studio", examples: "Examples", pricing: "Pricing" },
+    common: {
+      offlineTitle: "Offline",
+      permissionNeeded: "Permission needed",
+      sharingUnavailable: "Sharing unavailable",
+      shareFailed: "Share failed",
+      saveFailed: "Save failed",
+      saved: "Saved",
+      resultPrepared: "Result prepared at",
+      videoPrepared: "Video prepared at",
+      resultSaved: "Result saved to your photo library.",
+      videoSaved: "Video saved to your photo library.",
+      photoPermissionCamera: "Allow camera access to capture product shots.",
+      photoPermissionLibrary: "Allow photo access to upload product shots.",
+      resultLibraryPermission: "Allow photo library access to save generated results.",
+      videoLibraryPermission: "Allow photo library access to save generated videos."
+    },
+    auth: {
+      title: "DomStudio",
+      subtitle: "Product photos, marketplace cards, and short content from one phone workflow.",
+      offline: "Offline. Auth and generation are paused until the network returns.",
+      continueOnline: "Connect to the internet to continue.",
+      signIn: "Sign in",
+      createAccount: "Create account",
+      enterCode: "Enter code",
+      phoneLogin: "Phone login",
+      resetPassword: "Reset password",
+      newPassword: "New password",
+      email: "Email",
+      password: "Password",
+      phone: "Phone",
+      code: "Code",
+      openStudio: "Open studio",
+      sendEmailCode: "Send email code",
+      verifyEmail: "Verify email",
+      sendPhoneCode: "Send phone code",
+      verifyPhone: "Verify phone",
+      sendResetCode: "Send reset code",
+      saveNewPassword: "Save new password",
+      emailLogin: "Email login",
+      phoneOtp: "Phone OTP",
+      forgot: "Forgot",
+      loginFailed: "Login failed",
+      registrationFailed: "Registration failed",
+      verificationFailed: "Verification failed",
+      phoneLoginFailed: "Phone login failed",
+      resetFailed: "Reset failed",
+      passwordResetFailed: "Password reset failed",
+      enterEmailPassword: "Enter your email and password.",
+      emailPasswordRules: "Use an email and an 8+ character password.",
+      enterEmailCode: "Enter the code from your email.",
+      enterPhone: "Enter your phone number.",
+      enterSmsCode: "Enter the SMS code.",
+      enterEmail: "Enter your email.",
+      enterResetFields: "Enter email, code, and an 8+ character password."
+    },
     home: {
       eyebrow: "AI studio for marketplace sellers",
       titleA: "Content that",
@@ -227,6 +282,9 @@ const mobileCopy = {
       offline: "Offline now. You can still browse the flow.",
       mini: "Mini studio",
       platforms: "WB / Ozon / Yandex / Avito",
+      trust1: "Ready for marketplaces",
+      trust2: "Photo and video flow",
+      trust3: "Mobile-first export",
       before: "Before",
       after: "After",
       video: "Video",
@@ -252,6 +310,39 @@ const mobileCopy = {
       menuPricing: "Pricing",
       menuPricingMeta: "Plans and limits",
       close: "Close"
+    },
+    modes: {
+      catalog: { label: "Catalog", hint: "Marketplace-safe hero image", tag: "WB / Ozon", ratio: "4:3" },
+      product: { label: "Product", hint: "Clean product card", tag: "Studio", ratio: "1:1" },
+      creative: { label: "Creative", hint: "Ad-style campaign image", tag: "Ads", ratio: "1:1" },
+      image: { label: "Lifestyle", hint: "Scene with real context", tag: "Scene", ratio: "4:5" },
+      fitting: { label: "Fitting", hint: "Fashion fit preview", tag: "Try-on", ratio: "3:4" },
+      mobile: { label: "Stories", hint: "Vertical social result", tag: "9:16", ratio: "Story" }
+    },
+    workflow: [
+      { number: "01", title: "Upload product photo", text: "Start with an ordinary phone shot or a supplier image." },
+      { number: "02", title: "Choose marketplace format", text: "Pick Catalog, Product, Creative, Lifestyle, Fitting, or Stories." },
+      { number: "03", title: "Export content that sells", text: "Save or share a photo, queue video, and reuse the result in history." }
+    ],
+    examplesData: {
+      images: [
+        { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout" },
+        { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene" },
+        { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual" },
+        { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light" },
+        { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot" },
+        { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop" },
+        { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card" },
+        { mode: "Product", product: "Wine bottle", title: "Marble table studio setup" },
+        { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame" },
+        { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene" },
+        { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context" },
+        { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame" }
+      ],
+      motion: [
+        { mode: "Product video", product: "Wine bottle", title: "Autoplay product motion" },
+        { mode: "Fitting video", product: "Beige suit outfit", title: "Virtual fitting motion preview" }
+      ]
     },
     examples: {
       eyebrow: "Examples",
@@ -299,7 +390,26 @@ const mobileCopy = {
       topup: "Token top-up",
       entryBatch: "entry batch",
       sellerAssets: "seller assets",
-      plansLabel: "plans"
+      plansLabel: "plans",
+      offlineRefresh: "Reconnect to refresh plans and payments.",
+      pricingFailed: "Pricing failed",
+      offlineCheckout: "Reconnect to open checkout.",
+      freePlanTitle: "Free plan",
+      freePlanBody: "You are already able to use the free plan.",
+      paymentFailed: "Payment failed",
+      topupFailed: "Top-up failed",
+      planKickers: {
+        free: "First product tests",
+        basic: "Validate product cards",
+        pro: "Regular seller content",
+        business: "Store and marketplace growth"
+      },
+      fallbackPlans: {
+        free: { name: "Free", photos: "5 photos", videos: "5 local videos", premium: "No premium video" },
+        basic: { name: "Basic", photos: "30 photos", videos: "30 local videos", premium: "10 premium videos" },
+        pro: { name: "Pro", photos: "100 photos", videos: "50 local videos", premium: "33 premium videos" },
+        business: { name: "Business", photos: "300 photos", videos: "100 local videos", premium: "99 premium videos" }
+      }
     },
     studio: {
       title: "Studio",
@@ -331,7 +441,40 @@ const mobileCopy = {
       videoJob: "Video job",
       videoPending: "Queued videos render on the backend. Refresh this card to load the output.",
       refresh: "Refresh",
-      refreshing: "Refreshing..."
+      refreshing: "Refreshing...",
+      camera: "Camera",
+      gallery: "Gallery",
+      promptSamples: ["Wine bottle on marble table", "Perfume in warm boutique light", "Marketplace card, clean shadow"],
+      styleHints: ["clean marketplace card", "premium studio lighting", "social media creative", "warm lifestyle scene", "story-safe vertical composition"],
+      offlineGenerate: "Connect to generate a new result.",
+      offlineQueue: "Connect to queue a video job.",
+      offlineRefreshVideo: "Reconnect to refresh the video job.",
+      addPromptTitle: "Add a prompt",
+      addPhotoTitle: "Photo required",
+      describePhoto: "Describe the product and the result you want.",
+      describeVideo: "Describe the product video you want.",
+      choosePhotoFirst: "Choose or capture a product photo before queueing video.",
+      noImageReturned: "No image returned",
+      generationFailed: "Generation failed",
+      videoQueued: "Video queued",
+      videoQueuedBody: "The job is visible below. Refresh it to pick up the rendered video.",
+      videoFailed: "Video failed",
+      refreshFailed: "Refresh failed",
+      shareResultTitle: "Share DomStudio result",
+      shareVideoTitle: "Share DomStudio video"
+    },
+    history: {
+      title: "History",
+      saved: "saved",
+      clearLocal: "Clear local",
+      refreshJobs: "Refresh jobs",
+      refreshing: "Refreshing...",
+      offlineRefresh: "Reconnect to refresh video jobs.",
+      jobsFailed: "Jobs failed",
+      emptyTitle: "No saved results yet",
+      emptyBody: "Generated photos are stored locally on this device for quick reuse.",
+      videoJobs: "Video jobs",
+      emptyJobs: "Queue a video from Studio, then refresh here. Output quality still depends on the backend worker."
     },
     account: {
       title: "Account",
@@ -351,10 +494,79 @@ const mobileCopy = {
       notScheduled: "Not scheduled",
       compliance: "Payments and subscriptions can be added here once native compliance decisions are final.",
       signOut: "Sign out"
+    },
+    settings: {
+      title: "Settings",
+      offline: "offline",
+      online: "online",
+      environment: "Environment",
+      apiUrl: "API URL",
+      lanHelp: "Use your computer LAN IP for Expo Go on a physical phone. Android emulator usually uses http://10.0.2.2:8000.",
+      storage: "Device storage",
+      storageBody: "Local generated-photo history is stored on this device and can be cleared any time.",
+      clearHistory: "Clear local history",
+      readiness: "Build readiness",
+      readinessBody1: "Camera, gallery picker, media-library save, secure tokens, and native tabs are enabled.",
+      readinessBody2: "Native icon, splash, Home, Studio, Examples, and Pricing surfaces now share the DomStudio brand system."
     }
   },
   ru: {
     tabs: { home: "Главная", studio: "Студия", examples: "Примеры", pricing: "Тарифы" },
+    common: {
+      offlineTitle: "Офлайн",
+      permissionNeeded: "Нужно разрешение",
+      sharingUnavailable: "Отправка недоступна",
+      shareFailed: "Не удалось поделиться",
+      saveFailed: "Не удалось сохранить",
+      saved: "Сохранено",
+      resultPrepared: "Результат подготовлен:",
+      videoPrepared: "Видео подготовлено:",
+      resultSaved: "Результат сохранен в фотогалерею.",
+      videoSaved: "Видео сохранено в фотогалерею.",
+      photoPermissionCamera: "Разрешите доступ к камере, чтобы снимать товары.",
+      photoPermissionLibrary: "Разрешите доступ к фото, чтобы загружать товары.",
+      resultLibraryPermission: "Разрешите доступ к фотогалерее, чтобы сохранять результаты.",
+      videoLibraryPermission: "Разрешите доступ к фотогалерее, чтобы сохранять видео."
+    },
+    auth: {
+      title: "DomStudio",
+      subtitle: "Фото товаров, карточки маркетплейсов и короткий контент в одном мобильном процессе.",
+      offline: "Офлайн. Вход и генерация продолжатся после подключения.",
+      continueOnline: "Подключитесь к интернету, чтобы продолжить.",
+      signIn: "Войти",
+      createAccount: "Создать аккаунт",
+      enterCode: "Введите код",
+      phoneLogin: "Вход по телефону",
+      resetPassword: "Сброс пароля",
+      newPassword: "Новый пароль",
+      email: "Email",
+      password: "Пароль",
+      phone: "Телефон",
+      code: "Код",
+      openStudio: "Открыть студию",
+      sendEmailCode: "Отправить код на email",
+      verifyEmail: "Подтвердить email",
+      sendPhoneCode: "Отправить SMS-код",
+      verifyPhone: "Подтвердить телефон",
+      sendResetCode: "Отправить код сброса",
+      saveNewPassword: "Сохранить новый пароль",
+      emailLogin: "Вход по email",
+      phoneOtp: "SMS-код",
+      forgot: "Забыли пароль",
+      loginFailed: "Ошибка входа",
+      registrationFailed: "Ошибка регистрации",
+      verificationFailed: "Ошибка подтверждения",
+      phoneLoginFailed: "Ошибка входа по телефону",
+      resetFailed: "Ошибка сброса",
+      passwordResetFailed: "Пароль не обновлен",
+      enterEmailPassword: "Введите email и пароль.",
+      emailPasswordRules: "Укажите email и пароль от 8 символов.",
+      enterEmailCode: "Введите код из письма.",
+      enterPhone: "Введите номер телефона.",
+      enterSmsCode: "Введите SMS-код.",
+      enterEmail: "Введите email.",
+      enterResetFields: "Введите email, код и пароль от 8 символов."
+    },
     home: {
       eyebrow: "AI-студия для продавцов маркетплейсов",
       titleA: "Контент, который",
@@ -365,6 +577,9 @@ const mobileCopy = {
       offline: "Сейчас офлайн. Поток можно посмотреть, но генерация недоступна.",
       mini: "Мини-студия",
       platforms: "WB / Ozon / Yandex / Avito",
+      trust1: "Готово для маркетплейсов",
+      trust2: "Фото и видео в одном потоке",
+      trust3: "Экспорт с телефона",
       before: "До",
       after: "После",
       video: "Видео",
@@ -390,6 +605,39 @@ const mobileCopy = {
       menuPricing: "Тарифы",
       menuPricingMeta: "Планы и лимиты",
       close: "Закрыть"
+    },
+    modes: {
+      catalog: { label: "Каталог", hint: "Главное фото для маркетплейса", tag: "WB / Ozon", ratio: "4:3" },
+      product: { label: "Товар", hint: "Чистая карточка товара", tag: "Студия", ratio: "1:1" },
+      creative: { label: "Креатив", hint: "Кампейн-изображение для рекламы", tag: "Реклама", ratio: "1:1" },
+      image: { label: "Лайфстайл", hint: "Сцена с реальным контекстом", tag: "Сцена", ratio: "4:5" },
+      fitting: { label: "Примерка", hint: "Предпросмотр посадки одежды", tag: "Try-on", ratio: "3:4" },
+      mobile: { label: "Сторис", hint: "Вертикальный результат для соцсетей", tag: "9:16", ratio: "Сторис" }
+    },
+    workflow: [
+      { number: "01", title: "Загрузите фото товара", text: "Начните с обычного снимка телефона или изображения поставщика." },
+      { number: "02", title: "Выберите формат маркетплейса", text: "Каталог, Товар, Креатив, Лайфстайл, Примерка или Сторис." },
+      { number: "03", title: "Экспортируйте продающий контент", text: "Сохраните или отправьте фото, поставьте видео в очередь и используйте историю." }
+    ],
+    examplesData: {
+      images: [
+        { mode: "Каталог", product: "Флакон парфюма", title: "Чистый вырез для маркетплейса" },
+        { mode: "Товар", product: "Флакон парфюма", title: "Мрамор и свеча в студийной сцене" },
+        { mode: "Креатив", product: "Флакон парфюма", title: "Неоновый кампейн-визуал" },
+        { mode: "Лайфстайл", product: "Флакон парфюма", title: "Стол и теплый свет окна" },
+        { mode: "Примерка", product: "Флакон парфюма", title: "Масштаб товара в руке" },
+        { mode: "Сторис", product: "Флакон парфюма", title: "Вертикальный кроп для мобайла" },
+        { mode: "Каталог", product: "Бутылка граната", title: "Карточка товара на белом фоне" },
+        { mode: "Товар", product: "Бутылка вина", title: "Студийная сцена на мраморном столе" },
+        { mode: "Креатив", product: "Бутылка граната", title: "Теплый премиальный кадр" },
+        { mode: "Лайфстайл", product: "Бутылка граната", title: "Сцена на ресторанном столе" },
+        { mode: "Примерка", product: "Бутылка граната", title: "Масштаб и контекст сервировки" },
+        { mode: "Сторис", product: "Бутылка граната", title: "Вертикальный кадр для соцсетей" }
+      ],
+      motion: [
+        { mode: "Видео товара", product: "Бутылка вина", title: "Автовоспроизведение товарного движения" },
+        { mode: "Видео примерки", product: "Бежевый костюм", title: "Превью виртуальной примерки в движении" }
+      ]
     },
     examples: {
       eyebrow: "Примеры",
@@ -437,7 +685,26 @@ const mobileCopy = {
       topup: "Пакет токенов",
       entryBatch: "стартовый пакет",
       sellerAssets: "материалов",
-      plansLabel: "тарифа"
+      plansLabel: "тарифа",
+      offlineRefresh: "Подключитесь, чтобы обновить тарифы и платежи.",
+      pricingFailed: "Ошибка тарифов",
+      offlineCheckout: "Подключитесь, чтобы открыть оплату.",
+      freePlanTitle: "Бесплатный тариф",
+      freePlanBody: "Бесплатный тариф уже доступен.",
+      paymentFailed: "Ошибка оплаты",
+      topupFailed: "Ошибка пополнения",
+      planKickers: {
+        free: "Первые тесты товара",
+        basic: "Проверка карточек товара",
+        pro: "Регулярный контент продавца",
+        business: "Рост магазина и маркетплейса"
+      },
+      fallbackPlans: {
+        free: { name: "Бесплатный", photos: "5 фото", videos: "5 локальных видео", premium: "Без премиум-видео" },
+        basic: { name: "Базовый", photos: "30 фото", videos: "30 локальных видео", premium: "10 премиум-видео" },
+        pro: { name: "Про", photos: "100 фото", videos: "50 локальных видео", premium: "33 премиум-видео" },
+        business: { name: "Бизнес", photos: "300 фото", videos: "100 локальных видео", premium: "99 премиум-видео" }
+      }
     },
     studio: {
       title: "Студия",
@@ -469,7 +736,40 @@ const mobileCopy = {
       videoJob: "Видео-задача",
       videoPending: "Видео рендерится на backend. Обновите карточку, чтобы загрузить результат.",
       refresh: "Обновить",
-      refreshing: "Обновляем..."
+      refreshing: "Обновляем...",
+      camera: "Камера",
+      gallery: "Галерея",
+      promptSamples: ["Бутылка вина на мраморном столе", "Парфюм в теплом бутиковом свете", "Карточка маркетплейса, чистая тень"],
+      styleHints: ["чистая карточка маркетплейса", "премиальный студийный свет", "креатив для соцсетей", "теплая лайфстайл-сцена", "вертикальная композиция для сторис"],
+      offlineGenerate: "Подключитесь, чтобы создать новый результат.",
+      offlineQueue: "Подключитесь, чтобы поставить видео в очередь.",
+      offlineRefreshVideo: "Подключитесь, чтобы обновить видео-задачу.",
+      addPromptTitle: "Добавьте промпт",
+      addPhotoTitle: "Нужно фото",
+      describePhoto: "Опишите товар и нужный результат.",
+      describeVideo: "Опишите видео товара, которое хотите получить.",
+      choosePhotoFirst: "Выберите или снимите фото товара перед постановкой видео.",
+      noImageReturned: "Изображение не вернулось",
+      generationFailed: "Ошибка генерации",
+      videoQueued: "Видео в очереди",
+      videoQueuedBody: "Задача видна ниже. Обновите ее, чтобы получить готовое видео.",
+      videoFailed: "Ошибка видео",
+      refreshFailed: "Ошибка обновления",
+      shareResultTitle: "Поделиться результатом DomStudio",
+      shareVideoTitle: "Поделиться видео DomStudio"
+    },
+    history: {
+      title: "История",
+      saved: "сохранено",
+      clearLocal: "Очистить локально",
+      refreshJobs: "Обновить задачи",
+      refreshing: "Обновляем...",
+      offlineRefresh: "Подключитесь, чтобы обновить видео-задачи.",
+      jobsFailed: "Ошибка задач",
+      emptyTitle: "Пока нет сохраненных результатов",
+      emptyBody: "Созданные фото сохраняются локально на этом устройстве для быстрого повторного использования.",
+      videoJobs: "Видео-задачи",
+      emptyJobs: "Поставьте видео из Студии, затем обновите здесь. Качество результата зависит от backend worker."
     },
     account: {
       title: "Аккаунт",
@@ -489,12 +789,27 @@ const mobileCopy = {
       notScheduled: "Не запланировано",
       compliance: "Платежи и подписки можно добавить здесь после финальных решений по native compliance.",
       signOut: "Выйти"
+    },
+    settings: {
+      title: "Настройки",
+      offline: "офлайн",
+      online: "онлайн",
+      environment: "Окружение",
+      apiUrl: "API URL",
+      lanHelp: "Для Expo Go на телефоне используйте LAN IP компьютера. Android emulator обычно использует http://10.0.2.2:8000.",
+      storage: "Память устройства",
+      storageBody: "Локальная история созданных фото хранится на этом устройстве и может быть очищена в любой момент.",
+      clearHistory: "Очистить локальную историю",
+      readiness: "Готовность сборки",
+      readinessBody1: "Камера, выбор из галереи, сохранение в медиа, secure tokens и native tabs включены.",
+      readinessBody2: "Иконка, splash, Главная, Студия, Примеры и Тарифы используют бренд-систему DomStudio."
     }
   }
 } as const;
 
 type StudioCopy = (typeof mobileCopy)[AppLanguage]["studio"];
 type PricingCopy = (typeof mobileCopy)[AppLanguage]["pricing"];
+type CommonCopy = (typeof mobileCopy)[AppLanguage]["common"];
 type PricingPlanCardModel = {
   name: string;
   rawName: string;
@@ -506,6 +821,49 @@ type PricingPlanCardModel = {
   tokens?: string;
   featured?: boolean;
 };
+
+function modesForLanguage(language: AppLanguage) {
+  const modeCopy = mobileCopy[language].modes;
+  return modes.map((mode) => ({
+    ...mode,
+    ...modeCopy[mode.id as keyof typeof modeCopy]
+  }));
+}
+
+function workflowForLanguage(language: AppLanguage) {
+  return mobileCopy[language].workflow;
+}
+
+function examplesForLanguage(language: AppLanguage) {
+  const copy = mobileCopy[language].examplesData;
+  return exampleImages.map((item, index) => ({
+    ...item,
+    ...copy.images[index]
+  }));
+}
+
+function motionExamplesForLanguage(language: AppLanguage) {
+  const copy = mobileCopy[language].examplesData;
+  return motionExamples.map((item, index) => ({
+    ...item,
+    ...copy.motion[index]
+  }));
+}
+
+function fallbackPlansForLanguage(language: AppLanguage) {
+  const copy = mobileCopy[language].pricing;
+  return pricingPlans.map((plan) => {
+    const rawName = plan.name.toLowerCase() as keyof typeof copy.fallbackPlans;
+    const localized = copy.fallbackPlans[rawName];
+    return {
+      ...plan,
+      ...localized,
+      kicker: copy.planKickers[rawName],
+      rawName,
+      tokens: ""
+    };
+  });
+}
 
 const stylesList = [
   "clean marketplace card",
@@ -549,17 +907,17 @@ function usageStatus(value?: number, limit?: number) {
   return { display, overLimit: false, helper: `${limit - value} remaining` };
 }
 
-function planCardFromApi(plan: SubscriptionPlan) {
+function planCardFromApi(plan: SubscriptionPlan, copy: PricingCopy) {
   const name = plan.name.charAt(0).toUpperCase() + plan.name.slice(1);
   return {
     name,
     rawName: plan.name,
-    kicker: planKickers[plan.name] || "Seller content plan",
+    kicker: copy.planKickers[plan.name as keyof typeof copy.planKickers] || copy.allModes,
     price: `${plan.price_rub} RUB`,
-    photos: `${plan.photos} photos`,
-    videos: `${plan.videos} local videos`,
-    premium: plan.premium_videos ? `${plan.premium_videos} premium videos` : "No premium video",
-    tokens: `${plan.tokens.toLocaleString("ru-RU")} tokens`,
+    photos: `${plan.photos} ${copy.photos.toLowerCase()}`,
+    videos: `${plan.videos} ${copy.videos.toLowerCase()}`,
+    premium: plan.premium_videos ? `${plan.premium_videos} ${copy.premium.toLowerCase()}` : copy.none,
+    tokens: `${plan.tokens.toLocaleString("ru-RU")} ${copy.tokens.toLowerCase()}`,
     featured: plan.name === "pro"
   };
 }
@@ -769,9 +1127,11 @@ export default function App() {
 
 function AuthScreen({
   completeAuth,
+  language = "en",
   offline
 }: {
   completeAuth: (tokens: Tokens) => Promise<void>;
+  language?: AppLanguage;
   offline: boolean;
 }) {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -782,10 +1142,12 @@ function AuthScreen({
   const [code, setCode] = useState("");
   const [pendingContact, setPendingContact] = useState("");
   const [loading, setLoading] = useState(false);
+  const copy = mobileCopy[language].auth;
+  const common = mobileCopy[language].common;
 
   async function runNetworkTask(task: () => Promise<void>, title: string) {
     if (offline) {
-      Alert.alert("Offline", "Connect to the internet to continue.");
+      Alert.alert(common.offlineTitle, copy.continueOnline);
       return;
     }
     setLoading(true);
@@ -799,22 +1161,22 @@ function AuthScreen({
   }
 
   function authTitle() {
-    if (mode === "register") return "Create account";
-    if (mode === "verifyEmail" || mode === "verifyPhone") return "Enter code";
-    if (mode === "phone") return "Phone login";
-    if (mode === "forgot") return "Reset password";
-    if (mode === "reset") return "New password";
-    return "Sign in";
+    if (mode === "register") return copy.createAccount;
+    if (mode === "verifyEmail" || mode === "verifyPhone") return copy.enterCode;
+    if (mode === "phone") return copy.phoneLogin;
+    if (mode === "forgot") return copy.resetPassword;
+    if (mode === "reset") return copy.newPassword;
+    return copy.signIn;
   }
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.authPage} keyboardShouldPersistTaps="always">
         <View style={styles.brandMark}><Text style={styles.brandMarkText}>DS</Text></View>
-        <Text style={styles.title}>DomStudio</Text>
-        <Text style={styles.subtitle}>Product photos, marketplace cards, and short content from one phone workflow.</Text>
-        <ProofShowcase />
-        {offline ? <Banner tone="warn" text="Offline. Auth and generation are paused until the network returns." /> : null}
+        <Text style={styles.title}>{copy.title}</Text>
+        <Text style={styles.subtitle}>{copy.subtitle}</Text>
+        <ProofShowcase language={language} />
+        {offline ? <Banner tone="warn" text={copy.offline} /> : null}
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{authTitle()}</Text>
@@ -823,7 +1185,7 @@ function AuthScreen({
             <TextInput
               autoCapitalize="none"
               keyboardType="email-address"
-              placeholder="Email"
+              placeholder={copy.email}
               placeholderTextColor={colors.muted}
               style={styles.input}
               value={email}
@@ -833,7 +1195,7 @@ function AuthScreen({
 
           {mode === "login" || mode === "register" ? (
             <TextInput
-              placeholder="Password"
+              placeholder={copy.password}
               placeholderTextColor={colors.muted}
               secureTextEntry
               style={styles.input}
@@ -845,7 +1207,7 @@ function AuthScreen({
           {mode === "phone" ? (
             <TextInput
               keyboardType="phone-pad"
-              placeholder="Phone"
+              placeholder={copy.phone}
               placeholderTextColor={colors.muted}
               style={styles.input}
               value={phone}
@@ -857,7 +1219,7 @@ function AuthScreen({
             <TextInput
               keyboardType="number-pad"
               maxLength={8}
-              placeholder="Code"
+              placeholder={copy.code}
               placeholderTextColor={colors.muted}
               style={styles.input}
               value={code}
@@ -867,7 +1229,7 @@ function AuthScreen({
 
           {mode === "reset" ? (
             <TextInput
-              placeholder="New password"
+              placeholder={copy.newPassword}
               placeholderTextColor={colors.muted}
               secureTextEntry
               style={styles.input}
@@ -879,13 +1241,13 @@ function AuthScreen({
           {mode === "login" ? (
             <PrimaryButton
               disabled={loading}
-              label="Open studio"
+              label={copy.openStudio}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
-                  if (!email.trim() || !password) throw new Error("Enter your email and password.");
+                  if (!email.trim() || !password) throw new Error(copy.enterEmailPassword);
                   await completeAuth(await loginEmail(email.trim(), password));
-                }, "Login failed")
+                }, copy.loginFailed)
               }
             />
           ) : null}
@@ -893,16 +1255,16 @@ function AuthScreen({
           {mode === "register" ? (
             <PrimaryButton
               disabled={loading}
-              label="Send email code"
+              label={copy.sendEmailCode}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
-                  if (!email.trim() || password.length < 8) throw new Error("Use an email and an 8+ character password.");
+                  if (!email.trim() || password.length < 8) throw new Error(copy.emailPasswordRules);
                   await registerEmail(email.trim(), password);
                   setPendingContact(email.trim());
                   setCode("");
                   setMode("verifyEmail");
-                }, "Registration failed")
+                }, copy.registrationFailed)
               }
             />
           ) : null}
@@ -910,13 +1272,13 @@ function AuthScreen({
           {mode === "verifyEmail" ? (
             <PrimaryButton
               disabled={loading}
-              label="Verify email"
+              label={copy.verifyEmail}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
-                  if (!pendingContact || !code.trim()) throw new Error("Enter the code from your email.");
+                  if (!pendingContact || !code.trim()) throw new Error(copy.enterEmailCode);
                   await completeAuth(await verifyEmail(pendingContact, code.trim()));
-                }, "Verification failed")
+                }, copy.verificationFailed)
               }
             />
           ) : null}
@@ -924,16 +1286,16 @@ function AuthScreen({
           {mode === "phone" ? (
             <PrimaryButton
               disabled={loading}
-              label="Send phone code"
+              label={copy.sendPhoneCode}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
-                  if (!phone.trim()) throw new Error("Enter your phone number.");
+                  if (!phone.trim()) throw new Error(copy.enterPhone);
                   await loginPhone(phone.trim());
                   setPendingContact(phone.trim());
                   setCode("");
                   setMode("verifyPhone");
-                }, "Phone login failed")
+                }, copy.phoneLoginFailed)
               }
             />
           ) : null}
@@ -941,13 +1303,13 @@ function AuthScreen({
           {mode === "verifyPhone" ? (
             <PrimaryButton
               disabled={loading}
-              label="Verify phone"
+              label={copy.verifyPhone}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
-                  if (!pendingContact || !code.trim()) throw new Error("Enter the SMS code.");
+                  if (!pendingContact || !code.trim()) throw new Error(copy.enterSmsCode);
                   await completeAuth(await verifyPhone(pendingContact, code.trim()));
-                }, "Verification failed")
+                }, copy.verificationFailed)
               }
             />
           ) : null}
@@ -955,15 +1317,15 @@ function AuthScreen({
           {mode === "forgot" ? (
             <PrimaryButton
               disabled={loading}
-              label="Send reset code"
+              label={copy.sendResetCode}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
-                  if (!email.trim()) throw new Error("Enter your email.");
+                  if (!email.trim()) throw new Error(copy.enterEmail);
                   await forgotPassword(email.trim());
                   setCode("");
                   setMode("reset");
-                }, "Reset failed")
+                }, copy.resetFailed)
               }
             />
           ) : null}
@@ -971,23 +1333,23 @@ function AuthScreen({
           {mode === "reset" ? (
             <PrimaryButton
               disabled={loading}
-              label="Save new password"
+              label={copy.saveNewPassword}
               loading={loading}
               onPress={() =>
                 runNetworkTask(async () => {
                   if (!email.trim() || !code.trim() || newPassword.length < 8) {
-                    throw new Error("Enter email, code, and an 8+ character password.");
+                    throw new Error(copy.enterResetFields);
                   }
                   await completeAuth(await resetPassword(email.trim(), code.trim(), newPassword));
-                }, "Password reset failed")
+                }, copy.passwordResetFailed)
               }
             />
           ) : null}
 
           <View style={styles.linkRow}>
-            <LinkButton label={mode === "login" ? "Create account" : "Email login"} onPress={() => setMode(mode === "login" ? "register" : "login")} />
-            <LinkButton label="Phone OTP" onPress={() => setMode("phone")} />
-            <LinkButton label="Forgot" onPress={() => setMode("forgot")} />
+            <LinkButton label={mode === "login" ? copy.createAccount : copy.emailLogin} onPress={() => setMode(mode === "login" ? "register" : "login")} />
+            <LinkButton label={copy.phoneOtp} onPress={() => setMode("phone")} />
+            <LinkButton label={copy.forgot} onPress={() => setMode("forgot")} />
           </View>
           <Text style={styles.smallMuted}>API: {API_URL}</Text>
         </View>
@@ -1088,7 +1450,7 @@ function GuestTabs({
         )}
       </Tabs.Screen>
       <Tabs.Screen name="Studio" options={{ tabBarLabel: copy.tabs.studio, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="studio" /> }}>
-        {() => <AuthScreen completeAuth={completeAuth} offline={offline} />}
+        {() => <AuthScreen completeAuth={completeAuth} language={language} offline={offline} />}
       </Tabs.Screen>
       <Tabs.Screen name="Examples" options={{ tabBarLabel: copy.tabs.examples, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="examples" /> }}>
         {({ navigation }) => <ExamplesScreen language={language} onCreate={() => navigation.navigate("Studio")} />}
@@ -1120,6 +1482,8 @@ function HomeScreen({
   const [menuOpen, setMenuOpen] = useState(false);
   const copy = mobileCopy[language].home;
   const nextLanguage: AppLanguage = language === "en" ? "ru" : "en";
+  const localizedModes = modesForLanguage(language);
+  const workflow = workflowForLanguage(language);
 
   function runMenuAction(action: () => void) {
     setMenuOpen(false);
@@ -1172,9 +1536,9 @@ function HomeScreen({
             <Text style={styles.homeSecondaryCtaText}>{copy.pricing}</Text>
           </Pressable>
           <View style={styles.homeTrustRow}>
-            <Text style={styles.homeTrustText}>Ready for marketplaces</Text>
-            <Text style={styles.homeTrustText}>Photo and video flow</Text>
-            <Text style={styles.homeTrustText}>Mobile-first export</Text>
+            <Text style={styles.homeTrustText}>{copy.trust1}</Text>
+            <Text style={styles.homeTrustText}>{copy.trust2}</Text>
+            <Text style={styles.homeTrustText}>{copy.trust3}</Text>
           </View>
           {offline ? <Text style={styles.homeOffline}>{copy.offline}</Text> : null}
         </View>
@@ -1257,7 +1621,7 @@ function HomeScreen({
             <Text style={styles.webSectionCopy}>{copy.modesBody}</Text>
           </View>
           <View style={styles.homeModesList}>
-            {modes.map((item, index) => (
+            {localizedModes.map((item, index) => (
               <View key={item.id} style={styles.homeWebModeCard}>
                 <View style={styles.homeWebModeVisual}>
                   <Image source={item.preview} style={styles.homeWebModeImage} />
@@ -1285,7 +1649,7 @@ function HomeScreen({
             <Text style={styles.homeWorkflowTitle}>{copy.workflowTitle}</Text>
             <Text style={styles.homeWorkflowCopy}>{copy.workflowBody}</Text>
           </View>
-          {workflowSteps.map((step) => (
+          {workflow.map((step) => (
             <View key={step.number} style={styles.homeWorkflowStep}>
               <Text style={styles.homeWorkflowNumber}>{step.number}</Text>
               <Text style={styles.homeWorkflowStepTitle}>{step.title}</Text>
@@ -1324,6 +1688,8 @@ function HomeScreen({
 
 function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreate: () => void }) {
   const copy = mobileCopy[language].examples;
+  const localizedExamples = examplesForLanguage(language);
+  const localizedMotionExamples = motionExamplesForLanguage(language);
   return (
     <SafeAreaView style={styles.homeSafe}>
       <ScrollView contentContainerStyle={styles.examplesPage}>
@@ -1346,7 +1712,7 @@ function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreat
         </View>
 
         <View style={styles.exampleGalleryGrid}>
-          {exampleImages.map((item) => (
+          {localizedExamples.map((item) => (
             <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, item.wide && styles.exampleGalleryWide]}>
               {item.video ? (
                 <View style={styles.exampleVideoPair}>
@@ -1368,7 +1734,7 @@ function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreat
               <Text style={styles.exampleText}>{item.product}</Text>
             </View>
           ))}
-          {motionExamples.map((item) => (
+          {localizedMotionExamples.map((item) => (
             <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, styles.exampleGalleryWide]}>
               <View style={styles.exampleVideoPair}>
                 <View style={styles.exampleVideoHalf}>
@@ -1422,15 +1788,11 @@ function PricingScreen({
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const [checkoutPendingRefresh, setCheckoutPendingRefresh] = useState(false);
 
-  const planCards = plans.length ? plans.map(planCardFromApi) : pricingPlans.map((plan) => ({
-    ...plan,
-    rawName: plan.name.toLowerCase(),
-    tokens: ""
-  }));
+  const planCards = plans.length ? plans.map((plan) => planCardFromApi(plan, copy)) : fallbackPlansForLanguage(language);
 
   async function refreshPricingData() {
     if (offline) {
-      Alert.alert("Offline", "Reconnect to refresh plans and payments.");
+      Alert.alert(mobileCopy[language].common.offlineTitle, copy.offlineRefresh);
       return;
     }
     setPricingLoading(true);
@@ -1445,7 +1807,7 @@ function PricingScreen({
       setPayments(nextPayments);
       await refreshProfile();
     } catch (error) {
-      Alert.alert("Pricing failed", friendlyError(error));
+      Alert.alert(copy.pricingFailed, friendlyError(error));
     } finally {
       setPricingLoading(false);
     }
@@ -1468,11 +1830,11 @@ function PricingScreen({
 
   async function buyPlan(plan: string) {
     if (offline) {
-      Alert.alert("Offline", "Reconnect to open checkout.");
+      Alert.alert(mobileCopy[language].common.offlineTitle, copy.offlineCheckout);
       return;
     }
     if (plan === "free") {
-      Alert.alert("Free plan", "You are already able to use the free plan.");
+      Alert.alert(copy.freePlanTitle, copy.freePlanBody);
       return;
     }
     setPaymentLoading(`plan:${plan}`);
@@ -1482,7 +1844,7 @@ function PricingScreen({
       await openPaymentUrl(payment.payment_url);
     } catch (error) {
       setCheckoutPendingRefresh(false);
-      Alert.alert("Payment failed", friendlyError(error));
+      Alert.alert(copy.paymentFailed, friendlyError(error));
     } finally {
       setPaymentLoading(null);
     }
@@ -1490,7 +1852,7 @@ function PricingScreen({
 
   async function buyPack(packId: string) {
     if (offline) {
-      Alert.alert("Offline", "Reconnect to open checkout.");
+      Alert.alert(mobileCopy[language].common.offlineTitle, copy.offlineCheckout);
       return;
     }
     setPaymentLoading(`pack:${packId}`);
@@ -1500,7 +1862,7 @@ function PricingScreen({
       await openPaymentUrl(payment.payment_url);
     } catch (error) {
       setCheckoutPendingRefresh(false);
-      Alert.alert("Top-up failed", friendlyError(error));
+      Alert.alert(copy.topupFailed, friendlyError(error));
     } finally {
       setPaymentLoading(null);
     }
@@ -1603,11 +1965,7 @@ function PricingScreen({
 
 function PublicPricingScreen({ language, onSignIn }: { language: AppLanguage; onSignIn: () => void }) {
   const copy = mobileCopy[language].pricing;
-  const planCards = pricingPlans.map((plan) => ({
-    ...plan,
-    rawName: plan.name.toLowerCase(),
-    tokens: ""
-  }));
+  const planCards = fallbackPlansForLanguage(language);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -1775,17 +2133,25 @@ function StudioScreen({
   tokens: Tokens;
   user: UserProfile;
 }) {
+  const copy = mobileCopy[language].studio;
+  const common = mobileCopy[language].common;
+  const localizedModes = useMemo(() => modesForLanguage(language), [language]);
   const [mode, setMode] = useState("catalog");
   const [subject, setSubject] = useState("");
-  const [styleHint, setStyleHint] = useState(defaultStyleHint);
+  const [styleHint, setStyleHint] = useState(copy.styleHints[0] || defaultStyleHint);
   const [upscale, setUpscale] = useState(false);
   const [selectedImage, setSelectedImage] = useState<PickedImage | null>(null);
   const [generating, setGenerating] = useState(false);
   const [videoLoading, setVideoLoading] = useState(false);
   const [videoJob, setVideoJob] = useState<VideoJob | null>(null);
-  const copy = mobileCopy[language].studio;
 
-  const activeMode = useMemo(() => modes.find((item) => item.id === mode) || modes[0], [mode]);
+  const activeMode = useMemo(() => localizedModes.find((item) => item.id === mode) || localizedModes[0], [localizedModes, mode]);
+
+  useEffect(() => {
+    if (!(copy.styleHints as readonly string[]).includes(styleHint)) {
+      setStyleHint(copy.styleHints[0] || defaultStyleHint);
+    }
+  }, [copy.styleHints, styleHint]);
 
   async function pickImage(source: "camera" | "library") {
     const permission =
@@ -1793,7 +2159,7 @@ function StudioScreen({
         ? await ImagePicker.requestCameraPermissionsAsync()
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Permission needed", source === "camera" ? "Allow camera access to capture product shots." : "Allow photo access to upload product shots.");
+      Alert.alert(common.permissionNeeded, source === "camera" ? common.photoPermissionCamera : common.photoPermissionLibrary);
       return;
     }
     const picked =
@@ -1812,11 +2178,11 @@ function StudioScreen({
 
   async function createPhoto() {
     if (offline) {
-      Alert.alert("Offline", "Connect to generate a new result.");
+      Alert.alert(common.offlineTitle, copy.offlineGenerate);
       return;
     }
     if (!subject.trim()) {
-      Alert.alert("Add a prompt", "Describe the product and the result you want.");
+      Alert.alert(copy.addPromptTitle, copy.describePhoto);
       return;
     }
     setGenerating(true);
@@ -1828,7 +2194,7 @@ function StudioScreen({
         image: selectedImage?.base64 || null,
         upscale_4k: upscale
       });
-      if (!response.image) throw new Error("No image returned");
+      if (!response.image) throw new Error(copy.noImageReturned);
       const format = String(response.format || "png").toLowerCase();
       const nextResult = {
         uri: `data:image/${format};base64,${response.image}`,
@@ -1840,7 +2206,7 @@ function StudioScreen({
       rememberResult(nextResult);
       await refreshProfile();
     } catch (error) {
-      Alert.alert("Generation failed", friendlyError(error));
+      Alert.alert(copy.generationFailed, friendlyError(error));
     } finally {
       setGenerating(false);
     }
@@ -1848,15 +2214,15 @@ function StudioScreen({
 
   async function queueVideo() {
     if (offline) {
-      Alert.alert("Offline", "Connect to queue a video job.");
+      Alert.alert(common.offlineTitle, copy.offlineQueue);
       return;
     }
     if (!selectedImage?.base64) {
-      Alert.alert("Photo required", "Choose or capture a product photo before queueing video.");
+      Alert.alert(copy.addPhotoTitle, copy.choosePhotoFirst);
       return;
     }
     if (!subject.trim()) {
-      Alert.alert("Add a prompt", "Describe the product video you want.");
+      Alert.alert(copy.addPromptTitle, copy.describeVideo);
       return;
     }
     setVideoLoading(true);
@@ -1870,10 +2236,10 @@ function StudioScreen({
         video_provider: "local"
       });
       setVideoJob(job);
-      Alert.alert("Video queued", "The job is visible below. Refresh it to pick up the rendered video.");
+      Alert.alert(copy.videoQueued, copy.videoQueuedBody);
       await refreshProfile();
     } catch (error) {
-      Alert.alert("Video failed", friendlyError(error));
+      Alert.alert(copy.videoFailed, friendlyError(error));
     } finally {
       setVideoLoading(false);
     }
@@ -1882,7 +2248,7 @@ function StudioScreen({
   async function refreshVideoJob() {
     if (!videoJob) return;
     if (offline) {
-      Alert.alert("Offline", "Reconnect to refresh the video job.");
+      Alert.alert(common.offlineTitle, copy.offlineRefreshVideo);
       return;
     }
     setVideoLoading(true);
@@ -1890,7 +2256,7 @@ function StudioScreen({
       setVideoJob(await getVideoJob(tokens.access_token, videoJob.job_id));
       await refreshProfile();
     } catch (error) {
-      Alert.alert("Refresh failed", friendlyError(error));
+      Alert.alert(copy.refreshFailed, friendlyError(error));
     } finally {
       setVideoLoading(false);
     }
@@ -1902,7 +2268,7 @@ function StudioScreen({
       <StudioHero copy={copy} tokens={user.tokens ?? 0} />
 
       <View style={styles.modeGrid}>
-        {modes.map((item) => (
+        {localizedModes.map((item) => (
           <ModeTile key={item.id} active={mode === item.id} item={item} onPress={() => setMode(item.id)} />
         ))}
       </View>
@@ -1926,12 +2292,12 @@ function StudioScreen({
         />
         <Text style={styles.label}>{copy.style}</Text>
         <View style={styles.chipWrap}>
-          {samplePrompts.map((item) => (
+          {copy.promptSamples.map((item) => (
             <Pressable key={item} style={styles.promptChip} onPress={() => setSubject(item)}>
               <Text style={styles.promptChipText}>{item}</Text>
             </Pressable>
           ))}
-          {stylesList.map((item) => (
+          {copy.styleHints.map((item) => (
             <Pressable key={item} style={[styles.chip, styleHint === item && styles.chipActive]} onPress={() => setStyleHint(item)}>
               <Text style={[styles.chipText, styleHint === item && styles.chipTextActive]}>{item}</Text>
             </Pressable>
@@ -1969,6 +2335,7 @@ function StudioScreen({
 
       {videoJob ? (
         <VideoJobCard
+          common={common}
           copy={copy}
           job={videoJob}
           loading={videoLoading}
@@ -1976,33 +2343,34 @@ function StudioScreen({
         />
       ) : null}
 
-      <ResultPanel copy={copy} result={result} />
+      <ResultPanel common={common} copy={copy} result={result} />
     </Screen>
   );
 }
 
-function ProofShowcase() {
+function ProofShowcase({ language }: { language: AppLanguage }) {
+  const copy = mobileCopy[language].home;
   return (
     <View style={styles.proofCard}>
       <View style={styles.proofMediaRow}>
         <View style={styles.proofMedia}>
           <Image source={proofBefore} style={styles.proofImageContain} />
-          <View style={styles.darkBadge}><Text style={styles.darkBadgeText}>Before</Text></View>
+          <View style={styles.darkBadge}><Text style={styles.darkBadgeText}>{copy.before}</Text></View>
         </View>
         <View style={styles.proofMedia}>
           <Image source={proofAfter} style={styles.proofImageCover} />
-          <View style={styles.goldBadge}><Text style={styles.goldBadgeText}>After</Text></View>
+          <View style={styles.goldBadge}><Text style={styles.goldBadgeText}>{copy.after}</Text></View>
         </View>
       </View>
       <View style={styles.proofFooter}>
-        <Text style={styles.proofTitle}>Ready-to-sell visuals</Text>
-        <Text style={styles.proofSub}>Reuse the same modes and proof assets from the web product.</Text>
+        <Text style={styles.proofTitle}>{copy.proofTitle}</Text>
+        <Text style={styles.proofSub}>{copy.proofBody}</Text>
       </View>
     </View>
   );
 }
 
-function ResultPanel({ copy, result }: { copy: StudioCopy; result: ResultState | null }) {
+function ResultPanel({ common, copy, result }: { common: CommonCopy; copy: StudioCopy; result: ResultState | null }) {
   if (!result) {
     return (
       <View style={styles.resultBox}>
@@ -2021,13 +2389,13 @@ function ResultPanel({ copy, result }: { copy: StudioCopy; result: ResultState |
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(file.path, {
           mimeType: file.mimeType,
-          dialogTitle: "Share DomStudio result"
+          dialogTitle: copy.shareResultTitle
         });
       } else {
-        Alert.alert("Sharing unavailable", `Result prepared at ${file.path}`);
+        Alert.alert(common.sharingUnavailable, `${common.resultPrepared} ${file.path}`);
       }
     } catch (error) {
-      Alert.alert("Share failed", friendlyError(error));
+      Alert.alert(common.shareFailed, friendlyError(error));
     }
   }
 
@@ -2036,14 +2404,14 @@ function ResultPanel({ copy, result }: { copy: StudioCopy; result: ResultState |
       const MediaLibrary = await import("expo-media-library");
       const permission = await MediaLibrary.requestPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert("Permission needed", "Allow photo library access to save generated results.");
+        Alert.alert(common.permissionNeeded, common.resultLibraryPermission);
         return;
       }
       const file = await resultToFile(currentResult);
       await MediaLibrary.saveToLibraryAsync(file.path);
-      Alert.alert("Saved", "Result saved to your photo library.");
+      Alert.alert(common.saved, common.resultSaved);
     } catch (error) {
-      Alert.alert("Save failed", friendlyError(error));
+      Alert.alert(common.saveFailed, friendlyError(error));
     }
   }
 
@@ -2069,11 +2437,13 @@ function ResultPanel({ copy, result }: { copy: StudioCopy; result: ResultState |
 }
 
 function VideoJobCard({
+  common = mobileCopy.en.common,
   copy = mobileCopy.en.studio,
   job,
   loading,
   onRefresh
 }: {
+  common?: CommonCopy;
   copy?: StudioCopy;
   job: VideoJob;
   loading?: boolean;
@@ -2089,13 +2459,13 @@ function VideoJobCard({
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(file.path, {
           mimeType: file.mimeType,
-          dialogTitle: "Share DomStudio video"
+          dialogTitle: copy.shareVideoTitle
         });
       } else {
-        Alert.alert("Sharing unavailable", `Video prepared at ${file.path}`);
+        Alert.alert(common.sharingUnavailable, `${common.videoPrepared} ${file.path}`);
       }
     } catch (error) {
-      Alert.alert("Share failed", friendlyError(error));
+      Alert.alert(common.shareFailed, friendlyError(error));
     }
   }
 
@@ -2104,14 +2474,14 @@ function VideoJobCard({
       const MediaLibrary = await import("expo-media-library");
       const permission = await MediaLibrary.requestPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert("Permission needed", "Allow photo library access to save generated videos.");
+        Alert.alert(common.permissionNeeded, common.videoLibraryPermission);
         return;
       }
       const file = await videoJobToFile(job);
       await MediaLibrary.saveToLibraryAsync(file.path);
-      Alert.alert("Saved", "Video saved to your photo library.");
+      Alert.alert(common.saved, common.videoSaved);
     } catch (error) {
-      Alert.alert("Save failed", friendlyError(error));
+      Alert.alert(common.saveFailed, friendlyError(error));
     }
   }
 
@@ -2186,29 +2556,34 @@ function ModeTile({ active, item, onPress }: { active: boolean; item: ModeOption
 function HistoryScreen({
   clearHistory,
   history,
+  language = "en",
   offline,
   setResult,
   tokens
 }: {
   clearHistory: () => Promise<void>;
   history: LocalHistoryItem[];
+  language?: AppLanguage;
   offline: boolean;
   setResult: (result: ResultState | null) => void;
   tokens: Tokens;
 }) {
   const [jobs, setJobs] = useState<VideoJob[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
+  const copy = mobileCopy[language].history;
+  const common = mobileCopy[language].common;
+  const studioCopy = mobileCopy[language].studio;
 
   async function refreshJobs() {
     if (offline) {
-      Alert.alert("Offline", "Reconnect to refresh video jobs.");
+      Alert.alert(common.offlineTitle, copy.offlineRefresh);
       return;
     }
     setLoadingJobs(true);
     try {
       setJobs(await listVideoJobs(tokens.access_token));
     } catch (error) {
-      Alert.alert("Jobs failed", friendlyError(error));
+      Alert.alert(copy.jobsFailed, friendlyError(error));
     } finally {
       setLoadingJobs(false);
     }
@@ -2224,10 +2599,10 @@ function HistoryScreen({
   }, []);
 
   return (
-    <Screen title="History" kicker={`${history.length} saved`}>
+    <Screen title={copy.title} kicker={`${history.length} ${copy.saved}`}>
       <View style={styles.buttonRow}>
-        <SecondaryButton disabled={!history.length} label="Clear local" onPress={clearHistory} />
-        <SecondaryButton disabled={loadingJobs || offline} label={loadingJobs ? "Refreshing..." : "Refresh jobs"} onPress={refreshJobs} />
+        <SecondaryButton disabled={!history.length} label={copy.clearLocal} onPress={clearHistory} />
+        <SecondaryButton disabled={loadingJobs || offline} label={loadingJobs ? copy.refreshing : copy.refreshJobs} onPress={refreshJobs} />
       </View>
 
       {history.length ? (
@@ -2253,19 +2628,19 @@ function HistoryScreen({
         ))
       ) : (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>No saved results yet</Text>
-          <Text style={styles.muted}>Generated photos are stored locally on this device for quick reuse.</Text>
+          <Text style={styles.cardTitle}>{copy.emptyTitle}</Text>
+          <Text style={styles.muted}>{copy.emptyBody}</Text>
         </View>
       )}
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Video jobs</Text>
+        <Text style={styles.cardTitle}>{copy.videoJobs}</Text>
         {jobs.length ? (
           jobs.map((job) => (
-            <VideoJobCard key={job.job_id} job={job} />
+            <VideoJobCard common={common} copy={studioCopy} key={job.job_id} job={job} />
           ))
         ) : (
-          <Text style={styles.muted}>Queue a video from Studio, then refresh here. Output quality still depends on the backend worker.</Text>
+          <Text style={styles.muted}>{copy.emptyJobs}</Text>
         )}
       </View>
     </Screen>
@@ -2318,32 +2693,35 @@ function AccountScreen({
 
 function SettingsScreen({
   clearHistory,
+  language = "en",
   offline
 }: {
   clearHistory: () => Promise<void>;
+  language?: AppLanguage;
   offline: boolean;
 }) {
+  const copy = mobileCopy[language].settings;
   return (
-    <Screen title="Settings" kicker={offline ? "offline" : "online"}>
+    <Screen title={copy.title} kicker={offline ? copy.offline : copy.online}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Environment</Text>
-        <Text style={styles.muted}>API URL</Text>
+        <Text style={styles.cardTitle}>{copy.environment}</Text>
+        <Text style={styles.muted}>{copy.apiUrl}</Text>
         <Text style={styles.mono}>{API_URL}</Text>
         <Text style={styles.smallMuted}>
-          Use your computer LAN IP for Expo Go on a physical phone. Android emulator usually uses http://10.0.2.2:8000.
+          {copy.lanHelp}
         </Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Device storage</Text>
-        <Text style={styles.muted}>Local generated-photo history is stored on this device and can be cleared any time.</Text>
-        <SecondaryButton label="Clear local history" onPress={clearHistory} />
+        <Text style={styles.cardTitle}>{copy.storage}</Text>
+        <Text style={styles.muted}>{copy.storageBody}</Text>
+        <SecondaryButton label={copy.clearHistory} onPress={clearHistory} />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Build readiness</Text>
-        <Text style={styles.muted}>Camera, gallery picker, media-library save, secure tokens, and native tabs are enabled.</Text>
-        <Text style={styles.muted}>Native icon, splash, Home, Studio, Examples, and Pricing surfaces now share the DomStudio brand system.</Text>
+        <Text style={styles.cardTitle}>{copy.readiness}</Text>
+        <Text style={styles.muted}>{copy.readinessBody1}</Text>
+        <Text style={styles.muted}>{copy.readinessBody2}</Text>
       </View>
     </Screen>
   );
