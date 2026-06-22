@@ -49,7 +49,7 @@ const T = {
     "nav.history": "История",
     "nav.presets": "Пресеты",
     "nav.login": "Войти",
-    "nav.register": "Создать бесплатно",
+    "nav.register": "Регистрация",
     "nav.create": "Создать фото",
     "nav.tokens": "{n} токенов",
     // footer
@@ -388,7 +388,7 @@ const T = {
     "nav.history": "History",
     "nav.presets": "Presets",
     "nav.login": "Sign in",
-    "nav.register": "Start free",
+    "nav.register": "Register",
     "nav.create": "Create photo",
     "nav.tokens": "{n} tokens",
     // footer

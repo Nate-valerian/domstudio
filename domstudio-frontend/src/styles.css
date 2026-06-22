@@ -470,6 +470,9 @@ h1 em { color: var(--gold); font-style: normal; }
 .account-status { margin: 0; font-size: 13px; font-weight: 700; }
 .account-status.verified { color: #3a7a52; }
 .account-status.pending { color: var(--muted); }
+.account-actions { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.account-logout { min-width: 160px; color: var(--danger); border-color: rgba(164,65,55,.28); }
+.account-logout:hover { border-color: var(--danger); }
 
 /* ── Content pack ─────────────────────────────────────────────────────────── */
 .content-pack { margin: 18px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: #faf7f0; }
@@ -599,6 +602,17 @@ h1 em { color: var(--gold); font-style: normal; }
   .brand-mark { width: 42px; height: 42px; }
   .nav-actions { position: absolute; right: 8px; top: 8px; flex: 0 0 auto; gap: 6px; margin-left: auto; }
   .nav-actions .secondary { display: none; }
+  .nav-actions .nav-register {
+    display: inline-flex;
+    width: auto;
+    max-width: 104px;
+    min-height: 42px;
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1.1;
+    white-space: nowrap;
+    background: white;
+  }
   .token-pill { display: none; }
   .profile-pill,
   .nav-menu-button { width: 42px; height: 42px; }
@@ -835,4 +849,14 @@ h1 em { color: var(--gold); font-style: normal; }
   .upload { min-height: 180px; }
   .collapsible-head { min-height: 56px; }
   .history-card-thumb { min-height: 62px; }
+}
+
+@media (max-width: 360px) {
+  .nav.logged-out .lang-toggle { display: none; }
+  .nav-actions .nav-register,
+  .nav.logged-out .nav-cta {
+    max-width: 92px;
+    padding-inline: 10px;
+    font-size: 11px;
+  }
 }

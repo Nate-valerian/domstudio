@@ -746,7 +746,7 @@ function nav() {
   ];
   const initials = logged ? String(state.user.email || state.user.phone || "DS").slice(0, 2).toUpperCase() : "";
   return `
-    <nav class="nav ${state.navCompact ? "compact" : ""} ${state.navMenuOpen ? "menu-open" : ""}">
+    <nav class="nav ${logged ? "logged-in" : "logged-out"} ${state.navCompact ? "compact" : ""} ${state.navMenuOpen ? "menu-open" : ""}">
       <div class="nav-inner">
       <button class="brand" data-route="home"><span class="brand-mark">DS</span><span class="brand-word">Dom<span>Studio</span></span></button>
       <div class="nav-links ${state.navMenuOpen ? "open" : ""}">
@@ -768,6 +768,7 @@ function nav() {
              <button class="profile-pill" data-route="account" title="${t("account.eyebrow")}"><span>${escapeHtml(initials)}</span></button>
              <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`
           : `<button class="button secondary" data-auth="login">${t("nav.login")}</button>
+             <button class="button secondary nav-register" data-auth="register">${t("nav.register")}</button>
              <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`}
         ${showPrimaryLangToggle ? langToggle : ""}
         <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Menu"><span></span><span></span></button>
@@ -1212,6 +1213,9 @@ function accountPage() {
         <div class="account-section-head"><h3>${t("account.dataH3")}</h3></div>
         <p class="account-contact">${escapeHtml(state.user.email || state.user.phone || "—")}</p>
         <p class="account-status ${state.user.is_verified ? "verified" : "pending"}">${state.user.is_verified ? t("account.verified") : t("account.pending")}</p>
+        <div class="account-actions">
+          <button class="button secondary account-logout" type="button" data-logout>${t("sidebar.logout")}</button>
+        </div>
       </div>
     </section>
   </main>`;
