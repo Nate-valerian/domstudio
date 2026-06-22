@@ -1400,8 +1400,8 @@ function MainTabs(props: {
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.ink,
-        tabBarInactiveTintColor: colors.muted,
+        tabBarActiveTintColor: colors.paper,
+        tabBarInactiveTintColor: "rgba(246, 241, 232, 0.62)",
         tabBarStyle: styles.nativeTabBar,
         tabBarItemStyle: styles.nativeTabItem,
         tabBarLabelStyle: styles.nativeTabText
@@ -1451,8 +1451,8 @@ function GuestTabs({
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.ink,
-        tabBarInactiveTintColor: colors.muted,
+        tabBarActiveTintColor: colors.paper,
+        tabBarInactiveTintColor: "rgba(246, 241, 232, 0.62)",
         tabBarStyle: styles.nativeTabBar,
         tabBarItemStyle: styles.nativeTabItem,
         tabBarLabelStyle: styles.nativeTabText
@@ -2826,35 +2826,36 @@ function StatCard({
 
 function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "examples" | "pricing" }) {
   const wrapStyle = [styles.tabGlyph, focused && styles.tabGlyphActive];
+  const glyphColor = focused ? colors.night : color;
   if (kind === "home") {
     return (
       <View style={wrapStyle}>
-        <View style={[styles.tabHomeRoof, { borderColor: color }]} />
-        <View style={[styles.tabHomeBase, { borderColor: color }]} />
+        <View style={[styles.tabHomeRoof, { borderColor: glyphColor }]} />
+        <View style={[styles.tabHomeBase, { borderColor: glyphColor }]} />
       </View>
     );
   }
   if (kind === "examples") {
     return (
       <View style={wrapStyle}>
-        <View style={[styles.tabLine, { backgroundColor: color, width: 18 }]} />
-        <View style={[styles.tabLine, { backgroundColor: color, width: 13 }]} />
-        <View style={[styles.tabLine, { backgroundColor: color, width: 16 }]} />
+        <View style={[styles.tabLine, { backgroundColor: glyphColor, width: 18 }]} />
+        <View style={[styles.tabLine, { backgroundColor: glyphColor, width: 13 }]} />
+        <View style={[styles.tabLine, { backgroundColor: glyphColor, width: 16 }]} />
       </View>
     );
   }
   if (kind === "pricing") {
     return (
       <View style={wrapStyle}>
-        <View style={[styles.tabRing, { borderColor: color }]} />
-        <View style={[styles.tabPriceLine, { backgroundColor: color }]} />
+        <View style={[styles.tabRing, { borderColor: glyphColor }]} />
+        <View style={[styles.tabPriceLine, { backgroundColor: glyphColor }]} />
       </View>
     );
   }
   return (
     <View style={wrapStyle}>
-      <View style={[styles.tabStudioFrame, { borderColor: color }]} />
-      <View style={[styles.tabStudioSpark, { backgroundColor: color }]} />
+      <View style={[styles.tabStudioFrame, { borderColor: glyphColor }]} />
+      <View style={[styles.tabStudioSpark, { backgroundColor: glyphColor }]} />
     </View>
   );
 }
@@ -4576,38 +4577,50 @@ const styles = StyleSheet.create({
   },
   nativeTabBar: {
     position: "absolute",
-    left: 14,
-    right: 14,
+    left: 28,
+    right: 28,
     bottom: 14,
-    minHeight: 76,
-    paddingTop: 9,
+    minHeight: 72,
+    paddingTop: 10,
     paddingBottom: 9,
-    paddingHorizontal: 8,
-    borderRadius: 34,
-    backgroundColor: colors.card,
+    paddingHorizontal: 10,
+    borderRadius: 28,
+    backgroundColor: "rgba(23, 16, 31, 0.96)",
     borderTopWidth: 0,
     borderWidth: 1,
-    borderColor: colors.line
+    borderColor: "rgba(255, 159, 36, 0.32)",
+    shadowColor: colors.night,
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 16
   },
   nativeTabItem: {
     marginHorizontal: 2,
-    borderRadius: 28,
+    borderRadius: 24,
     backgroundColor: "transparent"
   },
   nativeTabText: {
     fontWeight: "900",
-    fontSize: 11
+    fontSize: 10,
+    paddingTop: 1
   },
   tabGlyph: {
-    width: 38,
-    height: 30,
-    borderRadius: 15,
+    width: 36,
+    height: 32,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
     gap: 3
   },
   tabGlyphActive: {
-    backgroundColor: "#fff4cf"
+    backgroundColor: colors.acid,
+    transform: [{ translateY: -13 }],
+    shadowColor: colors.acid,
+    shadowOpacity: 0.36,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 12
   },
   tabHomeRoof: {
     width: 16,

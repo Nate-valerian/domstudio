@@ -1,5 +1,28 @@
 # DomStudio Archive
 
+## June 22, 2026 - Apply Dark Studio Dock Bottom Tabs
+
+User chose option `B. Dark Studio Dock` from the bottom tab bar preview.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Changed the shared native tab bar from a light floating pill to a dark dock.
+- Added a warm orange border/shadow treatment to match the Studio hero.
+- Made the active tab icon a raised orange badge.
+- Kept active labels light while active icon strokes render dark for contrast.
+- Applied the style to both authenticated and public tab navigators.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+```
+
+Typecheck passed.
+
+---
+
 ## June 22, 2026 - Remove Duplicate Studio Hero Token Badge
 
 User pointed out that the orange `3000 токенов` pill was already shown in the
