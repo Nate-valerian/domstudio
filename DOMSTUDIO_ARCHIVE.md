@@ -1,5 +1,33 @@
 # DomStudio Archive
 
+## June 22, 2026 - Public Mobile Launch Before Sign-In
+
+User flagged that the app opened directly on sign-in, so visitors could not
+understand the product before creating an account.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Logged-out users now land in a public tab shell instead of the auth screen.
+- Public Home uses the same web-like product story, examples, videos, menu, and
+  language toggle.
+- Public Examples remains browsable before sign-in.
+- Added public Pricing preview with plan cards and a sign-in/start CTA.
+- Studio remains the protected creation surface; tapping Create or Studio opens
+  the sign-in/create-account flow.
+- Authenticated users still enter the full Home/Studio/Examples/Pricing app.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Persist Mobile Language and Localize Studio
 
 Next implementation step after checkout return hardening: make the mobile

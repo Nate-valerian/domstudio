@@ -278,7 +278,9 @@ const mobileCopy = {
       premium: "Premium",
       renewal: "Renewal",
       none: "None",
-      signOut: "Sign out"
+      signOut: "Sign out",
+      publicNote: "Sign in to buy a plan, add token packs, or start generating.",
+      publicCta: "Sign in to start"
     },
     studio: {
       title: "Studio",
@@ -395,7 +397,9 @@ const mobileCopy = {
       premium: "Премиум",
       renewal: "Продление",
       none: "Нет",
-      signOut: "Выйти"
+      signOut: "Выйти",
+      publicNote: "Войдите, чтобы купить тариф, добавить токены или начать генерацию.",
+      publicCta: "Войти и начать"
     },
     studio: {
       title: "Студия",
@@ -678,7 +682,14 @@ export default function App() {
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           {!user || !tokens ? (
             <RootStack.Screen name="Auth">
-              {() => <AuthScreen completeAuth={completeAuth} offline={offline} />}
+              {() => (
+                <GuestTabs
+                  completeAuth={completeAuth}
+                  language={language}
+                  offline={offline}
+                  setLanguage={setLanguage}
+                />
+              )}
             </RootStack.Screen>
           ) : (
             <RootStack.Screen name="Main">
@@ -983,6 +994,57 @@ function MainTabs(props: {
       </Tabs.Screen>
       <Tabs.Screen name="Pricing" options={{ tabBarLabel: copy.tabs.pricing, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="pricing" /> }}>
         {() => <PricingScreen {...props} language={props.language} />}
+      </Tabs.Screen>
+    </Tabs.Navigator>
+  );
+}
+
+function GuestTabs({
+  completeAuth,
+  language,
+  offline,
+  setLanguage
+}: {
+  completeAuth: (tokens: Tokens) => Promise<void>;
+  language: AppLanguage;
+  offline: boolean;
+  setLanguage: (language: AppLanguage) => void;
+}) {
+  const copy = mobileCopy[language];
+
+  return (
+    <Tabs.Navigator
+      initialRouteName="Home"
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.ink,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: styles.nativeTabBar,
+        tabBarItemStyle: styles.nativeTabItem,
+        tabBarLabelStyle: styles.nativeTabText
+      }}
+    >
+      <Tabs.Screen name="Home" options={{ tabBarLabel: copy.tabs.home, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="home" /> }}>
+        {({ navigation }) => (
+          <HomeScreen
+            language={language}
+            offline={offline}
+            setLanguage={setLanguage}
+            tokens={3000}
+            onCreate={() => navigation.navigate("Studio")}
+            onExamples={() => navigation.navigate("Examples")}
+            onPricing={() => navigation.navigate("Pricing")}
+          />
+        )}
+      </Tabs.Screen>
+      <Tabs.Screen name="Studio" options={{ tabBarLabel: copy.tabs.studio, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="studio" /> }}>
+        {() => <AuthScreen completeAuth={completeAuth} offline={offline} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="Examples" options={{ tabBarLabel: copy.tabs.examples, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="examples" /> }}>
+        {({ navigation }) => <ExamplesScreen language={language} onCreate={() => navigation.navigate("Studio")} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="Pricing" options={{ tabBarLabel: copy.tabs.pricing, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="pricing" /> }}>
+        {({ navigation }) => <PublicPricingScreen language={language} onSignIn={() => navigation.navigate("Studio")} />}
       </Tabs.Screen>
     </Tabs.Navigator>
   );
@@ -1486,6 +1548,45 @@ function PricingScreen({
         </View>
 
         <SecondaryButton label={copy.signOut} onPress={signOut} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function PublicPricingScreen({ language, onSignIn }: { language: AppLanguage; onSignIn: () => void }) {
+  const copy = mobileCopy[language].pricing;
+  const planCards = pricingPlans.map((plan) => ({
+    ...plan,
+    rawName: plan.name.toLowerCase(),
+    tokens: ""
+  }));
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.pricingPage}>
+        <View style={styles.pricingHero}>
+          <Text style={styles.kicker}>{copy.eyebrow}</Text>
+          <Text style={styles.pricingTitle}>{copy.title}</Text>
+          <Text style={styles.muted}>{copy.body}</Text>
+        </View>
+
+        <Banner tone="ok" text={copy.publicNote} />
+
+        <View style={styles.planList}>
+          {planCards.map((plan) => (
+            <View key={plan.name} style={[styles.planCard, plan.featured && styles.planCardFeatured]}>
+              <Text style={[styles.planKicker, plan.featured && styles.planKickerFeatured]}>{plan.kicker}</Text>
+              <View style={styles.planTopRow}>
+                <Text style={[styles.planName, plan.featured && styles.planFeaturedText]}>{plan.name}</Text>
+                <Text style={[styles.planPrice, plan.featured && styles.planPriceFeatured]}>{plan.price}</Text>
+              </View>
+              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.photos}</Text>
+              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.videos}</Text>
+              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.premium}</Text>
+              <PrimaryButton label={copy.publicCta} onPress={onSignIn} />
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
