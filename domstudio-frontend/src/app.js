@@ -279,6 +279,7 @@ const state = {
     marketplace: initialBrandPrefs.default_marketplace,
     style_template: initialBrandPrefs.default_style_template,
     brand_colors: initialBrandPrefs.brand_colors,
+    offer_text: "",
     video_provider: "local",
   },
 };
@@ -449,12 +450,19 @@ function resolvedGenerationMode(values) {
   return requestedMode;
 }
 
-function marketplaceHintForMode(marketplace, mode, hasImage) {
-  if (mode === "catalog") return marketplace.hint;
+function marketplaceHintForMode(marketplace, mode, hasImage, hasOfferText = false) {
+  if (mode === "catalog") {
+    return hasOfferText
+      ? `${marketplace.label} marketplace image, centered product, crop-safe composition, use only the requested creative text if provided, do not invent extra text or logos`
+      : marketplace.hint;
+  }
   const preserve = hasImage
-    ? "preserve the uploaded product label, packaging text, logo, shape, color, and cap exactly; do not add new text or new logos"
+    ? "preserve the uploaded product label, packaging text, logo, shape, color, and cap exactly"
+    : "do not add fake logos or unreadable packaging details";
+  const textRule = hasOfferText
+    ? "use only the requested creative text; do not invent extra text"
     : "do not add fake text, fake logos, or unreadable packaging details";
-  return `${marketplace.label} seller-ready commercial image, crop-safe for marketplace listing, ${preserve}`;
+  return `${marketplace.label} seller-ready commercial image, crop-safe for marketplace listing, ${preserve}, ${textRule}`;
 }
 
 function composeGenerationPayload(values) {
@@ -464,9 +472,11 @@ function composeGenerationPayload(values) {
   const userStyle = values.style_hint || "";
   const brandColors = values.brand_colors || prefs.brand_colors;
   const mode = resolvedGenerationMode(values);
-  const marketplaceHint = marketplaceHintForMode(marketplace, mode, Boolean(state.selectedImage));
+  const offerText = String(values.offer_text || "").trim();
+  const marketplaceHint = marketplaceHintForMode(marketplace, mode, Boolean(state.selectedImage), Boolean(offerText));
   const styleParts = [
     userStyle,
+    offerText ? `creative text/offer to place on the image: ${offerText}` : "",
     mode !== values.mode ? "scene request detected: use product photography scene mode, not catalog cutout mode" : "",
     ...[
       marketplaceHint,
@@ -736,7 +746,7 @@ function nav() {
   ];
   const initials = logged ? String(state.user.email || state.user.phone || "DS").slice(0, 2).toUpperCase() : "";
   return `
-    <nav class="nav ${state.navCompact ? "compact" : ""}">
+    <nav class="nav ${state.navCompact ? "compact" : ""} ${state.navMenuOpen ? "menu-open" : ""}">
       <div class="nav-inner">
       <button class="brand" data-route="home"><span class="brand-mark">DS</span><span class="brand-word">Dom<span>Studio</span></span></button>
       <div class="nav-links ${state.navMenuOpen ? "open" : ""}">
@@ -758,7 +768,7 @@ function nav() {
              <button class="profile-pill" data-route="account" title="${t("account.eyebrow")}"><span>${escapeHtml(initials)}</span></button>
              <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`
           : `<button class="button secondary" data-auth="login">${t("nav.login")}</button>
-             <button class="button gold nav-cta" data-auth="register">${t("nav.register")}</button>`}
+             <button class="button gold nav-cta" data-route="studio">${t("nav.create")}</button>`}
         ${showPrimaryLangToggle ? langToggle : ""}
         <button class="nav-menu-button ${state.navMenuOpen ? "open" : ""}" type="button" data-toggle-menu aria-label="Menu"><span></span><span></span></button>
       </div>
@@ -1055,6 +1065,8 @@ function studioPage() {
               ${VIDEO_DURATIONS.map((seconds) => `<option value="${seconds}" ${selectedAttr(String(state.formDraft.duration_s || "3"), String(seconds))}>${seconds}s</option>`).join("")}
             </select></div>` : ""}
           </div>
+          <div class="field-note">${t("studio.marketplaceHint")}</div>
+          <div class="field"><label for="offer_text">${t("studio.offerTextLabel")}</label><input class="input" id="offer_text" name="offer_text" value="${draftValue("offer_text")}" placeholder="${t("studio.offerTextPlaceholder")}" /></div>
           ${state.generationKind === "video" ? `
             <div class="video-provider-section">
               <div class="mini-head"><h3>${t("video.providerTitle")}</h3><span>${t("video.providerHint")}</span></div>
@@ -1421,7 +1433,13 @@ function bind() {
     }
     navigate("studio");
   }));
-  document.querySelectorAll("[data-auth]").forEach(el => el.addEventListener("click", () => { state.authMode = el.dataset.auth; state.authLoading = false; render(); }));
+  document.querySelectorAll("[data-auth]").forEach(el => el.addEventListener("click", () => {
+    state.authMode = el.dataset.auth;
+    state.authLoading = false;
+    state.navMenuOpen = false;
+    state.presetsOpen = false;
+    render();
+  }));
   document.querySelectorAll("[data-auth-channel]").forEach(el => el.addEventListener("click", () => { state.authChannel = el.dataset.authChannel; render({ motion: false }); }));
   document.querySelectorAll("[data-toggle-password]").forEach(el => el.addEventListener("click", () => togglePasswordVisibility(el)));
   document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => { state.authMode = null; state.authLoading = false; render(); }));
@@ -1491,6 +1509,7 @@ function togglePresetsMenu() {
 function toggleNavMenu() {
   state.navMenuOpen = !state.navMenuOpen;
   if (!state.navMenuOpen) state.presetsOpen = false;
+  document.querySelector(".nav")?.classList.toggle("menu-open", state.navMenuOpen);
   document.querySelector(".nav-links")?.classList.toggle("open", state.navMenuOpen);
   document.querySelector(".nav-menu-button")?.classList.toggle("open", state.navMenuOpen);
   document.querySelector(".nav-dropdown")?.classList.toggle("open", state.presetsOpen);
@@ -1641,9 +1660,12 @@ function buildPromptFromHelper() {
   const brandColors = values.brand_colors || prefs.brand_colors;
   const productType = values.product_type || values.subject || "";
   const subject = truncate([productType, marketplace.subjectInstruction].filter(Boolean).join(". "));
+  const mode = resolvedGenerationMode(values);
+  const marketplaceHint = marketplaceHintForMode(marketplace, mode, Boolean(state.selectedImage), Boolean(values.offer_text));
   const styleHint = truncate([
     styleTemplate.hint,
-    marketplace.hint,
+    marketplaceHint,
+    values.offer_text ? `creative text/offer to place on the image: ${values.offer_text}` : "",
     brandColors ? `brand colors: ${brandColors}` : "",
     prefs.preferred_background ? `preferred background: ${prefs.preferred_background}` : "",
     prefs.brand_mood ? `brand mood: ${prefs.brand_mood}` : "",
@@ -1655,6 +1677,7 @@ function buildPromptFromHelper() {
   form.elements.style_hint.value = styleHint;
   state.formDraft.subject = subject;
   state.formDraft.style_hint = styleHint;
+  state.formDraft.offer_text = values.offer_text || "";
   toast(t("toast.promptBuilt"));
 }
 
