@@ -2287,7 +2287,7 @@ function StudioScreen({
   return (
     <Screen title={copy.title} kicker={`${user.tokens ?? 0} ${copy.tokens}`}>
       {offline ? <Banner tone="warn" text={copy.offline} /> : null}
-      <StudioHero copy={copy} tokens={user.tokens ?? 0} />
+      <StudioHero copy={copy} />
 
       <View style={styles.modeGrid}>
         {localizedModes.map((item) => (
@@ -2534,17 +2534,13 @@ function VideoJobCard({
   );
 }
 
-function StudioHero({ copy, tokens }: { copy: StudioCopy; tokens: number }) {
+function StudioHero({ copy }: { copy: StudioCopy }) {
   return (
     <View style={styles.studioHero}>
       <View style={styles.studioHeroCopy}>
         <Text style={styles.heroKicker}>{copy.heroKicker}</Text>
         <Text style={styles.heroTitle}>{copy.heroTitle}</Text>
         <Text style={styles.heroSub}>{copy.heroBody}</Text>
-      </View>
-      <View style={styles.heroTokenBadge}>
-        <Text style={styles.heroTokenValue}>{tokens}</Text>
-        <Text style={styles.heroTokenLabel}>{copy.tokens}</Text>
       </View>
       <View style={styles.heroPreviewRail}>
         <Image source={modes[1]?.preview || proofAfter} style={[styles.heroPreviewImage, styles.heroPreviewTall]} />
@@ -4196,30 +4192,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: "700"
-  },
-  heroTokenBadge: {
-    position: "absolute",
-    left: 18,
-    bottom: 16,
-    minWidth: 86,
-    minHeight: 48,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)"
-  },
-  heroTokenValue: {
-    color: colors.acid,
-    fontSize: 18,
-    fontWeight: "900"
-  },
-  heroTokenLabel: {
-    color: "rgba(246, 241, 232, 0.62)",
-    fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase"
   },
   heroPreviewRail: {
     position: "absolute",

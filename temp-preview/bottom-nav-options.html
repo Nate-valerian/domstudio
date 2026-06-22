@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DomStudio Bottom Tab Options</title>
+  <style>
+    :root {
+      --cream: #f4efe6;
+      --ink: #0d0d0d;
+      --muted: #786f62;
+      --line: #ddd2c1;
+      --green: #315f4b;
+      --orange: #ff9f24;
+      --dark: #17101f;
+      --soft: #fffaf2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 24px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 650;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 250, 242, 0.72);
+      padding: 18px;
+    }
+
+    .option h2 {
+      margin: 0 0 10px;
+      color: var(--green);
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .phone {
+      position: relative;
+      height: 520px;
+      overflow: hidden;
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0) 42%),
+        var(--cream);
+      border: 1px solid var(--line);
+      box-shadow: 0 20px 55px rgba(30, 22, 12, 0.10);
+    }
+
+    .screen {
+      padding: 30px 24px 140px;
+    }
+
+    .kicker {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin-top: 6px;
+      font-size: 42px;
+      line-height: 0.94;
+      font-weight: 950;
+    }
+
+    .hero {
+      margin-top: 22px;
+      min-height: 160px;
+      border-radius: 22px;
+      background: var(--dark);
+      border: 1px solid rgba(255, 159, 36, 0.45);
+      padding: 24px;
+      color: var(--soft);
+    }
+
+    .hero b {
+      display: block;
+      color: var(--orange);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .hero strong {
+      display: block;
+      margin-top: 12px;
+      max-width: 220px;
+      font-size: 32px;
+      line-height: 0.96;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .card {
+      height: 142px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--soft);
+      padding: 14px;
+    }
+
+    .card:nth-child(1) { border-color: var(--orange); background: #11110f; color: #fffaf2; }
+    .card:nth-child(3) { background: linear-gradient(135deg, #ffc4d2, #bde0ff); }
+    .card:nth-child(4) { background: #d8c4a1; }
+
+    .card span {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--orange);
+      font-weight: 950;
+      font-size: 12px;
+    }
+
+    .bar {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+    }
+
+    .tab {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 950;
+      text-align: center;
+    }
+
+    .icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+      font-weight: 950;
+    }
+
+    .active {
+      color: var(--ink);
+    }
+
+    .classic {
+      min-height: 84px;
+      padding: 12px 14px;
+      border-radius: 34px;
+      background: rgba(255, 250, 242, 0.96);
+      border: 1px solid var(--line);
+      box-shadow: 0 14px 32px rgba(28, 22, 14, 0.11);
+    }
+
+    .classic .active .icon {
+      background: #fff0bd;
+      border-radius: 999px;
+    }
+
+    .dock {
+      left: 28px;
+      right: 28px;
+      min-height: 76px;
+      padding: 10px;
+      border-radius: 28px;
+      background: rgba(23, 16, 31, 0.93);
+      border: 1px solid rgba(255, 159, 36, 0.32);
+      box-shadow: 0 16px 38px rgba(23, 16, 31, 0.28);
+    }
+
+    .dock .tab {
+      color: rgba(246, 241, 232, 0.62);
+    }
+
+    .dock .active {
+      color: #fffaf2;
+    }
+
+    .dock .active .icon {
+      background: var(--orange);
+      color: var(--dark);
+      transform: translateY(-15px);
+      box-shadow: 0 10px 20px rgba(255, 159, 36, 0.36);
+    }
+
+    .compact {
+      left: 44px;
+      right: 44px;
+      min-height: 62px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fffaf2;
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(28, 22, 14, 0.10);
+    }
+
+    .compact .tab {
+      font-size: 0;
+    }
+
+    .compact .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+    }
+
+    .compact .active .icon {
+      background: var(--ink);
+      color: #fffaf2;
+    }
+
+    .labeled {
+      left: 22px;
+      right: 22px;
+      gap: 6px;
+      min-height: 72px;
+      padding: 9px;
+      border-radius: 22px;
+      background: #fffaf2;
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(28, 22, 14, 0.08);
+    }
+
+    .labeled .tab {
+      border-radius: 17px;
+      padding: 8px 4px;
+      gap: 4px;
+    }
+
+    .labeled .icon {
+      width: 26px;
+      height: 26px;
+      font-size: 15px;
+    }
+
+    .labeled .active {
+      background: var(--dark);
+      color: #fffaf2;
+    }
+
+    .labeled .active .icon {
+      color: var(--orange);
+    }
+
+    .notes {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bottom Tab Bar Options</h1>
+  <p>Four directions for the DomStudio mobile footer. Option A is closest to the current app, while B/C/D push the visual language in different ways.</p>
+
+  <main class="grid">
+    <section class="option">
+      <h2>A. Clean Floating Pill</h2>
+      <div class="phone">
+        <div class="screen">
+          <div class="kicker">DOMSTUDIO MOBILE</div>
+          <div class="title">Студия</div>
+          <div class="hero"><b>Мобильная товарная студия</b><strong>Снимите, оформите, экспортируйте.</strong></div>
+          <div class="cards"><div class="card"><span>WB / Ozon</span></div><div class="card"><span>Студия</span></div><div class="card"><span>Реклама</span></div><div class="card"><span>Сцена</span></div></div>
+        </div>
+        <nav class="bar classic">
+          <div class="tab"><div class="icon">⌂</div><div>Главная</div></div>
+          <div class="tab active"><div class="icon">▢</div><div>Студия</div></div>
+          <div class="tab"><div class="icon">≡</div><div>Примеры</div></div>
+          <div class="tab"><div class="icon">⊖</div><div>Тарифы</div></div>
+        </nav>
+      </div>
+      <div class="notes">Safest option. Keeps the friendly rounded shape, but can be tightened so it feels less oversized.</div>
+    </section>
+
+    <section class="option">
+      <h2>B. Dark Studio Dock</h2>
+      <div class="phone">
+        <div class="screen">
+          <div class="kicker">DOMSTUDIO MOBILE</div>
+          <div class="title">Студия</div>
+          <div class="hero"><b>Мобильная товарная студия</b><strong>Снимите, оформите, экспортируйте.</strong></div>
+          <div class="cards"><div class="card"><span>WB / Ozon</span></div><div class="card"><span>Студия</span></div><div class="card"><span>Реклама</span></div><div class="card"><span>Сцена</span></div></div>
+        </div>
+        <nav class="bar dock">
+          <div class="tab"><div class="icon">⌂</div><div>Главная</div></div>
+          <div class="tab active"><div class="icon">▢</div><div>Студия</div></div>
+          <div class="tab"><div class="icon">≡</div><div>Примеры</div></div>
+          <div class="tab"><div class="icon">⊖</div><div>Тарифы</div></div>
+        </nav>
+      </div>
+      <div class="notes">Most premium. Matches the dark hero and makes the active tab feel like a raised action button.</div>
+    </section>
+
+    <section class="option">
+      <h2>C. Compact Icon Rail</h2>
+      <div class="phone">
+        <div class="screen">
+          <div class="kicker">DOMSTUDIO MOBILE</div>
+          <div class="title">Студия</div>
+          <div class="hero"><b>Мобильная товарная студия</b><strong>Снимите, оформите, экспортируйте.</strong></div>
+          <div class="cards"><div class="card"><span>WB / Ozon</span></div><div class="card"><span>Студия</span></div><div class="card"><span>Реклама</span></div><div class="card"><span>Сцена</span></div></div>
+        </div>
+        <nav class="bar compact">
+          <div class="tab"><div class="icon">⌂</div><div>Главная</div></div>
+          <div class="tab active"><div class="icon">▢</div><div>Студия</div></div>
+          <div class="tab"><div class="icon">≡</div><div>Примеры</div></div>
+          <div class="tab"><div class="icon">⊖</div><div>Тарифы</div></div>
+        </nav>
+      </div>
+      <div class="notes">Smallest footprint. More content is visible, but labels disappear, so it is better after users know the app.</div>
+    </section>
+
+    <section class="option">
+      <h2>D. Segmented Tabs</h2>
+      <div class="phone">
+        <div class="screen">
+          <div class="kicker">DOMSTUDIO MOBILE</div>
+          <div class="title">Студия</div>
+          <div class="hero"><b>Мобильная товарная студия</b><strong>Снимите, оформите, экспортируйте.</strong></div>
+          <div class="cards"><div class="card"><span>WB / Ozon</span></div><div class="card"><span>Студия</span></div><div class="card"><span>Реклама</span></div><div class="card"><span>Сцена</span></div></div>
+        </div>
+        <nav class="bar labeled">
+          <div class="tab"><div class="icon">⌂</div><div>Главная</div></div>
+          <div class="tab active"><div class="icon">▢</div><div>Студия</div></div>
+          <div class="tab"><div class="icon">≡</div><div>Примеры</div></div>
+          <div class="tab"><div class="icon">⊖</div><div>Тарифы</div></div>
+        </nav>
+      </div>
+      <div class="notes">Clear and practical. Looks more like a professional tool than a social app.</div>
+    </section>
+  </main>
+</body>
+</html>

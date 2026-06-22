@@ -1,5 +1,29 @@
 # DomStudio Archive
 
+## June 22, 2026 - Remove Duplicate Studio Hero Token Badge
+
+User pointed out that the orange `3000 токенов` pill was already shown in the
+Studio screen header and did not need to appear a second time inside the hero,
+where it overlapped the body copy.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Removed the token badge render from `StudioHero`.
+- Removed the unused `tokens` prop from `StudioHero`.
+- Removed now-unused `heroToken*` styles.
+- Kept the top-right header token pill as the single visible balance indicator.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+```
+
+Typecheck passed.
+
+---
+
 ## June 22, 2026 - Fix Russian Pricing Copy Leaks
 
 User shared an iPhone screenshot showing the mobile Pricing/Tariff screen in
