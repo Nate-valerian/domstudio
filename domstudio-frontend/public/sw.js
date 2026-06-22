@@ -1,4 +1,4 @@
-const CACHE_NAME = "domstudio-shell-v3";
+const CACHE_NAME = "domstudio-shell-v4";
 const UNCACHEABLE_EXTENSIONS = /\.(mp4|mov|webm|mkv|mp3|m4a|wav|ogg)$/i;
 const SHELL_URLS = [
   "/",
@@ -10,7 +10,7 @@ const SHELL_URLS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(SHELL_URLS))
+      .then((cache) => cache.addAll(SHELL_URLS.map((url) => new Request(url, { cache: "reload" }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -59,5 +59,11 @@ self.addEventListener("fetch", (event) => {
         });
       })
     );
+  }
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
   }
 });

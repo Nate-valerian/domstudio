@@ -1,5 +1,52 @@
 # DomStudio Archive
 
+## June 22, 2026 - Harden Web PWA Reload On iPhone
+
+User reported that the web PWA opens on desktop, but after reload on iPhone it
+does not come back up.
+
+Likely cause:
+
+- iOS standalone PWAs can hold onto stale service-worker shell/cache state more
+  aggressively than desktop browsers.
+- The existing service worker used a cached app shell and cache-first static
+  assets, which can leave the installed iPhone PWA stuck on stale resources
+  after a deploy or reload.
+
+Implemented in `domstudio-frontend/public/sw.js`:
+
+- Bumped the shell cache from `domstudio-shell-v3` to `domstudio-shell-v4`.
+- During service-worker install, shell files are requested with
+  `{ cache: "reload" }` so the install path does not reuse stale browser cache.
+- Added a `SKIP_WAITING` message handler so the page can activate an updated
+  service worker immediately.
+- Avoided optional chaining in raw `sw.js` because the public service worker is
+  not transpiled by Vite.
+
+Implemented in `domstudio-frontend/src/app.js`:
+
+- Service-worker registration now detects a waiting or newly installed worker.
+- Sends `SKIP_WAITING` to updated workers.
+- Reloads the page once on `controllerchange` so an installed iPhone PWA moves
+  onto the fresh worker/cache instead of staying on the stale shell.
+
+Validation:
+
+```bash
+cd domstudio-frontend
+npm.cmd run build
+```
+
+Frontend production build passed.
+
+Operational note:
+
+- After deploy, iPhone may still need one clean app restart or deletion/re-add
+  from the Home Screen if Safari has already pinned a broken old standalone
+  shell.
+
+---
+
 ## June 22, 2026 - Soften Mobile Footer Navbar Color
 
 User said the new dark footer navbar was too dark and asked to make it closer
