@@ -1,5 +1,43 @@
 # DomStudio Archive
 
+## June 22, 2026 - Mobile Pricing Payment Handoff and Token Packs
+
+Next implementation step after Studio workflow polish: wire mobile Pricing to
+real backend payment data and checkout handoff.
+
+Implemented in `domstudio-mobile/src/api.ts`:
+
+- Added `SubscriptionPlan`, `TokenPack`, `PaymentInit`, and
+  `PaymentHistoryItem` types.
+- Added API methods:
+  - `listPlans()` -> `/subscriptions/plans`
+  - `listTokenPacks()` -> `/payments/packs`
+  - `initPlanPayment()` -> `/payments/tinkoff/init`
+  - `initTopUpPayment()` -> `/payments/tinkoff/topup`
+  - `listPaymentHistory()` -> `/payments/history`
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Pricing screen now loads live backend plans, token packs, and payment history.
+- Static plan cards remain as an offline/fallback display.
+- Paid plan cards have upgrade buttons that create a Tinkoff checkout and open
+  the returned payment URL with `Linking.openURL`.
+- Added token top-up section with buy buttons.
+- Added recent payment history section.
+- Pricing copy now describes the real checkout handoff and account refresh flow.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Mobile Studio Result and Video Workflow Polish
 
 Second implementation step after quota correctness: make the mobile Studio flow

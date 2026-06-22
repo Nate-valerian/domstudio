@@ -59,6 +59,36 @@ export type VideoJob = {
   created_at?: string;
 };
 
+export type SubscriptionPlan = {
+  name: string;
+  price_rub: number;
+  photos: number;
+  videos: number;
+  premium_videos: number;
+  tokens: number;
+};
+
+export type TokenPack = {
+  pack_id: string;
+  tokens: number;
+  price_rub: number;
+  label: string;
+};
+
+export type PaymentInit = {
+  payment_id: string;
+  payment_url: string;
+};
+
+export type PaymentHistoryItem = {
+  id: string;
+  plan?: string | null;
+  amount_rub: number;
+  status: string;
+  provider: string;
+  created_at?: string;
+};
+
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const ACCESS_KEY = "domstudio_mobile_access";
@@ -208,4 +238,38 @@ export function listVideoJobs(accessToken: string): Promise<VideoJob[]> {
 
 export function getVideoJob(accessToken: string, jobId: string): Promise<VideoJob> {
   return request<VideoJob>(`/generation/jobs/${jobId}`, {}, accessToken);
+}
+
+export function listPlans(): Promise<SubscriptionPlan[]> {
+  return request<SubscriptionPlan[]>("/subscriptions/plans");
+}
+
+export function listTokenPacks(): Promise<TokenPack[]> {
+  return request<TokenPack[]>("/payments/packs");
+}
+
+export function initPlanPayment(accessToken: string, plan: string): Promise<PaymentInit> {
+  return request<PaymentInit>(
+    "/payments/tinkoff/init",
+    {
+      method: "POST",
+      body: JSON.stringify({ plan })
+    },
+    accessToken
+  );
+}
+
+export function initTopUpPayment(accessToken: string, packId: string): Promise<PaymentInit> {
+  return request<PaymentInit>(
+    "/payments/tinkoff/topup",
+    {
+      method: "POST",
+      body: JSON.stringify({ pack_id: packId })
+    },
+    accessToken
+  );
+}
+
+export function listPaymentHistory(accessToken: string): Promise<PaymentHistoryItem[]> {
+  return request<PaymentHistoryItem[]>("/payments/history", {}, accessToken);
 }

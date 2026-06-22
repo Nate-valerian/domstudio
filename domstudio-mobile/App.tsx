@@ -4,6 +4,7 @@ import {
   Alert,
   Image,
   ImageSourcePropType,
+  Linking,
   LogBox,
   Modal,
   Pressable,
@@ -29,7 +30,10 @@ import * as Sharing from "expo-sharing";
 import {
   API_URL,
   GenerateResult,
+  PaymentHistoryItem,
+  SubscriptionPlan,
   Tokens,
+  TokenPack,
   UserProfile,
   VideoJob,
   clearTokens,
@@ -37,6 +41,11 @@ import {
   generateImage,
   generateVideo,
   getVideoJob,
+  initPlanPayment,
+  initTopUpPayment,
+  listPaymentHistory,
+  listPlans,
+  listTokenPacks,
   listVideoJobs,
   loadMe,
   loadTokens,
@@ -171,6 +180,13 @@ const pricingPlans = [
   { name: "Business", kicker: "Store and marketplace growth", price: "1490 RUB", photos: "300 photos", videos: "100 local videos", premium: "99 premium videos" }
 ];
 
+const planKickers: Record<string, string> = {
+  free: "First product tests",
+  basic: "Validate product cards",
+  pro: "Regular seller content",
+  business: "Store and marketplace growth"
+};
+
 const exampleImages = [
   { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
   { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, video: perfumeProductVideo, wide: true },
@@ -250,7 +266,7 @@ const mobileCopy = {
     pricing: {
       eyebrow: "Pricing",
       title: "Choose the amount of content you need.",
-      body: "The native screen mirrors the web tariff structure while payment handoff remains a later compliance pass.",
+      body: "Choose a plan or add token packs. Checkout opens in the secure payment page, then refresh your account here.",
       offline: "Offline. Account numbers may be stale.",
       currentPlan: "Current plan",
       tokens: "Tokens",
@@ -315,7 +331,7 @@ const mobileCopy = {
     pricing: {
       eyebrow: "Тарифы",
       title: "Выберите нужный объем контента.",
-      body: "Нативный экран повторяет структуру веб-тарифов; платежный переход будет отдельным compliance-этапом.",
+      body: "Выберите тариф или пакет токенов. Оплата откроется на защищенной странице, затем обновите аккаунт здесь.",
       offline: "Офлайн. Данные аккаунта могут быть устаревшими.",
       currentPlan: "Текущий план",
       tokens: "Токены",
@@ -370,6 +386,27 @@ function usageStatus(value?: number, limit?: number) {
     return { display, overLimit: true, helper: `${value - limit} over plan limit` };
   }
   return { display, overLimit: false, helper: `${limit - value} remaining` };
+}
+
+function planCardFromApi(plan: SubscriptionPlan) {
+  const name = plan.name.charAt(0).toUpperCase() + plan.name.slice(1);
+  return {
+    name,
+    rawName: plan.name,
+    kicker: planKickers[plan.name] || "Seller content plan",
+    price: `${plan.price_rub} RUB`,
+    photos: `${plan.photos} photos`,
+    videos: `${plan.videos} local videos`,
+    premium: plan.premium_videos ? `${plan.premium_videos} premium videos` : "No premium video",
+    tokens: `${plan.tokens.toLocaleString("ru-RU")} tokens`,
+    featured: plan.name === "pro"
+  };
+}
+
+async function openPaymentUrl(paymentUrl: string) {
+  const supported = await Linking.canOpenURL(paymentUrl);
+  if (!supported) throw new Error("Cannot open payment URL on this device.");
+  await Linking.openURL(paymentUrl);
 }
 
 async function resultToFile(result: ResultState): Promise<{ path: string; mimeType: string }> {
@@ -1138,12 +1175,14 @@ function PricingScreen({
   offline,
   refreshProfile,
   signOut,
+  tokens,
   user
 }: {
   language: AppLanguage;
   offline: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
+  tokens: Tokens;
   user: UserProfile;
 }) {
   const sub = user.subscription;
@@ -1151,6 +1190,80 @@ function PricingScreen({
   const photosUsage = usageStatus(sub?.photos_used, sub?.photos_limit);
   const videosUsage = usageStatus(sub?.videos_used, sub?.videos_limit);
   const premiumUsage = usageStatus(sub?.premium_videos_used, sub?.premium_videos_limit);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [packs, setPacks] = useState<TokenPack[]>([]);
+  const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
+
+  const planCards = plans.length ? plans.map(planCardFromApi) : pricingPlans.map((plan) => ({
+    ...plan,
+    rawName: plan.name.toLowerCase(),
+    tokens: ""
+  }));
+
+  async function refreshPricingData() {
+    if (offline) {
+      Alert.alert("Offline", "Reconnect to refresh plans and payments.");
+      return;
+    }
+    setPricingLoading(true);
+    try {
+      const [nextPlans, nextPacks, nextPayments] = await Promise.all([
+        listPlans(),
+        listTokenPacks(),
+        listPaymentHistory(tokens.access_token)
+      ]);
+      setPlans(nextPlans);
+      setPacks(nextPacks);
+      setPayments(nextPayments);
+      await refreshProfile();
+    } catch (error) {
+      Alert.alert("Pricing failed", friendlyError(error));
+    } finally {
+      setPricingLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!offline) refreshPricingData().catch(() => undefined);
+  }, [offline, tokens.access_token]);
+
+  async function buyPlan(plan: string) {
+    if (offline) {
+      Alert.alert("Offline", "Reconnect to open checkout.");
+      return;
+    }
+    if (plan === "free") {
+      Alert.alert("Free plan", "You are already able to use the free plan.");
+      return;
+    }
+    setPaymentLoading(`plan:${plan}`);
+    try {
+      const payment = await initPlanPayment(tokens.access_token, plan);
+      await openPaymentUrl(payment.payment_url);
+    } catch (error) {
+      Alert.alert("Payment failed", friendlyError(error));
+    } finally {
+      setPaymentLoading(null);
+    }
+  }
+
+  async function buyPack(packId: string) {
+    if (offline) {
+      Alert.alert("Offline", "Reconnect to open checkout.");
+      return;
+    }
+    setPaymentLoading(`pack:${packId}`);
+    try {
+      const payment = await initTopUpPayment(tokens.access_token, packId);
+      await openPaymentUrl(payment.payment_url);
+    } catch (error) {
+      Alert.alert("Top-up failed", friendlyError(error));
+    } finally {
+      setPaymentLoading(null);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -1167,7 +1280,7 @@ function PricingScreen({
           <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
           <Text style={styles.muted}>{copy.currentPlan}: {sub?.plan || "free"}</Text>
           <Text style={styles.muted}>{copy.tokens}: {user.tokens ?? 0}</Text>
-          <SecondaryButton disabled={offline} label={copy.refresh} onPress={refreshProfile} />
+          <SecondaryButton disabled={offline || pricingLoading} label={pricingLoading ? "Refreshing..." : copy.refresh} onPress={refreshPricingData} />
         </View>
 
         <View style={styles.statsGrid}>
@@ -1178,7 +1291,7 @@ function PricingScreen({
         </View>
 
         <View style={styles.planList}>
-          {pricingPlans.map((plan) => (
+          {planCards.map((plan) => (
             <View key={plan.name} style={[styles.planCard, plan.featured && styles.planCardFeatured]}>
               <Text style={[styles.planKicker, plan.featured && styles.planKickerFeatured]}>{plan.kicker}</Text>
               <View style={styles.planTopRow}>
@@ -1188,8 +1301,58 @@ function PricingScreen({
               <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.photos}</Text>
               <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.videos}</Text>
               <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.premium}</Text>
+              {plan.tokens ? <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.tokens}</Text> : null}
+              <PrimaryButton
+                disabled={offline || plan.rawName === "free" || paymentLoading === `plan:${plan.rawName}`}
+                label={paymentLoading === `plan:${plan.rawName}` ? "Opening checkout..." : plan.rawName === "free" ? "Current starter" : `Upgrade to ${plan.name}`}
+                loading={paymentLoading === `plan:${plan.rawName}`}
+                onPress={() => buyPlan(plan.rawName)}
+              />
             </View>
           ))}
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.flex}>
+              <Text style={styles.cardTitle}>Token top-ups</Text>
+              <Text style={styles.muted}>Add tokens without changing your current plan.</Text>
+            </View>
+          </View>
+          {packs.length ? (
+            packs.map((pack) => (
+              <View key={pack.pack_id} style={styles.packRow}>
+                <View style={styles.flex}>
+                  <Text style={styles.historyTitle}>{pack.tokens.toLocaleString("ru-RU")} tokens</Text>
+                  <Text style={styles.muted}>~{Math.floor(pack.tokens / 100)} photos - {pack.price_rub} RUB</Text>
+                </View>
+                <SecondaryButton
+                  disabled={offline || paymentLoading === `pack:${pack.pack_id}`}
+                  label={paymentLoading === `pack:${pack.pack_id}` ? "Opening..." : "Buy"}
+                  onPress={() => buyPack(pack.pack_id)}
+                />
+              </View>
+            ))
+          ) : (
+            <Text style={styles.muted}>Token packs load from the backend when online.</Text>
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Payment history</Text>
+          {payments.length ? (
+            payments.slice(0, 5).map((payment) => (
+              <View key={payment.id} style={styles.paymentRow}>
+                <View style={styles.flex}>
+                  <Text style={styles.historyTitle}>{payment.plan || "Token top-up"}</Text>
+                  <Text style={styles.muted}>{payment.provider} - {payment.status}</Text>
+                </View>
+                <Text style={styles.paymentAmount}>{payment.amount_rub} RUB</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.muted}>Completed and pending payments will appear here.</Text>
+          )}
         </View>
 
         <SecondaryButton label={copy.signOut} onPress={signOut} />
@@ -2816,6 +2979,28 @@ const styles = StyleSheet.create({
   },
   planLineFeatured: {
     color: "#bbb7af"
+  },
+  packRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.line
+  },
+  paymentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.line
+  },
+  paymentAmount: {
+    color: colors.ink,
+    fontSize: 13,
+    fontWeight: "900"
   },
   flex: {
     flex: 1
