@@ -1,5 +1,31 @@
 # DomStudio Archive
 
+## June 22, 2026 - Clean Mobile Tariff Page Layout
+
+User flagged that the redesigned tariff page was messy.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Removed the busy Pricing hero media collage from the tariff page.
+- Replaced it with a compact dark tariff header and three simple metric pills.
+- Tightened plan card spacing, price sizing, and radius so cards scan cleaner.
+- Kept the premium dark/gold visual language without overwhelming the mobile
+  viewport.
+- Localized the new tariff metric label in English and Russian.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8082/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200 on the fresh
+Metro server running on port 8082.
+
+---
+
 ## June 22, 2026 - Premium Mobile Pricing Redesign
 
 User flagged that the mobile Pricing page looked boring compared with the web

@@ -298,7 +298,8 @@ const mobileCopy = {
       noPayments: "Completed and pending payments will appear here.",
       topup: "Token top-up",
       entryBatch: "entry batch",
-      sellerAssets: "seller assets"
+      sellerAssets: "seller assets",
+      plansLabel: "plans"
     },
     studio: {
       title: "Studio",
@@ -435,7 +436,8 @@ const mobileCopy = {
       noPayments: "Завершенные и ожидающие платежи появятся здесь.",
       topup: "Пакет токенов",
       entryBatch: "стартовый пакет",
-      sellerAssets: "материалов"
+      sellerAssets: "материалов",
+      plansLabel: "тарифа"
     },
     studio: {
       title: "Студия",
@@ -1633,24 +1635,18 @@ function PricingHero({ copy }: { copy: PricingCopy }) {
         <Text style={styles.pricingTitle}>{copy.title}</Text>
         <Text style={styles.pricingBody}>{copy.body}</Text>
       </View>
-      <View style={styles.pricingProofRow}>
-        <View style={styles.pricingProofFrame}>
-          <Image source={proofAfter} style={styles.pricingProofImage} />
-          <View style={styles.pricingProofBadge}><Text style={styles.pricingProofBadgeText}>AI</Text></View>
-        </View>
-        <View style={[styles.pricingProofFrame, styles.pricingProofVideoFrame]}>
-          <AutoplayVideo source={proofVideo} style={styles.pricingProofVideo} />
-          <View style={styles.pricingProofBadge}><Text style={styles.pricingProofBadgeText}>9:16</Text></View>
-        </View>
-      </View>
-      <View style={styles.pricingHeroStats}>
-        <View>
+      <View style={styles.pricingHeroMetrics}>
+        <View style={styles.pricingHeroMetric}>
           <Text style={styles.pricingHeroStatValue}>270 RUB</Text>
           <Text style={styles.pricingHeroStatLabel}>{copy.entryBatch}</Text>
         </View>
-        <View>
+        <View style={styles.pricingHeroMetric}>
           <Text style={styles.pricingHeroStatValue}>100+</Text>
           <Text style={styles.pricingHeroStatLabel}>{copy.sellerAssets}</Text>
+        </View>
+        <View style={styles.pricingHeroMetric}>
+          <Text style={styles.pricingHeroStatValue}>4</Text>
+          <Text style={styles.pricingHeroStatLabel}>{copy.plansLabel}</Text>
         </View>
       </View>
     </View>
@@ -3261,7 +3257,7 @@ const styles = StyleSheet.create({
   },
   pricingPage: {
     flexGrow: 1,
-    padding: 14,
+    padding: 12,
     paddingBottom: 128,
     gap: 12,
     backgroundColor: colors.paper
@@ -3269,17 +3265,17 @@ const styles = StyleSheet.create({
   pricingHero: {
     position: "relative",
     overflow: "hidden",
-    minHeight: 360,
+    minHeight: 228,
     padding: 18,
-    borderRadius: radii.lg,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "rgba(255, 157, 46, 0.28)",
     backgroundColor: colors.night,
     justifyContent: "space-between",
-    gap: 16
+    gap: 14
   },
   pricingHeroCopy: {
-    gap: 10
+    gap: 8
   },
   pricingKicker: {
     color: colors.acid,
@@ -3289,8 +3285,8 @@ const styles = StyleSheet.create({
   },
   pricingTitle: {
     color: "#fffdf8",
-    fontSize: 34,
-    lineHeight: 38,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: "900"
   },
   pricingBody: {
@@ -3299,59 +3295,31 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     fontWeight: "700"
   },
-  pricingProofRow: {
+  pricingHeroMetrics: {
     flexDirection: "row",
-    gap: 10,
-    minHeight: 128
+    gap: 8
   },
-  pricingProofFrame: {
+  pricingHeroMetric: {
     flex: 1,
-    position: "relative",
-    overflow: "hidden",
+    minHeight: 62,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255, 253, 248, 0.12)",
-    backgroundColor: colors.nightPanel
-  },
-  pricingProofVideoFrame: {
-    flex: 0.78
-  },
-  pricingProofImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover"
-  },
-  pricingProofVideo: {
-    width: "100%",
-    height: "100%"
-  },
-  pricingProofBadge: {
-    position: "absolute",
-    left: 10,
-    top: 10,
-    minHeight: 26,
-    borderRadius: 13,
     paddingHorizontal: 10,
+    paddingVertical: 9,
     justifyContent: "center",
-    backgroundColor: colors.acid
-  },
-  pricingProofBadgeText: {
-    color: colors.ink,
-    fontSize: 11,
-    fontWeight: "900"
-  },
-  pricingHeroStats: {
-    flexDirection: "row",
-    gap: 12
+    backgroundColor: "rgba(255, 253, 248, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 253, 248, 0.1)"
   },
   pricingHeroStatValue: {
     color: colors.acid,
-    fontSize: 18,
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: "900"
   },
   pricingHeroStatLabel: {
     color: "rgba(246, 241, 232, 0.58)",
-    fontSize: 10,
+    fontSize: 9,
+    lineHeight: 12,
     fontWeight: "900",
     textTransform: "uppercase"
   },
@@ -3432,13 +3400,12 @@ const styles = StyleSheet.create({
     gap: 12
   },
   planCard: {
-    minHeight: 300,
-    padding: 20,
-    borderRadius: radii.lg,
+    padding: 18,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.card,
-    gap: 14
+    gap: 12
   },
   planCardFeatured: {
     position: "relative",
@@ -3464,7 +3431,7 @@ const styles = StyleSheet.create({
   },
   planName: {
     color: colors.ink,
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "900"
   },
   planFeaturedText: {
@@ -3472,8 +3439,8 @@ const styles = StyleSheet.create({
   },
   planPrice: {
     color: colors.ink,
-    fontSize: 34,
-    lineHeight: 39,
+    fontSize: 31,
+    lineHeight: 36,
     fontWeight: "900"
   },
   planPriceFeatured: {
@@ -3491,7 +3458,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase"
   },
   planFeatureList: {
-    gap: 9,
+    gap: 8,
     marginBottom: 4
   },
   planFeatureRow: {
@@ -3501,7 +3468,7 @@ const styles = StyleSheet.create({
   },
   planCheck: {
     color: colors.acid,
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 18,
     fontWeight: "900"
   },
