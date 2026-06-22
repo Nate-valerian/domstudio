@@ -1,5 +1,32 @@
 # DomStudio Archive
 
+## June 22, 2026 - Mobile Checkout Return Refresh Hardening
+
+Next implementation step after mobile payment handoff: make the Expo Go return
+path less stale after checkout opens.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Pricing now marks checkout as pending before handing off to the secure payment
+  URL.
+- When the app becomes active again, Pricing automatically reloads plans, token
+  packs, payment history, and the account profile.
+- Added a localized return-from-checkout status banner for English and Russian.
+- If checkout fails to open, the pending refresh state is cleared before showing
+  the error.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Mobile Pricing Payment Handoff and Token Packs
 
 Next implementation step after Studio workflow polish: wire mobile Pricing to

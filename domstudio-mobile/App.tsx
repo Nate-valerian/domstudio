@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  AppState,
   Image,
   ImageSourcePropType,
   Linking,
@@ -267,6 +268,7 @@ const mobileCopy = {
       eyebrow: "Pricing",
       title: "Choose the amount of content you need.",
       body: "Choose a plan or add token packs. Checkout opens in the secure payment page, then refresh your account here.",
+      checkoutReturn: "Checkout opened. Return here after payment; this screen will refresh automatically.",
       offline: "Offline. Account numbers may be stale.",
       currentPlan: "Current plan",
       tokens: "Tokens",
@@ -332,6 +334,7 @@ const mobileCopy = {
       eyebrow: "Тарифы",
       title: "Выберите нужный объем контента.",
       body: "Выберите тариф или пакет токенов. Оплата откроется на защищенной странице, затем обновите аккаунт здесь.",
+      checkoutReturn: "Оплата открыта. Вернитесь сюда после платежа, экран обновится автоматически.",
       offline: "Офлайн. Данные аккаунта могут быть устаревшими.",
       currentPlan: "Текущий план",
       tokens: "Токены",
@@ -1195,6 +1198,7 @@ function PricingScreen({
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
   const [pricingLoading, setPricingLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
+  const [checkoutPendingRefresh, setCheckoutPendingRefresh] = useState(false);
 
   const planCards = plans.length ? plans.map(planCardFromApi) : pricingPlans.map((plan) => ({
     ...plan,
@@ -1229,6 +1233,17 @@ function PricingScreen({
     if (!offline) refreshPricingData().catch(() => undefined);
   }, [offline, tokens.access_token]);
 
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active" && checkoutPendingRefresh && !offline) {
+        setCheckoutPendingRefresh(false);
+        refreshPricingData().catch(() => undefined);
+      }
+    });
+
+    return () => subscription.remove();
+  }, [checkoutPendingRefresh, offline, tokens.access_token]);
+
   async function buyPlan(plan: string) {
     if (offline) {
       Alert.alert("Offline", "Reconnect to open checkout.");
@@ -1241,8 +1256,10 @@ function PricingScreen({
     setPaymentLoading(`plan:${plan}`);
     try {
       const payment = await initPlanPayment(tokens.access_token, plan);
+      setCheckoutPendingRefresh(true);
       await openPaymentUrl(payment.payment_url);
     } catch (error) {
+      setCheckoutPendingRefresh(false);
       Alert.alert("Payment failed", friendlyError(error));
     } finally {
       setPaymentLoading(null);
@@ -1257,8 +1274,10 @@ function PricingScreen({
     setPaymentLoading(`pack:${packId}`);
     try {
       const payment = await initTopUpPayment(tokens.access_token, packId);
+      setCheckoutPendingRefresh(true);
       await openPaymentUrl(payment.payment_url);
     } catch (error) {
+      setCheckoutPendingRefresh(false);
       Alert.alert("Top-up failed", friendlyError(error));
     } finally {
       setPaymentLoading(null);
@@ -1275,6 +1294,7 @@ function PricingScreen({
         </View>
 
         {offline ? <Banner tone="warn" text={copy.offline} /> : null}
+        {checkoutPendingRefresh ? <Banner tone="ok" text={copy.checkoutReturn} /> : null}
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
