@@ -316,6 +316,8 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .form-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-section .field:last-child { grid-column: 1 / -1; }
+.marketplace-field,
+.offer-field { grid-column: 1 / -1; }
 .media-toggle {
   display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 18px; padding: 4px;
   border: 1px solid var(--line); border-radius: 999px; background: #f4f0e8;
@@ -328,6 +330,21 @@ h1 em { color: var(--gold); font-style: normal; }
 .mobile-flow-steps { display: none; }
 .field { display: grid; min-width: 0; gap: 8px; margin-bottom: 18px; }
 .field label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.field small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+.marketplace-field small,
+.offer-field small {
+  padding: 10px 12px;
+  border: 1px solid rgba(255,157,46,.26);
+  border-radius: 12px;
+  background: #fff7df;
+  color: #66532f;
+}
 .field-note {
   margin: -2px 0 18px;
   padding: 12px 14px;
