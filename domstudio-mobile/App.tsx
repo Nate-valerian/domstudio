@@ -60,7 +60,7 @@ import {
   verifyEmail,
   verifyPhone
 } from "./src/api";
-import { LocalHistoryItem, clearLocalHistory, loadLocalHistory, saveLocalHistory } from "./src/storage";
+import { LocalHistoryItem, clearLocalHistory, loadLanguage, loadLocalHistory, saveLanguage, saveLocalHistory } from "./src/storage";
 import { colors, radii } from "./src/theme";
 
 type RootStackParamList = {
@@ -279,6 +279,57 @@ const mobileCopy = {
       renewal: "Renewal",
       none: "None",
       signOut: "Sign out"
+    },
+    studio: {
+      title: "Studio",
+      tokens: "tokens",
+      offline: "Offline. You can edit the prompt and inspect history; generation waits for network.",
+      heroKicker: "Mobile product studio",
+      heroTitle: "Shoot, style, export.",
+      heroBody: "Choose a proven format, add a product photo, then generate seller-ready content.",
+      setup: "setup",
+      prompt: "Product prompt",
+      promptPlaceholder: "Wine bottle on marble table, premium product card",
+      style: "Style",
+      upscale: "Upscale 4K",
+      upscaleBody: "Uses backend generation setting",
+      uploadTitle: "Product photo",
+      uploadBody: "Capture with camera or choose from gallery",
+      camera: "Camera",
+      gallery: "Gallery",
+      generate: "Generate photo",
+      queueVideo: "Queue 3s video",
+      queueingVideo: "Queueing video...",
+      resultEmptyTitle: "Result appears here",
+      resultEmptyBody: "Generate from your product photo, then save or share it from the phone.",
+      readyResult: "Ready result",
+      share: "Share",
+      save: "Save",
+      ready: "Ready",
+      queued: "queued",
+      videoJob: "Video job",
+      videoPending: "Queued videos render on the backend. Refresh this card to load the output.",
+      refresh: "Refresh",
+      refreshing: "Refreshing..."
+    },
+    account: {
+      title: "Account",
+      offline: "Offline. Account numbers may be stale.",
+      fallbackName: "DomStudio account",
+      verified: "Verified",
+      yes: "Yes",
+      no: "No",
+      tokens: "Tokens",
+      refresh: "Refresh account",
+      photos: "Photos",
+      videos: "Videos",
+      premiumVideos: "Premium videos",
+      plan: "Plan",
+      planStatus: "Plan status",
+      renewal: "Renewal",
+      notScheduled: "Not scheduled",
+      compliance: "Payments and subscriptions can be added here once native compliance decisions are final.",
+      signOut: "Sign out"
     }
   },
   ru: {
@@ -345,9 +396,62 @@ const mobileCopy = {
       renewal: "Продление",
       none: "Нет",
       signOut: "Выйти"
+    },
+    studio: {
+      title: "Студия",
+      tokens: "токенов",
+      offline: "Офлайн. Можно редактировать промпт и смотреть историю, генерация дождется сети.",
+      heroKicker: "Мобильная товарная студия",
+      heroTitle: "Снимите, оформите, экспортируйте.",
+      heroBody: "Выберите готовый формат, добавьте фото товара и создайте контент для продаж.",
+      setup: "настройка",
+      prompt: "Промпт товара",
+      promptPlaceholder: "Бутылка вина на мраморном столе, премиальная карточка товара",
+      style: "Стиль",
+      upscale: "Апскейл 4K",
+      upscaleBody: "Использует настройку генерации backend",
+      uploadTitle: "Фото товара",
+      uploadBody: "Снимите камерой или выберите из галереи",
+      camera: "Камера",
+      gallery: "Галерея",
+      generate: "Создать фото",
+      queueVideo: "Поставить видео 3с",
+      queueingVideo: "Ставим видео...",
+      resultEmptyTitle: "Результат появится здесь",
+      resultEmptyBody: "Создайте результат из фото товара, затем сохраните или отправьте с телефона.",
+      readyResult: "Готовый результат",
+      share: "Поделиться",
+      save: "Сохранить",
+      ready: "Готово",
+      queued: "в очереди",
+      videoJob: "Видео-задача",
+      videoPending: "Видео рендерится на backend. Обновите карточку, чтобы загрузить результат.",
+      refresh: "Обновить",
+      refreshing: "Обновляем..."
+    },
+    account: {
+      title: "Аккаунт",
+      offline: "Офлайн. Данные аккаунта могут быть устаревшими.",
+      fallbackName: "Аккаунт DomStudio",
+      verified: "Подтвержден",
+      yes: "Да",
+      no: "Нет",
+      tokens: "Токены",
+      refresh: "Обновить аккаунт",
+      photos: "Фото",
+      videos: "Видео",
+      premiumVideos: "Премиум-видео",
+      plan: "Тариф",
+      planStatus: "Статус тарифа",
+      renewal: "Продление",
+      notScheduled: "Не запланировано",
+      compliance: "Платежи и подписки можно добавить здесь после финальных решений по native compliance.",
+      signOut: "Выйти"
     }
   }
 } as const;
+
+type StudioCopy = (typeof mobileCopy)[AppLanguage]["studio"];
 
 const stylesList = [
   "clean marketplace card",
@@ -470,7 +574,7 @@ export default function App() {
   const [booting, setBooting] = useState(true);
   const [history, setHistory] = useState<LocalHistoryItem[]>([]);
   const [result, setResult] = useState<ResultState | null>(null);
-  const [language, setLanguage] = useState<AppLanguage>("en");
+  const [language, setLanguageState] = useState<AppLanguage>("en");
 
   async function completeAuth(nextTokens: Tokens) {
     await saveTokens(nextTokens);
@@ -489,9 +593,10 @@ export default function App() {
     let active = true;
     async function boot() {
       try {
-        const [savedTokens, savedHistory] = await Promise.all([loadTokens(), loadLocalHistory()]);
+        const [savedTokens, savedHistory, savedLanguage] = await Promise.all([loadTokens(), loadLocalHistory(), loadLanguage()]);
         if (!active) return;
         setHistory(savedHistory);
+        setLanguageState(savedLanguage);
         if (!savedTokens) return;
         try {
           const profile = await loadMe(savedTokens.access_token);
@@ -548,6 +653,11 @@ export default function App() {
   async function clearHistory() {
     await clearLocalHistory();
     setHistory([]);
+  }
+
+  function setLanguage(language: AppLanguage) {
+    setLanguageState(language);
+    saveLanguage(language).catch(() => undefined);
   }
 
   if (booting) {
@@ -1433,6 +1543,7 @@ function PlaybackVideo({ source, style }: { source: VideoSource; style?: StylePr
 }
 
 function StudioScreen({
+  language,
   offline,
   refreshProfile,
   rememberResult,
@@ -1441,6 +1552,7 @@ function StudioScreen({
   tokens,
   user
 }: {
+  language: AppLanguage;
   offline: boolean;
   refreshProfile: () => Promise<void>;
   rememberResult: (result: ResultState) => void;
@@ -1457,6 +1569,7 @@ function StudioScreen({
   const [generating, setGenerating] = useState(false);
   const [videoLoading, setVideoLoading] = useState(false);
   const [videoJob, setVideoJob] = useState<VideoJob | null>(null);
+  const copy = mobileCopy[language].studio;
 
   const activeMode = useMemo(() => modes.find((item) => item.id === mode) || modes[0], [mode]);
 
@@ -1570,9 +1683,9 @@ function StudioScreen({
   }
 
   return (
-    <Screen title="Studio" kicker={`${user.tokens ?? 0} tokens`}>
-      {offline ? <Banner tone="warn" text="Offline. You can edit the prompt and inspect history; generation waits for network." /> : null}
-      <StudioHero tokens={user.tokens ?? 0} />
+    <Screen title={copy.title} kicker={`${user.tokens ?? 0} ${copy.tokens}`}>
+      {offline ? <Banner tone="warn" text={copy.offline} /> : null}
+      <StudioHero copy={copy} tokens={user.tokens ?? 0} />
 
       <View style={styles.modeGrid}>
         {modes.map((item) => (
@@ -1583,21 +1696,21 @@ function StudioScreen({
       <View style={styles.card}>
         <View style={styles.cardHeaderRow}>
           <View>
-            <Text style={styles.cardTitle}>{activeMode?.label || "Catalog"} setup</Text>
+            <Text style={styles.cardTitle}>{activeMode?.label || "Catalog"} {copy.setup}</Text>
             <Text style={styles.muted}>{activeMode?.hint || "Marketplace-safe hero image"}</Text>
           </View>
           <View style={styles.modeRatioPill}><Text style={styles.modeRatioText}>{activeMode?.ratio || "4:3"}</Text></View>
         </View>
-        <Text style={styles.label}>Product prompt</Text>
+        <Text style={styles.label}>{copy.prompt}</Text>
         <TextInput
           multiline
-          placeholder="Wine bottle on marble table, premium product card"
+          placeholder={copy.promptPlaceholder}
           placeholderTextColor={colors.muted}
           style={[styles.input, styles.textarea]}
           value={subject}
           onChangeText={setSubject}
         />
-        <Text style={styles.label}>Style</Text>
+        <Text style={styles.label}>{copy.style}</Text>
         <View style={styles.chipWrap}>
           {samplePrompts.map((item) => (
             <Pressable key={item} style={styles.promptChip} onPress={() => setSubject(item)}>
@@ -1612,8 +1725,8 @@ function StudioScreen({
         </View>
         <View style={styles.switchRow}>
           <View>
-            <Text style={styles.label}>Upscale 4K</Text>
-            <Text style={styles.smallMuted}>Uses backend generation setting</Text>
+            <Text style={styles.label}>{copy.upscale}</Text>
+            <Text style={styles.smallMuted}>{copy.upscaleBody}</Text>
           </View>
           <Switch value={upscale} onValueChange={setUpscale} trackColor={{ true: colors.acid, false: colors.line }} />
         </View>
@@ -1627,28 +1740,29 @@ function StudioScreen({
           </>
         ) : (
           <>
-            <Text style={styles.uploadTitle}>Product photo</Text>
-            <Text style={styles.uploadText}>Capture with camera or choose from gallery</Text>
+            <Text style={styles.uploadTitle}>{copy.uploadTitle}</Text>
+            <Text style={styles.uploadText}>{copy.uploadBody}</Text>
           </>
         )}
         <View style={styles.buttonRow}>
-          <SecondaryButton label="Camera" onPress={() => pickImage("camera")} />
-          <SecondaryButton label="Gallery" onPress={() => pickImage("library")} />
+          <SecondaryButton label={copy.camera} onPress={() => pickImage("camera")} />
+          <SecondaryButton label={copy.gallery} onPress={() => pickImage("library")} />
         </View>
       </View>
 
-      <PrimaryButton disabled={generating || offline} label="Generate photo" loading={generating} onPress={createPhoto} />
-      <SecondaryButton disabled={videoLoading || offline} label={videoLoading ? "Queueing video..." : "Queue 3s video"} onPress={queueVideo} />
+      <PrimaryButton disabled={generating || offline} label={copy.generate} loading={generating} onPress={createPhoto} />
+      <SecondaryButton disabled={videoLoading || offline} label={videoLoading ? copy.queueingVideo : copy.queueVideo} onPress={queueVideo} />
 
       {videoJob ? (
         <VideoJobCard
+          copy={copy}
           job={videoJob}
           loading={videoLoading}
           onRefresh={refreshVideoJob}
         />
       ) : null}
 
-      <ResultPanel result={result} />
+      <ResultPanel copy={copy} result={result} />
     </Screen>
   );
 }
@@ -1674,13 +1788,13 @@ function ProofShowcase() {
   );
 }
 
-function ResultPanel({ result }: { result: ResultState | null }) {
+function ResultPanel({ copy, result }: { copy: StudioCopy; result: ResultState | null }) {
   if (!result) {
     return (
       <View style={styles.resultBox}>
         <View style={styles.emptyResult}>
-          <Text style={styles.emptyTitle}>Result appears here</Text>
-          <Text style={styles.muted}>Generate from your product photo, then save or share it from the phone.</Text>
+          <Text style={styles.emptyTitle}>{copy.resultEmptyTitle}</Text>
+          <Text style={styles.muted}>{copy.resultEmptyBody}</Text>
         </View>
       </View>
     );
@@ -1723,7 +1837,7 @@ function ResultPanel({ result }: { result: ResultState | null }) {
     <View style={styles.resultBox}>
       <View style={styles.resultTopRow}>
         <View>
-          <Text style={styles.resultKicker}>Ready result</Text>
+          <Text style={styles.resultKicker}>{copy.readyResult}</Text>
           <Text style={styles.emptyTitle}>{result.modeLabel}</Text>
         </View>
         <Text style={styles.resultFormat}>{String(result.meta.format || "PNG").toUpperCase()}</Text>
@@ -1733,25 +1847,27 @@ function ResultPanel({ result }: { result: ResultState | null }) {
         {result.meta.width || "?"} x {result.meta.height || "?"} - {result.modeLabel}
       </Text>
       <View style={styles.buttonRow}>
-        <SecondaryButton label="Share" onPress={shareResult} />
-        <SecondaryButton label="Save" onPress={saveToGallery} />
+        <SecondaryButton label={copy.share} onPress={shareResult} />
+        <SecondaryButton label={copy.save} onPress={saveToGallery} />
       </View>
     </View>
   );
 }
 
 function VideoJobCard({
+  copy = mobileCopy.en.studio,
   job,
   loading,
   onRefresh
 }: {
+  copy?: StudioCopy;
   job: VideoJob;
   loading?: boolean;
   onRefresh?: () => void;
 }) {
   const source = videoSourceFromJob(job);
   const isReady = Boolean(source);
-  const status = isReady ? "Ready" : job.status || "queued";
+  const status = isReady ? copy.ready : job.status || copy.queued;
 
   async function shareVideo() {
     try {
@@ -1789,8 +1905,8 @@ function VideoJobCard({
     <View style={[styles.card, styles.videoJobCard, job.status === "failed" && styles.videoJobCardFailed]}>
       <View style={styles.cardHeaderRow}>
         <View style={styles.flex}>
-          <Text style={styles.cardTitle}>{job.subject || "Video job"}</Text>
-          <Text style={styles.muted}>{status} - {job.mode || "video"} - {job.tokens_used || 0} tokens</Text>
+          <Text style={styles.cardTitle}>{job.subject || copy.videoJob}</Text>
+          <Text style={styles.muted}>{status} - {job.mode || "video"} - {job.tokens_used || 0} {copy.tokens}</Text>
         </View>
         <Text style={[styles.jobStatus, job.status === "failed" && styles.jobStatusFailed]}>{status}</Text>
       </View>
@@ -1800,29 +1916,29 @@ function VideoJobCard({
       ) : (
         <View style={styles.videoPendingBox}>
           <ActivityIndicator color={colors.acid} />
-          <Text style={styles.muted}>Queued videos render on the backend. Refresh this card to load the output.</Text>
+          <Text style={styles.muted}>{copy.videoPending}</Text>
         </View>
       )}
       <View style={styles.buttonRow}>
-        {onRefresh ? <SecondaryButton disabled={loading} label={loading ? "Refreshing..." : "Refresh"} onPress={onRefresh} /> : null}
-        <SecondaryButton disabled={!isReady} label="Share" onPress={shareVideo} />
-        <SecondaryButton disabled={!isReady} label="Save" onPress={saveVideo} />
+        {onRefresh ? <SecondaryButton disabled={loading} label={loading ? copy.refreshing : copy.refresh} onPress={onRefresh} /> : null}
+        <SecondaryButton disabled={!isReady} label={copy.share} onPress={shareVideo} />
+        <SecondaryButton disabled={!isReady} label={copy.save} onPress={saveVideo} />
       </View>
     </View>
   );
 }
 
-function StudioHero({ tokens }: { tokens: number }) {
+function StudioHero({ copy, tokens }: { copy: StudioCopy; tokens: number }) {
   return (
     <View style={styles.studioHero}>
       <View style={styles.studioHeroCopy}>
-        <Text style={styles.heroKicker}>Mobile product studio</Text>
-        <Text style={styles.heroTitle}>Shoot, style, export.</Text>
-        <Text style={styles.heroSub}>Choose a proven format, add a product photo, then generate seller-ready content.</Text>
+        <Text style={styles.heroKicker}>{copy.heroKicker}</Text>
+        <Text style={styles.heroTitle}>{copy.heroTitle}</Text>
+        <Text style={styles.heroSub}>{copy.heroBody}</Text>
       </View>
       <View style={styles.heroTokenBadge}>
         <Text style={styles.heroTokenValue}>{tokens}</Text>
-        <Text style={styles.heroTokenLabel}>tokens</Text>
+        <Text style={styles.heroTokenLabel}>{copy.tokens}</Text>
       </View>
       <View style={styles.heroPreviewRail}>
         <Image source={modes[1]?.preview || proofAfter} style={[styles.heroPreviewImage, styles.heroPreviewTall]} />
@@ -1943,42 +2059,45 @@ function HistoryScreen({
 }
 
 function AccountScreen({
+  language,
   offline,
   refreshProfile,
   signOut,
   user
 }: {
+  language: AppLanguage;
   offline: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   user: UserProfile;
 }) {
   const sub = user.subscription;
+  const copy = mobileCopy[language].account;
 
   return (
-    <Screen title="Account" kicker={user.subscription?.plan || "free"}>
-      {offline ? <Banner tone="warn" text="Offline. Account numbers may be stale." /> : null}
+    <Screen title={copy.title} kicker={user.subscription?.plan || "free"}>
+      {offline ? <Banner tone="warn" text={copy.offline} /> : null}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
-        <Text style={styles.muted}>Verified: {user.is_verified === false ? "No" : "Yes"}</Text>
-        <Text style={styles.muted}>Tokens: {user.tokens ?? 0}</Text>
-        <SecondaryButton disabled={offline} label="Refresh account" onPress={refreshProfile} />
+        <Text style={styles.cardTitle}>{user.email || user.phone || copy.fallbackName}</Text>
+        <Text style={styles.muted}>{copy.verified}: {user.is_verified === false ? copy.no : copy.yes}</Text>
+        <Text style={styles.muted}>{copy.tokens}: {user.tokens ?? 0}</Text>
+        <SecondaryButton disabled={offline} label={copy.refresh} onPress={refreshProfile} />
       </View>
 
       <View style={styles.statsGrid}>
-        <StatCard label="Photos" value={planText(sub?.photos_used, sub?.photos_limit)} />
-        <StatCard label="Videos" value={planText(sub?.videos_used, sub?.videos_limit)} />
-        <StatCard label="Premium videos" value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
-        <StatCard label="Plan" value={sub?.plan || "free"} />
+        <StatCard label={copy.photos} value={planText(sub?.photos_used, sub?.photos_limit)} />
+        <StatCard label={copy.videos} value={planText(sub?.videos_used, sub?.videos_limit)} />
+        <StatCard label={copy.premiumVideos} value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
+        <StatCard label={copy.plan} value={sub?.plan || "free"} />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Plan status</Text>
-        <Text style={styles.muted}>Renewal: {sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : "Not scheduled"}</Text>
-        <Text style={styles.muted}>Payments and subscriptions can be added here once native compliance decisions are final.</Text>
+        <Text style={styles.cardTitle}>{copy.planStatus}</Text>
+        <Text style={styles.muted}>{copy.renewal}: {sub?.renews_at ? new Date(sub.renews_at).toLocaleDateString() : copy.notScheduled}</Text>
+        <Text style={styles.muted}>{copy.compliance}</Text>
       </View>
 
-      <SecondaryButton label="Sign out" onPress={signOut} />
+      <SecondaryButton label={copy.signOut} onPress={signOut} />
     </Screen>
   );
 }

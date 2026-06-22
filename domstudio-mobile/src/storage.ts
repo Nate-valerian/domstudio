@@ -11,7 +11,10 @@ export type LocalHistoryItem = {
   format?: string;
 };
 
+export type LocalAppLanguage = "en" | "ru";
+
 const HISTORY_FILE = `${FileSystem.documentDirectory}domstudio-history.json`;
+const SETTINGS_FILE = `${FileSystem.documentDirectory}domstudio-settings.json`;
 
 export async function loadLocalHistory(): Promise<LocalHistoryItem[]> {
   try {
@@ -34,4 +37,20 @@ export async function clearLocalHistory(): Promise<void> {
   if (info.exists) {
     await FileSystem.deleteAsync(HISTORY_FILE, { idempotent: true });
   }
+}
+
+export async function loadLanguage(): Promise<LocalAppLanguage> {
+  try {
+    const info = await FileSystem.getInfoAsync(SETTINGS_FILE);
+    if (!info.exists) return "en";
+    const raw = await FileSystem.readAsStringAsync(SETTINGS_FILE);
+    const parsed = JSON.parse(raw);
+    return parsed?.language === "ru" ? "ru" : "en";
+  } catch {
+    return "en";
+  }
+}
+
+export async function saveLanguage(language: LocalAppLanguage): Promise<void> {
+  await FileSystem.writeAsStringAsync(SETTINGS_FILE, JSON.stringify({ language }));
 }

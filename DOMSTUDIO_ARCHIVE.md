@@ -1,5 +1,37 @@
 # DomStudio Archive
 
+## June 22, 2026 - Persist Mobile Language and Localize Studio
+
+Next implementation step after checkout return hardening: make the mobile
+language toggle feel real across app reloads and key authenticated screens.
+
+Implemented in `domstudio-mobile/src/storage.ts`:
+
+- Added a small local settings file for the selected language.
+- Added `loadLanguage()` and `saveLanguage()` helpers.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- App boot now loads the saved language alongside tokens and local history.
+- The language toggle now persists the selected language immediately.
+- Added English/Russian copy for Studio and Account surfaces.
+- Studio title, hero, offline banner, form labels/placeholders, upload actions,
+  video job card, and result card now follow the selected language.
+- Account status, plan labels, refresh, and sign-out copy now follow the selected
+  language.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Mobile Checkout Return Refresh Hardening
 
 Next implementation step after mobile payment handoff: make the Expo Go return
