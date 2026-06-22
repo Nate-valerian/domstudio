@@ -1,5 +1,53 @@
 # DomStudio Archive
 
+## June 22, 2026 - Video Examples, Motion Gallery, and Usage Limit Feedback
+
+### Changes
+
+**expo-video integration (`domstudio-mobile/package.json`, `app.json`)**
+- Added `expo-video ~3.0.16` dependency and registered the `expo-video` plugin in `app.json`.
+
+**Video assets added (`domstudio-mobile/assets/visual/`)**
+- `wine-after-smoke-5s.mp4` — proof-of-concept wine bottle product motion
+- `perfume-product-5s.mp4` — perfume bottle product scene motion
+- `wine-product-5s.mp4` — wine bottle product scene motion
+- `fashion-fitting-5s.mp4` — beige suit virtual fitting motion preview
+
+**`AutoplayVideo` component (`App.tsx`)**
+- New reusable component using `useVideoPlayer` + `VideoView` from `expo-video`.
+- Always plays muted, looped, inline, no native controls, `contentFit="cover"`.
+
+**Home screen — proof strip videos**
+- The third slot (previously a static `proofAfter` image with a "Video" badge) now renders `AutoplayVideo` with `proofVideo` instead of an `<Image>`. Applied in both the English and Russian proof sections.
+- Added `homeProofVideo` style: `100% × 100%`, dark `#11110f` background.
+
+**Examples screen — side-by-side image/video cards**
+- `exampleImages` entries for Perfume Product and Wine Product now carry a `video` field pointing to their respective `.mp4` assets.
+- Gallery renderer branches: cards with a `video` render a `exampleVideoPair` row (image left / autoplay video right, each in `exampleVideoHalf`); cards without a `video` keep the existing single-image layout.
+- New `motionExamples` array adds two wide cards at the bottom of the gallery: "Product video" (wine bottle) and "Fitting video" (beige suit), each shown as image + autoplay video pairs.
+- New styles: `exampleVideoPair`, `exampleVideoHalf`, `exampleVideo`.
+
+**Pricing screen — usage limit feedback**
+- New `usageStatus(value, limit)` helper returns `{ display, overLimit, helper }`.
+  - Shows remaining quota when under limit.
+  - Shows over-limit count when exceeded.
+  - Handles `limit === 0` (no allowance on plan) and missing values gracefully.
+- `StatCard` extended with optional `helper` (subtitle text) and `tone?: "default" | "warn"`.
+  - Warn tone applies red border/background (`statCardWarn`), red label/value/helper text.
+- Photos, Videos, and Premium stat cards now derive display + tone + helper from `usageStatus`.
+- `statCard` min-height raised from `82` → `104` to accommodate the helper line.
+- New styles: `statCardWarn`, `statLabelWarn`, `statValueWarn`, `statHelper`, `statHelperWarn`.
+
+**Tab bar — focused pill highlight moved to icon**
+- Removed `tabBarActiveBackgroundColor: "#fff4cf"` from the navigator options (was coloring the whole tab item background).
+- `TabGlyph` now receives `focused: boolean` from the tab bar and applies `tabGlyphActive` (`backgroundColor: "#fff4cf"`, `borderRadius: 15`) only to the glyph wrapper.
+- All four tab screens updated to forward `focused` to `TabGlyph`.
+- `tabGlyph` base size enlarged to `38 × 30` (from `24 × 24`) to contain the pill highlight.
+- `nativeTabItem` background set to `"transparent"` to prevent double highlight.
+- New style: `tabGlyphActive`.
+
+---
+
 ## June 21, 2026 - Wire Native Language Toggle To App Copy
 
 User reported the Home language toggle only changed the pill text and did not
