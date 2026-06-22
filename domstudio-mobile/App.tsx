@@ -1400,8 +1400,8 @@ function MainTabs(props: {
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.paper,
-        tabBarInactiveTintColor: "rgba(246, 241, 232, 0.62)",
+        tabBarActiveTintColor: colors.ink,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: styles.nativeTabBar,
         tabBarItemStyle: styles.nativeTabItem,
         tabBarLabelStyle: styles.nativeTabText
@@ -1451,8 +1451,8 @@ function GuestTabs({
       initialRouteName="Home"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.paper,
-        tabBarInactiveTintColor: "rgba(246, 241, 232, 0.62)",
+        tabBarActiveTintColor: colors.ink,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: styles.nativeTabBar,
         tabBarItemStyle: styles.nativeTabItem,
         tabBarLabelStyle: styles.nativeTabText
@@ -2826,7 +2826,7 @@ function StatCard({
 
 function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "examples" | "pricing" }) {
   const wrapStyle = [styles.tabGlyph, focused && styles.tabGlyphActive];
-  const glyphColor = focused ? colors.night : color;
+  const glyphColor = focused ? colors.paper : color;
   if (kind === "home") {
     return (
       <View style={wrapStyle}>
@@ -4577,23 +4577,23 @@ const styles = StyleSheet.create({
   },
   nativeTabBar: {
     position: "absolute",
-    left: 28,
-    right: 28,
+    left: 22,
+    right: 22,
     bottom: 14,
     minHeight: 72,
     paddingTop: 10,
     paddingBottom: 9,
     paddingHorizontal: 10,
     borderRadius: 28,
-    backgroundColor: "rgba(23, 16, 31, 0.96)",
+    backgroundColor: colors.card,
     borderTopWidth: 0,
     borderWidth: 1,
-    borderColor: "rgba(255, 159, 36, 0.32)",
-    shadowColor: colors.night,
-    shadowOpacity: 0.28,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 16
+    borderColor: colors.line,
+    shadowColor: colors.ink,
+    shadowOpacity: 0.10,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 12
   },
   nativeTabItem: {
     marginHorizontal: 2,
@@ -4614,13 +4614,13 @@ const styles = StyleSheet.create({
     gap: 3
   },
   tabGlyphActive: {
-    backgroundColor: colors.acid,
-    transform: [{ translateY: -13 }],
-    shadowColor: colors.acid,
-    shadowOpacity: 0.36,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12
+    backgroundColor: colors.night,
+    transform: [{ translateY: -9 }],
+    shadowColor: colors.night,
+    shadowOpacity: 0.24,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8
   },
   tabHomeRoof: {
     width: 16,

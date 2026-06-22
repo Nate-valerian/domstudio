@@ -1,5 +1,31 @@
 # DomStudio Archive
 
+## June 22, 2026 - Soften Mobile Footer Navbar Color
+
+User said the new dark footer navbar was too dark and asked to make it closer
+to the upper navbar/app chrome color.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Changed the bottom tab bar from dark purple back to the light `colors.card`
+  surface used throughout the app.
+- Restored active/inactive tab text colors to `colors.ink` and `colors.muted`.
+- Kept the newer compact dock shape, but widened it slightly and softened the
+  shadow.
+- Reduced the active glyph lift and made only the clicked/active tab use a dark
+  premium fill with light icon strokes.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+```
+
+Typecheck passed.
+
+---
+
 ## June 22, 2026 - Apply Dark Studio Dock Bottom Tabs
 
 User chose option `B. Dark Studio Dock` from the bottom tab bar preview.
