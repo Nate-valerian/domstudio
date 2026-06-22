@@ -695,11 +695,24 @@ function isStandaloneApp() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
+function isIosSafari() {
+  const ua = window.navigator.userAgent || "";
+  const platform = window.navigator.platform || "";
+  const isIos = /iPad|iPhone|iPod/.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
+  return isIos && isSafari;
+}
+
 function pwaInstallBanner() {
-  if (!state.installAvailable || state.installDismissed || isStandaloneApp()) return "";
+  const iosManualInstall = isIosSafari();
+  if (state.installDismissed || isStandaloneApp()) return "";
+  if (!state.installAvailable && !iosManualInstall) return "";
+  const title = iosManualInstall ? t("pwa.iosInstallTitle") : t("pwa.installTitle");
+  const sub = iosManualInstall ? t("pwa.iosInstallSub") : t("pwa.installSub");
+  const cta = iosManualInstall ? t("pwa.iosInstallCta") : t("pwa.installCta");
   return `<aside class="pwa-install" aria-label="${t("pwa.installTitle")}">
-    <div><b>${t("pwa.installTitle")}</b><span>${t("pwa.installSub")}</span></div>
-    <button class="button gold compact-button" type="button" data-install-pwa>${t("pwa.installCta")}</button>
+    <div><b>${title}</b><span>${sub}</span></div>
+    <button class="button gold compact-button" type="button" data-install-pwa>${cta}</button>
     <button class="pwa-dismiss" type="button" data-dismiss-pwa aria-label="${t("pwa.dismiss")}">×</button>
   </aside>`;
 }
@@ -2177,7 +2190,10 @@ async function shareResult() {
 
 async function installPwa() {
   const prompt = state.installPrompt;
-  if (!prompt) return;
+  if (!prompt) {
+    if (isIosSafari()) toast(t("pwa.iosInstallToast"));
+    return;
+  }
   prompt.prompt();
   const choice = await prompt.userChoice.catch(() => null);
   state.installPrompt = null;

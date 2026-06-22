@@ -1,5 +1,45 @@
 # DomStudio Archive
 
+## June 22, 2026 - Add iPhone Safari Manual PWA Install Banner
+
+User reported the web PWA still does not appear on iPhone, even though it shows
+on desktop.
+
+Important diagnosis:
+
+- Desktop Chrome can show the PWA install UI through `beforeinstallprompt`.
+- iPhone Safari does not support `beforeinstallprompt`, so the existing install
+  banner path could show on desktop and never show on iPhone.
+- From this environment, `https://domstudio.site` did not resolve in DNS
+  (`NXDOMAIN`), so the actual deployed URL/domain still needs confirmation if
+  iPhone is opening that domain.
+
+Implemented in `domstudio-frontend/src/app.js`:
+
+- Added `isIosSafari()` detection for iPhone/iPad Safari, including iPadOS
+  desktop-mode detection.
+- Updated `pwaInstallBanner()` so iPhone Safari gets a manual install banner
+  even when `beforeinstallprompt` is unavailable.
+- Kept desktop/Android install behavior using the real install prompt.
+- Updated the install button fallback so tapping it on iPhone shows a toast with
+  the manual Safari path.
+
+Implemented in `domstudio-frontend/src/i18n.js`:
+
+- Added English/Russian copy for the iPhone manual install banner:
+  Safari Share -> Add to Home Screen.
+
+Validation:
+
+```bash
+cd domstudio-frontend
+npm.cmd run build
+```
+
+Frontend production build passed.
+
+---
+
 ## June 22, 2026 - Harden Web PWA Reload On iPhone
 
 User reported that the web PWA opens on desktop, but after reload on iPhone it
