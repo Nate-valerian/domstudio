@@ -266,13 +266,14 @@ const mobileCopy = {
     },
     pricing: {
       eyebrow: "Pricing",
-      title: "Choose the amount of content you need.",
-      body: "Choose a plan or add token packs. Checkout opens in the secure payment page, then refresh your account here.",
+      title: "Scale your content.",
+      body: "Monthly plans for marketplace sellers who need product cards, social crops, and video-ready assets without rebuilding the workflow.",
       checkoutReturn: "Checkout opened. Return here after payment; this screen will refresh automatically.",
       offline: "Offline. Account numbers may be stale.",
       currentPlan: "Current plan",
       tokens: "Tokens",
       refresh: "Refresh account",
+      refreshing: "Refreshing...",
       photos: "Photos",
       videos: "Videos",
       premium: "Premium",
@@ -280,7 +281,24 @@ const mobileCopy = {
       none: "None",
       signOut: "Sign out",
       publicNote: "Sign in to buy a plan, add token packs, or start generating.",
-      publicCta: "Sign in to start"
+      publicCta: "Sign in to start",
+      accountLabel: "Account balance",
+      planLabel: "Plan",
+      bestValue: "Best value",
+      allModes: "All shooting modes",
+      currentStarter: "Current starter",
+      upgradePrefix: "Upgrade to",
+      openingCheckout: "Opening checkout...",
+      tokenTopups: "Token top-ups",
+      tokenTopupsBody: "Add tokens without changing your current plan.",
+      tokenPacksLoad: "Token packs load from the backend when online.",
+      buy: "Buy",
+      opening: "Opening...",
+      paymentHistory: "Payment history",
+      noPayments: "Completed and pending payments will appear here.",
+      topup: "Token top-up",
+      entryBatch: "entry batch",
+      sellerAssets: "seller assets"
     },
     studio: {
       title: "Studio",
@@ -385,13 +403,14 @@ const mobileCopy = {
     },
     pricing: {
       eyebrow: "Тарифы",
-      title: "Выберите нужный объем контента.",
-      body: "Выберите тариф или пакет токенов. Оплата откроется на защищенной странице, затем обновите аккаунт здесь.",
+      title: "Масштабируйте контент.",
+      body: "Месячные тарифы для продавцов маркетплейсов: карточки товаров, кропы для соцсетей и материалы для видео в одном процессе.",
       checkoutReturn: "Оплата открыта. Вернитесь сюда после платежа, экран обновится автоматически.",
       offline: "Офлайн. Данные аккаунта могут быть устаревшими.",
       currentPlan: "Текущий план",
       tokens: "Токены",
       refresh: "Обновить аккаунт",
+      refreshing: "Обновляем...",
       photos: "Фото",
       videos: "Видео",
       premium: "Премиум",
@@ -399,7 +418,24 @@ const mobileCopy = {
       none: "Нет",
       signOut: "Выйти",
       publicNote: "Войдите, чтобы купить тариф, добавить токены или начать генерацию.",
-      publicCta: "Войти и начать"
+      publicCta: "Войти и начать",
+      accountLabel: "Баланс аккаунта",
+      planLabel: "Тариф",
+      bestValue: "Лучший выбор",
+      allModes: "Все режимы съемки",
+      currentStarter: "Стартовый тариф",
+      upgradePrefix: "Перейти на",
+      openingCheckout: "Открываем оплату...",
+      tokenTopups: "Пакеты токенов",
+      tokenTopupsBody: "Добавьте токены без смены текущего тарифа.",
+      tokenPacksLoad: "Пакеты токенов загрузятся с backend, когда есть сеть.",
+      buy: "Купить",
+      opening: "Открываем...",
+      paymentHistory: "История платежей",
+      noPayments: "Завершенные и ожидающие платежи появятся здесь.",
+      topup: "Пакет токенов",
+      entryBatch: "стартовый пакет",
+      sellerAssets: "материалов"
     },
     studio: {
       title: "Студия",
@@ -456,6 +492,18 @@ const mobileCopy = {
 } as const;
 
 type StudioCopy = (typeof mobileCopy)[AppLanguage]["studio"];
+type PricingCopy = (typeof mobileCopy)[AppLanguage]["pricing"];
+type PricingPlanCardModel = {
+  name: string;
+  rawName: string;
+  kicker: string;
+  price: string;
+  photos: string;
+  videos: string;
+  premium: string;
+  tokens?: string;
+  featured?: boolean;
+};
 
 const stylesList = [
   "clean marketplace card",
@@ -1459,20 +1507,27 @@ function PricingScreen({
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.pricingPage}>
-        <View style={styles.pricingHero}>
-          <Text style={styles.kicker}>{copy.eyebrow}</Text>
-          <Text style={styles.pricingTitle}>{copy.title}</Text>
-          <Text style={styles.muted}>{copy.body}</Text>
-        </View>
+        <PricingHero copy={copy} />
 
         {offline ? <Banner tone="warn" text={copy.offline} /> : null}
         {checkoutPendingRefresh ? <Banner tone="ok" text={copy.checkoutReturn} /> : null}
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{user.email || user.phone || "DomStudio account"}</Text>
-          <Text style={styles.muted}>{copy.currentPlan}: {sub?.plan || "free"}</Text>
-          <Text style={styles.muted}>{copy.tokens}: {user.tokens ?? 0}</Text>
-          <SecondaryButton disabled={offline || pricingLoading} label={pricingLoading ? "Refreshing..." : copy.refresh} onPress={refreshPricingData} />
+        <View style={styles.pricingAccountPanel}>
+          <View style={styles.pricingAccountTop}>
+            <View style={styles.flex}>
+              <Text style={styles.pricingPanelKicker}>{copy.accountLabel}</Text>
+              <Text style={styles.pricingAccountName} numberOfLines={1}>{user.email || user.phone || "DomStudio account"}</Text>
+            </View>
+            <View style={styles.pricingTokenBadge}>
+              <Text style={styles.pricingTokenValue}>{user.tokens ?? 0}</Text>
+              <Text style={styles.pricingTokenLabel}>{copy.tokens}</Text>
+            </View>
+          </View>
+          <View style={styles.pricingPlanLine}>
+            <Text style={styles.pricingPlanLabel}>{copy.planLabel}</Text>
+            <Text style={styles.pricingPlanValue}>{sub?.plan || "free"}</Text>
+          </View>
+          <SecondaryButton disabled={offline || pricingLoading} label={pricingLoading ? copy.refreshing : copy.refresh} onPress={refreshPricingData} />
         </View>
 
         <View style={styles.statsGrid}>
@@ -1484,31 +1539,22 @@ function PricingScreen({
 
         <View style={styles.planList}>
           {planCards.map((plan) => (
-            <View key={plan.name} style={[styles.planCard, plan.featured && styles.planCardFeatured]}>
-              <Text style={[styles.planKicker, plan.featured && styles.planKickerFeatured]}>{plan.kicker}</Text>
-              <View style={styles.planTopRow}>
-                <Text style={[styles.planName, plan.featured && styles.planFeaturedText]}>{plan.name}</Text>
-                <Text style={[styles.planPrice, plan.featured && styles.planPriceFeatured]}>{plan.price}</Text>
-              </View>
-              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.photos}</Text>
-              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.videos}</Text>
-              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.premium}</Text>
-              {plan.tokens ? <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.tokens}</Text> : null}
-              <PrimaryButton
-                disabled={offline || plan.rawName === "free" || paymentLoading === `plan:${plan.rawName}`}
-                label={paymentLoading === `plan:${plan.rawName}` ? "Opening checkout..." : plan.rawName === "free" ? "Current starter" : `Upgrade to ${plan.name}`}
-                loading={paymentLoading === `plan:${plan.rawName}`}
-                onPress={() => buyPlan(plan.rawName)}
-              />
-            </View>
+            <PricingPlanCard
+              copy={copy}
+              disabled={offline || plan.rawName === "free" || paymentLoading === `plan:${plan.rawName}`}
+              key={plan.name}
+              loading={paymentLoading === `plan:${plan.rawName}`}
+              onPress={() => buyPlan(plan.rawName)}
+              plan={plan}
+            />
           ))}
         </View>
 
-        <View style={styles.card}>
+        <View style={styles.pricingPanel}>
           <View style={styles.cardHeaderRow}>
             <View style={styles.flex}>
-              <Text style={styles.cardTitle}>Token top-ups</Text>
-              <Text style={styles.muted}>Add tokens without changing your current plan.</Text>
+              <Text style={styles.cardTitle}>{copy.tokenTopups}</Text>
+              <Text style={styles.muted}>{copy.tokenTopupsBody}</Text>
             </View>
           </View>
           {packs.length ? (
@@ -1516,34 +1562,34 @@ function PricingScreen({
               <View key={pack.pack_id} style={styles.packRow}>
                 <View style={styles.flex}>
                   <Text style={styles.historyTitle}>{pack.tokens.toLocaleString("ru-RU")} tokens</Text>
-                  <Text style={styles.muted}>~{Math.floor(pack.tokens / 100)} photos - {pack.price_rub} RUB</Text>
+                  <Text style={styles.muted}>~{Math.floor(pack.tokens / 100)} {copy.photos.toLowerCase()} - {pack.price_rub} RUB</Text>
                 </View>
                 <SecondaryButton
                   disabled={offline || paymentLoading === `pack:${pack.pack_id}`}
-                  label={paymentLoading === `pack:${pack.pack_id}` ? "Opening..." : "Buy"}
+                  label={paymentLoading === `pack:${pack.pack_id}` ? copy.opening : copy.buy}
                   onPress={() => buyPack(pack.pack_id)}
                 />
               </View>
             ))
           ) : (
-            <Text style={styles.muted}>Token packs load from the backend when online.</Text>
+            <Text style={styles.muted}>{copy.tokenPacksLoad}</Text>
           )}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Payment history</Text>
+        <View style={styles.pricingPanel}>
+          <Text style={styles.cardTitle}>{copy.paymentHistory}</Text>
           {payments.length ? (
             payments.slice(0, 5).map((payment) => (
               <View key={payment.id} style={styles.paymentRow}>
                 <View style={styles.flex}>
-                  <Text style={styles.historyTitle}>{payment.plan || "Token top-up"}</Text>
+                  <Text style={styles.historyTitle}>{payment.plan || copy.topup}</Text>
                   <Text style={styles.muted}>{payment.provider} - {payment.status}</Text>
                 </View>
                 <Text style={styles.paymentAmount}>{payment.amount_rub} RUB</Text>
               </View>
             ))
           ) : (
-            <Text style={styles.muted}>Completed and pending payments will appear here.</Text>
+            <Text style={styles.muted}>{copy.noPayments}</Text>
           )}
         </View>
 
@@ -1564,31 +1610,102 @@ function PublicPricingScreen({ language, onSignIn }: { language: AppLanguage; on
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.pricingPage}>
-        <View style={styles.pricingHero}>
-          <Text style={styles.kicker}>{copy.eyebrow}</Text>
-          <Text style={styles.pricingTitle}>{copy.title}</Text>
-          <Text style={styles.muted}>{copy.body}</Text>
-        </View>
+        <PricingHero copy={copy} />
 
         <Banner tone="ok" text={copy.publicNote} />
 
         <View style={styles.planList}>
           {planCards.map((plan) => (
-            <View key={plan.name} style={[styles.planCard, plan.featured && styles.planCardFeatured]}>
-              <Text style={[styles.planKicker, plan.featured && styles.planKickerFeatured]}>{plan.kicker}</Text>
-              <View style={styles.planTopRow}>
-                <Text style={[styles.planName, plan.featured && styles.planFeaturedText]}>{plan.name}</Text>
-                <Text style={[styles.planPrice, plan.featured && styles.planPriceFeatured]}>{plan.price}</Text>
-              </View>
-              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.photos}</Text>
-              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.videos}</Text>
-              <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{plan.premium}</Text>
-              <PrimaryButton label={copy.publicCta} onPress={onSignIn} />
-            </View>
+            <PricingPlanCard copy={copy} key={plan.name} onPress={onSignIn} plan={plan} publicCta />
           ))}
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function PricingHero({ copy }: { copy: PricingCopy }) {
+  return (
+    <View style={styles.pricingHero}>
+      <GridBackdrop />
+      <View style={styles.pricingHeroCopy}>
+        <Text style={styles.pricingKicker}>{copy.eyebrow}</Text>
+        <Text style={styles.pricingTitle}>{copy.title}</Text>
+        <Text style={styles.pricingBody}>{copy.body}</Text>
+      </View>
+      <View style={styles.pricingProofRow}>
+        <View style={styles.pricingProofFrame}>
+          <Image source={proofAfter} style={styles.pricingProofImage} />
+          <View style={styles.pricingProofBadge}><Text style={styles.pricingProofBadgeText}>AI</Text></View>
+        </View>
+        <View style={[styles.pricingProofFrame, styles.pricingProofVideoFrame]}>
+          <AutoplayVideo source={proofVideo} style={styles.pricingProofVideo} />
+          <View style={styles.pricingProofBadge}><Text style={styles.pricingProofBadgeText}>9:16</Text></View>
+        </View>
+      </View>
+      <View style={styles.pricingHeroStats}>
+        <View>
+          <Text style={styles.pricingHeroStatValue}>270 RUB</Text>
+          <Text style={styles.pricingHeroStatLabel}>{copy.entryBatch}</Text>
+        </View>
+        <View>
+          <Text style={styles.pricingHeroStatValue}>100+</Text>
+          <Text style={styles.pricingHeroStatLabel}>{copy.sellerAssets}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function PricingPlanCard({
+  copy,
+  disabled,
+  loading,
+  onPress,
+  plan,
+  publicCta
+}: {
+  copy: PricingCopy;
+  disabled?: boolean;
+  loading?: boolean;
+  onPress: () => void;
+  plan: PricingPlanCardModel;
+  publicCta?: boolean;
+}) {
+  const features = [plan.photos, plan.videos, plan.premium, plan.tokens, copy.allModes].filter(Boolean) as string[];
+  const buttonLabel = publicCta
+    ? copy.publicCta
+    : loading
+      ? copy.openingCheckout
+      : plan.rawName === "free"
+        ? copy.currentStarter
+        : `${copy.upgradePrefix} ${plan.name}`;
+
+  return (
+    <View style={[styles.planCard, plan.featured && styles.planCardFeatured]}>
+      <View style={styles.planTopRow}>
+        <View style={styles.flex}>
+          <Text style={[styles.planKicker, plan.featured && styles.planKickerFeatured]}>{plan.kicker}</Text>
+          <Text style={[styles.planName, plan.featured && styles.planFeaturedText]}>{plan.name}</Text>
+        </View>
+        {plan.featured ? <Text style={styles.planBestBadge}>{copy.bestValue}</Text> : null}
+      </View>
+      <Text style={[styles.planPrice, plan.featured && styles.planPriceFeatured]}>{plan.price}</Text>
+      <View style={styles.planFeatureList}>
+        {features.map((feature) => (
+          <View key={feature} style={styles.planFeatureRow}>
+            <Text style={[styles.planCheck, plan.featured && styles.planCheckFeatured]}>+</Text>
+            <Text style={[styles.planLine, plan.featured && styles.planLineFeatured]}>{feature}</Text>
+          </View>
+        ))}
+      </View>
+      <PrimaryButton
+        disabled={disabled}
+        label={buttonLabel}
+        loading={loading}
+        onPress={onPress}
+      />
+    </View>
   );
 }
 
@@ -3144,45 +3261,195 @@ const styles = StyleSheet.create({
   },
   pricingPage: {
     flexGrow: 1,
-    padding: 16,
+    padding: 14,
     paddingBottom: 128,
-    gap: 14
+    gap: 12,
+    backgroundColor: colors.paper
   },
   pricingHero: {
+    position: "relative",
+    overflow: "hidden",
+    minHeight: 360,
+    padding: 18,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: "rgba(255, 157, 46, 0.28)",
+    backgroundColor: colors.night,
+    justifyContent: "space-between",
+    gap: 16
+  },
+  pricingHeroCopy: {
+    gap: 10
+  },
+  pricingKicker: {
+    color: colors.acid,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  pricingTitle: {
+    color: "#fffdf8",
+    fontSize: 34,
+    lineHeight: 38,
+    fontWeight: "900"
+  },
+  pricingBody: {
+    color: "rgba(246, 241, 232, 0.74)",
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: "700"
+  },
+  pricingProofRow: {
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 128
+  },
+  pricingProofFrame: {
+    flex: 1,
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 253, 248, 0.12)",
+    backgroundColor: colors.nightPanel
+  },
+  pricingProofVideoFrame: {
+    flex: 0.78
+  },
+  pricingProofImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  pricingProofVideo: {
+    width: "100%",
+    height: "100%"
+  },
+  pricingProofBadge: {
+    position: "absolute",
+    left: 10,
+    top: 10,
+    minHeight: 26,
+    borderRadius: 13,
+    paddingHorizontal: 10,
+    justifyContent: "center",
+    backgroundColor: colors.acid
+  },
+  pricingProofBadgeText: {
+    color: colors.ink,
+    fontSize: 11,
+    fontWeight: "900"
+  },
+  pricingHeroStats: {
+    flexDirection: "row",
+    gap: 12
+  },
+  pricingHeroStatValue: {
+    color: colors.acid,
+    fontSize: 18,
+    fontWeight: "900"
+  },
+  pricingHeroStatLabel: {
+    color: "rgba(246, 241, 232, 0.58)",
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  pricingAccountPanel: {
+    padding: 16,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: "rgba(49, 95, 75, 0.22)",
+    backgroundColor: "#eef7f1",
+    gap: 12
+  },
+  pricingPanel: {
     padding: 18,
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.card,
-    gap: 8
+    gap: 12
   },
-  pricingTitle: {
+  pricingAccountTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12
+  },
+  pricingPanelKicker: {
+    color: colors.green,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  pricingAccountName: {
     color: colors.ink,
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 21,
     fontWeight: "900"
   },
+  pricingTokenBadge: {
+    minWidth: 86,
+    minHeight: 58,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.ink,
+    paddingHorizontal: 12
+  },
+  pricingTokenValue: {
+    color: colors.acid,
+    fontSize: 20,
+    fontWeight: "900"
+  },
+  pricingTokenLabel: {
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  pricingPlanLine: {
+    minHeight: 44,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255,255,255,0.62)"
+  },
+  pricingPlanLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  pricingPlanValue: {
+    color: colors.ink,
+    fontSize: 14,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
   planList: {
-    gap: 10
+    gap: 12
   },
   planCard: {
-    minHeight: 260,
-    padding: 24,
+    minHeight: 300,
+    padding: 20,
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.card,
-    gap: 10
+    gap: 14
   },
   planCardFeatured: {
+    position: "relative",
+    overflow: "hidden",
     backgroundColor: colors.ink,
-    borderColor: colors.ink
+    borderColor: "rgba(255, 157, 46, 0.5)"
   },
   planKicker: {
-    minHeight: 34,
     color: colors.muted,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 11,
+    lineHeight: 15,
     fontWeight: "900",
     textTransform: "uppercase"
   },
@@ -3191,7 +3458,7 @@ const styles = StyleSheet.create({
   },
   planTopRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 12
   },
@@ -3205,11 +3472,41 @@ const styles = StyleSheet.create({
   },
   planPrice: {
     color: colors.ink,
-    fontSize: 26,
+    fontSize: 34,
+    lineHeight: 39,
     fontWeight: "900"
   },
   planPriceFeatured: {
     color: "#ffffff"
+  },
+  planBestBadge: {
+    overflow: "hidden",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    color: colors.ink,
+    backgroundColor: colors.acid,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  planFeatureList: {
+    gap: 9,
+    marginBottom: 4
+  },
+  planFeatureRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8
+  },
+  planCheck: {
+    color: colors.acid,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "900"
+  },
+  planCheckFeatured: {
+    color: colors.acid
   },
   planLine: {
     color: colors.muted,

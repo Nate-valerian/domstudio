@@ -1,5 +1,37 @@
 # DomStudio Archive
 
+## June 22, 2026 - Premium Mobile Pricing Redesign
+
+User flagged that the mobile Pricing page looked boring compared with the web
+product.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Reworked Pricing copy from utility wording to a stronger seller-content value
+  proposition.
+- Added a dark premium Pricing hero with web-style grid texture, product proof
+  image, autoplay video proof, and compact business stats.
+- Replaced the plain account card with a richer account balance panel showing
+  plan and token state.
+- Added a reusable `PricingPlanCard` with web-like hierarchy, best-value badge,
+  check-style feature rows, and consistent CTA labels.
+- Applied the same premium plan presentation to both authenticated Pricing and
+  public Pricing preview.
+- Localized new Pricing labels in English and Russian.
+- Restyled top-up and payment-history sections as Pricing panels.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+Invoke-WebRequest http://localhost:8081/node_modules/expo/AppEntry.bundle?platform=ios&dev=true&minify=false
+```
+
+Typecheck passed and the Expo iOS bundle request returned HTTP 200.
+
+---
+
 ## June 22, 2026 - Public Mobile Launch Before Sign-In
 
 User flagged that the app opened directly on sign-in, so visitors could not
