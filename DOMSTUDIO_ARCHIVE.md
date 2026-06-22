@@ -1,5 +1,37 @@
 # DomStudio Archive
 
+## June 22, 2026 - Fix Russian Pricing Copy Leaks
+
+User shared an iPhone screenshot showing the mobile Pricing/Tariff screen in
+Russian while several account usage strings still rendered in English:
+`FREE`, `remaining`, `over plan limit`, and `No allowance on this plan`.
+
+Implemented in `domstudio-mobile/App.tsx`:
+
+- Moved usage helper text into the localized Pricing copy table.
+- Made `usageStatus` language-aware for remaining quota, over-limit, and
+  no-allowance states.
+- Added `localizedPlanName` so live backend plan ids like `free` render as
+  localized plan names in Russian.
+- Applied localized plan names to both the account plan row and live plan cards.
+- Localized token-pack row units from hard-coded `tokens` to the active Pricing
+  token label.
+- Localized Pricing ruble amounts and the Home proof entry price so Russian
+  mode uses `₽` instead of hard-coded `RUB`.
+- Removed duplicate Studio `camera`/`gallery` copy keys and widened the
+  `styleHint` state type so TypeScript accepts all localized style chips.
+
+Validation:
+
+```bash
+cd domstudio-mobile
+npm run typecheck
+```
+
+Typecheck passed.
+
+---
+
 ## June 22, 2026 - Clean Mobile Tariff Page Layout
 
 User flagged that the redesigned tariff page was messy.

@@ -296,6 +296,7 @@ const mobileCopy = {
       proofTitle: "Real product proof.",
       proofBody: "The same before, after, and video story from the web home screen is now part of the native first impression.",
       stat1: "photos in the starter seller plan.",
+      entryPrice: "270 RUB",
       stat2: "entry price for a real content batch.",
       stat3: "story-ready vertical assets for social sales.",
       modesTitle: "Six web modes, native.",
@@ -370,6 +371,11 @@ const mobileCopy = {
       premium: "Premium",
       renewal: "Renewal",
       none: "None",
+      currencyRub: "RUB",
+      usageNoAllowance: "No allowance on this plan",
+      usageUsedNoAllowance: "used with no allowance on this plan",
+      usageOverPlanLimit: "over plan limit",
+      usageRemaining: "remaining",
       signOut: "Sign out",
       publicNote: "Sign in to buy a plan, add token packs, or start generating.",
       publicCta: "Sign in to start",
@@ -442,8 +448,6 @@ const mobileCopy = {
       videoPending: "Queued videos render on the backend. Refresh this card to load the output.",
       refresh: "Refresh",
       refreshing: "Refreshing...",
-      camera: "Camera",
-      gallery: "Gallery",
       promptSamples: ["Wine bottle on marble table", "Perfume in warm boutique light", "Marketplace card, clean shadow"],
       styleHints: ["clean marketplace card", "premium studio lighting", "social media creative", "warm lifestyle scene", "story-safe vertical composition"],
       offlineGenerate: "Connect to generate a new result.",
@@ -591,6 +595,7 @@ const mobileCopy = {
       proofTitle: "Реальный пример.",
       proofBody: "Тот же сценарий до, после и видео с веб-экрана теперь виден в первом экране приложения.",
       stat1: "фото в стартовом плане продавца.",
+      entryPrice: "270 ₽",
       stat2: "входная цена за реальный пакет контента.",
       stat3: "вертикальные 9:16 материалы для соцсетей.",
       modesTitle: "Шесть веб-режимов в приложении.",
@@ -665,6 +670,11 @@ const mobileCopy = {
       premium: "Премиум",
       renewal: "Продление",
       none: "Нет",
+      currencyRub: "₽",
+      usageNoAllowance: "Нет лимита в этом тарифе",
+      usageUsedNoAllowance: "использовано без лимита в тарифе",
+      usageOverPlanLimit: "сверх лимита тарифа",
+      usageRemaining: "осталось",
       signOut: "Выйти",
       publicNote: "Войдите, чтобы купить тариф, добавить токены или начать генерацию.",
       publicCta: "Войти и начать",
@@ -737,8 +747,6 @@ const mobileCopy = {
       videoPending: "Видео рендерится на backend. Обновите карточку, чтобы загрузить результат.",
       refresh: "Обновить",
       refreshing: "Обновляем...",
-      camera: "Камера",
-      gallery: "Галерея",
       promptSamples: ["Бутылка вина на мраморном столе", "Парфюм в теплом бутиковом свете", "Карточка маркетплейса, чистая тень"],
       styleHints: ["чистая карточка маркетплейса", "премиальный студийный свет", "креатив для соцсетей", "теплая лайфстайл-сцена", "вертикальная композиция для сторис"],
       offlineGenerate: "Подключитесь, чтобы создать новый результат.",
@@ -859,6 +867,7 @@ function fallbackPlansForLanguage(language: AppLanguage) {
       ...plan,
       ...localized,
       kicker: copy.planKickers[rawName],
+      price: localizeRubPrice(plan.price, copy),
       rawName,
       tokens: ""
     };
@@ -891,29 +900,42 @@ function planText(value?: number, limit?: number) {
   return `${value} / ${limit}`;
 }
 
-function usageStatus(value?: number, limit?: number) {
+function usageStatus(copy: PricingCopy, value?: number, limit?: number) {
   const display = planText(value, limit);
   if (typeof value !== "number" || typeof limit !== "number") {
     return { display, overLimit: false, helper: "" };
   }
   if (limit <= 0) {
     return value > 0
-      ? { display, overLimit: true, helper: `${value} used with no allowance on this plan` }
-      : { display, overLimit: false, helper: "No allowance on this plan" };
+      ? { display, overLimit: true, helper: `${value} ${copy.usageUsedNoAllowance}` }
+      : { display, overLimit: false, helper: copy.usageNoAllowance };
   }
   if (value > limit) {
-    return { display, overLimit: true, helper: `${value - limit} over plan limit` };
+    return { display, overLimit: true, helper: `${value - limit} ${copy.usageOverPlanLimit}` };
   }
-  return { display, overLimit: false, helper: `${limit - value} remaining` };
+  return { display, overLimit: false, helper: `${limit - value} ${copy.usageRemaining}` };
+}
+
+function formatRubPrice(amount: number, copy: PricingCopy) {
+  return `${amount.toLocaleString("ru-RU")} ${copy.currencyRub}`;
+}
+
+function localizeRubPrice(price: string, copy: PricingCopy) {
+  return price.replace("RUB", copy.currencyRub);
+}
+
+function localizedPlanName(planName: string | undefined, copy: PricingCopy) {
+  const key = (planName || "free").toLowerCase() as keyof typeof copy.fallbackPlans;
+  return copy.fallbackPlans[key]?.name || (planName ? planName.charAt(0).toUpperCase() + planName.slice(1) : copy.fallbackPlans.free.name);
 }
 
 function planCardFromApi(plan: SubscriptionPlan, copy: PricingCopy) {
-  const name = plan.name.charAt(0).toUpperCase() + plan.name.slice(1);
+  const name = localizedPlanName(plan.name, copy);
   return {
     name,
     rawName: plan.name,
     kicker: copy.planKickers[plan.name as keyof typeof copy.planKickers] || copy.allModes,
-    price: `${plan.price_rub} RUB`,
+    price: formatRubPrice(plan.price_rub, copy),
     photos: `${plan.photos} ${copy.photos.toLowerCase()}`,
     videos: `${plan.videos} ${copy.videos.toLowerCase()}`,
     premium: plan.premium_videos ? `${plan.premium_videos} ${copy.premium.toLowerCase()}` : copy.none,
@@ -1605,7 +1627,7 @@ function HomeScreen({
               <Text style={styles.homeProofStatText}>{copy.stat1}</Text>
             </View>
             <View style={styles.homeProofStat}>
-              <Text style={styles.homeProofStatValue}>270 RUB</Text>
+              <Text style={styles.homeProofStatValue}>{copy.entryPrice}</Text>
               <Text style={styles.homeProofStatText}>{copy.stat2}</Text>
             </View>
             <View style={styles.homeProofStat}>
@@ -1778,9 +1800,9 @@ function PricingScreen({
 }) {
   const sub = user.subscription;
   const copy = mobileCopy[language].pricing;
-  const photosUsage = usageStatus(sub?.photos_used, sub?.photos_limit);
-  const videosUsage = usageStatus(sub?.videos_used, sub?.videos_limit);
-  const premiumUsage = usageStatus(sub?.premium_videos_used, sub?.premium_videos_limit);
+  const photosUsage = usageStatus(copy, sub?.photos_used, sub?.photos_limit);
+  const videosUsage = usageStatus(copy, sub?.videos_used, sub?.videos_limit);
+  const premiumUsage = usageStatus(copy, sub?.premium_videos_used, sub?.premium_videos_limit);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [packs, setPacks] = useState<TokenPack[]>([]);
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
@@ -1889,7 +1911,7 @@ function PricingScreen({
           </View>
           <View style={styles.pricingPlanLine}>
             <Text style={styles.pricingPlanLabel}>{copy.planLabel}</Text>
-            <Text style={styles.pricingPlanValue}>{sub?.plan || "free"}</Text>
+            <Text style={styles.pricingPlanValue}>{localizedPlanName(sub?.plan, copy)}</Text>
           </View>
           <SecondaryButton disabled={offline || pricingLoading} label={pricingLoading ? copy.refreshing : copy.refresh} onPress={refreshPricingData} />
         </View>
@@ -1925,8 +1947,8 @@ function PricingScreen({
             packs.map((pack) => (
               <View key={pack.pack_id} style={styles.packRow}>
                 <View style={styles.flex}>
-                  <Text style={styles.historyTitle}>{pack.tokens.toLocaleString("ru-RU")} tokens</Text>
-                  <Text style={styles.muted}>~{Math.floor(pack.tokens / 100)} {copy.photos.toLowerCase()} - {pack.price_rub} RUB</Text>
+                  <Text style={styles.historyTitle}>{pack.tokens.toLocaleString("ru-RU")} {copy.tokens.toLowerCase()}</Text>
+                  <Text style={styles.muted}>~{Math.floor(pack.tokens / 100)} {copy.photos.toLowerCase()} - {formatRubPrice(pack.price_rub, copy)}</Text>
                 </View>
                 <SecondaryButton
                   disabled={offline || paymentLoading === `pack:${pack.pack_id}`}
@@ -1949,7 +1971,7 @@ function PricingScreen({
                   <Text style={styles.historyTitle}>{payment.plan || copy.topup}</Text>
                   <Text style={styles.muted}>{payment.provider} - {payment.status}</Text>
                 </View>
-                <Text style={styles.paymentAmount}>{payment.amount_rub} RUB</Text>
+                <Text style={styles.paymentAmount}>{formatRubPrice(payment.amount_rub, copy)}</Text>
               </View>
             ))
           ) : (
@@ -1995,7 +2017,7 @@ function PricingHero({ copy }: { copy: PricingCopy }) {
       </View>
       <View style={styles.pricingHeroMetrics}>
         <View style={styles.pricingHeroMetric}>
-          <Text style={styles.pricingHeroStatValue}>270 RUB</Text>
+          <Text style={styles.pricingHeroStatValue}>{formatRubPrice(270, copy)}</Text>
           <Text style={styles.pricingHeroStatLabel}>{copy.entryBatch}</Text>
         </View>
         <View style={styles.pricingHeroMetric}>
@@ -2138,7 +2160,7 @@ function StudioScreen({
   const localizedModes = useMemo(() => modesForLanguage(language), [language]);
   const [mode, setMode] = useState("catalog");
   const [subject, setSubject] = useState("");
-  const [styleHint, setStyleHint] = useState(copy.styleHints[0] || defaultStyleHint);
+  const [styleHint, setStyleHint] = useState<string>(copy.styleHints[0] || defaultStyleHint);
   const [upscale, setUpscale] = useState(false);
   const [selectedImage, setSelectedImage] = useState<PickedImage | null>(null);
   const [generating, setGenerating] = useState(false);
