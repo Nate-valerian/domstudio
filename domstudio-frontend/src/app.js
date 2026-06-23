@@ -1839,10 +1839,12 @@ function copyStudioPage() {
             : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`}
         </form>
         <section class="panel copy-output-panel" aria-label="${outputTitle}">
-          <div class="mini-head">
-            <div>
-              <h3>${outputTitle}</h3>
-              <span>${t(`copy.outputUse.${contentOutputKind(tool)}`)}</span>
+          <div class="output-panel-head">
+            <div class="mini-head">
+              <div>
+                <h3>${outputTitle}</h3>
+                <span>${t(`copy.outputUse.${contentOutputKind(tool)}`)}</span>
+              </div>
             </div>
             <div class="output-actions">
               <button class="button secondary" type="button" data-save-draft-local ${state.contentOutput && !state.contentSavingDraft ? "" : "disabled"}>${t("copy.saveDraft")}</button>

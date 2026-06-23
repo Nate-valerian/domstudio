@@ -555,7 +555,9 @@ h1 em { color: var(--gold); font-style: normal; }
   text-underline-offset: 3px; width: fit-content;
 }
 .link-btn:hover { opacity: .75; }
-.output-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.output-panel-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.output-panel-head .mini-head { margin-bottom: 0; }
+.output-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .variation-pills {
   display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
 }
