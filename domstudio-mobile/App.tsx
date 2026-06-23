@@ -2790,16 +2790,21 @@ const COPY_FIELD_LABELS: Record<AppLanguage, Record<string, string>> = {
     advantages: "Advantages", targetCustomer: "Target customer",
     tone: "Tone", offer: "Special offer", customerQuestion: "Customer question",
     reviewText: "Review text", businessName: "Business name",
+    masterName: "Master / specialist", duration: "Duration",
   },
   ru: {
     product: "Товар / услуга", city: "Город", price: "Цена",
     advantages: "Преимущества", targetCustomer: "Целевой клиент",
     tone: "Тон", offer: "Спецпредложение", customerQuestion: "Вопрос клиента",
     reviewText: "Текст отзыва", businessName: "Название бизнеса",
+    masterName: "Имя мастера", duration: "Длительность",
   },
 };
 
 const COPY_TOOLS_FALLBACK: ContentTool[] = [
+  { slug: "beauty-service-ad", name: "Beauty Ad", category: "Beauty", cost_units: 1, fields: ["product", "price", "city", "duration", "advantages", "offer"] },
+  { slug: "master-bio", name: "Master Bio", category: "Beauty", cost_units: 1, fields: ["masterName", "product", "city", "advantages", "offer"] },
+  { slug: "beauty-promo-post", name: "Beauty Promo", category: "Beauty", cost_units: 1, fields: ["product", "offer", "city", "masterName", "advantages"] },
   { slug: "avito-ad", name: "Avito Ad", category: "Listings", cost_units: 1, fields: ["product", "city", "price", "advantages"] },
   { slug: "ozon-listing", name: "Ozon Listing", category: "Listings", cost_units: 1, fields: ["product", "price", "advantages", "targetCustomer"] },
   { slug: "wb-listing", name: "WB Listing", category: "Listings", cost_units: 1, fields: ["product", "price", "advantages"] },
@@ -2809,22 +2814,24 @@ const COPY_TOOLS_FALLBACK: ContentTool[] = [
 
 const COPY_EXAMPLE: Record<AppLanguage, Record<string, string>> = {
   en: {
-    product: "Brake pad replacement", city: "Moscow", price: "From 4,500 RUB",
-    advantages: "Same-day service, warranty, clear quote before work",
-    targetCustomer: "busy car owners", tone: "friendly and direct",
-    offer: "Free diagnostics with booking today",
-    customerQuestion: "Is it available today and can you do cheaper?",
-    reviewText: "Good result, but I waited longer than expected.",
-    businessName: "Pilot Auto",
+    product: "Gel manicure", city: "Moscow", price: "From 2,500 RUB",
+    advantages: "Sterile tools, Japanese gels, lasts up to 3 weeks",
+    targetCustomer: "busy women who want a lasting result", tone: "warm and professional",
+    offer: "Free hand massage with booking today",
+    customerQuestion: "Is there a slot today and can you do cheaper?",
+    reviewText: "Great result, but the wait was longer than expected.",
+    businessName: "Anna Beauty",
+    masterName: "Anna", duration: "1.5 hours",
   },
   ru: {
-    product: "Замена тормозных колодок", city: "Москва", price: "От 4 500 ₽",
-    advantages: "Ремонт в день обращения, гарантия, честная смета до работ",
-    targetCustomer: "занятые автовладельцы", tone: "дружелюбно и по делу",
-    offer: "Бесплатная диагностика при записи сегодня",
+    product: "Гель-лак маникюр", city: "Москва", price: "От 2 500 ₽",
+    advantages: "Стерильные инструменты, японские гели, держится до 3 недель",
+    targetCustomer: "занятые женщины, которые хотят стойкий результат", tone: "тепло и профессионально",
+    offer: "Массаж рук в подарок при записи сегодня",
     customerQuestion: "Есть запись на сегодня и можно дешевле?",
-    reviewText: "Результат хороший, но ждать пришлось дольше, чем ожидал.",
-    businessName: "Пилот Авто",
+    reviewText: "Результат отличный, но ждать пришлось дольше, чем ожидала.",
+    businessName: "Анна Бьюти",
+    masterName: "Анна", duration: "1,5 часа",
   },
 };
 

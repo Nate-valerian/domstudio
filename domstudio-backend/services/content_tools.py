@@ -17,6 +17,44 @@ class ContentTool:
 
 
 TOOLS: tuple[ContentTool, ...] = (
+    # ── Beauty vertical ────────────────────────────────────────────────────────
+    ContentTool(
+        slug="beauty-service-ad",
+        name="Beauty Service Ad",
+        category="Beauty",
+        cost_units=1,
+        fields=("product", "price", "city", "duration", "advantages", "offer"),
+        task=(
+            "Create a beauty service listing for Avito or 2GIS: 5 title options, "
+            "a short description, a detailed description with trust signals, "
+            "bullet benefits, booking CTA, and 3 buyer questions with replies."
+        ),
+    ),
+    ContentTool(
+        slug="master-bio",
+        name="Master Bio",
+        category="Beauty",
+        cost_units=1,
+        fields=("masterName", "product", "city", "advantages", "offer"),
+        task=(
+            "Write a beauty master profile bio for Avito, 2GIS, or social media: "
+            "a short 2-sentence intro, a full 5-sentence bio, specialist certifications "
+            "framing, signature service highlights, and a booking CTA."
+        ),
+    ),
+    ContentTool(
+        slug="beauty-promo-post",
+        name="Beauty Promo Post",
+        category="Beauty",
+        cost_units=1,
+        fields=("product", "offer", "city", "masterName", "advantages"),
+        task=(
+            "Create 3 beauty promo post variants for VK or Telegram: "
+            "one seasonal/holiday promo, one before-and-after story hook, "
+            "and one limited-slots urgency post. Each with headline, body, CTA, and 5 relevant hashtags."
+        ),
+    ),
+    # ── General tools ──────────────────────────────────────────────────────────
     ContentTool(
         slug="avito-ad",
         name="Avito Ad",
@@ -120,6 +158,8 @@ FIELD_LABELS = {
     "customerQuestion": "Customer question",
     "reviewText": "Review text",
     "businessName": "Business name",
+    "masterName": "Master / specialist name",
+    "duration": "Duration",
 }
 
 FALLBACK_VALUES = {
@@ -133,6 +173,8 @@ FALLBACK_VALUES = {
     "customerQuestion": "Is this available?",
     "reviewText": "Thank you for the service.",
     "businessName": "Your business",
+    "masterName": "the specialist",
+    "duration": "60 minutes",
 }
 
 
@@ -280,9 +322,59 @@ def fallback_output(
     offer = value(input_data, profile, "offer")
     question = value(input_data, profile, "customerQuestion")
     review = value(input_data, profile, "reviewText")
+    master_name = value(input_data, profile, "masterName")
+    duration = value(input_data, profile, "duration")
     lines = _reply_lines(output_language, product, price, city, advantages, business_name, review)
 
     templates = {
+        "beauty-service-ad": [
+            "TITLE OPTIONS",
+            f"1. {product} in {city} — {price}, booking open",
+            f"2. {product}: professional result, {duration}",
+            f"3. {master_name}: {product} near you in {city}",
+            f"4. {product} — {advantages}",
+            f"5. {offer} — try {product} today",
+            "",
+            "SHORT DESCRIPTION",
+            f"Professional {product} in {city}. Duration: {duration}. Price: {price}. {advantages}.",
+            "",
+            "BOOKING CTA",
+            "Write to confirm your slot — we reply within 15 minutes.",
+            "",
+            "BUYER Q&A",
+            f"Q: How long does it take? A: {duration}. We keep the schedule and let you know before the session.",
+            "Q: Do you do home visits? A: Write your area in the message and we will tell you the current options.",
+        ],
+        "master-bio": [
+            "SHORT BIO",
+            f"{master_name} — {product} specialist in {city}.",
+            "",
+            "FULL BIO",
+            f"Hi, I am {master_name}, a {product} master based in {city}. "
+            f"I specialise in {advantages}. "
+            f"Every session is {duration} with full attention to detail and hygiene. "
+            f"My clients come back because results last and the process is comfortable. "
+            f"{offer} — reach out and let's book your first session.",
+            "",
+            "BOOKING",
+            "Write in chat — I will reply within the hour and confirm the next available slot.",
+        ],
+        "beauty-promo-post": [
+            "POST 1 — SEASONAL PROMO",
+            f"✨ {offer} on {product} this week!",
+            f"{master_name} in {city}: {advantages}.",
+            "Slots are limited — message now to confirm yours.",
+            "",
+            "POST 2 — BEFORE/AFTER STORY",
+            f"Client came in for {product}. Duration: {duration}.",
+            "Result: confident, ready, no touch-ups needed for weeks.",
+            f"{price}. Book with {master_name} in {city}.",
+            "",
+            "POST 3 — URGENCY",
+            f"Only 3 slots left this week for {product}.",
+            f"{price} · {duration} · {city}",
+            "Don't wait — message to secure your time.",
+        ],
         "avito-ad": [
             "TITLE OPTIONS",
             f"1. {product} in {city} - fast and clear",

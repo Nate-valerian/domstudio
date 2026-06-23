@@ -224,6 +224,9 @@ const TOKEN_PACKS = [
 ];
 
 const CONTENT_TOOLS_FALLBACK = [
+  { slug: "beauty-service-ad", name: "Beauty Service Ad", category: "Beauty", cost_units: 1, fields: ["product", "price", "city", "duration", "advantages", "offer"] },
+  { slug: "master-bio", name: "Master Bio", category: "Beauty", cost_units: 1, fields: ["masterName", "product", "city", "advantages", "offer"] },
+  { slug: "beauty-promo-post", name: "Beauty Promo Post", category: "Beauty", cost_units: 1, fields: ["product", "offer", "city", "masterName", "advantages"] },
   { slug: "avito-ad", name: "Avito Ad", category: "Avito", cost_units: 1, fields: ["product", "city", "price", "advantages", "targetCustomer", "tone"] },
   { slug: "avito-reply", name: "Avito Reply", category: "Avito", cost_units: 1, fields: ["customerQuestion", "product", "price", "city", "tone"] },
   { slug: "vk-post", name: "VK Post", category: "Social", cost_units: 1, fields: ["product", "offer", "targetCustomer", "tone", "city"] },
@@ -247,6 +250,8 @@ const CONTENT_FIELD_LABELS = {
   customerQuestion: "Customer question",
   reviewText: "Review text",
   businessName: "Business name",
+  masterName: "Master / specialist name",
+  duration: "Duration",
 };
 
 const CONTENT_DEFAULTS = {
@@ -262,6 +267,8 @@ const CONTENT_DEFAULTS = {
       customerQuestion: "Is it available today and can you do cheaper?",
       reviewText: "Good result, but I waited longer than expected.",
       businessName: "Pilot Auto",
+      masterName: "Anna",
+      duration: "1.5 hours",
     },
     profile: {
       businessName: "Pilot Auto",
@@ -289,6 +296,8 @@ const CONTENT_DEFAULTS = {
       customerQuestion: "Есть запись на сегодня и можно дешевле?",
       reviewText: "Результат хороший, но ждать пришлось дольше, чем ожидал.",
       businessName: "Пилот Авто",
+      masterName: "Анна",
+      duration: "1,5 часа",
     },
     profile: {
       businessName: "Пилот Авто",
