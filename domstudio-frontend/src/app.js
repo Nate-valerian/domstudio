@@ -442,6 +442,7 @@ const state = {
   contentFieldLabels: { ...CONTENT_FIELD_LABELS },
   contentTokenUnit: 10,
   contentToolSlug: "avito-ad",
+  adpilotView: "tools",
   contentDraft: { ...initialContentDefaults.draft },
   contentProfile: { ...initialContentDefaults.profile },
   contentOutputLanguage: "auto",
@@ -602,8 +603,12 @@ async function loadPlans() {
 }
 
 async function loadContentTools() {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 2500);
   try {
-    const data = await api("/content/tools");
+    const response = await fetch(`${API_URL}/content/tools`, { signal: controller.signal });
+    if (!response.ok) throw new Error("Content tools unavailable");
+    const data = await response.json();
     state.contentTools = Array.isArray(data.tools) && data.tools.length ? data.tools : [...CONTENT_TOOLS_FALLBACK];
     state.contentFieldLabels = data.field_labels || { ...CONTENT_FIELD_LABELS };
     state.contentTokenUnit = Number(data.token_unit || 10);
@@ -611,6 +616,8 @@ async function loadContentTools() {
     state.contentTools = [...CONTENT_TOOLS_FALLBACK];
     state.contentFieldLabels = { ...CONTENT_FIELD_LABELS };
     state.contentTokenUnit = 10;
+  } finally {
+    window.clearTimeout(timeout);
   }
 }
 
@@ -1328,8 +1335,12 @@ function marketplaceTabsMarkup(className = "marketplace-tabs") {
     ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
   ];
   return `<div class="${className}" aria-label="${t("market.tabs")}">
+    <button class="${state.adpilotView === "tools" ? "active" : ""}" type="button" data-adpilot-tools>
+      <strong>${t("market.tab.tools")}</strong>
+      <span>${t("market.tab.toolsSub")}</span>
+    </button>
     ${tabs.map(([id, label, sub]) => `
-      <button class="${state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
+      <button class="${state.adpilotView === "marketplace" && state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
         <strong>${label}</strong>
         <span>${sub}</span>
       </button>
@@ -1655,23 +1666,30 @@ function marketplaceProductPanel() {
 function marketplaceActionPanel() {
   const product = selectedMarketplaceProduct();
   const providerProducts = state.marketplaceProducts.filter((item) => item.provider === state.marketplaceSelectedProvider);
+  const actionType = state.marketplaceActionType;
+  const contextPlaceholder = t(`market.actionContext.${actionType}`) || t("market.actionPlaceholder");
+  const contextValue = actionType === "buyer_reply"
+    ? (state.contentDraft.customerQuestion || "")
+    : (product?.description || state.contentDraft.customerQuestion || "");
   return `<form class="panel marketplace-card" id="marketplace-action-form">
     <div class="mini-head"><h3>${t("market.actionTitle")}</h3><span>${t("market.actionSub")}</span></div>
     <div class="field">
       <label for="market_action_product">${t("market.product")}</label>
       <select class="select" id="market_action_product" name="product_id" ${providerProducts.length ? "" : "disabled"}>
+        ${!providerProducts.length ? `<option value="" disabled selected>${escapeHtml(t("market.noProductsOption"))}</option>` : ""}
         ${providerProducts.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceSelectedProductId, item.id)}>${escapeHtml(item.title)}</option>`).join("")}
       </select>
+      ${!providerProducts.length ? `<small><button class="text-button" type="button" data-marketplace-tab="products">${escapeHtml(t("market.addProductsHint"))}</button></small>` : ""}
     </div>
     <div class="field">
       <label for="market_action_type">${t("market.actionType")}</label>
       <select class="select" id="market_action_type" name="action_type">
-        ${MARKETPLACE_ACTION_TYPES.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceActionType, item.id)}>${escapeHtml(marketplaceActionTypeLabel(item))}</option>`).join("")}
+        ${MARKETPLACE_ACTION_TYPES.map((item) => `<option value="${item.id}" ${selectedAttr(actionType, item.id)}>${escapeHtml(marketplaceActionTypeLabel(item))}</option>`).join("")}
       </select>
     </div>
     <div class="field">
       <label for="market_action_input">${t("market.actionInput")}</label>
-      <textarea class="textarea" id="market_action_input" name="input" rows="4" placeholder="${t("market.actionPlaceholder")}">${escapeHtml(product?.description || state.contentDraft.customerQuestion || "")}</textarea>
+      <textarea class="textarea" id="market_action_input" name="input" rows="4" placeholder="${escapeHtml(contextPlaceholder)}">${escapeHtml(contextValue)}</textarea>
     </div>
     <button class="button gold block" type="submit" ${product && !state.marketplaceSaving ? "" : "disabled"}>${t("market.generateAction")}</button>
     <p class="token-hint">${t("market.actionHint")}</p>
@@ -1730,18 +1748,29 @@ function marketplaceDashboard() {
 function copyStudioPage() {
   if (!state.user) return gatePage();
   const tool = currentContentTool();
-  const categories = [...new Set(state.contentTools.map((item) => item.category))];
   const cost = contentTokenCost(tool);
   const canGenerate = state.online && !state.contentGenerating && state.user.tokens >= cost;
   const outputTitle = contentOutputTitle(tool);
+
+  if (state.adpilotView === "marketplace") {
+    return `<main class="app-layout">
+      ${appSidebar("adpilot")}
+      <section class="workspace copy-workspace">
+        <header class="workspace-head">
+          <div><div class="eyebrow">${t("copy.eyebrow")}</div><h1>${t("copy.h1")}</h1></div>
+        </header>
+        ${marketplaceDashboard()}
+      </section>
+    </main>`;
+  }
+
+  const categories = [...new Set(state.contentTools.map((item) => item.category))];
   return `<main class="app-layout">
     ${appSidebar("adpilot")}
     <section class="workspace copy-workspace">
       <header class="workspace-head">
         <div><div class="eyebrow">${t("copy.eyebrow")}</div><h1>${t("copy.h1")}</h1></div>
-        <div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>
       </header>
-      ${marketplaceDashboard()}
       <div class="copy-grid">
         <aside class="panel copy-tool-panel">
           <div class="mini-head"><h3>${t("copy.toolsTitle")}</h3><span>${state.contentTools.length}</span></div>
@@ -2090,7 +2119,7 @@ function prepareDemoVideos() {
 
 function bind() {
   document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => {
-    if (el.dataset.route === "adpilot") state.marketplaceTab = "drafts";
+    if (el.dataset.route === "adpilot") { state.adpilotView = "tools"; state.marketplaceTab = "drafts"; }
     navigate(el.dataset.route);
   }));
   document.querySelectorAll("[data-toggle-presets]").forEach(el => el.addEventListener("click", togglePresetsMenu));
@@ -2124,10 +2153,16 @@ function bind() {
   document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
   document.querySelector("#copy-form")?.addEventListener("input", event => syncContentFromForm(event.currentTarget));
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
+
   document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
+  document.querySelectorAll("[data-adpilot-tools]").forEach(el => el.addEventListener("click", () => {
+    state.adpilotView = "tools";
+    render({ motion: false });
+  }));
   document.querySelectorAll("[data-marketplace-tab]").forEach(el => el.addEventListener("click", () => {
     state.marketplaceTab = el.dataset.marketplaceTab || "overview";
+    state.adpilotView = "marketplace";
     render({ motion: false });
   }));
   document.querySelector("#marketplace-connect-form")?.addEventListener("submit", submitMarketplaceConnection);

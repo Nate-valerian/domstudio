@@ -602,8 +602,8 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .marketplace-dashboard {
   display: block;
-  max-width: 980px;
-  margin-bottom: 18px;
+  max-width: 760px;
+  margin-bottom: 14px;
 }
 .marketplace-mobile-tabs { display: none; }
 .marketplace-tab-content { min-width: 0; }
@@ -646,14 +646,15 @@ h1 em { color: var(--gold); font-style: normal; }
 .market-empty-guide {
   display: grid;
   justify-items: center;
-  gap: 8px;
-  min-height: 124px;
+  gap: 6px;
+  min-height: 72px;
   align-content: center;
+  padding: 8px 10px;
 }
-.market-empty-guide b { color: var(--ink); font-size: 15px; font-weight: 900; }
-.market-empty-guide p { max-width: 460px; margin: 0; line-height: 1.45; }
-.market-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
-.market-empty-actions .button { min-height: 38px; padding-inline: 14px; font-size: 13px; }
+.market-empty-guide b { color: var(--ink); font-size: 14px; font-weight: 900; }
+.market-empty-guide p { max-width: 380px; margin: 0; font-size: 12px; line-height: 1.35; }
+.market-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 2px; }
+.market-empty-actions .button { min-height: 32px; padding-inline: 11px; font-size: 12px; border-radius: 999px; box-shadow: none; }
 .market-action { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fffdf8; }
 .market-action pre {
   max-height: 180px; margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--line);
