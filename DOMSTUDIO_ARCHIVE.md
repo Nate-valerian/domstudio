@@ -1,5 +1,45 @@
 # DomStudio Archive
 
+## June 23, 2026 - AdPilot Tools: Five UX Improvements
+
+User asked to improve the AdPilot Tools view to reduce friction and
+show more value to new users. Five features implemented in one commit
+(`b8dfca3`):
+
+1. **Fill with example** — a "Fill with example" link under the tool
+   name resets all form fields to locale-aware sample data
+   (`CONTENT_DEFAULTS[lang].draft`). Lets new users see AI output in
+   seconds without typing anything.
+
+2. **Variations** — `state.contentVariations` stores the last 3 outputs
+   (newest first). After the second generation, tab pills appear in the
+   output panel so users can switch between options without re-generating.
+
+3. **Character limit badges** — after generation, a `.char-limits` row
+   shows the total character count and green/red badges for Avito (3000),
+   Ozon (5000), and WB (5000). Sellers see immediately if the copy fits
+   platform limits.
+
+4. **Save to drafts** — a "Save to drafts" button in the output panel
+   header saves the text to `localStorage` (`domstudio_saved_outputs`,
+   max 20). Saved copies appear at the top of the Drafts tab with copy
+   and delete buttons. Works without any marketplace connection.
+
+5. **Adjust** — a text input + Adjust button below the output lets users
+   give a quick refinement instruction ("shorter", "more formal", "add
+   CTA"). On submit, the instruction is passed as `adjust_instruction`
+   and the previous output as `previous_output` in the API body alongside
+   the normal generate call.
+
+Also in this session — sidebar reorder and UX rationale:
+User confirmed the sidebar order should reflect the onboarding flow.
+New order: Connection → Products → Tools → Create draft → Drafts.
+Removed "Marketplaces" overview tab from the sidebar. Users land on
+Tools and can generate copy immediately without connecting anything.
+Commit `4eb7889`.
+
+---
+
 ## June 23, 2026 - AdPilot Page Structure And Action Form Fixes
 
 User showed three problems on the AdPilot page:
