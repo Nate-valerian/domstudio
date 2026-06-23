@@ -163,7 +163,27 @@ def value(input_data: dict[str, str], profile: dict[str, str], key: str) -> str:
     return input_data.get(key) or profile.get(key) or FALLBACK_VALUES.get(key, "")
 
 
-def build_prompt(tool: ContentTool, input_data: dict[str, str], profile: dict[str, str]) -> str:
+def detect_language(input_data: dict[str, str], profile: dict[str, str]) -> str:
+    text = " ".join([*input_data.values(), *profile.values()])
+    return "Russian" if any("\u0400" <= char <= "\u04ff" for char in text) else "English"
+
+
+def normalize_language(language: str | None, input_data: dict[str, str], profile: dict[str, str]) -> str:
+    requested = (language or "auto").strip().lower()
+    if requested in {"russian", "ru", "русский"}:
+        return "Russian"
+    if requested in {"english", "en", "английский"}:
+        return "English"
+    return detect_language(input_data, profile)
+
+
+def build_prompt(
+    tool: ContentTool,
+    input_data: dict[str, str],
+    profile: dict[str, str],
+    language: str | None = None,
+) -> str:
+    output_language = normalize_language(language, input_data, profile)
     business = {
         "businessName": value(input_data, profile, "businessName"),
         "city": value(input_data, profile, "city"),
@@ -176,14 +196,14 @@ def build_prompt(tool: ContentTool, input_data: dict[str, str], profile: dict[st
     return "\n".join(
         [
             f"Tool: {tool.name}",
-            "Language: Russian",
+            f"Language: {output_language}",
             "Business profile:",
             str(business),
             "User input:",
             str(input_data),
             "",
             "Rules:",
-            "- Write natural Russian for small business sales.",
+            f"- Write natural {output_language} for small business sales.",
             "- Keep the output structured with clear headings.",
             "- Make the copy ready to paste into the target channel.",
             "- Avoid exaggerated claims, fake guarantees, fake discounts, and invented availability.",
@@ -195,7 +215,61 @@ def build_prompt(tool: ContentTool, input_data: dict[str, str], profile: dict[st
     )
 
 
-def fallback_output(tool_slug: str, input_data: dict[str, str], profile: dict[str, str]) -> str:
+def _reply_lines(
+    output_language: str,
+    product: str,
+    price: str,
+    city: str,
+    advantages: str,
+    business_name: str,
+    review: str,
+) -> dict[str, str]:
+    if output_language == "Russian":
+        return {
+            "reply_1": (
+                f"Здравствуйте! Да, {product} доступно. Цена: {price}. "
+                f"Напишите, пожалуйста, удобное время и район в {city}, я быстро подскажу лучший вариант."
+            ),
+            "reply_2": (
+                f"Добрый день! Можем помочь с {product}. Главное преимущество: {advantages}. "
+                "Уточню детали и дам точный ответ по цене и срокам."
+            ),
+            "review": (
+                f"Здравствуйте! Спасибо за отзыв о {business_name}. Нам важно, что вы отметили качество сервиса. "
+                "По времени ожидания отдельно проверим процесс и постараемся сделать обслуживание быстрее."
+            ),
+            "price": (
+                f"Понимаю, цена важна. У нас {price}, потому что в работу входит: {advantages}. "
+                "Могу подобрать более простой вариант или объяснить, где можно сэкономить без потери результата."
+            ),
+        }
+    return {
+        "reply_1": (
+            f"Hi! Yes, {product} is available. Price: {price}. "
+            f"Please send a convenient time and area in {city}, and I will suggest the best option."
+        ),
+        "reply_2": (
+            f"Hi! We can help with {product}. Main advantage: {advantages}. "
+            "I can confirm the details and give you a precise answer on price and timing."
+        ),
+        "review": (
+            f"Hi! Thank you for your review of {business_name}. We read it carefully: \"{review}\". "
+            "We are glad the result was good, and we will also work on making the service faster."
+        ),
+        "price": (
+            f"I understand that price matters. Our price is {price} because it includes: {advantages}. "
+            "I can also suggest a simpler option or explain where it is possible to save without losing the result."
+        ),
+    }
+
+
+def fallback_output(
+    tool_slug: str,
+    input_data: dict[str, str],
+    profile: dict[str, str],
+    language: str | None = None,
+) -> str:
+    output_language = normalize_language(language, input_data, profile)
     business_name = value(input_data, profile, "businessName")
     product = value(input_data, profile, "product")
     city = value(input_data, profile, "city")
@@ -206,6 +280,7 @@ def fallback_output(tool_slug: str, input_data: dict[str, str], profile: dict[st
     offer = value(input_data, profile, "offer")
     question = value(input_data, profile, "customerQuestion")
     review = value(input_data, profile, "reviewText")
+    lines = _reply_lines(output_language, product, price, city, advantages, business_name, review)
 
     templates = {
         "avito-ad": [
@@ -227,10 +302,10 @@ def fallback_output(tool_slug: str, input_data: dict[str, str], profile: dict[st
             f"Customer: {question}",
             "",
             "REPLY OPTION 1",
-            f"Здравствуйте! Да, {product} доступно. Цена: {price}. Напишите, пожалуйста, удобное время и район в {city}, я быстро подскажу лучший вариант.",
+            lines["reply_1"],
             "",
             "REPLY OPTION 2",
-            f"Добрый день! Можем помочь с {product}. Главное преимущество: {advantages}. Уточню детали и дам точный ответ по цене и срокам.",
+            lines["reply_2"],
         ],
         "vk-post": [
             "VK POST",
@@ -256,7 +331,7 @@ def fallback_output(tool_slug: str, input_data: dict[str, str], profile: dict[st
             f"Review: {review}",
             "",
             "REPLY",
-            f"Здравствуйте! Спасибо за отзыв о {business_name}. Нам важно, что вы отметили качество сервиса. По времени ожидания отдельно проверим процесс и постараемся сделать обслуживание быстрее.",
+            lines["review"],
         ],
         "product-description": [
             "SHORT DESCRIPTION",
@@ -294,7 +369,7 @@ def fallback_output(tool_slug: str, input_data: dict[str, str], profile: dict[st
             f"Customer: {question}",
             "",
             "REPLY",
-            f"Понимаю, цена важна. У нас {price}, потому что в работу входит: {advantages}. Могу подобрать более простой вариант или объяснить, где можно сэкономить без потери результата.",
+            lines["price"],
         ],
     }
 

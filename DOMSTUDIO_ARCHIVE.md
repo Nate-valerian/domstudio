@@ -1,5 +1,42 @@
 # DomStudio Archive
 
+## June 23, 2026 - Make AdPilot Feel Like Real AI Work
+
+User pointed out that AdPilot output felt flat and confusing:
+
+- English inputs produced Russian reply text.
+- The result panel said generic "Ready copy" without explaining the next action.
+- The screenshot showed `Text AI backend request failed. Used local template
+  fallback`, meaning the result was not real AI output.
+
+Findings:
+
+- Backend prompt was hard-coded to `Language: Russian`.
+- Some local fallback templates were Russian-only.
+- Live Amvera had `TEXT_AI_TIMEOUT_MS=6000`; the text tunnel answered
+  `/v1/models`, but `/v1/chat/completions` did not complete within 90 seconds.
+- Charging tokens for local fallback templates made the feature feel worse.
+
+Implemented:
+
+- Added `output_language` to `/content/generate`: `auto`, `english`, `russian`.
+- Auto language detects Cyrillic and otherwise defaults to English.
+- Local fallback replies now respect English/Russian instead of forcing Russian.
+- Backend enforces a minimum 60-second text-AI timeout even if the env value is
+  too low.
+- If the AI backend fails, tokens are refunded and the response says no tokens
+  were charged.
+- AdPilot frontend now has language controls, per-tool intent labels, and
+  output titles/actions like "Ready reply to paste" / "Copy reply".
+
+Next quality lever:
+
+- The current Qwen2.5-3B tunnel is too slow/unreliable for a "wow" experience.
+  For production-grade AdPilot, use a reliable OpenAI-compatible hosted text
+  model with low latency and stronger copy quality.
+
+---
+
 ## June 23, 2026 - Force Frontend Off Stale Auth/Service Worker Cache
 
 User still saw the previous `/users/me/full` startup failure in Chrome after the

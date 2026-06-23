@@ -359,6 +359,7 @@ const state = {
     offer: "Free mini-audit today",
     phone: "+7",
   },
+  contentOutputLanguage: "auto",
   contentOutput: "",
   contentMeta: null,
   contentGenerating: false,
@@ -566,6 +567,29 @@ function contentTokenCost(tool = currentContentTool()) {
 
 function contentFieldLabel(field) {
   return state.contentFieldLabels[field] || CONTENT_FIELD_LABELS[field] || field;
+}
+
+function contentToolIntent(tool) {
+  const key = `copy.intent.${tool.slug}`;
+  const text = t(key);
+  return text === key ? t("copy.intent.default") : text;
+}
+
+function contentOutputKind(tool) {
+  if (tool.slug.includes("reply") || tool.slug === "price-objection") return "reply";
+  if (tool.slug === "sms-promo") return "sms";
+  if (tool.slug === "vk-post") return "post";
+  if (tool.slug === "yandex-ads") return "ads";
+  if (tool.slug === "landing-page") return "page";
+  return "copy";
+}
+
+function contentOutputTitle(tool) {
+  return t(`copy.outputTitle.${contentOutputKind(tool)}`);
+}
+
+function contentCopyLabel(tool) {
+  return t(`copy.copy.${contentOutputKind(tool)}`);
 }
 
 function currentMarketplace() {
@@ -1297,6 +1321,7 @@ function copyStudioPage() {
   const categories = [...new Set(state.contentTools.map((item) => item.category))];
   const cost = contentTokenCost(tool);
   const canGenerate = state.online && !state.contentGenerating && state.user.tokens >= cost;
+  const outputTitle = contentOutputTitle(tool);
   return `<main class="app-layout">
     ${appSidebar("adpilot")}
     <section class="workspace copy-workspace">
@@ -1312,7 +1337,7 @@ function copyStudioPage() {
               <p>${escapeHtml(category)}</p>
               ${state.contentTools.filter((item) => item.category === category).map((item) => `
                 <button class="copy-tool ${item.slug === tool.slug ? "active" : ""}" type="button" data-content-tool="${item.slug}">
-                  <span>${escapeHtml(item.name)}</span>
+                  <span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(contentToolIntent(item))}</small></span>
                   <b>${item.cost_units * state.contentTokenUnit}</b>
                 </button>
               `).join("")}
@@ -1321,6 +1346,17 @@ function copyStudioPage() {
         </aside>
         <form class="panel copy-form-panel" id="copy-form">
           <div class="mini-head"><h3>${escapeHtml(tool.name)}</h3><span>${cost} ${t("studio.tokens", { n: "" }).trim()}</span></div>
+          <div class="copy-tool-summary">
+            <b>${escapeHtml(contentToolIntent(tool))}</b>
+            <span>${t("copy.channelReady")}</span>
+          </div>
+          <div class="copy-language-row" role="group" aria-label="${t("copy.language")}">
+            ${["auto", "english", "russian"].map((lang) => `
+              <button class="segment ${state.contentOutputLanguage === lang ? "active" : ""}" type="button" data-content-language="${lang}">
+                ${t(`copy.language.${lang}`)}
+              </button>
+            `).join("")}
+          </div>
           <div class="copy-fields">
             ${tool.fields.map((field) => `
               <div class="field">
@@ -1345,10 +1381,13 @@ function copyStudioPage() {
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
             : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`}
         </form>
-        <section class="panel copy-output-panel" aria-label="${t("copy.outputTitle")}">
+        <section class="panel copy-output-panel" aria-label="${outputTitle}">
           <div class="mini-head">
-            <h3>${t("copy.outputTitle")}</h3>
-            <button class="button secondary" type="button" data-copy-output ${state.contentOutput ? "" : "disabled"}>${t("copy.copy")}</button>
+            <div>
+              <h3>${outputTitle}</h3>
+              <span>${t(`copy.outputUse.${contentOutputKind(tool)}`)}</span>
+            </div>
+            <button class="button secondary" type="button" data-copy-output ${state.contentOutput ? "" : "disabled"}>${contentCopyLabel(tool)}</button>
           </div>
           <pre>${state.contentOutput ? escapeHtml(state.contentOutput) : t("copy.outputEmpty")}</pre>
           ${state.contentNotice ? `<p class="generation-notice">${escapeHtml(state.contentNotice)}</p>` : ""}
@@ -1669,6 +1708,7 @@ function bind() {
   document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
   document.querySelector("#copy-form")?.addEventListener("input", event => syncContentFromForm(event.currentTarget));
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
+  document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
@@ -2231,6 +2271,13 @@ function selectContentTool(slug) {
   render({ motion: false });
 }
 
+function selectContentLanguage(language) {
+  syncContentFromForm(document.querySelector("#copy-form"));
+  state.contentOutputLanguage = language || "auto";
+  state.contentNotice = "";
+  render({ motion: false });
+}
+
 async function submitCopyGeneration(event) {
   event.preventDefault();
   if (!state.user) {
@@ -2255,6 +2302,7 @@ async function submitCopyGeneration(event) {
         tool_slug: tool.slug,
         input: state.contentDraft,
         profile: state.contentProfile,
+        output_language: state.contentOutputLanguage,
       }),
     });
     state.contentOutput = result.output || "";

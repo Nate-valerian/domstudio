@@ -497,7 +497,9 @@ h1 em { color: var(--gold); font-style: normal; }
   text-align: left;
   font-weight: 850;
 }
-.copy-tool span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-tool span { display: grid; min-width: 0; gap: 2px; }
+.copy-tool strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.copy-tool small { overflow: hidden; color: var(--muted); font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .copy-tool b {
   min-width: 30px;
   padding: 4px 7px;
@@ -511,6 +513,42 @@ h1 em { color: var(--gold); font-style: normal; }
   border-color: var(--gold);
   background: #fff7df;
   box-shadow: 0 0 0 3px rgba(199,164,96,.12);
+}
+.copy-tool-summary {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 14px;
+  padding: 14px;
+  border: 1px solid rgba(199,164,96,.28);
+  border-radius: 14px;
+  background: #fff8e6;
+}
+.copy-tool-summary b { font-size: 15px; font-weight: 900; }
+.copy-tool-summary span { color: var(--muted); font-size: 13px; font-weight: 750; line-height: 1.45; }
+.copy-language-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f6f2ea;
+}
+.segment {
+  min-height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.segment.active {
+  background: white;
+  color: var(--ink);
+  box-shadow: 0 1px 6px rgba(30,24,14,.08);
 }
 .copy-fields { display: grid; gap: 0; }
 .copy-profile {
