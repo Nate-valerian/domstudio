@@ -4886,3 +4886,27 @@ Full referral system end-to-end:
 - `AccountScreen` gains `tokens` prop, fetches referral info via `useEffect`, shows referral card with Clipboard copy
 - Account tab added to bottom nav (6th tab) — `MainTabParamList` updated, TabGlyph gets `"account"` icon case
 - RU + EN inline copy for referral strings in AccountScreen
+
+---
+
+## June 23, 2026 - Telegram Bot (Item 5/5)
+
+New `domstudio-telegram/` directory. Standalone async Python bot using `python-telegram-bot 21`, `aiohttp`, `aiosqlite`.
+
+**Commands:**
+
+- `/start` — welcome message; if linked, shows account email + command list
+- `/link` — guided conversation: asks email then password, calls `/auth/login/email`, stores access_token in local SQLite
+- `/tools` — full copy-generation flow: inline keyboard with all 14 tools grouped by category → field-by-field prompts → calls `/content/generate` → returns result with char count + Avito/Ozon/WB limit badges
+- `/skip` — skip a field during the tools flow (leave it blank)
+- `/cancel` — abort a tools session
+- `/balance` — shows token count and plan from `/users/me/full`
+- `/referral` — shows referral link + invited count + tokens earned from `/users/referral`
+- `/lang` — inline keyboard to switch generated copy language (ru / en)
+- `/unlink` — deletes stored account
+
+**Auth:** Bot calls the DomStudio API on behalf of the user using their email+password on `/link`. The access_token is stored locally in SQLite (`bot_users.sqlite3`). Password message is deleted from chat immediately after receipt.
+
+**Deployment:** `amvera.yml` configured with persistence mount at `/data` so the SQLite file survives restarts. Env vars: `TELEGRAM_TOKEN`, `DOMSTUDIO_API`, `BOT_DB`.
+
+Commit: `34d330a`
