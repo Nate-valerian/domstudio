@@ -1327,24 +1327,18 @@ function gatePage() {
 }
 
 function marketplaceTabsMarkup(className = "marketplace-tabs") {
-  const tabs = [
-    ["drafts", t("market.tab.drafts"), t("market.tab.draftsSub")],
-    ["action", t("market.tab.action"), t("market.tab.actionSub")],
-    ["products", t("market.tab.products"), t("market.tab.productsSub")],
-    ["connection", t("market.tab.connection"), t("market.tab.connectionSub")],
-    ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
-  ];
+  const mTab = (id, label, sub) =>
+    `<button class="${state.adpilotView === "marketplace" && state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
+      <strong>${label}</strong><span>${sub}</span>
+    </button>`;
   return `<div class="${className}" aria-label="${t("market.tabs")}">
+    ${mTab("connection", t("market.tab.connection"), t("market.tab.connectionSub"))}
+    ${mTab("products", t("market.tab.products"), t("market.tab.productsSub"))}
     <button class="${state.adpilotView === "tools" ? "active" : ""}" type="button" data-adpilot-tools>
-      <strong>${t("market.tab.tools")}</strong>
-      <span>${t("market.tab.toolsSub")}</span>
+      <strong>${t("market.tab.tools")}</strong><span>${t("market.tab.toolsSub")}</span>
     </button>
-    ${tabs.map(([id, label, sub]) => `
-      <button class="${state.adpilotView === "marketplace" && state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
-        <strong>${label}</strong>
-        <span>${sub}</span>
-      </button>
-    `).join("")}
+    ${mTab("action", t("market.tab.action"), t("market.tab.actionSub"))}
+    ${mTab("drafts", t("market.tab.drafts"), t("market.tab.draftsSub"))}
   </div>`;
 }
 
