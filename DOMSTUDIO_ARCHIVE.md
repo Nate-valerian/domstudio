@@ -1,5 +1,95 @@
 # DomStudio Archive
 
+## June 23, 2026 - Archive Read and Project Health Check
+
+User asked to read the archive and check the project.
+
+What was checked:
+
+- Read the newest archive entries and relevant continuation notes.
+- Confirmed latest git history matches the archive summary:
+  `2337bd2`, `05ce017`, `82aa25b`, `e12aaf6`.
+- Verified the newest work is web frontend/PWA/mobile-web UI focused:
+  creative offer text, marketplace hint clarification, visible register/logout
+  actions, language toggle fixes, and iPhone PWA handling.
+
+Small fix made during the check:
+
+- Fixed one mojibake string in `domstudio-frontend/src/app.js` where the
+  mobile primary language toggle could render `Русский` as corrupted text in
+  Russian-market mode.
+
+Validation:
+
+```bash
+cd domstudio-frontend
+npm.cmd run build
+
+cd domstudio-mobile
+npm.cmd run typecheck
+
+cd domstudio-backend
+python -m unittest discover -s tests -v
+```
+
+Results:
+
+- Frontend production build passed.
+- Mobile TypeScript typecheck passed.
+- Backend unit tests passed: 45 tests OK.
+- Mojibake scan for `domstudio-frontend/src`, `domstudio-mobile/App.tsx`
+  found no remaining corrupted text markers after the fix.
+
+Current note:
+
+- `DOMSTUDIO_ARCHIVE.md` was already modified before this check and now also
+  includes this health-check note.
+- No live deployment, DNS, payment, ComfyUI, or real-device iPhone smoke test
+  was performed in this pass.
+
+---
+
+## June 23, 2026 - Mobile Nav, Creative Text Field, and Lang Toggle Fixes
+
+Four commits across two sessions (2337bd2 → e12aaf6), all frontend-only.
+
+### 1. Offer text field + marketplace hint clarification (2337bd2 → 82aa25b)
+
+Added a new "offer text / creative text" field to the studio form so users can specify discount copy, slogans, or product features to be rendered on the image. This was previously impossible — the only way to add text was by manually typing it into the style hint.
+
+**What changed:**
+
+- `state.formDraft.offer_text` initialized to `""` so it persists across renders
+- `marketplaceHintForMode()` now takes `hasOfferText` param — if offer text is present, the prompt instructs the model to "use only the requested creative text" and not invent extra text; if absent, keeps the original "do not add fake text" guard
+- `composeGenerationPayload()` injects `"creative text/offer to place on the image: {offerText}"` into `styleParts` when offer text is set
+- `buildPromptFromHelper()` also now writes `offer_text` into the form draft when using the prompt helper
+- Studio form: marketplace field now shows an inline `<small>` hint (amber callout box) instead of a separate `.field-note` div — same for the offer text field
+- i18n: marketplace hint and creative text label/placeholder/hint copy revised in both RU and EN to be clearer that "marketplace" = platform format rules, not image text
+- CSS: `.marketplace-field` and `.offer-field` span full width in the 2-col grid; `.field small` styled with muted text; amber callout variant for those two fields
+
+### 2. Visible account actions + register button on mobile (05ce017)
+
+Previously, on mobile, a logged-out user had no visible Register button (only "Sign in" and the gold CTA). A logged-in user had no logout button on the account page without going through the sidebar.
+
+**What changed:**
+
+- Nav: added `.logged-in` / `.logged-out` class to `<nav>` based on auth state — allows CSS to target each state
+- Added a secondary `.nav-register` button next to the login button in the logged-out nav; on mobile it shows inline with custom sizing (`max-width: 104px`, `font-size: 12px`)
+- Account page: added `.account-actions` block with a logout button styled in danger red; only visible on the account page itself
+- `nav.register` copy changed from "Создать бесплатно / Start free" to "Регистрация / Register" (shorter, fits the mobile button)
+- Added `@media (max-width: 360px)` breakpoint: hides lang toggle on very small logged-out screens; shrinks register + CTA buttons to 92px / 11px so they fit
+
+### 3. Lang toggle visibility fix on mobile (e12aaf6)
+
+The language toggle was showing twice in some nav states — once in the primary nav links and once in the `nav-actions` bar.
+
+**What changed:**
+
+- Added a second `showPrimaryLangToggle` conditional rendering the toggle inside `.nav-links` (so it appears in the mobile slide-out menu)
+- At `max-width: 360px`, the `.nav.logged-out .lang-toggle` in nav-actions is hidden to avoid overflow — the toggle in the hamburger menu still works
+
+---
+
 ## June 22, 2026 - Add iPhone Safari Manual PWA Install Banner
 
 User reported the web PWA still does not appear on iPhone, even though it shows

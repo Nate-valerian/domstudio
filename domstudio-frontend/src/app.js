@@ -760,7 +760,7 @@ function nav() {
             }).join("")}
           </div>
         </div>
-        ${showPrimaryLangToggle ? `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Ð ÑƒÑÑÐºÐ¸Ð¹"}</button>` : ""}
+        ${showPrimaryLangToggle ? `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>` : ""}
         ${showPrimaryLangToggle ? "" : `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>`}
       </div>
       <div class="nav-actions">
