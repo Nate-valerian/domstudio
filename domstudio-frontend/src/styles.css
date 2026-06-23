@@ -549,6 +549,33 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .copy-tool-summary b { font-size: 15px; font-weight: 900; }
 .copy-tool-summary span { color: var(--muted); font-size: 13px; font-weight: 750; line-height: 1.45; }
+.link-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  color: var(--gold); font-size: 13px; font-weight: 800; text-decoration: underline;
+  text-underline-offset: 3px; width: fit-content;
+}
+.link-btn:hover { opacity: .75; }
+.output-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.variation-pills {
+  display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.pill {
+  padding: 4px 12px; border-radius: 20px; border: 1.5px solid var(--line);
+  background: var(--paper); font-size: 13px; font-weight: 800; cursor: pointer;
+}
+.pill.active { border-color: var(--gold); background: #fff7e0; color: var(--gold); }
+.char-limits {
+  display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+}
+.char-count { font-size: 13px; font-weight: 750; color: var(--muted); }
+.platform-badge {
+  padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 800;
+}
+.platform-badge.ok { background: #e8f5e9; color: #2e7d32; }
+.platform-badge.over { background: #fdecea; color: #c62828; }
+.adjust-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 12px;
+}
 .copy-language-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

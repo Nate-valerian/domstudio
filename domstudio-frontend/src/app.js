@@ -447,9 +447,13 @@ const state = {
   contentProfile: { ...initialContentDefaults.profile },
   contentOutputLanguage: "auto",
   contentOutput: "",
+  contentVariations: [],
   contentMeta: null,
   contentGenerating: false,
   contentNotice: "",
+  contentSavingDraft: false,
+  contentAdjustInstruction: "",
+  contentSavedOutputs: JSON.parse(localStorage.getItem("domstudio_saved_outputs") || "[]"),
   marketplaceProviders: [],
   marketplaceConnections: [],
   marketplaceProducts: [],
@@ -1692,7 +1696,23 @@ function marketplaceActionPanel() {
 
 function marketplaceActionsPanel() {
   const actions = state.marketplaceActions.filter((item) => item.provider === state.marketplaceSelectedProvider).slice(0, 8);
+  const saved = state.contentSavedOutputs;
   return `<section class="panel marketplace-actions">
+    ${saved.length ? `
+      <div class="mini-head"><h3>${t("copy.savedDrafts")}</h3><span>${saved.length}</span></div>
+      <div class="market-list saved-outputs-list">
+        ${saved.map((item) => `
+          <article class="market-action saved-output">
+            <div><b>${escapeHtml(item.tool)}</b><span>${escapeHtml(item.date)}</span></div>
+            <pre>${escapeHtml(item.text)}</pre>
+            <div class="market-action-buttons">
+              <button class="button secondary" type="button" data-copy-saved="${item.id}">${t("copy.copyOutput")}</button>
+              <button class="button secondary" type="button" data-delete-saved="${item.id}">${t("copy.deleteSaved")}</button>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    ` : ""}
     <div class="mini-head"><h3>${t("market.actionsTitle")}</h3><span>${actions.length}</span></div>
     <div class="market-list">
       ${actions.map((action) => {
@@ -1785,6 +1805,7 @@ function copyStudioPage() {
           <div class="copy-tool-summary">
             <b>${escapeHtml(contentToolIntent(tool))}</b>
             <span>${t("copy.channelReady")}</span>
+            <button class="link-btn" type="button" data-fill-example>${t("copy.fillExample")}</button>
           </div>
           <div class="copy-language-row" role="group" aria-label="${t("copy.language")}">
             ${["auto", "english", "russian"].map((lang) => `
@@ -1823,9 +1844,33 @@ function copyStudioPage() {
               <h3>${outputTitle}</h3>
               <span>${t(`copy.outputUse.${contentOutputKind(tool)}`)}</span>
             </div>
-            <button class="button secondary" type="button" data-copy-output ${state.contentOutput ? "" : "disabled"}>${contentCopyLabel(tool)}</button>
+            <div class="output-actions">
+              <button class="button secondary" type="button" data-save-draft-local ${state.contentOutput && !state.contentSavingDraft ? "" : "disabled"}>${t("copy.saveDraft")}</button>
+              <button class="button secondary" type="button" data-copy-output ${state.contentOutput ? "" : "disabled"}>${contentCopyLabel(tool)}</button>
+            </div>
           </div>
+          ${state.contentVariations.length > 1 ? `
+            <div class="variation-pills" role="group" aria-label="${t("copy.variations")}">
+              ${state.contentVariations.map((v, i) => `
+                <button class="pill ${state.contentOutput === v ? "active" : ""}" type="button" data-variation="${i}">${t("copy.variation")} ${i + 1}</button>
+              `).join("")}
+            </div>
+          ` : ""}
           <pre>${state.contentOutput ? escapeHtml(state.contentOutput) : t("copy.outputEmpty")}</pre>
+          ${state.contentOutput ? (() => {
+            const len = state.contentOutput.length;
+            const platforms = [["Avito", 3000], ["Ozon", 5000], ["WB", 5000]];
+            return `<div class="char-limits">
+              <span class="char-count">${len} ${t("copy.charCount")}</span>
+              ${platforms.map(([name, limit]) => `<span class="platform-badge ${len <= limit ? "ok" : "over"}">${name}</span>`).join("")}
+            </div>`;
+          })() : ""}
+          ${state.contentOutput ? `
+            <div class="adjust-row">
+              <input class="input" type="text" placeholder="${t("copy.adjustPlaceholder")}" value="${escapeHtml(state.contentAdjustInstruction)}" data-adjust-input />
+              <button class="button secondary" type="button" data-adjust-submit ${canGenerate ? "" : "disabled"}>${t("copy.adjust")}</button>
+            </div>
+          ` : ""}
           ${state.contentNotice ? `<p class="generation-notice">${escapeHtml(state.contentNotice)}</p>` : ""}
           ${state.contentMeta ? `<p class="result-meta">${escapeHtml(contentToolName(state.contentMeta.tool || tool))} · ${escapeHtml(state.contentMeta.provider || "")} · ${state.contentMeta.tokens_charged || cost} ${t("studio.tokens", { n: "" }).trim()}</p>` : ""}
         </section>
@@ -2150,6 +2195,21 @@ function bind() {
 
   document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
+  document.querySelector("[data-fill-example]")?.addEventListener("click", fillExample);
+  document.querySelector("[data-save-draft-local]")?.addEventListener("click", saveOutputAsDraft);
+  document.querySelectorAll("[data-variation]").forEach(el => el.addEventListener("click", () => {
+    const idx = Number(el.dataset.variation);
+    state.contentOutput = state.contentVariations[idx] || "";
+    render({ motion: false });
+  }));
+  document.querySelector("[data-adjust-input]")?.addEventListener("input", (e) => {
+    state.contentAdjustInstruction = e.target.value;
+  });
+  document.querySelector("[data-adjust-submit]")?.addEventListener("click", () => {
+    document.querySelector("#copy-form")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+  });
+  document.querySelectorAll("[data-copy-saved]").forEach(el => el.addEventListener("click", () => copySavedOutput(el.dataset.copySaved)));
+  document.querySelectorAll("[data-delete-saved]").forEach(el => el.addEventListener("click", () => clearSavedOutput(el.dataset.deleteSaved)));
   document.querySelectorAll("[data-adpilot-tools]").forEach(el => el.addEventListener("click", () => {
     state.adpilotView = "tools";
     render({ motion: false });
@@ -2766,6 +2826,39 @@ function syncContentFromForm(form) {
   state.contentProfile = nextProfile;
 }
 
+function fillExample() {
+  const defaults = defaultsForLang(state.lang);
+  state.contentDraft = { ...defaults.draft };
+  render({ motion: false });
+}
+
+function saveOutputAsDraft() {
+  if (!state.contentOutput) return;
+  const tool = currentContentTool();
+  const item = {
+    id: Date.now(),
+    text: state.contentOutput,
+    tool: contentToolName(tool),
+    date: new Date().toLocaleDateString(state.lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+  };
+  state.contentSavedOutputs = [item, ...state.contentSavedOutputs].slice(0, 20);
+  localStorage.setItem("domstudio_saved_outputs", JSON.stringify(state.contentSavedOutputs));
+  toast(t("copy.savedDraft"));
+  render({ motion: false });
+}
+
+function clearSavedOutput(id) {
+  state.contentSavedOutputs = state.contentSavedOutputs.filter((item) => item.id !== Number(id));
+  localStorage.setItem("domstudio_saved_outputs", JSON.stringify(state.contentSavedOutputs));
+  render({ motion: false });
+}
+
+function copySavedOutput(id) {
+  const item = state.contentSavedOutputs.find((o) => o.id === Number(id));
+  if (!item) return;
+  navigator.clipboard.writeText(item.text).then(() => toast(t("copy.copied"))).catch(() => toast(t("toast.requestFailed")));
+}
+
 function selectContentTool(slug) {
   if (state.contentToolSlug === slug) return;
   syncContentFromForm(document.querySelector("#copy-form"));
@@ -2961,16 +3054,20 @@ async function submitCopyGeneration(event) {
   state.contentNotice = "";
   render({ motion: false });
   try {
+    const inputWithAdjust = state.contentAdjustInstruction
+      ? { ...state.contentDraft, adjust_instruction: state.contentAdjustInstruction, previous_output: state.contentOutput }
+      : { ...state.contentDraft };
     const result = await api("/content/generate", {
       method: "POST",
       body: JSON.stringify({
         tool_slug: tool.slug,
-        input: state.contentDraft,
+        input: inputWithAdjust,
         profile: state.contentProfile,
         output_language: state.contentOutputLanguage,
       }),
     });
     state.contentOutput = result.output || "";
+    state.contentVariations = [result.output, ...state.contentVariations].filter(Boolean).slice(0, 3);
     state.contentMeta = result;
     state.contentNotice = result.warning || t("copy.done");
     await loadUser();
