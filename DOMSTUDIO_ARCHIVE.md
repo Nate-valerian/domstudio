@@ -4812,3 +4812,77 @@ Outcome:
   reflections.
 - Tradeoff: it adds a wine glass and changes the composition, so it is alive but
   still not strict product-preserving marketplace video.
+
+---
+
+## June 23, 2026 - Product Growth Sprint: Verticals + Referral (Items 1–4 of 5)
+
+User requested 5 product-growth additions one by one. Items 1–4 completed this session.
+
+### Item 1 — Beauty vertical (commit `32f0600`)
+
+Added 3 beauty-service copy tools to backend and frontend:
+- `beauty-service-ad` — Avito/2GIS listing for a beauty procedure
+- `master-bio` — short bio for a beauty specialist's profile
+- `beauty-promo-post` — promo post for social media / Telegram
+
+Added `masterName` and `duration` as new field types across:
+- `FIELD_LABELS` + `FALLBACK_VALUES` in `content_tools.py`
+- `CONTENT_FIELD_LABELS` + `CONTENT_DEFAULTS` in `app.js`
+- `COPY_FIELD_LABELS` + `COPY_EXAMPLE` in `App.tsx`
+
+Added i18n: `copy.category.beauty`, `copy.field.masterName/duration`, `copy.tool.*` for all 3 tools.
+
+### Item 2 — Food/restaurant vertical (commit `f5fa5f6`)
+
+Added 3 food-business copy tools:
+- `food-delivery-ad` — Avito/2GIS ad for food delivery or café
+- `yandex-maps-card` — description for Yandex Maps business card
+- `food-promo-post` — promo post for a restaurant/café
+
+Added i18n: `copy.category.food`, `copy.tool.*` for all 3 tools.
+
+### Item 3 — Auto service vertical (commit `244792f`)
+
+Added 3 auto-service copy tools:
+- `auto-service-ad` — Avito/2GIS ad for an auto repair shop
+- `auto-buyer-reply` — reply to a buyer's question about a car
+- `auto-promo-post` — promotional post for an auto service
+
+Added i18n: `copy.category.auto`, `copy.tool.*` for all 3 tools.
+
+Total new tools: 9. All 3 verticals appear as grouped chips in the copy tool selectors (web + mobile). Mobile simplified to tools-only view (no sub-tab navigation).
+
+### Item 4 — Referral link (commit `67c34e5`)
+
+Full referral system end-to-end:
+
+**Database (`database.py`):**
+- `referral_code VARCHAR(16) UNIQUE` — auto-generated 8-char uppercase hex on user creation
+- `referred_by_code VARCHAR(16)` — set at registration if user came from a referral link
+
+**Migration 007 (`migrate.py`):**
+- Adds both columns, creates unique partial index, backfills existing users with referral codes via `gen_random_uuid()`
+
+**Auth (`routers/auth.py`):**
+- `EmailRegisterRequest` + `PhoneRegisterRequest` accept optional `referral_code` field
+- `create_user_with_defaults` accepts `referred_by_code`, generates `referral_code = uuid4().hex[:8].upper()`
+- On first email/phone verify: `_award_referral` awards +500 tokens to both the new user and the referrer
+- Bonus is idempotent — only fires if `not user.is_verified` before verify call
+
+**Users router (`routers/users.py`):**
+- `GET /users/referral` returns `{ code, link, referrals_count, tokens_per_referral, tokens_earned }`
+- Link format: `https://domstudio.site/?ref=<CODE>`
+
+**Frontend (`app.js`, `i18n.js`, `styles.css`):**
+- `loadReferral()` called at startup if user logged in; stores result in `state.referral`
+- Account page shows referral panel: shareable link input + copy button, stats row (invited count, tokens earned, +500 reward label)
+- `checkReferralParam()` reads `?ref=` from URL on load, stores in `state.pendingReferralCode`, clears from URL
+- Referral code injected into email and phone register API calls
+- RU + EN i18n keys: `account.referralH3/Sub/Copy/Copied/Count/Earned/Reward`
+
+**Mobile (`App.tsx`, `src/api.ts`):**
+- `ReferralInfo` type + `loadReferralInfo()` added to `api.ts`
+- `AccountScreen` gains `tokens` prop, fetches referral info via `useEffect`, shows referral card with Clipboard copy
+- Account tab added to bottom nav (6th tab) — `MainTabParamList` updated, TabGlyph gets `"account"` icon case
+- RU + EN inline copy for referral strings in AccountScreen
