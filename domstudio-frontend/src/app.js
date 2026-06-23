@@ -112,6 +112,25 @@ const MARKETPLACE_PRESETS = [
   },
 ];
 
+const MARKETPLACE_ACTION_TYPES = [
+  { id: "improve_card", label: "Improve card" },
+  { id: "seo_refresh", label: "SEO refresh" },
+  { id: "avito_listing", label: "Avito listing" },
+  { id: "buyer_reply", label: "Buyer reply" },
+  { id: "promo_plan", label: "Promo plan" },
+  { id: "image_brief", label: "Image brief" },
+];
+
+const MARKETPLACE_SAMPLE_PRODUCT = {
+  title: "Leather tote bag",
+  sku: "BAG-001",
+  category: "Bags",
+  price: "4990 RUB",
+  stock: 12,
+  description: "Soft leather tote with zip pocket and long handles.",
+  images: [],
+};
+
 const STYLE_TEMPLATES = [
   { id: "clean", label: "Clean catalog", hint: "clean catalog style, accurate color, soft shadow, minimal background" },
   { id: "jewelry", label: "Premium jewelry", hint: "premium jewelry macro, precise reflections, elegant highlights, luxury retail finish" },
@@ -364,6 +383,28 @@ const state = {
   contentMeta: null,
   contentGenerating: false,
   contentNotice: "",
+  marketplaceProviders: [],
+  marketplaceConnections: [],
+  marketplaceProducts: [],
+  marketplaceActions: [],
+  marketplaceRules: [],
+  marketplaceLoaded: false,
+  marketplaceLoading: false,
+  marketplaceSaving: false,
+  marketplaceNotice: "",
+  marketplaceSelectedProvider: "wildberries",
+  marketplaceSelectedConnectionId: "",
+  marketplaceSelectedProductId: "",
+  marketplaceActionType: "improve_card",
+  marketplaceConnectDraft: {
+    provider: "wildberries",
+    display_name: "Main store",
+    mode: "draft",
+    api_token: "",
+    client_id: "",
+    user_id: "",
+  },
+  marketplaceProductDraft: { ...MARKETPLACE_SAMPLE_PRODUCT },
   brandPrefs: initialBrandPrefs,
   generating: false,
   brandPrefsOpen: false,
@@ -492,6 +533,43 @@ async function loadContentTools() {
   }
 }
 
+async function loadMarketplaces(force = false) {
+  if (!state.user || (!force && state.marketplaceLoaded)) return;
+  state.marketplaceLoading = true;
+  try {
+    const [providersData, connectionsData, productsData, actionsData, rulesData] = await Promise.all([
+      api("/marketplaces/providers"),
+      api("/marketplaces/connections"),
+      api("/marketplaces/products"),
+      api("/marketplaces/actions"),
+      api("/marketplaces/rules"),
+    ]);
+    state.marketplaceProviders = providersData.providers || [];
+    state.marketplaceConnections = connectionsData.connections || [];
+    state.marketplaceProducts = productsData.products || [];
+    state.marketplaceActions = actionsData.actions || [];
+    state.marketplaceRules = rulesData.rules || [];
+    state.marketplaceLoaded = true;
+    syncMarketplaceSelection();
+  } catch (error) {
+    state.marketplaceNotice = error.message;
+  } finally {
+    state.marketplaceLoading = false;
+  }
+}
+
+function syncMarketplaceSelection() {
+  const provider = state.marketplaceSelectedProvider || state.marketplaceConnectDraft.provider || "wildberries";
+  const providerConnections = state.marketplaceConnections.filter((item) => item.provider === provider);
+  const providerProducts = state.marketplaceProducts.filter((item) => item.provider === provider);
+  if (!providerConnections.some((item) => item.id === state.marketplaceSelectedConnectionId)) {
+    state.marketplaceSelectedConnectionId = providerConnections[0]?.id || "";
+  }
+  if (!providerProducts.some((item) => item.id === state.marketplaceSelectedProductId)) {
+    state.marketplaceSelectedProductId = providerProducts[0]?.id || "";
+  }
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -512,6 +590,14 @@ function contentDraftValue(name) {
 
 function contentProfileValue(name) {
   return escapeHtml(state.contentProfile[name] || "");
+}
+
+function marketplaceConnectValue(name) {
+  return escapeHtml(state.marketplaceConnectDraft[name] || "");
+}
+
+function marketplaceProductValue(name) {
+  return escapeHtml(state.marketplaceProductDraft[name] || "");
 }
 
 function brandPrefValue(name) {
@@ -1315,6 +1401,195 @@ function studioPage() {
   </main>`;
 }
 
+function providerLabel(providerId) {
+  const provider = state.marketplaceProviders.find((item) => item.provider === providerId);
+  return provider?.label || MARKETPLACE_PRESETS.find((item) => item.id === providerId)?.label || providerId;
+}
+
+function selectedMarketplaceConnection() {
+  return state.marketplaceConnections.find((item) => item.id === state.marketplaceSelectedConnectionId) || null;
+}
+
+function selectedMarketplaceProduct() {
+  return state.marketplaceProducts.find((item) => item.id === state.marketplaceSelectedProductId) || null;
+}
+
+function marketplaceProviderIds() {
+  const ids = state.marketplaceProviders.map((item) => item.provider);
+  return ids.length ? ids : ["wildberries", "ozon", "avito"];
+}
+
+function marketplaceProviderPanel() {
+  const provider = state.marketplaceProviders.find((item) => item.provider === state.marketplaceSelectedProvider);
+  const caps = provider?.capabilities || {};
+  const stats = [
+    [t("market.stats.connections"), state.marketplaceConnections.filter((item) => item.provider === state.marketplaceSelectedProvider).length],
+    [t("market.stats.products"), state.marketplaceProducts.filter((item) => item.provider === state.marketplaceSelectedProvider).length],
+    [t("market.stats.actions"), state.marketplaceActions.filter((item) => item.provider === state.marketplaceSelectedProvider).length],
+  ];
+  return `<section class="panel marketplace-overview">
+    <div class="mini-head">
+      <div><h3>${t("market.h3")}</h3><span>${t("market.sub")}</span></div>
+      <button class="button secondary" type="button" data-refresh-marketplaces ${state.marketplaceLoading ? "disabled" : ""}>${state.marketplaceLoading ? t("market.loading") : t("market.refresh")}</button>
+    </div>
+    <div class="market-provider-row">
+      ${marketplaceProviderIds().map((id) => `
+        <button class="market-provider ${state.marketplaceSelectedProvider === id ? "active" : ""}" type="button" data-marketplace-provider="${id}">
+          <strong>${escapeHtml(providerLabel(id))}</strong>
+          <span>${t(`market.provider.${id}`)}</span>
+        </button>
+      `).join("")}
+    </div>
+    <div class="market-stat-row">
+      ${stats.map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join("")}
+    </div>
+    <p class="market-note">${escapeHtml(provider?.notes || t("market.safeNote"))}</p>
+    <div class="market-cap-row">
+      ${["product_import", "card_update", "messages", "price_stock", "live_publish"].map((key) => `
+        <span class="${caps[key] ? "ok" : ""}">${t(`market.cap.${key}`)}</span>
+      `).join("")}
+    </div>
+    ${state.marketplaceNotice ? `<p class="generation-notice">${escapeHtml(state.marketplaceNotice)}</p>` : ""}
+  </section>`;
+}
+
+function marketplaceConnectionPanel() {
+  const draft = state.marketplaceConnectDraft;
+  return `<form class="panel marketplace-card" id="marketplace-connect-form">
+    <div class="mini-head"><h3>${t("market.connectTitle")}</h3><span>${t("market.connectSub")}</span></div>
+    <div class="market-form-grid">
+      <div class="field">
+        <label for="market_provider">${t("market.provider")}</label>
+        <select class="select" id="market_provider" name="provider">
+          ${marketplaceProviderIds().map((id) => `<option value="${id}" ${selectedAttr(draft.provider, id)}>${escapeHtml(providerLabel(id))}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field">
+        <label for="market_display_name">${t("market.displayName")}</label>
+        <input class="input" id="market_display_name" name="display_name" value="${marketplaceConnectValue("display_name")}" />
+      </div>
+      <div class="field">
+        <label for="market_mode">${t("market.mode")}</label>
+        <select class="select" id="market_mode" name="mode">
+          <option value="draft" ${selectedAttr(draft.mode, "draft")}>${t("market.modeDraft")}</option>
+          <option value="live" ${selectedAttr(draft.mode, "live")}>${t("market.modeLive")}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="market_client_id">${t("market.clientId")}</label>
+        <input class="input" id="market_client_id" name="client_id" value="${marketplaceConnectValue("client_id")}" autocomplete="off" />
+      </div>
+      <div class="field wide">
+        <label for="market_api_token">${t("market.apiToken")}</label>
+        <input class="input" id="market_api_token" name="api_token" value="${marketplaceConnectValue("api_token")}" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="market_user_id">${t("market.avitoUserId")}</label>
+        <input class="input" id="market_user_id" name="user_id" value="${marketplaceConnectValue("user_id")}" autocomplete="off" />
+      </div>
+    </div>
+    <button class="button gold block" type="submit" ${state.marketplaceSaving ? "disabled" : ""}>${t("market.connectCta")}</button>
+    <p class="token-hint">${t("market.connectHint")}</p>
+  </form>`;
+}
+
+function marketplaceProductPanel() {
+  const connections = state.marketplaceConnections.filter((item) => item.provider === state.marketplaceSelectedProvider);
+  const selectedConnection = selectedMarketplaceConnection();
+  return `<form class="panel marketplace-card" id="marketplace-product-form">
+    <div class="mini-head"><h3>${t("market.productsTitle")}</h3><span>${state.marketplaceProducts.length}</span></div>
+    <div class="field">
+      <label for="market_connection">${t("market.connection")}</label>
+      <select class="select" id="market_connection" name="connection_id" ${connections.length ? "" : "disabled"}>
+        ${connections.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceSelectedConnectionId, item.id)}>${escapeHtml(item.display_name || providerLabel(item.provider))} · ${escapeHtml(item.mode || "draft")}</option>`).join("")}
+      </select>
+    </div>
+    <label class="check"><input type="checkbox" name="live_fetch" /> ${t("market.liveFetch")}</label>
+    <div class="market-form-grid">
+      ${["title", "sku", "category", "price", "stock"].map((field) => `
+        <div class="field">
+          <label for="market_product_${field}">${t(`market.product.${field}`)}</label>
+          <input class="input" id="market_product_${field}" name="${field}" value="${marketplaceProductValue(field)}" />
+        </div>
+      `).join("")}
+      <div class="field wide">
+        <label for="market_product_description">${t("market.product.description")}</label>
+        <textarea class="textarea" id="market_product_description" name="description" rows="3">${marketplaceProductValue("description")}</textarea>
+      </div>
+    </div>
+    <button class="button secondary block" type="submit" ${selectedConnection || connections.length ? "" : "disabled"}>${t("market.importCta")}</button>
+    <div class="market-list compact">
+      ${state.marketplaceProducts.filter((item) => item.provider === state.marketplaceSelectedProvider).slice(0, 5).map((item) => `
+        <button class="market-list-item ${state.marketplaceSelectedProductId === item.id ? "active" : ""}" type="button" data-marketplace-product="${item.id}">
+          <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml([item.sku, item.price, item.stock != null ? `${item.stock} stock` : ""].filter(Boolean).join(" · "))}</small></span>
+        </button>
+      `).join("") || `<p class="market-empty">${t("market.noProducts")}</p>`}
+    </div>
+  </form>`;
+}
+
+function marketplaceActionPanel() {
+  const product = selectedMarketplaceProduct();
+  const providerProducts = state.marketplaceProducts.filter((item) => item.provider === state.marketplaceSelectedProvider);
+  return `<form class="panel marketplace-card" id="marketplace-action-form">
+    <div class="mini-head"><h3>${t("market.actionTitle")}</h3><span>${t("market.actionSub")}</span></div>
+    <div class="field">
+      <label for="market_action_product">${t("market.product")}</label>
+      <select class="select" id="market_action_product" name="product_id" ${providerProducts.length ? "" : "disabled"}>
+        ${providerProducts.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceSelectedProductId, item.id)}>${escapeHtml(item.title)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label for="market_action_type">${t("market.actionType")}</label>
+      <select class="select" id="market_action_type" name="action_type">
+        ${MARKETPLACE_ACTION_TYPES.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceActionType, item.id)}>${escapeHtml(item.label)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label for="market_action_input">${t("market.actionInput")}</label>
+      <textarea class="textarea" id="market_action_input" name="input" rows="4" placeholder="${t("market.actionPlaceholder")}">${escapeHtml(product?.description || state.contentDraft.customerQuestion || "")}</textarea>
+    </div>
+    <button class="button gold block" type="submit" ${product && !state.marketplaceSaving ? "" : "disabled"}>${t("market.generateAction")}</button>
+    <p class="token-hint">${t("market.actionHint")}</p>
+  </form>`;
+}
+
+function marketplaceActionsPanel() {
+  const actions = state.marketplaceActions.filter((item) => item.provider === state.marketplaceSelectedProvider).slice(0, 8);
+  return `<section class="panel marketplace-actions">
+    <div class="mini-head"><h3>${t("market.actionsTitle")}</h3><span>${actions.length}</span></div>
+    <div class="market-list">
+      ${actions.map((action) => {
+        const draft = action.draft || {};
+        return `<article class="market-action">
+          <div>
+            <b>${escapeHtml(action.title)}</b>
+            <span>${escapeHtml(action.action_type)} · ${escapeHtml(action.status)} · ${escapeHtml(draft.ai_provider || "")}</span>
+          </div>
+          <pre>${escapeHtml(draft.copy || t("market.noDraft"))}</pre>
+          ${action.result ? `<p>${escapeHtml(action.result.message || JSON.stringify(action.result))}</p>` : ""}
+          <div class="market-action-buttons">
+            <button class="button secondary" type="button" data-approve-action="${action.id}" ${action.status === "draft" ? "" : "disabled"}>${t("market.approve")}</button>
+            <button class="button secondary" type="button" data-publish-action="${action.id}" ${["draft", "approved"].includes(action.status) ? "" : "disabled"}>${t("market.publish")}</button>
+          </div>
+        </article>`;
+      }).join("") || `<p class="market-empty">${t("market.noActions")}</p>`}
+    </div>
+  </section>`;
+}
+
+function marketplaceDashboard() {
+  return `<div class="marketplace-dashboard">
+    ${marketplaceProviderPanel()}
+    <div class="marketplace-grid">
+      ${marketplaceConnectionPanel()}
+      ${marketplaceProductPanel()}
+      ${marketplaceActionPanel()}
+      ${marketplaceActionsPanel()}
+    </div>
+  </div>`;
+}
+
 function copyStudioPage() {
   if (!state.user) return gatePage();
   const tool = currentContentTool();
@@ -1329,6 +1604,7 @@ function copyStudioPage() {
         <div><div class="eyebrow">${t("copy.eyebrow")}</div><h1>${t("copy.h1")}</h1></div>
         <div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>
       </header>
+      ${marketplaceDashboard()}
       <div class="copy-grid">
         <aside class="panel copy-tool-panel">
           <div class="mini-head"><h3>${t("copy.toolsTitle")}</h3><span>${state.contentTools.length}</span></div>
@@ -1710,6 +1986,27 @@ function bind() {
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
   document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
+  document.querySelector("#marketplace-connect-form")?.addEventListener("submit", submitMarketplaceConnection);
+  document.querySelector("#marketplace-product-form")?.addEventListener("submit", submitMarketplaceProducts);
+  document.querySelector("#marketplace-action-form")?.addEventListener("submit", submitMarketplaceAction);
+  document.querySelector("#marketplace-connect-form")?.addEventListener("change", event => {
+    syncMarketplaceConnectFromForm(event.currentTarget);
+    if (event.target.name === "provider") selectMarketplaceProvider(state.marketplaceConnectDraft.provider);
+  });
+  document.querySelector("#marketplace-product-form")?.addEventListener("change", event => {
+    syncMarketplaceProductFromForm(event.currentTarget);
+    render({ motion: false });
+  });
+  document.querySelector("#marketplace-action-form")?.addEventListener("change", event => {
+    if (event.target.name === "product_id") state.marketplaceSelectedProductId = event.target.value;
+    if (event.target.name === "action_type") state.marketplaceActionType = event.target.value;
+    render({ motion: false });
+  });
+  document.querySelectorAll("[data-marketplace-provider]").forEach(el => el.addEventListener("click", () => selectMarketplaceProvider(el.dataset.marketplaceProvider)));
+  document.querySelectorAll("[data-marketplace-product]").forEach(el => el.addEventListener("click", () => { state.marketplaceSelectedProductId = el.dataset.marketplaceProduct; render({ motion: false }); }));
+  document.querySelector("[data-refresh-marketplaces]")?.addEventListener("click", async () => { await loadMarketplaces(true); render({ motion: false }); });
+  document.querySelectorAll("[data-approve-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.approveAction, "approve")));
+  document.querySelectorAll("[data-publish-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.publishAction, "publish")));
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
@@ -2278,6 +2575,165 @@ function selectContentLanguage(language) {
   render({ motion: false });
 }
 
+function selectMarketplaceProvider(provider) {
+  state.marketplaceSelectedProvider = provider || "wildberries";
+  state.marketplaceConnectDraft.provider = state.marketplaceSelectedProvider;
+  syncMarketplaceSelection();
+  render({ motion: false });
+}
+
+function syncMarketplaceConnectFromForm(form) {
+  if (!form) return;
+  const data = new FormData(form);
+  state.marketplaceConnectDraft = {
+    provider: String(data.get("provider") || state.marketplaceSelectedProvider || "wildberries"),
+    display_name: String(data.get("display_name") || ""),
+    mode: String(data.get("mode") || "draft"),
+    api_token: String(data.get("api_token") || ""),
+    client_id: String(data.get("client_id") || ""),
+    user_id: String(data.get("user_id") || ""),
+  };
+  state.marketplaceSelectedProvider = state.marketplaceConnectDraft.provider;
+}
+
+function syncMarketplaceProductFromForm(form) {
+  if (!form) return;
+  const data = new FormData(form);
+  state.marketplaceSelectedConnectionId = String(data.get("connection_id") || state.marketplaceSelectedConnectionId || "");
+  state.marketplaceProductDraft = {
+    title: String(data.get("title") || ""),
+    sku: String(data.get("sku") || ""),
+    category: String(data.get("category") || ""),
+    price: String(data.get("price") || ""),
+    stock: String(data.get("stock") || ""),
+    description: String(data.get("description") || ""),
+  };
+}
+
+async function submitMarketplaceConnection(event) {
+  event.preventDefault();
+  syncMarketplaceConnectFromForm(event.currentTarget);
+  state.marketplaceSaving = true;
+  state.marketplaceNotice = "";
+  render({ motion: false });
+  try {
+    const extra_config = {};
+    if (state.marketplaceConnectDraft.user_id) extra_config.user_id = state.marketplaceConnectDraft.user_id;
+    await api("/marketplaces/connections", {
+      method: "POST",
+      body: JSON.stringify({
+        provider: state.marketplaceConnectDraft.provider,
+        display_name: state.marketplaceConnectDraft.display_name,
+        mode: state.marketplaceConnectDraft.mode,
+        api_token: state.marketplaceConnectDraft.api_token,
+        client_id: state.marketplaceConnectDraft.client_id,
+        extra_config,
+      }),
+    });
+    state.marketplaceConnectDraft.api_token = "";
+    state.marketplaceConnectDraft.client_id = "";
+    await loadMarketplaces(true);
+    state.marketplaceNotice = t("market.connected");
+    toast(t("market.connected"));
+  } catch (error) {
+    state.marketplaceNotice = error.message;
+    toast(error.message);
+  } finally {
+    state.marketplaceSaving = false;
+    render({ motion: false });
+  }
+}
+
+async function submitMarketplaceProducts(event) {
+  event.preventDefault();
+  syncMarketplaceProductFromForm(event.currentTarget);
+  const data = new FormData(event.currentTarget);
+  const liveFetch = data.get("live_fetch") === "on";
+  const product = { ...state.marketplaceProductDraft };
+  if (product.stock !== "") product.stock = Number(product.stock);
+  state.marketplaceSaving = true;
+  state.marketplaceNotice = "";
+  render({ motion: false });
+  try {
+    const result = await api(`/marketplaces/connections/${state.marketplaceSelectedConnectionId}/sync-products`, {
+      method: "POST",
+      body: JSON.stringify({
+        live_fetch: liveFetch,
+        products: liveFetch ? [] : [product],
+        limit: 50,
+      }),
+    });
+    await loadMarketplaces(true);
+    state.marketplaceNotice = t("market.imported", { n: result.imported || 0 });
+    toast(state.marketplaceNotice);
+  } catch (error) {
+    state.marketplaceNotice = error.message;
+    toast(error.message);
+  } finally {
+    state.marketplaceSaving = false;
+    render({ motion: false });
+  }
+}
+
+async function submitMarketplaceAction(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  state.marketplaceSelectedProductId = String(form.get("product_id") || state.marketplaceSelectedProductId || "");
+  state.marketplaceActionType = String(form.get("action_type") || "improve_card");
+  const product = selectedMarketplaceProduct();
+  state.marketplaceSaving = true;
+  state.marketplaceNotice = "";
+  render({ motion: false });
+  try {
+    await api("/marketplaces/actions/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        provider: state.marketplaceSelectedProvider,
+        connection_id: state.marketplaceSelectedConnectionId || null,
+        product_id: state.marketplaceSelectedProductId || null,
+        action_type: state.marketplaceActionType,
+        input: {
+          message: String(form.get("input") || ""),
+          product: product?.title || "",
+          price: product?.price || "",
+          advantages: product?.category || "",
+        },
+        profile: state.contentProfile,
+        output_language: state.contentOutputLanguage,
+        approval_required: true,
+      }),
+    });
+    await loadMarketplaces(true);
+    state.marketplaceNotice = t("market.actionCreated");
+    toast(t("market.actionCreated"));
+  } catch (error) {
+    state.marketplaceNotice = error.message;
+    toast(error.message);
+  } finally {
+    state.marketplaceSaving = false;
+    render({ motion: false });
+  }
+}
+
+async function marketplaceActionCommand(actionId, command) {
+  state.marketplaceSaving = true;
+  state.marketplaceNotice = "";
+  render({ motion: false });
+  try {
+    const result = await api(`/marketplaces/actions/${actionId}/${command}`, { method: "POST", body: JSON.stringify({}) });
+    await loadMarketplaces(true);
+    const message = result.action?.result?.message || (command === "approve" ? t("market.approved") : t("market.published"));
+    state.marketplaceNotice = message;
+    toast(message);
+  } catch (error) {
+    state.marketplaceNotice = error.message;
+    toast(error.message);
+  } finally {
+    state.marketplaceSaving = false;
+    render({ motion: false });
+  }
+}
+
 async function submitCopyGeneration(event) {
   event.preventDefault();
   if (!state.user) {
@@ -2615,6 +3071,9 @@ window.addEventListener("hashchange", () => {
   state.route = location.hash.slice(1) || "home";
   state.navMenuOpen = false;
   state.presetsOpen = false;
+  if (state.route === "adpilot" && state.user && !state.marketplaceLoaded) {
+    loadMarketplaces().finally(() => render({ motion: false }));
+  }
   render();
 });
 window.addEventListener("scroll", handleScroll, { passive: true });
@@ -2646,6 +3105,12 @@ window.addEventListener("appinstalled", () => {
 
 registerServiceWorker();
 render();
-Promise.all([loadUser(), loadPlans(), loadContentTools(), loadHistory()])
+loadUser()
+  .then(() => Promise.all([
+    loadPlans(),
+    loadContentTools(),
+    loadHistory(),
+    state.user ? loadMarketplaces() : Promise.resolve(),
+  ]))
   .then(checkPaymentReturn)
   .finally(render);

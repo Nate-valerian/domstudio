@@ -1,5 +1,154 @@
 # DomStudio Archive
 
+## June 23, 2026 - AdPilot Marketplace Frontend Dashboard Started
+
+User asked to start building the UI that connects AdPilot to marketplaces after
+the backend marketplace layer was added.
+
+Implemented frontend marketplace workflow inside the existing AdPilot route:
+
+- Added marketplace state and API loading for:
+  - `/marketplaces/providers`
+  - `/marketplaces/connections`
+  - `/marketplaces/products`
+  - `/marketplaces/actions`
+  - `/marketplaces/rules`
+- Added provider tabs for Wildberries, Ozon, and Avito with capability/status
+  counters.
+- Added a marketplace connection form:
+  - provider
+  - display name
+  - draft/live mode
+  - API token
+  - Client ID
+  - Avito user ID as provider extra config
+- Added product import/sync panel:
+  - manual product import
+  - optional live fetch through provider API
+  - recent imported product picker
+- Added AdPilot marketplace action panel:
+  - select imported product
+  - choose action type
+  - generate reviewable marketplace action draft
+- Added action review list with approve and publish-preview buttons.
+- Added RU/EN i18n strings and responsive CSS for the marketplace dashboard.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed
+
+cd domstudio-backend
+python -m unittest tests.test_marketplaces -v
+
+Ran 4 tests
+OK
+```
+
+Important behavior boundary:
+
+- The frontend now talks to the marketplace backend.
+- Live marketplace publishing is still intentionally conservative/dry-run until
+  official seller API payloads are verified with real WB/Ozon/Avito accounts.
+- Production still needs deployed DB migration and `MARKETPLACE_SECRET_KEY`.
+
+---
+
+## June 23, 2026 - Disable Legacy Render/Railway Backend Deploy Hooks
+
+User asked to disable Render after confirming Render and Amvera were serving the
+same backend role.
+
+Repo-side cleanup:
+
+- Removed `domstudio-backend/Procfile`, the old generic process file used by
+  Render-style deploys.
+- Removed `domstudio-backend/railway.toml`, the old Railway deploy config.
+- Kept `amvera.yml` untouched; Amvera remains the active backend deploy path.
+- Confirmed local mobile env points at:
+
+```text
+https://domstudio1-nate.amvera.io
+```
+
+Important external step:
+
+- The actual Render service `https://domstudio.onrender.com` must still be
+  suspended or deleted in the Render dashboard/API, because this repo does not
+  contain a `render.yaml` blueprint and no Render connector/API token is
+  available in this session.
+
+---
+
+## June 23, 2026 - AdPilot Marketplace Backend And Text Health Follow-Up
+
+This work was committed after the previous AdPilot quality archive entry and
+was missing from the archive until this follow-up note.
+
+Commits:
+
+```text
+c3bfb37 Add AdPilot marketplace backend
+17e73cb Fix text AI health path
+```
+
+Marketplace backend implemented in `c3bfb37`:
+
+- Added database models/enums for marketplace connections, imported products,
+  AdPilot actions, and AdPilot automation rules.
+- Added migration `006` for the marketplace tables.
+- Registered a new `/marketplaces` router in the backend.
+- Added provider catalog support for Wildberries, Ozon, and Avito.
+- Added authenticated routes for:
+  - listing provider capabilities
+  - creating marketplace connections
+  - syncing/importing products
+  - listing imported products
+  - generating AdPilot action drafts
+  - approving/publishing actions
+  - creating/listing automation rules
+  - evaluating rules against product/event data
+- Added encrypted storage helpers for marketplace API credentials using
+  `MARKETPLACE_SECRET_KEY`.
+- Added marketplace integration helpers:
+  - normalize product payloads from WB/Ozon/Avito-like data
+  - fetch products from live provider APIs when credentials are supplied
+  - keep publishing in dry-run/safe mode until exact provider write payloads
+    are verified.
+- Added `services/adpilot_engine.py` to turn marketplace/product context into
+  seller-reviewable AdPilot drafts using the existing text AI path with local
+  fallback.
+- Added tests for provider catalog, product normalization, dry-run publishing,
+  and local fallback draft generation.
+
+Text AI health fix in `17e73cb`:
+
+- `/content/text-ai/health` now checks `TEXT_AI_BASE_URL/health`.
+- If `TEXT_AI_BASE_URL` ends with `/v1`, it also checks the parent
+  `/health` endpoint.
+- This matches OpenAI-compatible deployments where chat completions live under
+  `/v1`, but operational health is exposed at the root path.
+
+Deployment notes:
+
+```text
+cd domstudio-backend
+python migrate.py
+```
+
+must be run on the deployed backend database before relying on marketplace
+tables in production.
+
+Set `MARKETPLACE_SECRET_KEY` in production before storing live marketplace
+credentials. Live marketplace publishing remains intentionally conservative:
+drafts and approvals exist, but provider write adapters should be verified
+against official seller API contracts before enabling real publish behavior.
+
+---
+
 ## June 23, 2026 - Make AdPilot Feel Like Real AI Work
 
 User pointed out that AdPilot output felt flat and confusing:
