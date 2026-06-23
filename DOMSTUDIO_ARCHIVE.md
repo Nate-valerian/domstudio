@@ -43,8 +43,10 @@ Backend/Amvera resilience fix:
 - Wrapped FastAPI startup database preparation with a timeout and exception log
   so the API can still start and answer `/version`, `/content/tools`, and CORS
   preflights if DB preparation is temporarily unavailable.
-- Changed Amvera run command so a failed/stalled migration does not prevent
-  uvicorn from starting for diagnostics and non-DB routes.
+- Initially tried changing the Amvera run command so uvicorn would start after
+  a failed migration, but live Amvera stayed at 503 after deploy. The command
+  was restored to the previously working `migrate && uvicorn` shape while
+  keeping the code-side timeout guards.
 
 Validation:
 
