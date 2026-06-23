@@ -38,6 +38,8 @@ Frontend localization fix:
 Backend/Amvera resilience fix:
 
 - Added bounded asyncpg connect/command timeouts.
+- Timeout env parsing is tolerant of empty or invalid values, falling back to
+  defaults instead of crashing during import.
 - Wrapped FastAPI startup database preparation with a timeout and exception log
   so the API can still start and answer `/version`, `/content/tools`, and CORS
   preflights if DB preparation is temporarily unavailable.
@@ -56,6 +58,14 @@ cd domstudio-backend
 python -m py_compile main.py database.py migrate.py
 
 compile passed
+
+DB_CONNECT_TIMEOUT_SECONDS=""
+DB_COMMAND_TIMEOUT_SECONDS=""
+DB_STARTUP_TIMEOUT_SECONDS=""
+python -c "import main"
+python -c "import migrate"
+
+imports passed
 ```
 
 ---

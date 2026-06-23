@@ -24,6 +24,12 @@ from runtime_info import runtime_version_payload
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("domstudio")
 
+def env_float(name: str, default: str) -> float:
+    try:
+        return float(os.getenv(name) or default)
+    except (TypeError, ValueError):
+        return float(default)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async def prepare_database():
@@ -37,7 +43,7 @@ async def lifespan(app: FastAPI):
             """)
 
     try:
-        await asyncio.wait_for(prepare_database(), timeout=float(os.getenv("DB_STARTUP_TIMEOUT_SECONDS", "15")))
+        await asyncio.wait_for(prepare_database(), timeout=env_float("DB_STARTUP_TIMEOUT_SECONDS", "15"))
         log.info("Database tables ready")
     except Exception:
         log.exception("Database startup preparation failed; API will start and DB-backed routes may fail")

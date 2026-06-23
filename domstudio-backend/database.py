@@ -18,13 +18,19 @@ from config import required_env
 
 DATABASE_URL = required_env("DATABASE_URL")
 
+def env_float(name: str, default: str) -> float:
+    try:
+        return float(os.getenv(name) or default)
+    except (TypeError, ValueError):
+        return float(default)
+
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,
     connect_args={
         "prepared_statement_cache_size": 0,
-        "timeout": float(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")),
-        "command_timeout": float(os.getenv("DB_COMMAND_TIMEOUT_SECONDS", "20")),
+        "timeout": env_float("DB_CONNECT_TIMEOUT_SECONDS", "10"),
+        "command_timeout": env_float("DB_COMMAND_TIMEOUT_SECONDS", "20"),
     },
 )
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

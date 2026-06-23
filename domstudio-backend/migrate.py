@@ -35,6 +35,12 @@ _PG_PARAMS = dict(
     database=_m.group(5),
 )
 
+def env_float(name: str, default: str) -> float:
+    try:
+        return float(os.getenv(name) or default)
+    except (TypeError, ValueError):
+        return float(default)
+
 # ─── MIGRATIONS ──────────────────────────────────────────────────────────────
 # Each entry: (version_id, description, sql)
 MIGRATIONS: list[tuple[str, str, str]] = [
@@ -217,8 +223,8 @@ async def run():
         sa_url,
         echo=False,
         connect_args={
-            "timeout": float(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")),
-            "command_timeout": float(os.getenv("DB_COMMAND_TIMEOUT_SECONDS", "20")),
+            "timeout": env_float("DB_CONNECT_TIMEOUT_SECONDS", "10"),
+            "command_timeout": env_float("DB_COMMAND_TIMEOUT_SECONDS", "20"),
         },
     )
     async with _engine.begin() as _conn:
@@ -226,7 +232,7 @@ async def run():
     await _engine.dispose()
     print("Base tables ensured.")
 
-    conn = await asyncpg.connect(**_PG_PARAMS, timeout=float(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")))
+    conn = await asyncpg.connect(**_PG_PARAMS, timeout=env_float("DB_CONNECT_TIMEOUT_SECONDS", "10"))
     try:
         # Ensure tracking table exists
         await conn.execute("""
