@@ -1,5 +1,31 @@
 # DomStudio Archive
 
+## June 23, 2026 - Avoid Noisy Expired Auth 401 On Frontend Boot
+
+After CORS was fixed, the browser showed:
+
+- Chrome PWA install notice about `beforeinstallprompt.preventDefault()`.
+- `GET /users/me/full 401 Unauthorized`.
+
+Notes:
+
+- The PWA message is expected because DomStudio stores the install prompt and
+  shows its own install button.
+- The `401` happened when an old `domstudio_access` token was still in
+  localStorage. The backend correctly rejected it, but the console made it look
+  like an API failure.
+
+Implemented:
+
+- Frontend now decodes stored JWT expiry before startup.
+- Expired refresh tokens are cleared immediately.
+- Expired access tokens are refreshed before calling `/users/me/full` when a
+  refresh token exists.
+- Bad access tokens without a usable refresh are removed after the failed user
+  load.
+
+---
+
 ## June 23, 2026 - Fix Vercel CORS For AdPilot/API
 
 User reported browser console errors from `https://domstudio.vercel.app`:

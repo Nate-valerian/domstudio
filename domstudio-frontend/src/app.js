@@ -258,13 +258,51 @@ function saveBrandPrefs(prefs) {
   localStorage.setItem(BRAND_PREFS_KEY, JSON.stringify(prefs));
 }
 
+function clearStoredTokens() {
+  localStorage.removeItem("domstudio_access");
+  localStorage.removeItem("domstudio_refresh");
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const base64 = token.split(".")[1];
+    if (!base64) return null;
+    const normalized = base64.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function tokenExpiresSoon(token, leewaySeconds = 30) {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return false;
+  return Date.now() / 1000 >= payload.exp - leewaySeconds;
+}
+
+function readStoredTokens() {
+  const access = localStorage.getItem("domstudio_access");
+  const refresh = localStorage.getItem("domstudio_refresh");
+  if (refresh && tokenExpiresSoon(refresh, 0)) {
+    clearStoredTokens();
+    return { accessToken: null, refreshToken: null };
+  }
+  if (access && tokenExpiresSoon(access, 0) && !refresh) {
+    localStorage.removeItem("domstudio_access");
+    return { accessToken: null, refreshToken: null };
+  }
+  return { accessToken: access, refreshToken: refresh };
+}
+
 const initialBrandPrefs = loadBrandPrefs();
+const initialTokens = readStoredTokens();
 
 const state = {
   route: location.hash.slice(1) || "home",
   lang: getLang(),
-  accessToken: localStorage.getItem("domstudio_access"),
-  refreshToken: localStorage.getItem("domstudio_refresh"),
+  accessToken: initialTokens.accessToken,
+  refreshToken: initialTokens.refreshToken,
   user: null,
   plans: [...FALLBACK_PLANS],
   authMode: null,
@@ -403,18 +441,23 @@ function logout(showToast = true) {
   state.accessToken = null;
   state.refreshToken = null;
   state.user = null;
-  localStorage.removeItem("domstudio_access");
-  localStorage.removeItem("domstudio_refresh");
+  clearStoredTokens();
   if (showToast) toast(t("toast.logout"));
   render();
 }
 
 async function loadUser() {
+  if (state.refreshToken && (!state.accessToken || tokenExpiresSoon(state.accessToken))) {
+    const refreshed = await refreshSession();
+    if (!refreshed) return;
+  }
   if (!state.accessToken) return;
   try {
     state.user = await api("/users/me/full");
   } catch {
     state.user = null;
+    state.accessToken = null;
+    localStorage.removeItem("domstudio_access");
   }
 }
 
