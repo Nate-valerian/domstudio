@@ -2828,8 +2828,6 @@ const COPY_EXAMPLE: Record<AppLanguage, Record<string, string>> = {
   },
 };
 
-type AdPilotSubTab = "connection" | "products" | "tools" | "createDraft" | "drafts";
-
 function AdPilotScreen({
   language,
   offline,
@@ -2844,7 +2842,6 @@ function AdPilotScreen({
   const ap = mobileCopy[language].adpilot;
   const fieldLabels = COPY_FIELD_LABELS[language];
 
-  const [subTab, setSubTab] = useState<AdPilotSubTab>("tools");
   const [tools, setTools] = useState<ContentTool[]>(COPY_TOOLS_FALLBACK);
   const [toolSlug, setToolSlug] = useState("avito-ad");
   const [fields, setFields] = useState<Record<string, string>>(COPY_EXAMPLE[language]);
@@ -2859,14 +2856,6 @@ function AdPilotScreen({
   const currentTool = tools.find((t) => t.slug === toolSlug) ?? tools[0];
   const cost = (currentTool?.cost_units ?? 1) * COPY_TOKEN_UNIT;
   const canGenerate = !offline && !generating && user.tokens >= cost;
-
-  const subTabs: { id: AdPilotSubTab; label: string }[] = [
-    { id: "connection", label: ap.tabConnection },
-    { id: "products", label: ap.tabProducts },
-    { id: "tools", label: ap.tabTools },
-    { id: "createDraft", label: ap.tabCreateDraft },
-    { id: "drafts", label: ap.tabDrafts },
-  ];
 
   useEffect(() => {
     (async () => {
@@ -2931,204 +2920,143 @@ function AdPilotScreen({
     } catch { /* ignore */ }
   }
 
-  async function handleDeleteSaved(id: string) {
-    const updated = savedItems.filter((i) => i.id !== id);
-    setSavedItems(updated);
-    await saveCopyItems(updated);
-  }
-
   const charBadges = output
     ? [{ name: "Avito", ok: output.length <= 3000 }, { name: "Ozon", ok: output.length <= 5000 }, { name: "WB", ok: output.length <= 5000 }]
     : [];
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Sub-tab strip */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.apTabRow}
-        contentContainerStyle={styles.apTabContent}
-      >
-        {subTabs.map((tab) => (
-          <Pressable
-            key={tab.id}
-            style={[styles.apTab, subTab === tab.id && styles.apTabActive]}
-            onPress={() => setSubTab(tab.id)}
-          >
-            <Text style={[styles.apTabText, subTab === tab.id && styles.apTabTextActive]}>{tab.label}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
+        {/* Tool chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.apToolRow}>
+          {tools.map((t) => (
+            <Pressable
+              key={t.slug}
+              style={[styles.apToolChip, t.slug === toolSlug && styles.apToolChipActive]}
+              onPress={() => setToolSlug(t.slug)}
+            >
+              <Text style={[styles.apToolChipText, t.slug === toolSlug && styles.apToolChipTextActive]}>{t.name}</Text>
+              <Text style={styles.apToolChipCost}>{t.cost_units * COPY_TOKEN_UNIT}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
 
-      {/* Tools view */}
-      {subTab === "tools" && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-          {/* Tool chips */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.apToolRow}>
-            {tools.map((t) => (
-              <Pressable
-                key={t.slug}
-                style={[styles.apToolChip, t.slug === toolSlug && styles.apToolChipActive]}
-                onPress={() => setToolSlug(t.slug)}
-              >
-                <Text style={[styles.apToolChipText, t.slug === toolSlug && styles.apToolChipTextActive]}>{t.name}</Text>
-                <Text style={styles.apToolChipCost}>{t.cost_units * COPY_TOKEN_UNIT}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
+        {/* Fill example */}
+        <Pressable onPress={() => { setFields(COPY_EXAMPLE[language]); setNotice(""); }} style={styles.apExampleBtn}>
+          <Text style={styles.apExampleBtnText}>{ap.fillExample}</Text>
+        </Pressable>
 
-          {/* Fill example */}
-          <Pressable onPress={() => { setFields(COPY_EXAMPLE[language]); setNotice(""); }} style={styles.apExampleBtn}>
-            <Text style={styles.apExampleBtnText}>{ap.fillExample}</Text>
-          </Pressable>
-
-          {/* Dynamic fields */}
-          {(currentTool?.fields ?? []).map((field) => {
-            const isMulti = ["advantages", "reviewText", "customerQuestion"].includes(field);
-            return (
-              <View key={field} style={styles.fieldRow}>
-                <Text style={styles.label}>{fieldLabels[field] ?? field}</Text>
-                <TextInput
-                  style={isMulti ? [styles.input, styles.textarea] : styles.input}
-                  multiline={isMulti}
-                  numberOfLines={isMulti ? 3 : 1}
-                  value={fields[field] ?? ""}
-                  onChangeText={(v) => setFields((prev) => ({ ...prev, [field]: v }))}
-                  placeholder={fieldLabels[field] ?? field}
-                  placeholderTextColor={colors.muted}
-                />
-              </View>
-            );
-          })}
-
-          {/* Output language */}
-          <View style={styles.apSegmentRow}>
-            {(["auto", "english", "russian"] as const).map((lang) => (
-              <Pressable
-                key={lang}
-                style={[styles.apSegment, outputLang === lang && styles.apSegmentActive]}
-                onPress={() => setOutputLang(lang)}
-              >
-                <Text style={[styles.apSegmentText, outputLang === lang && styles.apSegmentTextActive]}>
-                  {ap.lang[lang]}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Generate */}
-          <PrimaryButton
-            label={generating ? ap.generating : `${ap.generate} · ${cost}`}
-            disabled={!canGenerate}
-            loading={generating}
-            onPress={handleGenerate}
-          />
-
-          {/* Notice */}
-          {notice ? <Text style={styles.apNotice}>{notice}</Text> : null}
-
-          {/* Output panel */}
-          {output ? (
-            <View style={styles.apOutputPanel}>
-              {/* Variation pills */}
-              {variations.length > 1 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-                  <View style={styles.apVariationRow}>
-                    {variations.map((v, i) => (
-                      <Pressable
-                        key={i}
-                        style={[styles.apVariationPill, output === v && styles.apVariationPillActive]}
-                        onPress={() => setOutput(v)}
-                      >
-                        <Text style={[styles.apVariationText, output === v && styles.apVariationTextActive]}>
-                          {ap.variation} {i + 1}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </ScrollView>
-              )}
-
-              {/* Text output */}
-              <Text selectable style={styles.apOutputText}>{output}</Text>
-
-              {/* Char limit badges */}
-              <View style={styles.apCharRow}>
-                <Text style={styles.apCharCount}>{output.length} {ap.chars}</Text>
-                {charBadges.map((b) => (
-                  <View key={b.name} style={[styles.apCharBadge, b.ok ? styles.apCharBadgeOk : styles.apCharBadgeOver]}>
-                    <Text style={[styles.apCharBadgeText, b.ok ? styles.apCharBadgeTextOk : styles.apCharBadgeTextOver]}>{b.name}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Action buttons */}
-              <View style={styles.apActionRow}>
-                <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={handleSave}>
-                  <Text style={styles.secondaryButtonText}>{ap.saveDraft}</Text>
-                </Pressable>
-                <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleCopy(output)}>
-                  <Text style={styles.secondaryButtonText}>{ap.copy}</Text>
-                </Pressable>
-              </View>
-
-              {/* Adjust */}
-              <Text style={styles.label}>{ap.adjustLabel}</Text>
-              <View style={styles.apAdjustRow}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  value={adjustText}
-                  onChangeText={setAdjustText}
-                  placeholder={ap.adjustPlaceholder}
-                  placeholderTextColor={colors.muted}
-                />
-                <Pressable
-                  style={[styles.secondaryButton, { flex: 0, marginLeft: 8 }]}
-                  onPress={handleGenerate}
-                  disabled={!canGenerate}
-                >
-                  <Text style={styles.secondaryButtonText}>{ap.adjust}</Text>
-                </Pressable>
-              </View>
+        {/* Dynamic fields */}
+        {(currentTool?.fields ?? []).map((field) => {
+          const isMulti = ["advantages", "reviewText", "customerQuestion"].includes(field);
+          return (
+            <View key={field} style={styles.fieldRow}>
+              <Text style={styles.label}>{fieldLabels[field] ?? field}</Text>
+              <TextInput
+                style={isMulti ? [styles.input, styles.textarea] : styles.input}
+                multiline={isMulti}
+                numberOfLines={isMulti ? 3 : 1}
+                value={fields[field] ?? ""}
+                onChangeText={(v) => setFields((prev) => ({ ...prev, [field]: v }))}
+                placeholder={fieldLabels[field] ?? field}
+                placeholderTextColor={colors.muted}
+              />
             </View>
-          ) : null}
-        </ScrollView>
-      )}
+          );
+        })}
 
-      {/* Drafts view */}
-      {subTab === "drafts" && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-          {savedItems.length === 0 ? (
-            <Banner text={ap.noSavedDrafts} tone="ok" />
-          ) : (
-            savedItems.map((item) => (
-              <View key={item.id} style={styles.apDraftCard}>
-                <View style={styles.apDraftMeta}>
-                  <Text style={styles.apDraftTool}>{item.tool}</Text>
-                  <Text style={styles.apDraftDate}>{item.date}</Text>
-                </View>
-                <Text selectable style={styles.apDraftText} numberOfLines={6}>{item.text}</Text>
-                <View style={styles.apActionRow}>
-                  <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleCopy(item.text)}>
-                    <Text style={styles.secondaryButtonText}>{ap.copy}</Text>
-                  </Pressable>
-                  <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleDeleteSaved(item.id)}>
-                    <Text style={styles.secondaryButtonText}>{ap.delete}</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))
-          )}
-        </ScrollView>
-      )}
+        {/* Output language */}
+        <View style={styles.apSegmentRow}>
+          {(["auto", "english", "russian"] as const).map((lang) => (
+            <Pressable
+              key={lang}
+              style={[styles.apSegment, outputLang === lang && styles.apSegmentActive]}
+              onPress={() => setOutputLang(lang)}
+            >
+              <Text style={[styles.apSegmentText, outputLang === lang && styles.apSegmentTextActive]}>
+                {ap.lang[lang]}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
 
-      {/* Marketplace tabs — web-only for now */}
-      {(subTab === "connection" || subTab === "products" || subTab === "createDraft") && (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page}>
-          <Banner text={ap.marketplaceWebOnly} tone="ok" />
-        </ScrollView>
-      )}
+        {/* Generate */}
+        <PrimaryButton
+          label={generating ? ap.generating : `${ap.generate} · ${cost}`}
+          disabled={!canGenerate}
+          loading={generating}
+          onPress={handleGenerate}
+        />
+
+        {/* Notice */}
+        {notice ? <Text style={styles.apNotice}>{notice}</Text> : null}
+
+        {/* Output panel */}
+        {output ? (
+          <View style={styles.apOutputPanel}>
+            {/* Variation pills */}
+            {variations.length > 1 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                <View style={styles.apVariationRow}>
+                  {variations.map((v, i) => (
+                    <Pressable
+                      key={i}
+                      style={[styles.apVariationPill, output === v && styles.apVariationPillActive]}
+                      onPress={() => setOutput(v)}
+                    >
+                      <Text style={[styles.apVariationText, output === v && styles.apVariationTextActive]}>
+                        {ap.variation} {i + 1}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+
+            {/* Text output */}
+            <Text selectable style={styles.apOutputText}>{output}</Text>
+
+            {/* Char limit badges */}
+            <View style={styles.apCharRow}>
+              <Text style={styles.apCharCount}>{output.length} {ap.chars}</Text>
+              {charBadges.map((b) => (
+                <View key={b.name} style={[styles.apCharBadge, b.ok ? styles.apCharBadgeOk : styles.apCharBadgeOver]}>
+                  <Text style={[styles.apCharBadgeText, b.ok ? styles.apCharBadgeTextOk : styles.apCharBadgeTextOver]}>{b.name}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Action buttons */}
+            <View style={styles.apActionRow}>
+              <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={handleSave}>
+                <Text style={styles.secondaryButtonText}>{ap.saveDraft}</Text>
+              </Pressable>
+              <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleCopy(output)}>
+                <Text style={styles.secondaryButtonText}>{ap.copy}</Text>
+              </Pressable>
+            </View>
+
+            {/* Adjust */}
+            <Text style={styles.label}>{ap.adjustLabel}</Text>
+            <View style={styles.apAdjustRow}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={adjustText}
+                onChangeText={setAdjustText}
+                placeholder={ap.adjustPlaceholder}
+                placeholderTextColor={colors.muted}
+              />
+              <Pressable
+                style={[styles.secondaryButton, { flex: 0, marginLeft: 8 }]}
+                onPress={handleGenerate}
+                disabled={!canGenerate}
+              >
+                <Text style={styles.secondaryButtonText}>{ap.adjust}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -5125,38 +5053,6 @@ const styles = StyleSheet.create({
     borderRadius: 4
   },
   // ── AdPilot ────────────────────────────────────────────────────────────────
-  apTabRow: {
-    flexShrink: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
-    backgroundColor: colors.card,
-  },
-  apTabContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 6,
-    flexDirection: "row",
-  },
-  apTab: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: colors.line,
-    backgroundColor: colors.paper,
-  },
-  apTabActive: {
-    borderColor: colors.gold,
-    backgroundColor: "#fff7e0",
-  },
-  apTabText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: colors.muted,
-  },
-  apTabTextActive: {
-    color: colors.gold,
-  },
   apToolRow: {
     flexDirection: "row",
     gap: 8,
@@ -5313,34 +5209,5 @@ const styles = StyleSheet.create({
   apAdjustRow: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  apDraftCard: {
-    gap: 10,
-    padding: 14,
-    borderRadius: radii.md,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  apDraftMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  apDraftTool: {
-    fontSize: 14,
-    fontWeight: "900",
-    color: colors.ink,
-  },
-  apDraftDate: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.muted,
-  },
-  apDraftText: {
-    fontSize: 13,
-    fontWeight: "600" as const,
-    color: colors.ink,
-    lineHeight: 20,
   },
 });
