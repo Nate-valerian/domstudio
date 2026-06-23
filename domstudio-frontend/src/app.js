@@ -172,6 +172,7 @@ const PAGE_TITLES = {
   pricing: "Тарифы — DomStudio",
   account: "Аккаунт — DomStudio",
   history: "История генераций — DomStudio",
+  adpilot: "AdPilot — DomStudio",
 };
 
 const PLAN_LABELS = {
@@ -200,6 +201,32 @@ const TOKEN_PACKS = [
   { pack_id: "pack_1500", tokens: 1500, price_rub: 249, label: "1 500 токенов" },
   { pack_id: "pack_5000", tokens: 5000, price_rub: 699, label: "5 000 токенов" },
 ];
+
+const CONTENT_TOOLS_FALLBACK = [
+  { slug: "avito-ad", name: "Avito Ad", category: "Avito", cost_units: 1, fields: ["product", "city", "price", "advantages", "targetCustomer", "tone"] },
+  { slug: "avito-reply", name: "Avito Reply", category: "Avito", cost_units: 1, fields: ["customerQuestion", "product", "price", "city", "tone"] },
+  { slug: "vk-post", name: "VK Post", category: "Social", cost_units: 1, fields: ["product", "offer", "targetCustomer", "tone", "city"] },
+  { slug: "yandex-ads", name: "Yandex Ads", category: "Ads", cost_units: 2, fields: ["product", "city", "offer", "advantages", "targetCustomer"] },
+  { slug: "review-reply", name: "Review Reply", category: "Retention", cost_units: 1, fields: ["reviewText", "tone", "businessName"] },
+  { slug: "product-description", name: "Product Description", category: "Marketplace", cost_units: 1, fields: ["product", "advantages", "targetCustomer", "price", "tone"] },
+  { slug: "ozon-wb-card", name: "Ozon/WB Card", category: "Marketplace", cost_units: 2, fields: ["product", "advantages", "targetCustomer", "price"] },
+  { slug: "landing-page", name: "Landing Page", category: "Pages", cost_units: 3, fields: ["product", "city", "offer", "advantages", "targetCustomer", "tone"] },
+  { slug: "sms-promo", name: "SMS Promo", category: "Retention", cost_units: 1, fields: ["product", "offer", "city", "tone"] },
+  { slug: "price-objection", name: "Price Objection", category: "Retention", cost_units: 1, fields: ["customerQuestion", "product", "advantages", "price", "tone"] },
+];
+
+const CONTENT_FIELD_LABELS = {
+  product: "Product or service",
+  city: "City",
+  price: "Price",
+  advantages: "Advantages",
+  targetCustomer: "Target customer",
+  tone: "Tone",
+  offer: "Offer",
+  customerQuestion: "Customer question",
+  reviewText: "Review text",
+  businessName: "Business name",
+};
 
 const VIDEO_DURATIONS = Array.from({ length: 10 }, (_, index) => index + 3);
 const VIDEO_PROVIDERS = [
@@ -262,6 +289,35 @@ const state = {
   lastGenerationPayload: null,
   generationLabel: "",
   history: [],
+  contentTools: [...CONTENT_TOOLS_FALLBACK],
+  contentFieldLabels: { ...CONTENT_FIELD_LABELS },
+  contentTokenUnit: 10,
+  contentToolSlug: "avito-ad",
+  contentDraft: {
+    product: "Brake pad replacement",
+    city: "Moscow",
+    price: "From 4,500 RUB",
+    advantages: "Same-day service, warranty, clear quote before work",
+    targetCustomer: "busy car owners",
+    tone: "friendly and direct",
+    offer: "Free diagnostics with booking today",
+    customerQuestion: "Is it available today and can you do cheaper?",
+    reviewText: "Good result, but I waited longer than expected.",
+    businessName: "Pilot Auto",
+  },
+  contentProfile: {
+    businessName: "Pilot Auto",
+    city: "Moscow",
+    niche: "Auto service and marketplace sellers",
+    targetCustomer: "Car owners who compare offers online",
+    tone: "Confident, friendly, practical",
+    offer: "Free mini-audit today",
+    phone: "+7",
+  },
+  contentOutput: "",
+  contentMeta: null,
+  contentGenerating: false,
+  contentNotice: "",
   brandPrefs: initialBrandPrefs,
   generating: false,
   brandPrefsOpen: false,
@@ -371,6 +427,19 @@ async function loadPlans() {
   }
 }
 
+async function loadContentTools() {
+  try {
+    const data = await api("/content/tools");
+    state.contentTools = Array.isArray(data.tools) && data.tools.length ? data.tools : [...CONTENT_TOOLS_FALLBACK];
+    state.contentFieldLabels = data.field_labels || { ...CONTENT_FIELD_LABELS };
+    state.contentTokenUnit = Number(data.token_unit || 10);
+  } catch {
+    state.contentTools = [...CONTENT_TOOLS_FALLBACK];
+    state.contentFieldLabels = { ...CONTENT_FIELD_LABELS };
+    state.contentTokenUnit = 10;
+  }
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -383,6 +452,14 @@ function escapeHtml(value) {
 
 function draftValue(name) {
   return escapeHtml(state.formDraft[name] || "");
+}
+
+function contentDraftValue(name) {
+  return escapeHtml(state.contentDraft[name] || "");
+}
+
+function contentProfileValue(name) {
+  return escapeHtml(state.contentProfile[name] || "");
 }
 
 function brandPrefValue(name) {
@@ -426,6 +503,18 @@ function planPremiumVideos(plan) {
 function truncate(value, maxLength = 500) {
   const text = String(value || "").trim().replace(/\s+/g, " ");
   return text.length > maxLength ? `${text.slice(0, maxLength - 1).trim()}…` : text;
+}
+
+function currentContentTool() {
+  return state.contentTools.find((tool) => tool.slug === state.contentToolSlug) || state.contentTools[0] || CONTENT_TOOLS_FALLBACK[0];
+}
+
+function contentTokenCost(tool = currentContentTool()) {
+  return Number(tool.cost_units || 1) * state.contentTokenUnit;
+}
+
+function contentFieldLabel(field) {
+  return state.contentFieldLabels[field] || CONTENT_FIELD_LABELS[field] || field;
 }
 
 function currentMarketplace() {
@@ -740,6 +829,7 @@ function nav() {
   const navItems = [
     ["home", t("nav.home")],
     ["studio", t("nav.studio")],
+    ["adpilot", t("nav.copy")],
     ["examples", t("nav.examples")],
     ["pricing", t("nav.pricing")],
     ...(logged ? [["history", t("nav.history")]] : []),
@@ -784,14 +874,14 @@ function mobileTabBar() {
     ? [
         ["home", t("nav.home"), "H"],
         ["studio", t("nav.studio"), "S"],
+        ["adpilot", t("nav.copy"), "A"],
         ["history", t("nav.history"), "R"],
-        ["account", t("account.eyebrow"), "A"],
       ]
     : [
         ["home", t("nav.home"), "H"],
         ["studio", t("nav.studio"), "S"],
+        ["adpilot", t("nav.copy"), "A"],
         ["examples", t("nav.examples"), "E"],
-        ["pricing", t("nav.pricing"), "P"],
       ];
   return `<nav class="mobile-tabbar" aria-label="Mobile navigation">
     ${items.map(([route, label, icon]) => `
@@ -967,6 +1057,7 @@ function appSidebar(active) {
   return `<aside class="sidebar">
     <p class="side-caption">${t("sidebar.caption")}</p>
     <button class="side-link ${active === "studio" ? "active" : ""}" data-route="studio">${t("sidebar.new")}</button>
+    <button class="side-link ${active === "adpilot" ? "active" : ""}" data-route="adpilot">${t("sidebar.copy")}</button>
     <button class="side-link ${active === "history" ? "active" : ""}" data-route="history">${t("sidebar.history")}</button>
     <button class="side-link ${active === "account" ? "active" : ""}" data-route="account">${t("sidebar.account")}</button>
     <button class="side-link ${active === "pricing" ? "active" : ""}" data-route="pricing">${t("sidebar.pricing")}</button>
@@ -1144,6 +1235,74 @@ function studioPage() {
           <b>${cost ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : "Free"}</b>
         </div>
         <button class="button gold" type="submit" form="generate-form" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
+      </div>
+    </section>
+  </main>`;
+}
+
+function copyStudioPage() {
+  if (!state.user) return gatePage();
+  const tool = currentContentTool();
+  const categories = [...new Set(state.contentTools.map((item) => item.category))];
+  const cost = contentTokenCost(tool);
+  const canGenerate = state.online && !state.contentGenerating && state.user.tokens >= cost;
+  return `<main class="app-layout">
+    ${appSidebar("adpilot")}
+    <section class="workspace copy-workspace">
+      <header class="workspace-head">
+        <div><div class="eyebrow">${t("copy.eyebrow")}</div><h1>${t("copy.h1")}</h1></div>
+        <div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>
+      </header>
+      <div class="copy-grid">
+        <aside class="panel copy-tool-panel">
+          <div class="mini-head"><h3>${t("copy.toolsTitle")}</h3><span>${state.contentTools.length}</span></div>
+          ${categories.map((category) => `
+            <div class="copy-tool-group">
+              <p>${escapeHtml(category)}</p>
+              ${state.contentTools.filter((item) => item.category === category).map((item) => `
+                <button class="copy-tool ${item.slug === tool.slug ? "active" : ""}" type="button" data-content-tool="${item.slug}">
+                  <span>${escapeHtml(item.name)}</span>
+                  <b>${item.cost_units * state.contentTokenUnit}</b>
+                </button>
+              `).join("")}
+            </div>
+          `).join("")}
+        </aside>
+        <form class="panel copy-form-panel" id="copy-form">
+          <div class="mini-head"><h3>${escapeHtml(tool.name)}</h3><span>${cost} ${t("studio.tokens", { n: "" }).trim()}</span></div>
+          <div class="copy-fields">
+            ${tool.fields.map((field) => `
+              <div class="field">
+                <label for="copy_${field}">${escapeHtml(contentFieldLabel(field))}</label>
+                <textarea class="textarea" id="copy_${field}" name="${field}" rows="${field === "advantages" || field === "reviewText" ? 4 : 2}" placeholder="${t(`copy.placeholder.${field}`)}">${contentDraftValue(field)}</textarea>
+              </div>
+            `).join("")}
+          </div>
+          <div class="copy-profile">
+            <div class="mini-head"><h3>${t("copy.profileTitle")}</h3><span>${t("copy.profileSub")}</span></div>
+            <div class="helper-grid">
+              ${["businessName", "city", "niche", "targetCustomer", "tone", "offer", "phone"].map((field) => `
+                <div class="field ${field === "targetCustomer" ? "wide" : ""}">
+                  <label for="copy_profile_${field}">${escapeHtml(contentFieldLabel(field))}</label>
+                  <input class="input" id="copy_profile_${field}" name="profile_${field}" value="${contentProfileValue(field)}" />
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>
+          ${state.user.tokens < cost
+            ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
+            : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`}
+        </form>
+        <section class="panel copy-output-panel" aria-label="${t("copy.outputTitle")}">
+          <div class="mini-head">
+            <h3>${t("copy.outputTitle")}</h3>
+            <button class="button secondary" type="button" data-copy-output ${state.contentOutput ? "" : "disabled"}>${t("copy.copy")}</button>
+          </div>
+          <pre>${state.contentOutput ? escapeHtml(state.contentOutput) : t("copy.outputEmpty")}</pre>
+          ${state.contentNotice ? `<p class="generation-notice">${escapeHtml(state.contentNotice)}</p>` : ""}
+          ${state.contentMeta ? `<p class="result-meta">${escapeHtml(state.contentMeta.tool?.name || tool.name)} · ${escapeHtml(state.contentMeta.provider || "")} · ${state.contentMeta.tokens_charged || cost} ${t("studio.tokens", { n: "" }).trim()}</p>` : ""}
+        </section>
       </div>
     </section>
   </main>`;
@@ -1376,6 +1535,7 @@ function authModal() {
 
 function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
+    : state.route === "adpilot" ? copyStudioPage()
     : state.route === "examples" ? examplesPage()
     : state.route === "pricing" ? pricingPage()
     : state.route === "account" ? accountPage()
@@ -1455,6 +1615,10 @@ function bind() {
   document.querySelector("#forgot-form")?.addEventListener("submit", submitForgotPassword);
   document.querySelector("#reset-form")?.addEventListener("submit", submitResetPassword);
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
+  document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
+  document.querySelector("#copy-form")?.addEventListener("input", event => syncContentFromForm(event.currentTarget));
+  document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
+  document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
@@ -1992,6 +2156,79 @@ function selectImage(event) {
   });
 }
 
+function syncContentFromForm(form) {
+  if (!form) return;
+  const data = new FormData(form);
+  const nextDraft = { ...state.contentDraft };
+  const nextProfile = { ...state.contentProfile };
+  for (const [key, value] of data.entries()) {
+    if (key.startsWith("profile_")) {
+      nextProfile[key.replace("profile_", "")] = String(value || "");
+    } else {
+      nextDraft[key] = String(value || "");
+    }
+  }
+  state.contentDraft = nextDraft;
+  state.contentProfile = nextProfile;
+}
+
+function selectContentTool(slug) {
+  if (state.contentToolSlug === slug) return;
+  syncContentFromForm(document.querySelector("#copy-form"));
+  state.contentToolSlug = slug;
+  state.contentNotice = "";
+  render({ motion: false });
+}
+
+async function submitCopyGeneration(event) {
+  event.preventDefault();
+  if (!state.user) {
+    state.authMode = "register";
+    render();
+    return;
+  }
+  syncContentFromForm(event.currentTarget);
+  const tool = currentContentTool();
+  const cost = contentTokenCost(tool);
+  if (state.user.tokens < cost) {
+    toast(t("toast.requestFailed"));
+    return;
+  }
+  state.contentGenerating = true;
+  state.contentNotice = "";
+  render({ motion: false });
+  try {
+    const result = await api("/content/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        tool_slug: tool.slug,
+        input: state.contentDraft,
+        profile: state.contentProfile,
+      }),
+    });
+    state.contentOutput = result.output || "";
+    state.contentMeta = result;
+    state.contentNotice = result.warning || t("copy.done");
+    await loadUser();
+    toast(t("copy.done"));
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    state.contentGenerating = false;
+    render({ motion: false });
+  }
+}
+
+async function copyContentOutput() {
+  if (!state.contentOutput) return;
+  try {
+    await navigator.clipboard.writeText(state.contentOutput);
+    toast(t("copy.copied"));
+  } catch {
+    toast(t("toast.requestFailed"));
+  }
+}
+
 async function submitGeneration(event) {
   event.preventDefault();
   syncDraftFromForm(event.currentTarget);
@@ -2310,6 +2547,6 @@ window.addEventListener("appinstalled", () => {
 
 registerServiceWorker();
 render();
-Promise.all([loadUser(), loadPlans(), loadHistory()])
+Promise.all([loadUser(), loadPlans(), loadContentTools(), loadHistory()])
   .then(checkPaymentReturn)
   .finally(render);

@@ -1,5 +1,177 @@
 # DomStudio Archive
 
+## June 23, 2026 - AutoDL Text Backend Check For DomStudio AdPilot
+
+Checked the provided AutoDL/SeetaCloud box for the AdPilot text backend.
+
+Findings:
+
+- The GPU box is reachable and has an RTX 4080 available.
+- No process was listening on port `8000` during the check.
+- No active `uvicorn`, `vllm`, or `cloudflared` process was running.
+- Persistent AdPilot text-backend files exist under `/autodl-fs/data`:
+  - `adpilot_llm_server.py`
+  - Qwen2.5-3B-Instruct Hugging Face cache
+  - `cloudflared`
+  - old LLM/cloudflared logs and pid files
+- Old logs show the text server previously worked with:
+  - `/v1/models`
+  - `/v1/chat/completions`
+- Attempted to prepare a persistent Python environment for the text server, but
+  the SSH connection dropped during dependency installation. Follow-up check
+  showed FastAPI was still unavailable in that environment, so the text backend
+  was not restarted in this pass.
+
+Important:
+
+- No SSH password or secret was written to this archive or committed.
+- DomStudio AdPilot currently works through backend local-template fallback.
+- To use the real text model on Amvera, finish restarting the AutoDL text
+  server and Cloudflare tunnel, then set DomStudio/Amvera env vars:
+
+```env
+TEXT_AI_BASE_URL=https://<cloudflare-url>.trycloudflare.com/v1
+TEXT_AI_MODEL=Qwen/Qwen2.5-3B-Instruct
+TEXT_AI_API_KEY=
+TEXT_AI_TIMEOUT_MS=60000
+CONTENT_TOKEN_UNIT=10
+```
+
+Operational note:
+
+- The standalone AdPilot Amvera app can be deleted after DomStudio/Amvera has
+  these text env vars configured and an authenticated `/content/generate` smoke
+  passes.
+
+---
+
+## June 23, 2026 - AdPilot Integration Step 2: Web AdPilot Workspace
+
+Continued the AdPilot integration after the backend content route.
+
+Implemented in `domstudio-frontend/src/app.js`:
+
+- Added an `AdPilot` route to the main navigation.
+- Route is `#adpilot`.
+- Added AdPilot to the logged-in mobile tab bar.
+- Added AdPilot to the authenticated workspace sidebar.
+- Added frontend fallback metadata for the 10 AdPilot content tools so the
+  page can render even if `/content/tools` is temporarily unavailable.
+- Added `loadContentTools()` to fetch `/content/tools`.
+- Added AdPilot text-workspace state:
+  - selected tool
+  - dynamic draft fields
+  - reusable business profile
+  - output text
+  - provider/status metadata
+  - generation loading state
+- Added `copyStudioPage()`:
+  - tool/category selector
+  - dynamic form fields based on selected tool schema
+  - business profile fields
+  - output panel
+  - copy-to-clipboard action
+  - token cost hints
+- Added `submitCopyGeneration()` wired to `POST /content/generate`.
+- Refreshes `/users/me/full` after text generation so token balance updates.
+
+Implemented in `domstudio-frontend/src/i18n.js`:
+
+- Added RU/EN navigation, sidebar, page title, AdPilot labels, placeholders,
+  and status/toast strings.
+
+Implemented in `domstudio-frontend/src/styles.css`:
+
+- Added a dense three-column AdPilot text workspace layout.
+- Added responsive tablet/mobile collapse.
+- Added output preformatted text panel and tool selector styling.
+
+Validation:
+
+```bash
+cd domstudio-frontend
+npm.cmd run build
+
+cd domstudio-backend
+python -m unittest discover -s tests -v
+```
+
+Results:
+
+- Frontend production build passed.
+- Backend test suite passed: 50 tests OK.
+
+Current limitation:
+
+- AdPilot uses the backend local-template fallback unless deployment/local
+  env config sets `TEXT_AI_BASE_URL` and `TEXT_AI_MODEL`.
+- The next useful step is an end-to-end smoke with a logged-in user against a
+  running backend, then configuring the deployed Amvera text backend env.
+- For DomStudio/Amvera, set `TEXT_AI_BASE_URL` to the AutoDL Cloudflare tunnel
+  `/v1` URL and `TEXT_AI_MODEL` to the Qwen model id. The standalone AdPilot
+  Amvera app can be deleted after DomStudio has those env vars configured.
+
+---
+
+## June 23, 2026 - AdPilot Integration Step 1: Backend Copy Tools
+
+User asked to start incorporating AdPilot into DomStudio one step at a time.
+
+Implemented the first backend slice:
+
+- Added `domstudio-backend/services/content_tools.py` with the AdPilot/PromoPilot
+  10-tool sales-copy catalog:
+  - Avito Ad
+  - Avito Reply
+  - VK Post
+  - Yandex Ads
+  - Review Reply
+  - Product Description
+  - Ozon/WB Card
+  - Landing Page
+  - SMS Promo
+  - Price Objection
+- Added `domstudio-backend/routers/content.py`.
+- Registered the router in `domstudio-backend/main.py` under `/content`.
+- Added `GET /content/tools` for tool metadata.
+- Added `POST /content/generate` for authenticated text/copy generation.
+- Reused DomStudio's token ledger instead of AdPilot's localStorage demo
+  credits.
+- Stores generated copy as a `GenerationJob` with:
+  - `mode=content:{tool_slug}`
+  - `output_format=text`
+  - `output_data={generated copy}`
+- Supports an optional OpenAI-compatible text backend through:
+  - `TEXT_AI_BASE_URL`
+  - `TEXT_AI_API_KEY`
+  - `TEXT_AI_MODEL`
+  - `TEXT_AI_TIMEOUT_MS`
+  - `CONTENT_TOKEN_UNIT`
+- Falls back to local templates when no text backend is configured or when
+  the text backend fails.
+- Updated `domstudio-backend/.env.example` with the new text backend env vars.
+
+Validation:
+
+```bash
+cd domstudio-backend
+python -m py_compile routers\content.py services\content_tools.py main.py
+python -m unittest discover -s tests -v
+```
+
+Results:
+
+- Python compile check passed.
+- Backend test suite passed: 50 tests OK.
+
+Next integration step:
+
+- Run an authenticated end-to-end smoke for AdPilot in DomStudio and then add
+  proper DB tables for lead capture/business profiles instead of AdPilot's
+  old file-based storage.
+
+---
+
 ## June 23, 2026 - Archive Read and Project Health Check
 
 User asked to read the archive and check the project.

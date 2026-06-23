@@ -463,6 +463,81 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .chip:hover { border-color: var(--gold); }
 .chip:disabled { opacity: .5; cursor: wait; }
+
+/* ── AdPilot text workspace ────────────────────────────────────────────────── */
+.copy-grid {
+  display: grid;
+  grid-template-columns: minmax(210px, 280px) minmax(0, 520px) minmax(0, 620px);
+  align-items: start;
+  gap: 18px;
+}
+.copy-tool-panel,
+.copy-form-panel,
+.copy-output-panel { align-self: stretch; }
+.copy-tool-group { display: grid; gap: 8px; margin-top: 18px; }
+.copy-tool-group p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.copy-tool {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--ink);
+  text-align: left;
+  font-weight: 850;
+}
+.copy-tool span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-tool b {
+  min-width: 30px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #f4f0e8;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+.copy-tool.active {
+  border-color: var(--gold);
+  background: #fff7df;
+  box-shadow: 0 0 0 3px rgba(199,164,96,.12);
+}
+.copy-fields { display: grid; gap: 0; }
+.copy-profile {
+  margin: 8px 0 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.copy-output-panel pre {
+  min-height: 520px;
+  max-height: 72vh;
+  margin: 0;
+  padding: 18px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fffdf8;
+  color: var(--ink);
+  font: 750 14px/1.7 "Manrope", ui-sans-serif, system-ui;
+  white-space: pre-wrap;
+}
+.generation-notice {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
 /* ── Account page ──────────────────────────────────────────────────────────── */
 .upgrade-cta {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -590,7 +665,9 @@ h1 em { color: var(--gold); font-style: normal; }
   .nav-dropdown, .preset-menu { position: static; width: 100%; transform: none; }
   .preset-menu { margin-top: 6px; box-shadow: none; background: #faf7f0; }
   .nav-menu-button { display: inline-block; }
-  .hero, .studio-grid { grid-template-columns: 1fr; }
+  .hero, .studio-grid, .copy-grid { grid-template-columns: 1fr; }
+  .copy-tool-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .copy-tool-panel .mini-head { grid-column: 1 / -1; }
   .hero-visual { min-height: 400px; }
   .step { grid-template-columns: 92px 1fr; }
   .step p { grid-column: 2; }
@@ -729,7 +806,9 @@ h1 em { color: var(--gold); font-style: normal; }
   .gate { margin: 52px 0; }
   .studio-form { padding-bottom: 18px; }
   .result-panel { padding: 12px; }
-  .studio-grid { gap: 14px; }
+  .studio-grid, .copy-grid { gap: 14px; }
+  .copy-tool-panel { display: block; }
+  .copy-output-panel pre { min-height: 320px; max-height: none; font-size: 13px; }
   .auth-modal { grid-template-columns: 1fr; }
   .auth-side { display: none; }
   .auth-main, .auth-modal.compact { padding: 22px; }
