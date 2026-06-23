@@ -1,5 +1,36 @@
 # DomStudio Archive
 
+## June 23, 2026 - Make AdPilot Drafts The First Marketplace View
+
+User clarified the marketplace overview should be another left-sidebar section,
+not the default view, and that AdPilot should always open with Drafts first.
+
+Implemented:
+
+- Changed default `marketplaceTab` to `drafts`.
+- Reordered AdPilot marketplace sidebar subtabs:
+  - Drafts
+  - Create draft
+  - Products
+  - Connection
+  - Marketplaces
+- Clicking the main AdPilot sidebar item now resets the marketplace view to
+  Drafts.
+- Renamed the old Overview tab to Marketplaces.
+- Improved the empty Drafts state with direct next-step buttons for creating a
+  draft, importing products, or opening connection setup.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed
+```
+
+---
+
 ## June 23, 2026 - Move Marketplace Tabs Into Workspace Sidebar
 
 User clarified that the marketplace tabs should live in the existing left

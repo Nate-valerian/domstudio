@@ -642,6 +642,16 @@ h1 em { color: var(--gold); font-style: normal; }
 .market-action span { overflow: hidden; color: var(--muted); font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .market-list-item.active { border-color: var(--gold); background: #fff8e6; }
 .market-empty { margin: 0; padding: 18px; color: var(--muted); font-size: 13px; font-weight: 750; text-align: center; }
+.market-empty-guide {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-height: 190px;
+  align-content: center;
+}
+.market-empty-guide b { color: var(--ink); font-size: 17px; font-weight: 900; }
+.market-empty-guide p { max-width: 520px; margin: 0; line-height: 1.55; }
+.market-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
 .market-action { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fffdf8; }
 .market-action pre {
   max-height: 180px; margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--line);

@@ -392,7 +392,7 @@ const state = {
   marketplaceLoading: false,
   marketplaceSaving: false,
   marketplaceNotice: "",
-  marketplaceTab: "overview",
+  marketplaceTab: "drafts",
   marketplaceSelectedProvider: "wildberries",
   marketplaceSelectedConnectionId: "",
   marketplaceSelectedProductId: "",
@@ -1217,11 +1217,11 @@ function gatePage() {
 
 function marketplaceTabsMarkup(className = "marketplace-tabs") {
   const tabs = [
-    ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
-    ["connection", t("market.tab.connection"), t("market.tab.connectionSub")],
-    ["products", t("market.tab.products"), t("market.tab.productsSub")],
-    ["action", t("market.tab.action"), t("market.tab.actionSub")],
     ["drafts", t("market.tab.drafts"), t("market.tab.draftsSub")],
+    ["action", t("market.tab.action"), t("market.tab.actionSub")],
+    ["products", t("market.tab.products"), t("market.tab.productsSub")],
+    ["connection", t("market.tab.connection"), t("market.tab.connectionSub")],
+    ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
   ];
   return `<div class="${className}" aria-label="${t("market.tabs")}">
     ${tabs.map(([id, label, sub]) => `
@@ -1593,7 +1593,15 @@ function marketplaceActionsPanel() {
             <button class="button secondary" type="button" data-publish-action="${action.id}" ${["draft", "approved"].includes(action.status) ? "" : "disabled"}>${t("market.publish")}</button>
           </div>
         </article>`;
-      }).join("") || `<p class="market-empty">${t("market.noActions")}</p>`}
+      }).join("") || `<div class="market-empty market-empty-guide">
+        <b>${t("market.noActionsTitle")}</b>
+        <p>${t("market.noActionsGuide")}</p>
+        <div class="market-empty-actions">
+          <button class="button gold" type="button" data-marketplace-tab="action">${t("market.emptyCreate")}</button>
+          <button class="button secondary" type="button" data-marketplace-tab="products">${t("market.emptyProducts")}</button>
+          <button class="button secondary" type="button" data-marketplace-tab="connection">${t("market.emptyConnect")}</button>
+        </div>
+      </div>`}
     </div>
   </section>`;
 }
@@ -1977,7 +1985,10 @@ function prepareDemoVideos() {
 });
 
 function bind() {
-  document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => navigate(el.dataset.route)));
+  document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => {
+    if (el.dataset.route === "adpilot") state.marketplaceTab = "drafts";
+    navigate(el.dataset.route);
+  }));
   document.querySelectorAll("[data-toggle-presets]").forEach(el => el.addEventListener("click", togglePresetsMenu));
   document.querySelectorAll("[data-toggle-menu]").forEach(el => el.addEventListener("click", toggleNavMenu));
   document.querySelectorAll("[data-preset-route]").forEach(el => el.addEventListener("click", () => {
