@@ -92,6 +92,45 @@ TOOLS: tuple[ContentTool, ...] = (
             "Each with an appetizing headline, short body, emoji accents, CTA, and 5 relevant hashtags."
         ),
     ),
+    # ── Auto service vertical ──────────────────────────────────────────────────
+    ContentTool(
+        slug="auto-service-ad",
+        name="Auto Service Ad",
+        category="Auto",
+        cost_units=1,
+        fields=("product", "price", "city", "advantages", "offer"),
+        task=(
+            "Create an auto service Avito listing: 5 title options, a short description, "
+            "a detailed description, bullet benefits, common objections with replies, "
+            "trust signals (warranty, experience, certifications), booking CTA, "
+            "and 3 common car-owner questions with clear answers."
+        ),
+    ),
+    ContentTool(
+        slug="auto-buyer-reply",
+        name="Auto Buyer Reply",
+        category="Auto",
+        cost_units=1,
+        fields=("customerQuestion", "product", "price", "city", "advantages"),
+        task=(
+            "Create 3 Avito chat reply variants for the auto service customer question: "
+            "one short direct answer, one value-focused answer that justifies the price, "
+            "and one that moves toward booking with a specific next step."
+        ),
+    ),
+    ContentTool(
+        slug="auto-promo-post",
+        name="Auto Promo Post",
+        category="Auto",
+        cost_units=1,
+        fields=("product", "offer", "city", "advantages", "businessName"),
+        task=(
+            "Create 3 social media posts for an auto service for VK or Telegram: "
+            "one seasonal promo (winter/summer tyres, pre-trip check), "
+            "one trust/expertise post, and one limited-time offer. "
+            "Each with hook, body, CTA, and 5 hashtags."
+        ),
+    ),
     # ── General tools ──────────────────────────────────────────────────────────
     ContentTool(
         slug="avito-ad",
@@ -365,6 +404,53 @@ def fallback_output(
     lines = _reply_lines(output_language, product, price, city, advantages, business_name, review)
 
     templates = {
+        "auto-service-ad": [
+            "TITLE OPTIONS",
+            f"1. {product} in {city} — warranty included",
+            f"2. {product}: {advantages}",
+            f"3. {business_name}: {product} from {price}",
+            f"4. Fast {product} — honest quote before work starts",
+            f"5. {product} today — {offer}",
+            "",
+            "SHORT DESCRIPTION",
+            f"{business_name} — {product} in {city}. Price from {price}. {advantages}.",
+            "",
+            "BOOKING CTA",
+            "Write the car make/model, describe the issue, and we will reply with a quote within the hour.",
+            "",
+            "BUYER Q&A",
+            "Q: How long does it take? A: Depends on the work. We give an exact time when you describe the task.",
+            "Q: Do you give warranty? A: Yes, we warranty our work — ask us for the exact terms when you book.",
+            "Q: Can I watch while you work? A: Yes, the workshop is open. We explain every step.",
+        ],
+        "auto-buyer-reply": [
+            f"Customer: {question}",
+            "",
+            "REPLY OPTION 1 — SHORT",
+            lines["reply_1"],
+            "",
+            "REPLY OPTION 2 — VALUE",
+            lines["price"],
+            "",
+            "REPLY OPTION 3 — MOVE TO BOOKING",
+            f"Hi! Yes, we do {product}. Send the car make/model and describe the issue — I will give you an exact quote and next available time in {city}.",
+        ],
+        "auto-promo-post": [
+            "POST 1 — SEASONAL",
+            f"🚗 Season change? Time for {product}.",
+            f"{business_name} in {city}: {advantages}.",
+            f"Book this week — {offer}.",
+            "",
+            "POST 2 — TRUST",
+            f"At {business_name}, every job starts with an honest diagnosis.",
+            f"{product}: we explain what needs to be done and why. No hidden extras.",
+            "Message us with your car and we will answer any question.",
+            "",
+            "POST 3 — OFFER",
+            f"⚡ Limited slots this week for {product}.",
+            f"Price: {price}. {advantages}.",
+            f"{city}. Message to book.",
+        ],
         "food-delivery-ad": [
             "TITLE OPTIONS",
             f"1. {product} in {city} — delivery and pickup",
