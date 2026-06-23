@@ -1,5 +1,28 @@
 # DomStudio Archive
 
+## June 23, 2026 - Force Frontend Off Stale Auth/Service Worker Cache
+
+User still saw the previous `/users/me/full` startup failure in Chrome after the
+CORS and token-refresh changes were deployed.
+
+Findings:
+
+- Live backend already returns `Access-Control-Allow-Origin` for both missing
+  auth and invalid-token responses on `/users/me/full`.
+- Live Vercel HTML points to the new JS bundle, so continued old console output
+  can come from a stale tab/service-worker-controlled app.
+- Tokens issued before the new frontend fix can still be present in
+  localStorage, so an old/bad token can trigger one startup auth rejection.
+
+Implemented:
+
+- Bumped the frontend service worker cache from `domstudio-shell-v4` to
+  `domstudio-shell-v5`.
+- Added an auth storage version key so pre-fix stored tokens are cleared before
+  any `/users/me/full` request. Users may need to log in once after this deploy.
+
+---
+
 ## June 23, 2026 - Avoid Noisy Expired Auth 401 On Frontend Boot
 
 After CORS was fixed, the browser showed:

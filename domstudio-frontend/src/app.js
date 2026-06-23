@@ -164,6 +164,8 @@ const HISTORY_STORE = "results";
 const HISTORY_LIMIT = 20;
 const BRAND_PREFS_KEY = "domstudio_brand_preferences";
 const PWA_INSTALL_DISMISSED_KEY = "domstudio_pwa_install_dismissed";
+const AUTH_STORAGE_VERSION_KEY = "domstudio_auth_storage_version";
+const AUTH_STORAGE_VERSION = "2026-06-23-auth-v2";
 
 const PAGE_TITLES = {
   home:    "DomStudio — AI-студия для продавцов маркетплейсов",
@@ -261,6 +263,7 @@ function saveBrandPrefs(prefs) {
 function clearStoredTokens() {
   localStorage.removeItem("domstudio_access");
   localStorage.removeItem("domstudio_refresh");
+  localStorage.removeItem(AUTH_STORAGE_VERSION_KEY);
 }
 
 function decodeJwtPayload(token) {
@@ -282,6 +285,10 @@ function tokenExpiresSoon(token, leewaySeconds = 30) {
 }
 
 function readStoredTokens() {
+  if (localStorage.getItem(AUTH_STORAGE_VERSION_KEY) !== AUTH_STORAGE_VERSION) {
+    clearStoredTokens();
+    return { accessToken: null, refreshToken: null };
+  }
   const access = localStorage.getItem("domstudio_access");
   const refresh = localStorage.getItem("domstudio_refresh");
   if (refresh && tokenExpiresSoon(refresh, 0)) {
@@ -435,6 +442,7 @@ function saveTokens(tokens) {
   state.refreshToken = tokens.refresh_token;
   localStorage.setItem("domstudio_access", state.accessToken);
   localStorage.setItem("domstudio_refresh", state.refreshToken);
+  localStorage.setItem(AUTH_STORAGE_VERSION_KEY, AUTH_STORAGE_VERSION);
 }
 
 function logout(showToast = true) {
