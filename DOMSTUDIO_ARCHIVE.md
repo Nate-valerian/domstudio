@@ -1,5 +1,52 @@
 # DomStudio Archive
 
+## June 23, 2026 - AdPilot Page Structure And Action Form Fixes
+
+User showed three problems on the AdPilot page:
+
+1. PRODUCT dropdown was blank and disabled when no marketplace products had been
+   imported — looked broken.
+2. ACTION TYPE context textarea showed a generic placeholder regardless of which
+   action type was selected (Buyer reply, Improve card, etc.).
+3. The marketplace Drafts panel was rendering above the copy tools on the AdPilot
+   page instead of being in its own separate view.
+4. Token balance was displayed twice — once in the workspace header and once in
+   the copy form hint.
+5. The sidebar sub-items (Drafts, Create draft, Products, etc.) were decorative
+   labels instead of clickable navigation buttons.
+6. The copy tools section had no sidebar button of its own.
+
+Changes made:
+
+- Split AdPilot into two distinct views controlled by `state.adpilotView`:
+  `"tools"` (default) and `"marketplace"`. Marketplace dashboard no longer
+  renders above the copy tools.
+- Added a "Tools" sidebar button (`data-adpilot-tools`) as a sub-tab under
+  AdPilot. All sub-tabs are now clickable buttons that switch between views.
+- Removed duplicate token balance from the AdPilot workspace header.
+- `marketplaceActionPanel()`: PRODUCT field now shows a placeholder option
+  ("Select a product") and a hint link to the Products tab when no products are
+  imported. ACTION TYPE context textarea placeholder now adapts per action type
+  (e.g. "Paste the buyer's question or complaint" for buyer_reply).
+- Added i18n keys: `market.tab.tools`, `market.tab.toolsSub`,
+  `market.noProductsOption`, `market.addProductsHint`, and
+  `market.actionContext.*` per-action-type placeholders (RU + EN).
+- Added Vite dev proxy in `vite.config.js` so local dev forwards all API paths
+  to the Amvera backend without CORS errors.
+
+Sidebar reorder (same session, follow-up):
+
+User requested the sidebar order reflect a logical onboarding flow and confirmed
+that users should be able to use Tools without connecting a marketplace first.
+
+New sidebar order: Connection → Products → Tools → Create draft → Drafts.
+Removed the "Marketplaces" (overview) tab from the sidebar.
+The copy tools form uses free-text fields — no marketplace connection required.
+
+Commits: `87c89a3` (page structure), `4eb7889` (sidebar reorder).
+
+---
+
 ## June 23, 2026 - Localize AdPilot Defaults And Harden Amvera Startup
 
 User showed AdPilot with Russian selected while field labels/default content still
