@@ -1,5 +1,39 @@
 # DomStudio Archive
 
+## June 23, 2026 - Marketplace Dashboard Converted To Left Tabs
+
+User showed the AdPilot marketplace dashboard as a messy wall of forms and asked
+to move those sections into left-side tabs.
+
+Implemented:
+
+- Added `marketplaceTab` frontend state.
+- Converted the marketplace dashboard from all panels visible at once into a
+  tabbed workspace with left-side tabs:
+  - Overview
+  - Connection
+  - Products
+  - AdPilot action
+  - Drafts
+- Kept only one marketplace panel visible at a time.
+- Added guided tab transitions:
+  - saving a connection opens Products
+  - importing products opens AdPilot action
+  - creating a draft opens Drafts
+- Added RU/EN tab labels.
+- Updated responsive CSS so the tabs become a horizontal rail on tablet/mobile.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed
+```
+
+---
+
 ## June 23, 2026 - AdPilot Marketplace Frontend Dashboard Started
 
 User asked to start building the UI that connects AdPilot to marketplaces after

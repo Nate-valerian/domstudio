@@ -392,6 +392,7 @@ const state = {
   marketplaceLoading: false,
   marketplaceSaving: false,
   marketplaceNotice: "",
+  marketplaceTab: "overview",
   marketplaceSelectedProvider: "wildberries",
   marketplaceSelectedConnectionId: "",
   marketplaceSelectedProductId: "",
@@ -1578,14 +1579,33 @@ function marketplaceActionsPanel() {
   </section>`;
 }
 
+function marketplaceTabContent() {
+  if (state.marketplaceTab === "connection") return marketplaceConnectionPanel();
+  if (state.marketplaceTab === "products") return marketplaceProductPanel();
+  if (state.marketplaceTab === "action") return marketplaceActionPanel();
+  if (state.marketplaceTab === "drafts") return marketplaceActionsPanel();
+  return marketplaceProviderPanel();
+}
+
 function marketplaceDashboard() {
+  const tabs = [
+    ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
+    ["connection", t("market.tab.connection"), t("market.tab.connectionSub")],
+    ["products", t("market.tab.products"), t("market.tab.productsSub")],
+    ["action", t("market.tab.action"), t("market.tab.actionSub")],
+    ["drafts", t("market.tab.drafts"), t("market.tab.draftsSub")],
+  ];
   return `<div class="marketplace-dashboard">
-    ${marketplaceProviderPanel()}
-    <div class="marketplace-grid">
-      ${marketplaceConnectionPanel()}
-      ${marketplaceProductPanel()}
-      ${marketplaceActionPanel()}
-      ${marketplaceActionsPanel()}
+    <aside class="marketplace-tabs" aria-label="${t("market.tabs")}">
+      ${tabs.map(([id, label, sub]) => `
+        <button class="${state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
+          <strong>${label}</strong>
+          <span>${sub}</span>
+        </button>
+      `).join("")}
+    </aside>
+    <div class="marketplace-tab-content">
+      ${marketplaceTabContent()}
     </div>
   </div>`;
 }
@@ -1986,6 +2006,10 @@ function bind() {
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
   document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
+  document.querySelectorAll("[data-marketplace-tab]").forEach(el => el.addEventListener("click", () => {
+    state.marketplaceTab = el.dataset.marketplaceTab || "overview";
+    render({ motion: false });
+  }));
   document.querySelector("#marketplace-connect-form")?.addEventListener("submit", submitMarketplaceConnection);
   document.querySelector("#marketplace-product-form")?.addEventListener("submit", submitMarketplaceProducts);
   document.querySelector("#marketplace-action-form")?.addEventListener("submit", submitMarketplaceAction);
@@ -2634,6 +2658,7 @@ async function submitMarketplaceConnection(event) {
     state.marketplaceConnectDraft.client_id = "";
     await loadMarketplaces(true);
     state.marketplaceNotice = t("market.connected");
+    state.marketplaceTab = "products";
     toast(t("market.connected"));
   } catch (error) {
     state.marketplaceNotice = error.message;
@@ -2665,6 +2690,7 @@ async function submitMarketplaceProducts(event) {
     });
     await loadMarketplaces(true);
     state.marketplaceNotice = t("market.imported", { n: result.imported || 0 });
+    state.marketplaceTab = "action";
     toast(state.marketplaceNotice);
   } catch (error) {
     state.marketplaceNotice = error.message;
@@ -2705,6 +2731,7 @@ async function submitMarketplaceAction(event) {
     });
     await loadMarketplaces(true);
     state.marketplaceNotice = t("market.actionCreated");
+    state.marketplaceTab = "drafts";
     toast(t("market.actionCreated"));
   } catch (error) {
     state.marketplaceNotice = error.message;
