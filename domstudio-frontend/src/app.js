@@ -1215,11 +1215,30 @@ function gatePage() {
   return `<main class="page"><section class="gate"><div class="eyebrow">${t("gate.eyebrow")}</div><h1>${t("gate.h1")}</h1><p>${t("gate.p")}</p><button class="button gold" data-auth="register">${t("gate.cta")}</button></section></main>`;
 }
 
+function marketplaceTabsMarkup(className = "marketplace-tabs") {
+  const tabs = [
+    ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
+    ["connection", t("market.tab.connection"), t("market.tab.connectionSub")],
+    ["products", t("market.tab.products"), t("market.tab.productsSub")],
+    ["action", t("market.tab.action"), t("market.tab.actionSub")],
+    ["drafts", t("market.tab.drafts"), t("market.tab.draftsSub")],
+  ];
+  return `<div class="${className}" aria-label="${t("market.tabs")}">
+    ${tabs.map(([id, label, sub]) => `
+      <button class="${state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
+        <strong>${label}</strong>
+        <span>${sub}</span>
+      </button>
+    `).join("")}
+  </div>`;
+}
+
 function appSidebar(active) {
   return `<aside class="sidebar">
     <p class="side-caption">${t("sidebar.caption")}</p>
     <button class="side-link ${active === "studio" ? "active" : ""}" data-route="studio">${t("sidebar.new")}</button>
     <button class="side-link ${active === "adpilot" ? "active" : ""}" data-route="adpilot">${t("sidebar.copy")}</button>
+    ${active === "adpilot" ? marketplaceTabsMarkup("side-subtabs") : ""}
     <button class="side-link ${active === "history" ? "active" : ""}" data-route="history">${t("sidebar.history")}</button>
     <button class="side-link ${active === "account" ? "active" : ""}" data-route="account">${t("sidebar.account")}</button>
     <button class="side-link ${active === "pricing" ? "active" : ""}" data-route="pricing">${t("sidebar.pricing")}</button>
@@ -1588,22 +1607,8 @@ function marketplaceTabContent() {
 }
 
 function marketplaceDashboard() {
-  const tabs = [
-    ["overview", t("market.tab.overview"), t("market.tab.overviewSub")],
-    ["connection", t("market.tab.connection"), t("market.tab.connectionSub")],
-    ["products", t("market.tab.products"), t("market.tab.productsSub")],
-    ["action", t("market.tab.action"), t("market.tab.actionSub")],
-    ["drafts", t("market.tab.drafts"), t("market.tab.draftsSub")],
-  ];
   return `<div class="marketplace-dashboard">
-    <aside class="marketplace-tabs" aria-label="${t("market.tabs")}">
-      ${tabs.map(([id, label, sub]) => `
-        <button class="${state.marketplaceTab === id ? "active" : ""}" type="button" data-marketplace-tab="${id}">
-          <strong>${label}</strong>
-          <span>${sub}</span>
-        </button>
-      `).join("")}
-    </aside>
+    ${marketplaceTabsMarkup("marketplace-mobile-tabs")}
     <div class="marketplace-tab-content">
       ${marketplaceTabContent()}
     </div>

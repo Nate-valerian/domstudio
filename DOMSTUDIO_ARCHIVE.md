@@ -1,5 +1,29 @@
 # DomStudio Archive
 
+## June 23, 2026 - Move Marketplace Tabs Into Workspace Sidebar
+
+User clarified that the marketplace tabs should live in the existing left
+workspace sidebar, under AdPilot, not inside the page content.
+
+Implemented:
+
+- Added AdPilot marketplace sub-tabs directly inside `appSidebar("adpilot")`.
+- Removed the desktop in-page marketplace tab rail.
+- The page content now shows only the currently selected marketplace panel.
+- Kept a compact mobile-only tab row because the workspace sidebar is hidden on
+  small screens.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed
+```
+
+---
+
 ## June 23, 2026 - Marketplace Dashboard Converted To Left Tabs
 
 User showed the AdPilot marketplace dashboard as a messy wall of forms and asked
