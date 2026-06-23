@@ -1,5 +1,28 @@
 # DomStudio Archive
 
+## June 23, 2026 - AdPilot Mobile Screen (React Native)
+
+Implemented full AdPilot screen in `domstudio-mobile/App.tsx` (commit `e149d6c`).
+
+**What was added:**
+
+- `expo-clipboard` installed and wired for Copy button
+- New types in `src/api.ts`: `ContentTool`, `ContentGenerateResult`, `MarketplaceAction` + functions `listContentTools`, `generateCopy`, `listMarketplaceActions`
+- New types/functions in `src/storage.ts`: `SavedCopyItem`, `loadSavedCopy`, `saveCopyItems` (persisted to device JSON file)
+- `AdPilotScreen` component with all 5 features from the web version:
+  1. Tool selector chips (Avito Ad, Ozon Listing, WB Listing, Buyer Reply, Review Reply with fallback list)
+  2. Fill with example button (locale-aware example data)
+  3. Generate with variations (last 3 kept, swappable via pill buttons)
+  4. Character-limit badges (Avito ≤3000, Ozon/WB ≤5000) with green/red indicators
+  5. Save to Drafts (device-persisted) + Copy via Clipboard
+  6. Adjust / Refine instruction row under output
+- Sub-tabs: Connection, Products, Tools (default), Create Draft, Drafts
+  - Connection / Products / Create Draft show "available on web" banner
+  - Drafts tab shows saved items with copy + delete
+- EN + RU copy strings for all adpilot UI text
+- `TabGlyph` updated with `"adpilot"` icon case
+- `AdPilot` tab added to `MainTabs` between Studio and Examples
+
 ## June 23, 2026 - AdPilot Tools: Five UX Improvements
 
 User asked to improve the AdPilot Tools view to reduce friction and
