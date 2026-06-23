@@ -3,8 +3,6 @@ DomStudio — Database Models
 SQLAlchemy async ORM
 """
 
-import os
-
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Float, Enum, ForeignKey, Text
@@ -18,20 +16,10 @@ from config import required_env
 
 DATABASE_URL = required_env("DATABASE_URL")
 
-def env_float(name: str, default: str) -> float:
-    try:
-        return float(os.getenv(name) or default)
-    except (TypeError, ValueError):
-        return float(default)
-
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,
-    connect_args={
-        "prepared_statement_cache_size": 0,
-        "timeout": env_float("DB_CONNECT_TIMEOUT_SECONDS", "10"),
-        "command_timeout": env_float("DB_COMMAND_TIMEOUT_SECONDS", "20"),
-    },
+    connect_args={"prepared_statement_cache_size": 0},
 )
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
@@ -108,6 +96,9 @@ class User(Base):
     is_active     = Column(Boolean, default=True)
     created_at    = Column(DateTime(timezone=True), server_default=func.now())
     updated_at    = Column(DateTime(timezone=True), onupdate=func.now())
+
+    referral_code    = Column(String(16), unique=True, nullable=True, index=True)
+    referred_by_code = Column(String(16), nullable=True)
 
     # Relations
     subscription  = relationship("Subscription", back_populates="user", uselist=False)

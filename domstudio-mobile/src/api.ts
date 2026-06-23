@@ -207,6 +207,18 @@ export function loadMe(accessToken: string): Promise<UserProfile> {
   return request<UserProfile>("/users/me/full", {}, accessToken);
 }
 
+export interface ReferralInfo {
+  code: string;
+  link: string;
+  referrals_count: number;
+  tokens_per_referral: number;
+  tokens_earned: number;
+}
+
+export function loadReferralInfo(accessToken: string): Promise<ReferralInfo> {
+  return request<ReferralInfo>("/users/referral", {}, accessToken);
+}
+
 export function generateImage(accessToken: string, payload: GeneratePayload): Promise<GenerateResult> {
   return request<GenerateResult>(
     "/generation/generate",

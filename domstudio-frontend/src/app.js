@@ -469,6 +469,8 @@ const state = {
   contentSavingDraft: false,
   contentAdjustInstruction: "",
   contentSavedOutputs: JSON.parse(localStorage.getItem("domstudio_saved_outputs") || "[]"),
+  referral: null,
+  pendingReferralCode: null,
   marketplaceProviders: [],
   marketplaceConnections: [],
   marketplaceProducts: [],
@@ -618,6 +620,16 @@ async function loadPlans() {
     state.plans = await api("/subscriptions/plans");
   } catch {
     state.plans = [...FALLBACK_PLANS];
+  }
+}
+
+async function loadReferral() {
+  try {
+    const data = await api("/users/referral");
+    state.referral = data;
+    render();
+  } catch (_) {
+    // non-fatal — referral widget stays hidden
   }
 }
 
@@ -1956,6 +1968,20 @@ function accountPage() {
         </dl>
       </div>` : ""}
 
+      ${state.referral ? `
+      <div class="panel account-section">
+        <div class="account-section-head"><h3>${t("account.referralH3")}</h3><span>${t("account.referralSub")}</span></div>
+        <div class="referral-link-row">
+          <input class="referral-link-input" type="text" readonly value="${escapeHtml(state.referral.link)}" id="referral-link-input" />
+          <button class="button secondary" data-copy-referral>${t("account.referralCopy")}</button>
+        </div>
+        <div class="referral-stats">
+          <span>${t("account.referralCount").replace("{n}", state.referral.referrals_count)}</span>
+          <span>${t("account.referralEarned").replace("{n}", state.referral.tokens_earned.toLocaleString("ru-RU"))}</span>
+          <span class="referral-reward">${t("account.referralReward").replace("{n}", state.referral.tokens_per_referral)}</span>
+        </div>
+      </div>` : ""}
+
       <div class="panel account-section">
         <div class="account-section-head"><h3>${t("account.dataH3")}</h3></div>
         <p class="account-contact">${escapeHtml(state.user.email || state.user.phone || "—")}</p>
@@ -2199,6 +2225,12 @@ function bind() {
   document.querySelectorAll("[data-toggle-password]").forEach(el => el.addEventListener("click", () => togglePasswordVisibility(el)));
   document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", () => { state.authMode = null; state.authLoading = false; render(); }));
   document.querySelectorAll("[data-logout]").forEach(el => el.addEventListener("click", () => logout()));
+  document.querySelectorAll("[data-copy-referral]").forEach(el => el.addEventListener("click", () => {
+    const inp = document.getElementById("referral-link-input");
+    if (inp) { inp.select(); navigator.clipboard.writeText(inp.value).catch(() => {}); }
+    el.textContent = t("account.referralCopied");
+    setTimeout(() => { el.textContent = t("account.referralCopy"); }, 2000);
+  }));
   document.querySelectorAll("[data-plan]").forEach(el => el.addEventListener("click", () => choosePlan(el.dataset.plan)));
   document.querySelectorAll("[data-pack-id]").forEach(el => el.addEventListener("click", () => choosePack(el.dataset.packId)));
   document.querySelector("#auth-form")?.addEventListener("submit", submitAuth);
@@ -2683,6 +2715,7 @@ async function submitAuth(event) {
   try {
     if (channel === "phone") {
       const phoneBody = { phone: body.phone };
+      if (state.pendingReferralCode) phoneBody.referral_code = state.pendingReferralCode;
       if (mode === "register") {
         await api("/auth/register/phone", { method: "POST", body: JSON.stringify(phoneBody) });
       } else {
@@ -2699,6 +2732,7 @@ async function submitAuth(event) {
     }
 
     if (mode === "register") {
+      if (state.pendingReferralCode) body.referral_code = state.pendingReferralCode;
       await api("/auth/register/email", { method: "POST", body: JSON.stringify(body) });
       state.verificationContact = body.email;
       state.verificationKind = "email";
@@ -3271,6 +3305,15 @@ async function choosePack(packId) {
   }
 }
 
+function checkReferralParam() {
+  const params = new URLSearchParams(location.search);
+  const ref = params.get("ref");
+  if (ref) {
+    state.pendingReferralCode = ref.trim().toUpperCase();
+    history.replaceState(null, "", location.pathname + location.hash);
+  }
+}
+
 function checkPaymentReturn() {
   const params = new URLSearchParams(location.search);
   const payment = params.get("payment");
@@ -3433,7 +3476,8 @@ loadUser()
     loadPlans(),
     loadContentTools(),
     loadHistory(),
+    state.user ? loadReferral() : Promise.resolve(),
     state.user ? loadMarketplaces() : Promise.resolve(),
   ]))
-  .then(checkPaymentReturn)
+  .then(() => { checkReferralParam(); checkPaymentReturn(); })
   .finally(render);

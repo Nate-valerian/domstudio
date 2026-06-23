@@ -17,6 +17,7 @@ from sqlalchemy import select
 from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime, timezone
 import re
+import uuid
 
 from database import get_db, User, Subscription, TokenBalance, OtpCode, RefreshToken, PLANS, PlanName
 from auth_utils import (
@@ -30,9 +31,12 @@ from dependencies import get_current_user
 router = APIRouter()
 
 # ─── SCHEMAS ─────────────────────────────────────────────────────────────────
+REFERRAL_BONUS = 500
+
 class EmailRegisterRequest(BaseModel):
-    email:    EmailStr
-    password: str
+    email:          EmailStr
+    password:       str
+    referral_code:  str | None = None
 
     @field_validator("password")
     @classmethod
@@ -42,7 +46,8 @@ class EmailRegisterRequest(BaseModel):
         return v
 
 class PhoneRegisterRequest(BaseModel):
-    phone: str
+    phone:         str
+    referral_code: str | None = None
 
     @field_validator("phone")
     @classmethod
@@ -87,13 +92,30 @@ class ResetPasswordRequest(BaseModel):
         return v
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
-async def create_user_with_defaults(db: AsyncSession, email=None, phone=None, password=None) -> User:
+async def _award_referral(db: AsyncSession, new_user: User) -> None:
+    """Give REFERRAL_BONUS tokens to both referee and referrer on first verify."""
+    if not new_user.referred_by_code:
+        return
+    referrer = await db.scalar(select(User).where(User.referral_code == new_user.referred_by_code))
+    if not referrer:
+        return
+    referrer_bal = await db.scalar(select(TokenBalance).where(TokenBalance.user_id == referrer.id))
+    if referrer_bal:
+        referrer_bal.balance += REFERRAL_BONUS
+    new_user_bal = await db.scalar(select(TokenBalance).where(TokenBalance.user_id == new_user.id))
+    if new_user_bal:
+        new_user_bal.balance += REFERRAL_BONUS
+
+
+async def create_user_with_defaults(db: AsyncSession, email=None, phone=None, password=None, referred_by_code=None) -> User:
     """Create user + free subscription + token balance."""
     user = User(
         email=email,
         phone=phone,
         password_hash=hash_password(password) if password else None,
         is_verified=False,
+        referral_code=uuid.uuid4().hex[:8].upper(),
+        referred_by_code=(referred_by_code.strip().upper() if referred_by_code else None),
     )
     db.add(user)
     await db.flush()  # get user.id
@@ -143,7 +165,7 @@ async def register_email(req: EmailRegisterRequest, db: AsyncSession = Depends(g
         user = existing
         user.password_hash = hash_password(req.password)
     else:
-        user = await create_user_with_defaults(db, email=req.email, password=req.password)
+        user = await create_user_with_defaults(db, email=req.email, password=req.password, referred_by_code=req.referral_code)
 
     code = generate_otp()
     otp  = OtpCode(user_id=user.id, contact=req.email, code=code, expires_at=otp_expires_at())
@@ -159,7 +181,7 @@ async def register_phone(req: PhoneRegisterRequest, db: AsyncSession = Depends(g
     if existing:
         raise HTTPException(400, "Phone already registered")
 
-    user = await create_user_with_defaults(db, phone=req.phone)
+    user = await create_user_with_defaults(db, phone=req.phone, referred_by_code=req.referral_code)
 
     code = generate_otp()
     otp  = OtpCode(user_id=user.id, contact=req.phone, code=code, expires_at=otp_expires_at())
@@ -185,7 +207,10 @@ async def verify_email(req: OtpVerifyRequest, db: AsyncSession = Depends(get_db)
 
     otp.used = True
     user = await db.get(User, otp.user_id)
+    first_verify = not user.is_verified
     user.is_verified = True
+    if first_verify:
+        await _award_referral(db, user)
 
     return await issue_tokens(db, user.id)
 
@@ -206,7 +231,10 @@ async def verify_phone(req: OtpVerifyRequest, db: AsyncSession = Depends(get_db)
 
     otp.used = True
     user = await db.get(User, otp.user_id)
+    first_verify = not user.is_verified
     user.is_verified = True
+    if first_verify:
+        await _award_referral(db, user)
 
     return await issue_tokens(db, user.id)
 

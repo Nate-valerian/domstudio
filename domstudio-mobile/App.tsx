@@ -50,6 +50,7 @@ import {
   listTokenPacks,
   listVideoJobs,
   loadMe,
+  loadReferralInfo,
   loadTokens,
   loginEmail,
   loginPhone,
@@ -66,6 +67,7 @@ import {
   generateCopy,
   listContentTools,
   listMarketplaceActions,
+  ReferralInfo,
 } from "./src/api";
 import { LocalHistoryItem, SavedCopyItem, clearLocalHistory, loadLanguage, loadLocalHistory, loadSavedCopy, saveCopyItems, saveLanguage, saveLocalHistory } from "./src/storage";
 import { colors, radii } from "./src/theme";
@@ -81,6 +83,7 @@ type MainTabParamList = {
   AdPilot: undefined;
   Examples: undefined;
   Pricing: undefined;
+  Account: undefined;
 };
 
 type AuthMode = "login" | "register" | "verifyEmail" | "phone" | "verifyPhone" | "forgot" | "reset";
@@ -224,7 +227,7 @@ const workflowSteps = [
 
 const mobileCopy = {
   en: {
-    tabs: { home: "Home", studio: "Studio", adpilot: "AdPilot", examples: "Examples", pricing: "Pricing" },
+    tabs: { home: "Home", studio: "Studio", adpilot: "AdPilot", examples: "Examples", pricing: "Pricing", account: "Account" },
     common: {
       offlineTitle: "Offline",
       permissionNeeded: "Permission needed",
@@ -553,7 +556,7 @@ const mobileCopy = {
     }
   },
   ru: {
-    tabs: { home: "Главная", studio: "Студия", adpilot: "AdPilot", examples: "Примеры", pricing: "Тарифы" },
+    tabs: { home: "Главная", studio: "Студия", adpilot: "AdPilot", examples: "Примеры", pricing: "Тарифы", account: "Аккаунт" },
     common: {
       offlineTitle: "Офлайн",
       permissionNeeded: "Нужно разрешение",
@@ -1499,6 +1502,9 @@ function MainTabs(props: {
       </Tabs.Screen>
       <Tabs.Screen name="Pricing" options={{ tabBarLabel: copy.tabs.pricing, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="pricing" /> }}>
         {() => <PricingScreen {...props} language={props.language} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="Account" options={{ tabBarLabel: copy.tabs.account, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="account" /> }}>
+        {() => <AccountScreen language={props.language} offline={props.offline} refreshProfile={props.refreshProfile} signOut={props.signOut} tokens={props.tokens} user={props.user} />}
       </Tabs.Screen>
     </Tabs.Navigator>
   );
@@ -2741,16 +2747,36 @@ function AccountScreen({
   offline,
   refreshProfile,
   signOut,
+  tokens,
   user
 }: {
   language: AppLanguage;
   offline: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
+  tokens: Tokens;
   user: UserProfile;
 }) {
   const sub = user.subscription;
   const copy = mobileCopy[language].account;
+  const [referral, setReferral] = useState<ReferralInfo | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!tokens?.access_token || offline) return;
+    loadReferralInfo(tokens.access_token).then(setReferral).catch(() => {});
+  }, [tokens?.access_token]);
+
+  async function copyReferralLink() {
+    if (!referral) return;
+    await Clipboard.setStringAsync(referral.link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const refLabel = language === "ru"
+    ? { title: "Реферальная программа", sub: "Приглашайте друзей — получайте токены", copy: "Скопировать ссылку", copied: "Скопировано!", invited: "Приглашено", earned: "Получено токенов", reward: "за каждого" }
+    : { title: "Referral program", sub: "Invite friends — earn tokens", copy: "Copy link", copied: "Copied!", invited: "Invited", earned: "Tokens earned", reward: "per friend" };
 
   return (
     <Screen title={copy.title} kicker={user.subscription?.plan || "free"}>
@@ -2768,6 +2794,24 @@ function AccountScreen({
         <StatCard label={copy.premiumVideos} value={planText(sub?.premium_videos_used, sub?.premium_videos_limit)} />
         <StatCard label={copy.plan} value={sub?.plan || "free"} />
       </View>
+
+      {referral ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{refLabel.title}</Text>
+          <Text style={[styles.muted, { marginBottom: 10 }]}>{refLabel.sub}</Text>
+          <View style={styles.referralLinkRow}>
+            <Text style={styles.referralLinkText} numberOfLines={1}>{referral.link}</Text>
+            <Pressable style={styles.referralCopyBtn} onPress={copyReferralLink}>
+              <Text style={styles.referralCopyText}>{copied ? refLabel.copied : refLabel.copy}</Text>
+            </Pressable>
+          </View>
+          <View style={styles.referralStats}>
+            <Text style={styles.referralStat}>{refLabel.invited}: <Text style={{ color: colors.ink }}>{referral.referrals_count}</Text></Text>
+            <Text style={styles.referralStat}>{refLabel.earned}: <Text style={{ color: colors.ink }}>{referral.tokens_earned}</Text></Text>
+            <Text style={[styles.referralStat, { color: "#3a7a52" }]}>+{referral.tokens_per_referral} {refLabel.reward}</Text>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{copy.planStatus}</Text>
@@ -3189,7 +3233,7 @@ function StatCard({
   );
 }
 
-function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "adpilot" | "examples" | "pricing" }) {
+function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "adpilot" | "examples" | "pricing" | "account" }) {
   const wrapStyle = [styles.tabGlyph, focused && styles.tabGlyphActive];
   const glyphColor = focused ? colors.paper : color;
   if (kind === "home") {
@@ -3226,6 +3270,14 @@ function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; k
       <View style={wrapStyle}>
         <View style={[styles.tabRing, { borderColor: glyphColor }]} />
         <View style={[styles.tabPriceLine, { backgroundColor: glyphColor }]} />
+      </View>
+    );
+  }
+  if (kind === "account") {
+    return (
+      <View style={wrapStyle}>
+        <View style={{ width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: glyphColor }} />
+        <View style={{ width: 16, height: 7, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderWidth: 1.5, borderColor: glyphColor, borderBottomWidth: 0, marginTop: 2 }} />
       </View>
     );
   }
@@ -4951,6 +5003,44 @@ const styles = StyleSheet.create({
   },
   statHelperWarn: {
     color: colors.danger
+  },
+  referralLinkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+    backgroundColor: "#faf7f0",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 10,
+  },
+  referralLinkText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.muted,
+  },
+  referralCopyBtn: {
+    backgroundColor: colors.ink,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  referralCopyText: {
+    color: colors.paper,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  referralStats: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  referralStat: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.muted,
   },
   nativeTabBar: {
     position: "absolute",

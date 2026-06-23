@@ -35,12 +35,6 @@ _PG_PARAMS = dict(
     database=_m.group(5),
 )
 
-def env_float(name: str, default: str) -> float:
-    try:
-        return float(os.getenv(name) or default)
-    except (TypeError, ValueError):
-        return float(default)
-
 # ─── MIGRATIONS ──────────────────────────────────────────────────────────────
 # Each entry: (version_id, description, sql)
 MIGRATIONS: list[tuple[str, str, str]] = [
@@ -211,6 +205,23 @@ MIGRATIONS: list[tuple[str, str, str]] = [
             ON adpilot_rules (connection_id);
         """,
     ),
+    (
+        "007",
+        "Add referral_code and referred_by_code to users",
+        """
+        ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS referral_code VARCHAR(16),
+            ADD COLUMN IF NOT EXISTS referred_by_code VARCHAR(16);
+
+        CREATE UNIQUE INDEX IF NOT EXISTS ix_users_referral_code
+            ON users (referral_code)
+            WHERE referral_code IS NOT NULL;
+
+        UPDATE users
+        SET referral_code = UPPER(LEFT(REPLACE(gen_random_uuid()::TEXT, '-', ''), 8))
+        WHERE referral_code IS NULL;
+        """,
+    ),
 ]
 
 
@@ -219,20 +230,13 @@ async def run():
     from database import Base
     sa_url = DATABASE_URL if DATABASE_URL.startswith("postgresql+asyncpg") \
         else DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-    _engine = create_async_engine(
-        sa_url,
-        echo=False,
-        connect_args={
-            "timeout": env_float("DB_CONNECT_TIMEOUT_SECONDS", "10"),
-            "command_timeout": env_float("DB_COMMAND_TIMEOUT_SECONDS", "20"),
-        },
-    )
+    _engine = create_async_engine(sa_url, echo=False)
     async with _engine.begin() as _conn:
         await _conn.run_sync(Base.metadata.create_all)
     await _engine.dispose()
     print("Base tables ensured.")
 
-    conn = await asyncpg.connect(**_PG_PARAMS, timeout=env_float("DB_CONNECT_TIMEOUT_SECONDS", "10"))
+    conn = await asyncpg.connect(**_PG_PARAMS)
     try:
         # Ensure tracking table exists
         await conn.execute("""
