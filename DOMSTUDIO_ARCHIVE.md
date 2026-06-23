@@ -1,5 +1,48 @@
 # DomStudio Archive
 
+## June 23, 2026 - Fix Vercel CORS For AdPilot/API
+
+User reported browser console errors from `https://domstudio.vercel.app`:
+
+- `/users/me/full` blocked by CORS preflight.
+- `/content/tools` blocked by CORS preflight.
+
+Cause:
+
+- The live backend was accepting requests directly, but CORS did not include
+  the Vercel frontend origin in the response headers.
+- This made the browser block API calls even though the backend route existed.
+
+Implemented:
+
+- Updated `domstudio-backend/main.py` so production frontend origins are always
+  allowed in addition to any `CORS_ORIGINS` env value:
+  - `https://domstudio.vercel.app`
+  - `https://domstudio.site`
+  - `https://www.domstudio.site`
+  - local dev origins
+- Updated `domstudio-backend/.env.example` with the same CORS origin list.
+- Updated `domstudio-backend/runtime_info.py` to expose safe runtime diagnostics:
+  - configured CORS env origins
+  - text AI host/model/presence info
+
+Validation planned:
+
+```bash
+cd domstudio-backend
+python -m unittest discover -s tests -v
+
+cd domstudio-frontend
+npm.cmd run build
+```
+
+Deploy note:
+
+- Push to Amvera and verify an OPTIONS preflight from
+  `https://domstudio.vercel.app` returns `Access-Control-Allow-Origin`.
+
+---
+
 ## June 23, 2026 - AutoDL Text Backend Check For DomStudio AdPilot
 
 Checked the provided AutoDL/SeetaCloud box for the AdPilot text backend.

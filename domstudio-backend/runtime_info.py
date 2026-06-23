@@ -84,6 +84,14 @@ def _env_present(name: str) -> bool:
     return bool(os.getenv(name, "").strip())
 
 
+def _csv_values(name: str) -> list[str]:
+    return [
+        item.strip()
+        for item in os.getenv(name, "").split(",")
+        if item.strip()
+    ]
+
+
 def _workflow_status(filename: str | None) -> dict[str, object]:
     workflow_dir = Path(os.getenv("COMFYUI_WORKFLOW_DIR", str(BASE_DIR / "workflows")))
     name = str(filename or "").strip()
@@ -110,6 +118,9 @@ def runtime_version_payload() -> dict[str, object]:
             "provider": os.getenv("GENERATION_PROVIDER", "worker").lower(),
             "worker_url_host": _safe_url_host(os.getenv("GENERATION_API_URL")),
         },
+        "cors": {
+            "env_origins": _csv_values("CORS_ORIGINS"),
+        },
         "comfy": {
             "url_host": _safe_url_host(os.getenv("COMFYUI_URL")),
             "port": os.getenv("COMFYUI_PORT", "6006"),
@@ -119,6 +130,13 @@ def runtime_version_payload() -> dict[str, object]:
             in {"1", "true", "yes", "on"},
             "video_resolution": os.getenv("COMFYUI_VIDEO_RESOLUTION", "720p"),
             "poll_timeout": os.getenv("COMFYUI_POLL_TIMEOUT", "600"),
+        },
+        "text_ai": {
+            "base_url_host": _safe_url_host(os.getenv("TEXT_AI_BASE_URL")),
+            "model": os.getenv("TEXT_AI_MODEL") or None,
+            "api_key_present": _env_present("TEXT_AI_API_KEY"),
+            "timeout_ms": os.getenv("TEXT_AI_TIMEOUT_MS", "60000"),
+            "content_token_unit": os.getenv("CONTENT_TOKEN_UNIT", "10"),
         },
         "workflows": {
             "image": _workflow_status(image_workflow),
