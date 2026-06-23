@@ -54,3 +54,29 @@ export async function loadLanguage(): Promise<LocalAppLanguage> {
 export async function saveLanguage(language: LocalAppLanguage): Promise<void> {
   await FileSystem.writeAsStringAsync(SETTINGS_FILE, JSON.stringify({ language }));
 }
+
+export type SavedCopyItem = {
+  id: string;
+  text: string;
+  tool: string;
+  date: string;
+  createdAt: number;
+};
+
+const SAVED_COPY_FILE = `${FileSystem.documentDirectory}domstudio-saved-copy.json`;
+
+export async function loadSavedCopy(): Promise<SavedCopyItem[]> {
+  try {
+    const info = await FileSystem.getInfoAsync(SAVED_COPY_FILE);
+    if (!info.exists) return [];
+    const raw = await FileSystem.readAsStringAsync(SAVED_COPY_FILE);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveCopyItems(items: SavedCopyItem[]): Promise<void> {
+  await FileSystem.writeAsStringAsync(SAVED_COPY_FILE, JSON.stringify(items.slice(0, 50)));
+}

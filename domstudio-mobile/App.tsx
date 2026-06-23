@@ -25,6 +25,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { VideoSource, VideoView, useVideoPlayer } from "expo-video";
+import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
@@ -58,9 +59,15 @@ import {
   resetPassword,
   saveTokens,
   verifyEmail,
-  verifyPhone
+  verifyPhone,
+  ContentTool,
+  ContentGenerateResult,
+  MarketplaceAction,
+  generateCopy,
+  listContentTools,
+  listMarketplaceActions,
 } from "./src/api";
-import { LocalHistoryItem, clearLocalHistory, loadLanguage, loadLocalHistory, saveLanguage, saveLocalHistory } from "./src/storage";
+import { LocalHistoryItem, SavedCopyItem, clearLocalHistory, loadLanguage, loadLocalHistory, loadSavedCopy, saveCopyItems, saveLanguage, saveLocalHistory } from "./src/storage";
 import { colors, radii } from "./src/theme";
 
 type RootStackParamList = {
@@ -71,6 +78,7 @@ type RootStackParamList = {
 type MainTabParamList = {
   Home: undefined;
   Studio: undefined;
+  AdPilot: undefined;
   Examples: undefined;
   Pricing: undefined;
 };
@@ -216,7 +224,7 @@ const workflowSteps = [
 
 const mobileCopy = {
   en: {
-    tabs: { home: "Home", studio: "Studio", examples: "Examples", pricing: "Pricing" },
+    tabs: { home: "Home", studio: "Studio", adpilot: "AdPilot", examples: "Examples", pricing: "Pricing" },
     common: {
       offlineTitle: "Offline",
       permissionNeeded: "Permission needed",
@@ -512,10 +520,40 @@ const mobileCopy = {
       readiness: "Build readiness",
       readinessBody1: "Camera, gallery picker, media-library save, secure tokens, and native tabs are enabled.",
       readinessBody2: "Native icon, splash, Home, Studio, Examples, and Pricing surfaces now share the DomStudio brand system."
+    },
+    adpilot: {
+      screenTitle: "AdPilot",
+      tabConnection: "Connection",
+      tabProducts: "Products",
+      tabTools: "Tools",
+      tabCreateDraft: "Create draft",
+      tabDrafts: "Drafts",
+      fillExample: "Fill with example",
+      langAuto: "Auto",
+      langEnglish: "English",
+      langRussian: "Russian",
+      lang: { auto: "Auto", english: "English", russian: "Russian" },
+      generate: "Generate",
+      generating: "Writing…",
+      generated: "Ready",
+      generateFailed: "Generation failed",
+      variation: "Option",
+      chars: "chars",
+      saveDraft: "Save",
+      copy: "Copy",
+      adjust: "Adjust",
+      adjustLabel: "Refine",
+      adjustPlaceholder: "Make it shorter, more formal, add a CTA…",
+      savedDraft: "Saved to drafts",
+      savedDrafts: "Saved copies",
+      noSavedDrafts: "No saved copies yet. Generate something and tap Save.",
+      delete: "Delete",
+      copied: "Copied",
+      marketplaceWebOnly: "Marketplace connection, product import, and draft publishing are available on the web app at domstudio.site."
     }
   },
   ru: {
-    tabs: { home: "Главная", studio: "Студия", examples: "Примеры", pricing: "Тарифы" },
+    tabs: { home: "Главная", studio: "Студия", adpilot: "AdPilot", examples: "Примеры", pricing: "Тарифы" },
     common: {
       offlineTitle: "Офлайн",
       permissionNeeded: "Нужно разрешение",
@@ -811,6 +849,36 @@ const mobileCopy = {
       readiness: "Готовность сборки",
       readinessBody1: "Камера, выбор из галереи, сохранение в медиа, secure tokens и native tabs включены.",
       readinessBody2: "Иконка, splash, Главная, Студия, Примеры и Тарифы используют бренд-систему DomStudio."
+    },
+    adpilot: {
+      screenTitle: "AdPilot",
+      tabConnection: "Подключение",
+      tabProducts: "Товары",
+      tabTools: "Инструменты",
+      tabCreateDraft: "Создать черновик",
+      tabDrafts: "Черновики",
+      fillExample: "Заполнить примером",
+      langAuto: "Авто",
+      langEnglish: "English",
+      langRussian: "Русский",
+      lang: { auto: "Авто", english: "English", russian: "Русский" },
+      generate: "Создать текст",
+      generating: "Пишем…",
+      generated: "Готово",
+      generateFailed: "Ошибка генерации",
+      variation: "Вариант",
+      chars: "симв.",
+      saveDraft: "Сохранить",
+      copy: "Скопировать",
+      adjust: "Улучшить",
+      adjustLabel: "Доработать",
+      adjustPlaceholder: "Сделать короче, официальнее, добавить CTA…",
+      savedDraft: "Сохранено в черновики",
+      savedDrafts: "Сохранённые копии",
+      noSavedDrafts: "Пока нет сохранённых копий. Создайте текст и нажмите «Сохранить».",
+      delete: "Удалить",
+      copied: "Скопировано",
+      marketplaceWebOnly: "Подключение маркетплейса, импорт товаров и публикация черновиков доступны в веб-приложении на domstudio.site."
     }
   }
 } as const;
@@ -1422,6 +1490,9 @@ function MainTabs(props: {
       </Tabs.Screen>
       <Tabs.Screen name="Studio" options={{ tabBarLabel: copy.tabs.studio, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="studio" /> }}>
         {() => <StudioScreen {...props} />}
+      </Tabs.Screen>
+      <Tabs.Screen name="AdPilot" options={{ tabBarLabel: copy.tabs.adpilot, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="adpilot" /> }}>
+        {() => <AdPilotScreen language={props.language} offline={props.offline} tokens={props.tokens} user={props.user} />}
       </Tabs.Screen>
       <Tabs.Screen name="Examples" options={{ tabBarLabel: copy.tabs.examples, tabBarIcon: ({ color, focused }) => <TabGlyph color={color} focused={focused} kind="examples" /> }}>
         {({ navigation }) => <ExamplesScreen language={props.language} onCreate={() => navigation.navigate("Studio")} />}
@@ -2709,6 +2780,359 @@ function AccountScreen({
   );
 }
 
+// ── AdPilot constants ─────────────────────────────────────────────────────────
+
+const COPY_TOKEN_UNIT = 10;
+
+const COPY_FIELD_LABELS: Record<AppLanguage, Record<string, string>> = {
+  en: {
+    product: "Product / service", city: "City", price: "Price",
+    advantages: "Advantages", targetCustomer: "Target customer",
+    tone: "Tone", offer: "Special offer", customerQuestion: "Customer question",
+    reviewText: "Review text", businessName: "Business name",
+  },
+  ru: {
+    product: "Товар / услуга", city: "Город", price: "Цена",
+    advantages: "Преимущества", targetCustomer: "Целевой клиент",
+    tone: "Тон", offer: "Спецпредложение", customerQuestion: "Вопрос клиента",
+    reviewText: "Текст отзыва", businessName: "Название бизнеса",
+  },
+};
+
+const COPY_TOOLS_FALLBACK: ContentTool[] = [
+  { slug: "avito-ad", name: "Avito Ad", category: "Listings", cost_units: 1, fields: ["product", "city", "price", "advantages"] },
+  { slug: "ozon-listing", name: "Ozon Listing", category: "Listings", cost_units: 1, fields: ["product", "price", "advantages", "targetCustomer"] },
+  { slug: "wb-listing", name: "WB Listing", category: "Listings", cost_units: 1, fields: ["product", "price", "advantages"] },
+  { slug: "buyer-reply", name: "Buyer Reply", category: "Communication", cost_units: 1, fields: ["product", "customerQuestion"] },
+  { slug: "review-reply", name: "Review Reply", category: "Communication", cost_units: 1, fields: ["product", "reviewText"] },
+];
+
+const COPY_EXAMPLE: Record<AppLanguage, Record<string, string>> = {
+  en: {
+    product: "Brake pad replacement", city: "Moscow", price: "From 4,500 RUB",
+    advantages: "Same-day service, warranty, clear quote before work",
+    targetCustomer: "busy car owners", tone: "friendly and direct",
+    offer: "Free diagnostics with booking today",
+    customerQuestion: "Is it available today and can you do cheaper?",
+    reviewText: "Good result, but I waited longer than expected.",
+    businessName: "Pilot Auto",
+  },
+  ru: {
+    product: "Замена тормозных колодок", city: "Москва", price: "От 4 500 ₽",
+    advantages: "Ремонт в день обращения, гарантия, честная смета до работ",
+    targetCustomer: "занятые автовладельцы", tone: "дружелюбно и по делу",
+    offer: "Бесплатная диагностика при записи сегодня",
+    customerQuestion: "Есть запись на сегодня и можно дешевле?",
+    reviewText: "Результат хороший, но ждать пришлось дольше, чем ожидал.",
+    businessName: "Пилот Авто",
+  },
+};
+
+type AdPilotSubTab = "connection" | "products" | "tools" | "createDraft" | "drafts";
+
+function AdPilotScreen({
+  language,
+  offline,
+  tokens,
+  user,
+}: {
+  language: AppLanguage;
+  offline: boolean;
+  tokens: Tokens;
+  user: UserProfile;
+}) {
+  const ap = mobileCopy[language].adpilot;
+  const fieldLabels = COPY_FIELD_LABELS[language];
+
+  const [subTab, setSubTab] = useState<AdPilotSubTab>("tools");
+  const [tools, setTools] = useState<ContentTool[]>(COPY_TOOLS_FALLBACK);
+  const [toolSlug, setToolSlug] = useState("avito-ad");
+  const [fields, setFields] = useState<Record<string, string>>(COPY_EXAMPLE[language]);
+  const [outputLang, setOutputLang] = useState<"auto" | "english" | "russian">("auto");
+  const [generating, setGenerating] = useState(false);
+  const [output, setOutput] = useState("");
+  const [variations, setVariations] = useState<string[]>([]);
+  const [adjustText, setAdjustText] = useState("");
+  const [notice, setNotice] = useState("");
+  const [savedItems, setSavedItems] = useState<SavedCopyItem[]>([]);
+
+  const currentTool = tools.find((t) => t.slug === toolSlug) ?? tools[0];
+  const cost = (currentTool?.cost_units ?? 1) * COPY_TOKEN_UNIT;
+  const canGenerate = !offline && !generating && user.tokens >= cost;
+
+  const subTabs: { id: AdPilotSubTab; label: string }[] = [
+    { id: "connection", label: ap.tabConnection },
+    { id: "products", label: ap.tabProducts },
+    { id: "tools", label: ap.tabTools },
+    { id: "createDraft", label: ap.tabCreateDraft },
+    { id: "drafts", label: ap.tabDrafts },
+  ];
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await listContentTools(tokens.access_token);
+        if (res.tools?.length) setTools(res.tools);
+      } catch { /* keep fallback */ }
+      setSavedItems(await loadSavedCopy());
+    })();
+  }, []);
+
+  useEffect(() => {
+    setFields(COPY_EXAMPLE[language]);
+  }, [language]);
+
+  async function handleGenerate() {
+    if (!canGenerate || !currentTool) return;
+    setGenerating(true);
+    setNotice("");
+    try {
+      const input = adjustText
+        ? { ...fields, adjust_instruction: adjustText, previous_output: output }
+        : { ...fields };
+      const res = await generateCopy(tokens.access_token, {
+        tool_slug: currentTool.slug,
+        input,
+        profile: {},
+        output_language: outputLang,
+      });
+      const text = res.output ?? "";
+      setOutput(text);
+      setVariations((prev) => [text, ...prev].filter(Boolean).slice(0, 3));
+      setNotice(res.warning ?? ap.generated);
+    } catch (e: any) {
+      setNotice(e?.message ?? ap.generateFailed);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!output) return;
+    const item: SavedCopyItem = {
+      id: Date.now().toString(),
+      text: output,
+      tool: currentTool?.name ?? toolSlug,
+      date: new Date().toLocaleString(language === "ru" ? "ru-RU" : "en-US", {
+        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+      }),
+      createdAt: Date.now(),
+    };
+    const updated = [item, ...savedItems].slice(0, 50);
+    setSavedItems(updated);
+    await saveCopyItems(updated);
+    setNotice(ap.savedDraft);
+  }
+
+  async function handleCopy(text: string) {
+    try {
+      await Clipboard.setStringAsync(text);
+      setNotice(ap.copied);
+    } catch { /* ignore */ }
+  }
+
+  async function handleDeleteSaved(id: string) {
+    const updated = savedItems.filter((i) => i.id !== id);
+    setSavedItems(updated);
+    await saveCopyItems(updated);
+  }
+
+  const charBadges = output
+    ? [{ name: "Avito", ok: output.length <= 3000 }, { name: "Ozon", ok: output.length <= 5000 }, { name: "WB", ok: output.length <= 5000 }]
+    : [];
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      {/* Sub-tab strip */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.apTabRow}
+        contentContainerStyle={styles.apTabContent}
+      >
+        {subTabs.map((tab) => (
+          <Pressable
+            key={tab.id}
+            style={[styles.apTab, subTab === tab.id && styles.apTabActive]}
+            onPress={() => setSubTab(tab.id)}
+          >
+            <Text style={[styles.apTabText, subTab === tab.id && styles.apTabTextActive]}>{tab.label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      {/* Tools view */}
+      {subTab === "tools" && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
+          {/* Tool chips */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.apToolRow}>
+            {tools.map((t) => (
+              <Pressable
+                key={t.slug}
+                style={[styles.apToolChip, t.slug === toolSlug && styles.apToolChipActive]}
+                onPress={() => setToolSlug(t.slug)}
+              >
+                <Text style={[styles.apToolChipText, t.slug === toolSlug && styles.apToolChipTextActive]}>{t.name}</Text>
+                <Text style={styles.apToolChipCost}>{t.cost_units * COPY_TOKEN_UNIT}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          {/* Fill example */}
+          <Pressable onPress={() => { setFields(COPY_EXAMPLE[language]); setNotice(""); }} style={styles.apExampleBtn}>
+            <Text style={styles.apExampleBtnText}>{ap.fillExample}</Text>
+          </Pressable>
+
+          {/* Dynamic fields */}
+          {(currentTool?.fields ?? []).map((field) => {
+            const isMulti = ["advantages", "reviewText", "customerQuestion"].includes(field);
+            return (
+              <View key={field} style={styles.fieldRow}>
+                <Text style={styles.label}>{fieldLabels[field] ?? field}</Text>
+                <TextInput
+                  style={isMulti ? [styles.input, styles.textarea] : styles.input}
+                  multiline={isMulti}
+                  numberOfLines={isMulti ? 3 : 1}
+                  value={fields[field] ?? ""}
+                  onChangeText={(v) => setFields((prev) => ({ ...prev, [field]: v }))}
+                  placeholder={fieldLabels[field] ?? field}
+                  placeholderTextColor={colors.muted}
+                />
+              </View>
+            );
+          })}
+
+          {/* Output language */}
+          <View style={styles.apSegmentRow}>
+            {(["auto", "english", "russian"] as const).map((lang) => (
+              <Pressable
+                key={lang}
+                style={[styles.apSegment, outputLang === lang && styles.apSegmentActive]}
+                onPress={() => setOutputLang(lang)}
+              >
+                <Text style={[styles.apSegmentText, outputLang === lang && styles.apSegmentTextActive]}>
+                  {ap.lang[lang]}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Generate */}
+          <PrimaryButton
+            label={generating ? ap.generating : `${ap.generate} · ${cost}`}
+            disabled={!canGenerate}
+            loading={generating}
+            onPress={handleGenerate}
+          />
+
+          {/* Notice */}
+          {notice ? <Text style={styles.apNotice}>{notice}</Text> : null}
+
+          {/* Output panel */}
+          {output ? (
+            <View style={styles.apOutputPanel}>
+              {/* Variation pills */}
+              {variations.length > 1 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                  <View style={styles.apVariationRow}>
+                    {variations.map((v, i) => (
+                      <Pressable
+                        key={i}
+                        style={[styles.apVariationPill, output === v && styles.apVariationPillActive]}
+                        onPress={() => setOutput(v)}
+                      >
+                        <Text style={[styles.apVariationText, output === v && styles.apVariationTextActive]}>
+                          {ap.variation} {i + 1}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </ScrollView>
+              )}
+
+              {/* Text output */}
+              <Text selectable style={styles.apOutputText}>{output}</Text>
+
+              {/* Char limit badges */}
+              <View style={styles.apCharRow}>
+                <Text style={styles.apCharCount}>{output.length} {ap.chars}</Text>
+                {charBadges.map((b) => (
+                  <View key={b.name} style={[styles.apCharBadge, b.ok ? styles.apCharBadgeOk : styles.apCharBadgeOver]}>
+                    <Text style={[styles.apCharBadgeText, b.ok ? styles.apCharBadgeTextOk : styles.apCharBadgeTextOver]}>{b.name}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Action buttons */}
+              <View style={styles.apActionRow}>
+                <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={handleSave}>
+                  <Text style={styles.secondaryButtonText}>{ap.saveDraft}</Text>
+                </Pressable>
+                <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleCopy(output)}>
+                  <Text style={styles.secondaryButtonText}>{ap.copy}</Text>
+                </Pressable>
+              </View>
+
+              {/* Adjust */}
+              <Text style={styles.label}>{ap.adjustLabel}</Text>
+              <View style={styles.apAdjustRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  value={adjustText}
+                  onChangeText={setAdjustText}
+                  placeholder={ap.adjustPlaceholder}
+                  placeholderTextColor={colors.muted}
+                />
+                <Pressable
+                  style={[styles.secondaryButton, { flex: 0, marginLeft: 8 }]}
+                  onPress={handleGenerate}
+                  disabled={!canGenerate}
+                >
+                  <Text style={styles.secondaryButtonText}>{ap.adjust}</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+        </ScrollView>
+      )}
+
+      {/* Drafts view */}
+      {subTab === "drafts" && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
+          {savedItems.length === 0 ? (
+            <Banner text={ap.noSavedDrafts} tone="ok" />
+          ) : (
+            savedItems.map((item) => (
+              <View key={item.id} style={styles.apDraftCard}>
+                <View style={styles.apDraftMeta}>
+                  <Text style={styles.apDraftTool}>{item.tool}</Text>
+                  <Text style={styles.apDraftDate}>{item.date}</Text>
+                </View>
+                <Text selectable style={styles.apDraftText} numberOfLines={6}>{item.text}</Text>
+                <View style={styles.apActionRow}>
+                  <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleCopy(item.text)}>
+                    <Text style={styles.secondaryButtonText}>{ap.copy}</Text>
+                  </Pressable>
+                  <Pressable style={[styles.secondaryButton, { flex: 1 }]} onPress={() => handleDeleteSaved(item.id)}>
+                    <Text style={styles.secondaryButtonText}>{ap.delete}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      )}
+
+      {/* Marketplace tabs — web-only for now */}
+      {(subTab === "connection" || subTab === "products" || subTab === "createDraft") && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.page}>
+          <Banner text={ap.marketplaceWebOnly} tone="ok" />
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
 function SettingsScreen({
   clearHistory,
   language = "en",
@@ -2824,7 +3248,7 @@ function StatCard({
   );
 }
 
-function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "examples" | "pricing" }) {
+function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; kind: "home" | "studio" | "adpilot" | "examples" | "pricing" }) {
   const wrapStyle = [styles.tabGlyph, focused && styles.tabGlyphActive];
   const glyphColor = focused ? colors.paper : color;
   if (kind === "home") {
@@ -2832,6 +3256,18 @@ function TabGlyph({ color, focused, kind }: { color: string; focused: boolean; k
       <View style={wrapStyle}>
         <View style={[styles.tabHomeRoof, { borderColor: glyphColor }]} />
         <View style={[styles.tabHomeBase, { borderColor: glyphColor }]} />
+      </View>
+    );
+  }
+  if (kind === "adpilot") {
+    return (
+      <View style={wrapStyle}>
+        <View style={[styles.tabLine, { backgroundColor: glyphColor, width: 18 }]} />
+        <View style={[styles.tabLine, { backgroundColor: glyphColor, width: 14 }]} />
+        <View style={{ flexDirection: "row", gap: 3 }}>
+          <View style={[{ width: 7, height: 3, borderRadius: 2, backgroundColor: glyphColor }]} />
+          <View style={[{ width: 7, height: 3, borderRadius: 2, backgroundColor: glyphColor }]} />
+        </View>
       </View>
     );
   }
@@ -4687,5 +5123,224 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4
-  }
+  },
+  // ── AdPilot ────────────────────────────────────────────────────────────────
+  apTabRow: {
+    flexShrink: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+    backgroundColor: colors.card,
+  },
+  apTabContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 6,
+    flexDirection: "row",
+  },
+  apTab: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: colors.paper,
+  },
+  apTabActive: {
+    borderColor: colors.gold,
+    backgroundColor: "#fff7e0",
+  },
+  apTabText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: colors.muted,
+  },
+  apTabTextActive: {
+    color: colors.gold,
+  },
+  apToolRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingBottom: 4,
+  },
+  apToolChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+  },
+  apToolChipActive: {
+    borderColor: colors.ink,
+    backgroundColor: colors.ink,
+  },
+  apToolChipText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: colors.ink,
+  },
+  apToolChipTextActive: {
+    color: colors.paper,
+  },
+  apToolChipCost: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: colors.muted,
+    backgroundColor: colors.paper,
+    paddingHorizontal: 5,
+    borderRadius: 6,
+  },
+  apExampleBtn: {
+    alignSelf: "flex-start",
+  },
+  apExampleBtnText: {
+    color: colors.gold,
+    fontSize: 13,
+    fontWeight: "800",
+    textDecorationLine: "underline",
+  },
+  fieldRow: {
+    gap: 6,
+  },
+  apSegmentRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  apSegment: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+  },
+  apSegmentActive: {
+    borderColor: colors.ink,
+    backgroundColor: colors.ink,
+  },
+  apSegmentText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: colors.muted,
+  },
+  apSegmentTextActive: {
+    color: colors.paper,
+  },
+  apNotice: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.muted,
+    textAlign: "center",
+  },
+  apOutputPanel: {
+    gap: 12,
+    padding: 16,
+    borderRadius: radii.md,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  apVariationRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  apVariationPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: colors.paper,
+  },
+  apVariationPillActive: {
+    borderColor: colors.gold,
+    backgroundColor: "#fff7e0",
+  },
+  apVariationText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: colors.muted,
+  },
+  apVariationTextActive: {
+    color: colors.gold,
+  },
+  apOutputText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.ink,
+    lineHeight: 22,
+  },
+  apCharRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  apCharCount: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.muted,
+  },
+  apCharBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  apCharBadgeOk: {
+    backgroundColor: "#e8f5e9",
+  },
+  apCharBadgeOver: {
+    backgroundColor: "#fdecea",
+  },
+  apCharBadgeText: {
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  apCharBadgeTextOk: {
+    color: "#2e7d32",
+  },
+  apCharBadgeTextOver: {
+    color: "#c62828",
+  },
+  apActionRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  apAdjustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  apDraftCard: {
+    gap: 10,
+    padding: 14,
+    borderRadius: radii.md,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  apDraftMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  apDraftTool: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: colors.ink,
+  },
+  apDraftDate: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.muted,
+  },
+  apDraftText: {
+    fontSize: 13,
+    fontWeight: "600" as const,
+    color: colors.ink,
+    lineHeight: 20,
+  },
 });

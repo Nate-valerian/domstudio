@@ -273,3 +273,54 @@ export function initTopUpPayment(accessToken: string, packId: string): Promise<P
 export function listPaymentHistory(accessToken: string): Promise<PaymentHistoryItem[]> {
   return request<PaymentHistoryItem[]>("/payments/history", {}, accessToken);
 }
+
+// ── Content copy (AdPilot Tools) ──────────────────────────────────────────────
+
+export type ContentTool = {
+  slug: string;
+  name: string;
+  category: string;
+  cost_units: number;
+  fields: string[];
+};
+
+export type ContentGenerateResult = {
+  output: string;
+  warning?: string;
+  tokens_charged?: number;
+  tool?: string;
+  provider?: string;
+};
+
+export type MarketplaceAction = {
+  id: string;
+  provider: string;
+  title: string;
+  action_type: string;
+  status: string;
+  draft?: { copy?: string; ai_provider?: string };
+};
+
+export function listContentTools(accessToken: string): Promise<{ tools: ContentTool[] }> {
+  return request<{ tools: ContentTool[] }>("/content/tools", {}, accessToken);
+}
+
+export function generateCopy(
+  accessToken: string,
+  body: {
+    tool_slug: string;
+    input: Record<string, string>;
+    profile: Record<string, string>;
+    output_language: string;
+  }
+): Promise<ContentGenerateResult> {
+  return request<ContentGenerateResult>(
+    "/content/generate",
+    { method: "POST", body: JSON.stringify(body) },
+    accessToken
+  );
+}
+
+export function listMarketplaceActions(accessToken: string): Promise<{ actions: MarketplaceAction[] }> {
+  return request<{ actions: MarketplaceAction[] }>("/marketplaces/actions", {}, accessToken);
+}
