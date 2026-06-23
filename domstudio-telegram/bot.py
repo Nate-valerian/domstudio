@@ -507,7 +507,15 @@ async def tool_selected_with_tid(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
 def main():
     db_init()
 
-    app = Application.builder().token(TOKEN).build()
+    app = (
+        Application.builder()
+        .token(TOKEN)
+        .connect_timeout(30)
+        .read_timeout(30)
+        .write_timeout(30)
+        .pool_timeout(30)
+        .build()
+    )
 
     link_conv = ConversationHandler(
         entry_points=[CommandHandler("link", cmd_link)],
