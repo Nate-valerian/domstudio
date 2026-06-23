@@ -54,6 +54,44 @@ TOOLS: tuple[ContentTool, ...] = (
             "and one limited-slots urgency post. Each with headline, body, CTA, and 5 relevant hashtags."
         ),
     ),
+    # ── Food / restaurant vertical ─────────────────────────────────────────────
+    ContentTool(
+        slug="food-delivery-ad",
+        name="Food Delivery Ad",
+        category="Food",
+        cost_units=1,
+        fields=("product", "price", "city", "advantages", "offer"),
+        task=(
+            "Create a food delivery / cafe listing for Yandex Maps, Avito, or delivery aggregators: "
+            "5 headline options, a short description, a menu highlight paragraph, "
+            "delivery/pickup details, trust signals, CTA, and 3 common customer questions with replies."
+        ),
+    ),
+    ContentTool(
+        slug="yandex-maps-card",
+        name="Yandex Maps Card",
+        category="Food",
+        cost_units=1,
+        fields=("businessName", "product", "city", "advantages", "offer"),
+        task=(
+            "Write a Yandex Maps / 2GIS business card: business description (up to 500 chars), "
+            "category tags, highlight phrases for the photo caption, "
+            "a reply template for 5-star reviews, a reply template for 1-3 star reviews, "
+            "and an owner response to a critical comment."
+        ),
+    ),
+    ContentTool(
+        slug="food-promo-post",
+        name="Food Promo Post",
+        category="Food",
+        cost_units=1,
+        fields=("product", "offer", "city", "businessName", "advantages"),
+        task=(
+            "Create 3 food promo post variants for VK or Telegram: "
+            "one dish-of-the-day post, one delivery promo, and one loyalty/regular-customer post. "
+            "Each with an appetizing headline, short body, emoji accents, CTA, and 5 relevant hashtags."
+        ),
+    ),
     # ── General tools ──────────────────────────────────────────────────────────
     ContentTool(
         slug="avito-ad",
@@ -327,6 +365,53 @@ def fallback_output(
     lines = _reply_lines(output_language, product, price, city, advantages, business_name, review)
 
     templates = {
+        "food-delivery-ad": [
+            "TITLE OPTIONS",
+            f"1. {product} in {city} — delivery and pickup",
+            f"2. {product}: {advantages}",
+            f"3. Order {product} — {offer}",
+            f"4. {business_name}: {product} with fast delivery in {city}",
+            f"5. Fresh {product} — ready in minutes",
+            "",
+            "SHORT DESCRIPTION",
+            f"{business_name} delivers {product} in {city}. {advantages}. Price from {price}.",
+            "",
+            "CTA",
+            "Order now — we confirm your order within 5 minutes.",
+            "",
+            "BUYER Q&A",
+            "Q: How long is delivery? A: We will confirm the exact time for your area when you place the order.",
+            "Q: Can I pick up? A: Yes, pickup is available — write your order and we will give you the ready time.",
+        ],
+        "yandex-maps-card": [
+            "BUSINESS DESCRIPTION",
+            f"{business_name} — {product} in {city}. {advantages}. {offer}.",
+            "",
+            "5-STAR REVIEW REPLY",
+            f"Thank you so much! We are glad you enjoyed {product}. Come back soon — we have more to offer.",
+            "",
+            "1-3 STAR REVIEW REPLY",
+            f"Thank you for your honest feedback. We take quality seriously at {business_name} and will review this personally. Please contact us so we can make it right.",
+            "",
+            "OWNER RESPONSE TO CRITICISM",
+            f"We hear you. This is not the standard we hold ourselves to. We are looking into this today and would like to reach out to you directly.",
+        ],
+        "food-promo-post": [
+            "POST 1 — DISH OF THE DAY",
+            f"🍽 Today's special: {product}",
+            f"{advantages}. Available in {city} — delivery and pickup.",
+            f"Order before it runs out: {offer}",
+            "",
+            "POST 2 — DELIVERY PROMO",
+            f"🚀 {offer} on delivery of {product}!",
+            f"Order from {business_name} in {city}. Straight to your door.",
+            "Order in the app or message us directly.",
+            "",
+            "POST 3 — LOYALTY POST",
+            f"Our regulars know: {product} at {business_name} is different.",
+            f"{advantages}.",
+            "Come back today — we have something special waiting for you.",
+        ],
         "beauty-service-ad": [
             "TITLE OPTIONS",
             f"1. {product} in {city} — {price}, booking open",
