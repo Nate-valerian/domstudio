@@ -30,6 +30,7 @@ TEXT_AI_API_KEY = os.getenv("TEXT_AI_API_KEY", "")
 TEXT_AI_MODEL = os.getenv("TEXT_AI_MODEL", "")
 TEXT_AI_TIMEOUT_MS = int(os.getenv("TEXT_AI_TIMEOUT_MS", "60000"))
 TEXT_AI_TIMEOUT_SECONDS = max(TEXT_AI_TIMEOUT_MS / 1000, 60)
+TEXT_AI_MAX_TOKENS = int(os.getenv("TEXT_AI_MAX_TOKENS", "1200"))
 CONTENT_TOKEN_UNIT = int(os.getenv("CONTENT_TOKEN_UNIT", "10"))
 
 
@@ -71,21 +72,28 @@ async def list_tools():
 
 
 async def generate_with_text_backend(prompt: str) -> tuple[str, str | None]:
-    if not TEXT_AI_BASE_URL or not TEXT_AI_MODEL:
+    base_url = os.getenv("TEXT_AI_BASE_URL", TEXT_AI_BASE_URL).rstrip("/")
+    api_key = os.getenv("TEXT_AI_API_KEY", TEXT_AI_API_KEY)
+    model = os.getenv("TEXT_AI_MODEL", TEXT_AI_MODEL)
+    timeout_ms = int(os.getenv("TEXT_AI_TIMEOUT_MS", str(TEXT_AI_TIMEOUT_MS)))
+    timeout_seconds = max(timeout_ms / 1000, 60)
+    max_tokens = int(os.getenv("TEXT_AI_MAX_TOKENS", str(TEXT_AI_MAX_TOKENS)))
+
+    if not base_url or not model:
         return "", "TEXT_AI_BASE_URL or TEXT_AI_MODEL is not configured."
 
     headers = {"Content-Type": "application/json"}
-    if TEXT_AI_API_KEY:
-        headers["Authorization"] = f"Bearer {TEXT_AI_API_KEY}"
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
-    async with httpx.AsyncClient(timeout=TEXT_AI_TIMEOUT_SECONDS) as client:
+    async with httpx.AsyncClient(timeout=timeout_seconds) as client:
         response = await client.post(
-            f"{TEXT_AI_BASE_URL}/chat/completions",
+            f"{base_url}/chat/completions",
             headers=headers,
             json={
-                "model": TEXT_AI_MODEL,
+                "model": model,
                 "temperature": 0.7,
-                "max_tokens": 1200,
+                "max_tokens": max(64, min(max_tokens, 1200)),
                 "messages": [
                     {
                         "role": "system",
@@ -108,6 +116,39 @@ async def generate_with_text_backend(prompt: str) -> tuple[str, str | None]:
     if not output:
         return "", "Text AI backend returned an empty response."
     return output, None
+
+
+@router.get("/text-ai/health")
+async def text_ai_health():
+    base_url = os.getenv("TEXT_AI_BASE_URL", TEXT_AI_BASE_URL).rstrip("/")
+    model = os.getenv("TEXT_AI_MODEL", TEXT_AI_MODEL)
+    api_key = os.getenv("TEXT_AI_API_KEY", TEXT_AI_API_KEY)
+    if not base_url or not model:
+        return {"ok": False, "configured": False, "error": "TEXT_AI_BASE_URL or TEXT_AI_MODEL is not configured."}
+
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.get(f"{base_url}/health", headers=headers)
+            if response.is_success:
+                payload = response.json()
+                return {
+                    "ok": bool(payload.get("ok")),
+                    "configured": True,
+                    "model": model,
+                    "backend": payload,
+                }
+            return {
+                "ok": False,
+                "configured": True,
+                "model": model,
+                "error": f"Health check failed with {response.status_code}: {response.text[:300]}",
+            }
+    except Exception as exc:
+        return {"ok": False, "configured": True, "model": model, "error": str(exc)}
 
 
 @router.post("/generate")

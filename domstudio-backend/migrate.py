@@ -109,6 +109,102 @@ MIGRATIONS: list[tuple[str, str, str]] = [
             END;
         """,
     ),
+    (
+        "006",
+        "Create marketplace AdPilot tables",
+        """
+        CREATE TABLE IF NOT EXISTS marketplace_connections (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES users(id),
+            provider VARCHAR(30) NOT NULL,
+            display_name VARCHAR(120),
+            status VARCHAR(30) NOT NULL DEFAULT 'draft',
+            mode VARCHAR(20) NOT NULL DEFAULT 'draft',
+            api_token_enc TEXT,
+            client_id_enc TEXT,
+            extra_config TEXT,
+            scopes TEXT,
+            last_sync_at TIMESTAMPTZ,
+            last_error TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_marketplace_connections_user_id
+            ON marketplace_connections (user_id);
+
+        CREATE TABLE IF NOT EXISTS marketplace_products (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES users(id),
+            connection_id UUID REFERENCES marketplace_connections(id),
+            provider VARCHAR(30) NOT NULL,
+            external_product_id VARCHAR(255),
+            title VARCHAR(500) NOT NULL,
+            sku VARCHAR(255),
+            category VARCHAR(255),
+            price VARCHAR(120),
+            stock INTEGER,
+            image_url VARCHAR(1000),
+            description TEXT,
+            raw_payload TEXT,
+            last_synced_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_marketplace_products_user_id
+            ON marketplace_products (user_id);
+        CREATE INDEX IF NOT EXISTS ix_marketplace_products_connection_id
+            ON marketplace_products (connection_id);
+        CREATE INDEX IF NOT EXISTS ix_marketplace_products_external_product_id
+            ON marketplace_products (external_product_id);
+
+        CREATE TABLE IF NOT EXISTS adpilot_actions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES users(id),
+            connection_id UUID REFERENCES marketplace_connections(id),
+            product_id UUID REFERENCES marketplace_products(id),
+            provider VARCHAR(30) NOT NULL,
+            action_type VARCHAR(80) NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'draft',
+            draft_payload TEXT NOT NULL,
+            publish_payload TEXT,
+            result_payload TEXT,
+            approval_required BOOLEAN NOT NULL DEFAULT TRUE,
+            source VARCHAR(80) NOT NULL DEFAULT 'manual',
+            error TEXT,
+            approved_at TIMESTAMPTZ,
+            published_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_adpilot_actions_user_id
+            ON adpilot_actions (user_id);
+        CREATE INDEX IF NOT EXISTS ix_adpilot_actions_connection_id
+            ON adpilot_actions (connection_id);
+        CREATE INDEX IF NOT EXISTS ix_adpilot_actions_product_id
+            ON adpilot_actions (product_id);
+
+        CREATE TABLE IF NOT EXISTS adpilot_rules (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL REFERENCES users(id),
+            connection_id UUID REFERENCES marketplace_connections(id),
+            provider VARCHAR(30) NOT NULL,
+            name VARCHAR(160) NOT NULL,
+            trigger_type VARCHAR(80) NOT NULL,
+            action_type VARCHAR(80) NOT NULL,
+            conditions TEXT,
+            enabled BOOLEAN NOT NULL DEFAULT TRUE,
+            approval_required BOOLEAN NOT NULL DEFAULT TRUE,
+            last_run_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_adpilot_rules_user_id
+            ON adpilot_rules (user_id);
+        CREATE INDEX IF NOT EXISTS ix_adpilot_rules_connection_id
+            ON adpilot_rules (connection_id);
+        """,
+    ),
 ]
 
 

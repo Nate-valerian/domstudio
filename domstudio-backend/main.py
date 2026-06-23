@@ -17,7 +17,7 @@ import logging
 import os
 
 from database import engine, Base
-from routers import auth, content, generation, users, payments, subscriptions, tokens
+from routers import auth, content, generation, marketplaces, users, payments, subscriptions, tokens
 from runtime_info import runtime_version_payload
 
 logging.basicConfig(level=logging.INFO)
@@ -76,6 +76,7 @@ app.include_router(subscriptions.router, prefix="/subscriptions", tags=["Subscri
 app.include_router(tokens.router,        prefix="/tokens",        tags=["Tokens"])
 app.include_router(generation.router,    prefix="/generation",    tags=["Generation"])
 app.include_router(content.router,       prefix="/content",       tags=["Content"])
+app.include_router(marketplaces.router,  prefix="/marketplaces",  tags=["Marketplaces"])
 
 @app.get("/health")
 def health():

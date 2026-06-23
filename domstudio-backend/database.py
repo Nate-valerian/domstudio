@@ -50,6 +50,25 @@ class JobStatus(str, enum.Enum):
     done       = "done"
     failed     = "failed"
 
+class MarketplaceProvider(str, enum.Enum):
+    wildberries = "wildberries"
+    ozon        = "ozon"
+    avito       = "avito"
+
+class MarketplaceConnectionStatus(str, enum.Enum):
+    draft       = "draft"
+    connected   = "connected"
+    error       = "error"
+    disabled    = "disabled"
+
+class AdPilotActionStatus(str, enum.Enum):
+    draft      = "draft"
+    approved   = "approved"
+    publishing = "publishing"
+    synced     = "synced"
+    failed     = "failed"
+    skipped    = "skipped"
+
 # ─── PLANS CONFIG ────────────────────────────────────────────────────────────
 PLANS = {
     PlanName.free:     {"price_rub": 0,      "photos": 5,   "videos": 5,   "premium_videos": 0,  "tokens": 500},
@@ -85,6 +104,10 @@ class User(Base):
     jobs          = relationship("GenerationJob", back_populates="user")
     otp_codes     = relationship("OtpCode",       back_populates="user")
     refresh_tokens= relationship("RefreshToken",  back_populates="user")
+    marketplace_connections = relationship("MarketplaceConnection", back_populates="user")
+    marketplace_products = relationship("MarketplaceProduct", back_populates="user")
+    adpilot_actions = relationship("AdPilotAction", back_populates="user")
+    adpilot_rules = relationship("AdPilotRule", back_populates="user")
 
 
 class Subscription(Base):
@@ -151,6 +174,103 @@ class GenerationJob(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", back_populates="jobs")
+
+
+class MarketplaceConnection(Base):
+    __tablename__ = "marketplace_connections"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id         = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    provider        = Column(Enum(MarketplaceProvider, native_enum=False), nullable=False)
+    display_name    = Column(String(120), nullable=True)
+    status          = Column(Enum(MarketplaceConnectionStatus, native_enum=False), default=MarketplaceConnectionStatus.draft)
+    mode            = Column(String(20), default="draft")  # draft or live
+    api_token_enc   = Column(Text, nullable=True)
+    client_id_enc   = Column(Text, nullable=True)
+    extra_config    = Column(Text, nullable=True)
+    scopes          = Column(Text, nullable=True)
+    last_sync_at    = Column(DateTime(timezone=True), nullable=True)
+    last_error      = Column(Text, nullable=True)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at      = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="marketplace_connections")
+    products = relationship("MarketplaceProduct", back_populates="connection")
+    actions = relationship("AdPilotAction", back_populates="connection")
+    rules = relationship("AdPilotRule", back_populates="connection")
+
+
+class MarketplaceProduct(Base):
+    __tablename__ = "marketplace_products"
+
+    id                  = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id             = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    connection_id       = Column(UUID(as_uuid=True), ForeignKey("marketplace_connections.id"), nullable=True, index=True)
+    provider            = Column(Enum(MarketplaceProvider, native_enum=False), nullable=False)
+    external_product_id = Column(String(255), nullable=True, index=True)
+    title               = Column(String(500), nullable=False)
+    sku                 = Column(String(255), nullable=True)
+    category            = Column(String(255), nullable=True)
+    price               = Column(String(120), nullable=True)
+    stock               = Column(Integer, nullable=True)
+    image_url           = Column(String(1000), nullable=True)
+    description         = Column(Text, nullable=True)
+    raw_payload         = Column(Text, nullable=True)
+    last_synced_at      = Column(DateTime(timezone=True), nullable=True)
+    created_at          = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at          = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="marketplace_products")
+    connection = relationship("MarketplaceConnection", back_populates="products")
+    actions = relationship("AdPilotAction", back_populates="product")
+
+
+class AdPilotAction(Base):
+    __tablename__ = "adpilot_actions"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id         = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    connection_id   = Column(UUID(as_uuid=True), ForeignKey("marketplace_connections.id"), nullable=True, index=True)
+    product_id      = Column(UUID(as_uuid=True), ForeignKey("marketplace_products.id"), nullable=True, index=True)
+    provider        = Column(Enum(MarketplaceProvider, native_enum=False), nullable=False)
+    action_type     = Column(String(80), nullable=False)
+    title           = Column(String(255), nullable=False)
+    status          = Column(Enum(AdPilotActionStatus, native_enum=False), default=AdPilotActionStatus.draft)
+    draft_payload   = Column(Text, nullable=False)
+    publish_payload = Column(Text, nullable=True)
+    result_payload  = Column(Text, nullable=True)
+    approval_required = Column(Boolean, default=True)
+    source          = Column(String(80), default="manual")
+    error           = Column(Text, nullable=True)
+    approved_at     = Column(DateTime(timezone=True), nullable=True)
+    published_at    = Column(DateTime(timezone=True), nullable=True)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at      = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="adpilot_actions")
+    connection = relationship("MarketplaceConnection", back_populates="actions")
+    product = relationship("MarketplaceProduct", back_populates="actions")
+
+
+class AdPilotRule(Base):
+    __tablename__ = "adpilot_rules"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id         = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    connection_id   = Column(UUID(as_uuid=True), ForeignKey("marketplace_connections.id"), nullable=True, index=True)
+    provider        = Column(Enum(MarketplaceProvider, native_enum=False), nullable=False)
+    name            = Column(String(160), nullable=False)
+    trigger_type    = Column(String(80), nullable=False)
+    action_type     = Column(String(80), nullable=False)
+    conditions      = Column(Text, nullable=True)
+    enabled         = Column(Boolean, default=True)
+    approval_required = Column(Boolean, default=True)
+    last_run_at     = Column(DateTime(timezone=True), nullable=True)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at      = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="adpilot_rules")
+    connection = relationship("MarketplaceConnection", back_populates="rules")
 
 
 class OtpCode(Base):
