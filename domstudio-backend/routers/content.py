@@ -132,7 +132,14 @@ async def text_ai_health():
 
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(f"{base_url}/health", headers=headers)
+            health_urls = [f"{base_url}/health"]
+            if base_url.endswith("/v1"):
+                health_urls.append(f"{base_url[:-3]}/health")
+            response = None
+            for url in health_urls:
+                response = await client.get(url, headers=headers)
+                if response.is_success:
+                    break
             if response.is_success:
                 payload = response.json()
                 return {
