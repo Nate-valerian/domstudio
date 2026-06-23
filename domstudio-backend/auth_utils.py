@@ -32,7 +32,10 @@ def hash_password(password: str) -> str:
     return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return _bcrypt.checkpw(plain.encode(), hashed.encode())
+    try:
+        return _bcrypt.checkpw(plain.encode(), hashed.encode())
+    except (TypeError, ValueError):
+        return False
 
 # ─── JWT ─────────────────────────────────────────────────────────────────────
 def create_access_token(user_id: str) -> str:

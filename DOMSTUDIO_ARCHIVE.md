@@ -1,5 +1,66 @@
 # DomStudio Archive
 
+## June 23, 2026 - Improve Sign-In Recovery And Compact Drafts UI
+
+User reported they could not sign in after the latest UI deploy, then provided
+browser console errors where `POST /auth/login/email` was blocked by CORS with
+no `Access-Control-Allow-Origin` header. They also showed the Drafts empty state
+as too large on desktop and mobile/PWA.
+
+Live checks:
+
+- Amvera `/health` returned 200.
+- Amvera `/version` showed commit `4d3e0c3`.
+- CORS preflight for `POST /auth/login/email` from
+  `https://domstudio.vercel.app` returned 200.
+- A fake login returned the expected 401, so the login endpoint itself was
+  reachable.
+
+Frontend fix:
+
+- Added `apiErrorMessage()` so FastAPI validation/detail payloads do not render
+  as `[object Object]`.
+- When email login returns 403 `Email not verified`, the frontend now:
+  - calls `/auth/register/email` with the submitted email/password to resend a
+    verification code for the existing unverified account
+  - opens the verification-code screen
+  - shows the normal code-sent toast.
+
+Backend fix:
+
+- Hardened `verify_password()` so invalid/legacy stored password hashes return
+  `False` instead of raising a bcrypt exception. This prevents the real-login
+  path from producing an unhandled 500, which browsers report as a CORS failure
+  because no normal CORS response is produced.
+
+Drafts UI fix:
+
+- Reduced the marketplace Drafts dashboard max width.
+- Reduced empty-state height, copy size, padding, and action button height.
+- Added a mobile override so empty-state buttons do not become huge full-width
+  blocks in the PWA.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed
+
+cd domstudio-backend
+python -m unittest tests.test_marketplaces -v
+
+Ran 4 tests
+OK
+
+python auth_utils invalid-hash smoke
+
+verify_password(...) returned False instead of raising
+```
+
+---
+
 ## June 23, 2026 - Make AdPilot Drafts The First Marketplace View
 
 User clarified the marketplace overview should be another left-sidebar section,

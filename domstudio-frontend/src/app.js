@@ -460,8 +460,22 @@ async function api(path, options = {}, retry = true) {
     if (refreshed) return api(path, options, false);
   }
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.detail || data.error || t("toast.requestFailed"));
+  if (!response.ok) {
+    const error = new Error(apiErrorMessage(data));
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
   return data;
+}
+
+function apiErrorMessage(data) {
+  const detail = data?.detail || data?.error;
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item?.msg || item?.message || String(item)).join("; ");
+  }
+  if (detail && typeof detail === "object") return detail.msg || detail.message || JSON.stringify(detail);
+  return detail || t("toast.requestFailed");
 }
 
 async function refreshSession() {
@@ -2451,19 +2465,21 @@ async function removeHistoryItem(id) {
 async function submitAuth(event) {
   event.preventDefault();
   const body = Object.fromEntries(new FormData(event.currentTarget));
+  const mode = state.authMode;
+  const channel = state.authChannel;
   state.authLoading = true;
   render();
   try {
-    if (state.authChannel === "phone") {
+    if (channel === "phone") {
       const phoneBody = { phone: body.phone };
-      if (state.authMode === "register") {
+      if (mode === "register") {
         await api("/auth/register/phone", { method: "POST", body: JSON.stringify(phoneBody) });
       } else {
         await api("/auth/login/phone", { method: "POST", body: JSON.stringify(phoneBody) });
       }
       state.verificationContact = body.phone;
       state.verificationKind = "phone";
-      state.verificationReturnMode = state.authMode;
+      state.verificationReturnMode = mode;
       state.authMode = "verify";
       state.authLoading = false;
       toast(t("toast.codeSent"));
@@ -2471,7 +2487,7 @@ async function submitAuth(event) {
       return;
     }
 
-    if (state.authMode === "register") {
+    if (mode === "register") {
       await api("/auth/register/email", { method: "POST", body: JSON.stringify(body) });
       state.verificationContact = body.email;
       state.verificationKind = "email";
@@ -2487,7 +2503,23 @@ async function submitAuth(event) {
       render();
     }
   } catch (error) {
-    toast(error.message);
+    if (mode === "login" && channel === "email" && error.status === 403 && /not verified/i.test(error.message)) {
+      try {
+        await api("/auth/register/email", { method: "POST", body: JSON.stringify(body) });
+        state.verificationContact = body.email;
+        state.verificationKind = "email";
+        state.verificationReturnMode = "login";
+        state.authMode = "verify";
+        state.authLoading = false;
+        toast(t("toast.codeSent"));
+        render();
+        return;
+      } catch (resendError) {
+        toast(resendError.message);
+      }
+    } else {
+      toast(error.message);
+    }
     state.authLoading = false;
     render();
   }

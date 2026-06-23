@@ -602,6 +602,7 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .marketplace-dashboard {
   display: block;
+  max-width: 980px;
   margin-bottom: 18px;
 }
 .marketplace-mobile-tabs { display: none; }
@@ -641,17 +642,18 @@ h1 em { color: var(--gold); font-style: normal; }
 .market-list-item small,
 .market-action span { overflow: hidden; color: var(--muted); font-size: 11px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .market-list-item.active { border-color: var(--gold); background: #fff8e6; }
-.market-empty { margin: 0; padding: 18px; color: var(--muted); font-size: 13px; font-weight: 750; text-align: center; }
+.market-empty { margin: 0; padding: 12px; color: var(--muted); font-size: 13px; font-weight: 750; text-align: center; }
 .market-empty-guide {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  min-height: 190px;
+  gap: 8px;
+  min-height: 124px;
   align-content: center;
 }
-.market-empty-guide b { color: var(--ink); font-size: 17px; font-weight: 900; }
-.market-empty-guide p { max-width: 520px; margin: 0; line-height: 1.55; }
+.market-empty-guide b { color: var(--ink); font-size: 15px; font-weight: 900; }
+.market-empty-guide p { max-width: 460px; margin: 0; line-height: 1.45; }
 .market-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+.market-empty-actions .button { min-height: 38px; padding-inline: 14px; font-size: 13px; }
 .market-action { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fffdf8; }
 .market-action pre {
   max-height: 180px; margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--line);
@@ -966,6 +968,9 @@ h1 em { color: var(--gold); font-style: normal; }
   .market-stat-row,
   .market-form-grid { grid-template-columns: 1fr; }
   .market-provider { min-height: 54px; }
+  .market-empty-guide { min-height: 0; justify-items: stretch; text-align: left; }
+  .market-empty-actions { justify-content: stretch; }
+  .market-empty-actions .button { width: auto; flex: 1 1 130px; }
   .copy-tool-panel { display: block; }
   .copy-output-panel pre { min-height: 320px; max-height: none; font-size: 13px; }
   .auth-modal { grid-template-columns: 1fr; }
