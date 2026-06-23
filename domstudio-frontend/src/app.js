@@ -113,12 +113,12 @@ const MARKETPLACE_PRESETS = [
 ];
 
 const MARKETPLACE_ACTION_TYPES = [
-  { id: "improve_card", label: "Improve card" },
-  { id: "seo_refresh", label: "SEO refresh" },
-  { id: "avito_listing", label: "Avito listing" },
-  { id: "buyer_reply", label: "Buyer reply" },
-  { id: "promo_plan", label: "Promo plan" },
-  { id: "image_brief", label: "Image brief" },
+  { id: "improve_card", labelKey: "market.actionType.improve_card" },
+  { id: "seo_refresh", labelKey: "market.actionType.seo_refresh" },
+  { id: "avito_listing", labelKey: "market.actionType.avito_listing" },
+  { id: "buyer_reply", labelKey: "market.actionType.buyer_reply" },
+  { id: "promo_plan", labelKey: "market.actionType.promo_plan" },
+  { id: "image_brief", labelKey: "market.actionType.image_brief" },
 ];
 
 const MARKETPLACE_SAMPLE_PRODUCT = {
@@ -249,6 +249,89 @@ const CONTENT_FIELD_LABELS = {
   businessName: "Business name",
 };
 
+const CONTENT_DEFAULTS = {
+  en: {
+    draft: {
+      product: "Brake pad replacement",
+      city: "Moscow",
+      price: "From 4,500 RUB",
+      advantages: "Same-day service, warranty, clear quote before work",
+      targetCustomer: "busy car owners",
+      tone: "friendly and direct",
+      offer: "Free diagnostics with booking today",
+      customerQuestion: "Is it available today and can you do cheaper?",
+      reviewText: "Good result, but I waited longer than expected.",
+      businessName: "Pilot Auto",
+    },
+    profile: {
+      businessName: "Pilot Auto",
+      city: "Moscow",
+      niche: "Auto service and marketplace sellers",
+      targetCustomer: "Car owners who compare offers online",
+      tone: "Confident, friendly, practical",
+      offer: "Free mini-audit today",
+      phone: "+7",
+    },
+    connection: {
+      display_name: "Main store",
+    },
+    product: { ...MARKETPLACE_SAMPLE_PRODUCT },
+  },
+  ru: {
+    draft: {
+      product: "Замена тормозных колодок",
+      city: "Москва",
+      price: "От 4 500 ₽",
+      advantages: "Ремонт в день обращения, гарантия, честная смета до работ",
+      targetCustomer: "занятые автовладельцы",
+      tone: "дружелюбно и по делу",
+      offer: "Бесплатная диагностика при записи сегодня",
+      customerQuestion: "Есть запись на сегодня и можно дешевле?",
+      reviewText: "Результат хороший, но ждать пришлось дольше, чем ожидал.",
+      businessName: "Пилот Авто",
+    },
+    profile: {
+      businessName: "Пилот Авто",
+      city: "Москва",
+      niche: "Автосервис и продавцы на маркетплейсах",
+      targetCustomer: "Автовладельцы, которые сравнивают предложения онлайн",
+      tone: "Уверенно, дружелюбно, практично",
+      offer: "Бесплатный мини-аудит сегодня",
+      phone: "+7",
+    },
+    connection: {
+      display_name: "Основной магазин",
+    },
+    product: {
+      title: "Кожаная сумка-шоппер",
+      sku: "BAG-001",
+      category: "Сумки",
+      price: "4 990 ₽",
+      stock: 12,
+      description: "Мягкая кожаная сумка с карманом на молнии и длинными ручками.",
+      images: [],
+    },
+  },
+};
+
+function languageKey(lang) {
+  return lang === "en" ? "en" : "ru";
+}
+
+function defaultsForLang(lang) {
+  return CONTENT_DEFAULTS[languageKey(lang)];
+}
+
+function replaceKnownDefaults(current, previousDefaults, nextDefaults) {
+  const keys = new Set([...Object.keys(current || {}), ...Object.keys(nextDefaults || {})]);
+  return Object.fromEntries(
+    [...keys].map((key) => {
+      const value = current?.[key];
+      return [key, value === previousDefaults?.[key] ? nextDefaults?.[key] : value ?? nextDefaults?.[key] ?? ""];
+    })
+  );
+}
+
 const VIDEO_DURATIONS = Array.from({ length: 10 }, (_, index) => index + 3);
 const VIDEO_PROVIDERS = [
   { id: "local", labelKey: "video.providerLocal", metaKey: "video.providerLocalMeta", descKey: "video.providerLocalDesc" },
@@ -323,10 +406,12 @@ function readStoredTokens() {
 
 const initialBrandPrefs = loadBrandPrefs();
 const initialTokens = readStoredTokens();
+const initialLang = getLang();
+const initialContentDefaults = defaultsForLang(initialLang);
 
 const state = {
   route: location.hash.slice(1) || "home",
-  lang: getLang(),
+  lang: initialLang,
   accessToken: initialTokens.accessToken,
   refreshToken: initialTokens.refreshToken,
   user: null,
@@ -357,27 +442,8 @@ const state = {
   contentFieldLabels: { ...CONTENT_FIELD_LABELS },
   contentTokenUnit: 10,
   contentToolSlug: "avito-ad",
-  contentDraft: {
-    product: "Brake pad replacement",
-    city: "Moscow",
-    price: "From 4,500 RUB",
-    advantages: "Same-day service, warranty, clear quote before work",
-    targetCustomer: "busy car owners",
-    tone: "friendly and direct",
-    offer: "Free diagnostics with booking today",
-    customerQuestion: "Is it available today and can you do cheaper?",
-    reviewText: "Good result, but I waited longer than expected.",
-    businessName: "Pilot Auto",
-  },
-  contentProfile: {
-    businessName: "Pilot Auto",
-    city: "Moscow",
-    niche: "Auto service and marketplace sellers",
-    targetCustomer: "Car owners who compare offers online",
-    tone: "Confident, friendly, practical",
-    offer: "Free mini-audit today",
-    phone: "+7",
-  },
+  contentDraft: { ...initialContentDefaults.draft },
+  contentProfile: { ...initialContentDefaults.profile },
   contentOutputLanguage: "auto",
   contentOutput: "",
   contentMeta: null,
@@ -399,13 +465,13 @@ const state = {
   marketplaceActionType: "improve_card",
   marketplaceConnectDraft: {
     provider: "wildberries",
-    display_name: "Main store",
+    display_name: initialContentDefaults.connection.display_name,
     mode: "draft",
     api_token: "",
     client_id: "",
     user_id: "",
   },
-  marketplaceProductDraft: { ...MARKETPLACE_SAMPLE_PRODUCT },
+  marketplaceProductDraft: { ...initialContentDefaults.product },
   brandPrefs: initialBrandPrefs,
   generating: false,
   brandPrefsOpen: false,
@@ -667,7 +733,31 @@ function contentTokenCost(tool = currentContentTool()) {
 }
 
 function contentFieldLabel(field) {
+  const key = `copy.field.${field}`;
+  const localized = t(key);
+  if (localized !== key) return localized;
   return state.contentFieldLabels[field] || CONTENT_FIELD_LABELS[field] || field;
+}
+
+function contentToolName(tool) {
+  const key = `copy.tool.${tool.slug}`;
+  const localized = t(key);
+  return localized === key ? tool.name : localized;
+}
+
+function contentToolCategory(category) {
+  const key = `copy.category.${String(category || "").toLowerCase()}`;
+  const localized = t(key);
+  return localized === key ? category : localized;
+}
+
+function marketplaceActionTypeLabel(item) {
+  return t(item.labelKey) || item.id;
+}
+
+function marketplaceActionTypeLabelById(id) {
+  const item = MARKETPLACE_ACTION_TYPES.find((entry) => entry.id === id);
+  return item ? marketplaceActionTypeLabel(item) : id;
 }
 
 function contentToolIntent(tool) {
@@ -1555,7 +1645,7 @@ function marketplaceProductPanel() {
     <div class="market-list compact">
       ${state.marketplaceProducts.filter((item) => item.provider === state.marketplaceSelectedProvider).slice(0, 5).map((item) => `
         <button class="market-list-item ${state.marketplaceSelectedProductId === item.id ? "active" : ""}" type="button" data-marketplace-product="${item.id}">
-          <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml([item.sku, item.price, item.stock != null ? `${item.stock} stock` : ""].filter(Boolean).join(" · "))}</small></span>
+          <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml([item.sku, item.price, item.stock != null ? `${item.stock} ${t("market.product.stock").toLowerCase()}` : ""].filter(Boolean).join(" · "))}</small></span>
         </button>
       `).join("") || `<p class="market-empty">${t("market.noProducts")}</p>`}
     </div>
@@ -1576,7 +1666,7 @@ function marketplaceActionPanel() {
     <div class="field">
       <label for="market_action_type">${t("market.actionType")}</label>
       <select class="select" id="market_action_type" name="action_type">
-        ${MARKETPLACE_ACTION_TYPES.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceActionType, item.id)}>${escapeHtml(item.label)}</option>`).join("")}
+        ${MARKETPLACE_ACTION_TYPES.map((item) => `<option value="${item.id}" ${selectedAttr(state.marketplaceActionType, item.id)}>${escapeHtml(marketplaceActionTypeLabel(item))}</option>`).join("")}
       </select>
     </div>
     <div class="field">
@@ -1598,7 +1688,7 @@ function marketplaceActionsPanel() {
         return `<article class="market-action">
           <div>
             <b>${escapeHtml(action.title)}</b>
-            <span>${escapeHtml(action.action_type)} · ${escapeHtml(action.status)} · ${escapeHtml(draft.ai_provider || "")}</span>
+            <span>${escapeHtml(marketplaceActionTypeLabelById(action.action_type))} · ${escapeHtml(action.status)} · ${escapeHtml(draft.ai_provider || "")}</span>
           </div>
           <pre>${escapeHtml(draft.copy || t("market.noDraft"))}</pre>
           ${action.result ? `<p>${escapeHtml(action.result.message || JSON.stringify(action.result))}</p>` : ""}
@@ -1657,10 +1747,10 @@ function copyStudioPage() {
           <div class="mini-head"><h3>${t("copy.toolsTitle")}</h3><span>${state.contentTools.length}</span></div>
           ${categories.map((category) => `
             <div class="copy-tool-group">
-              <p>${escapeHtml(category)}</p>
+              <p>${escapeHtml(contentToolCategory(category))}</p>
               ${state.contentTools.filter((item) => item.category === category).map((item) => `
                 <button class="copy-tool ${item.slug === tool.slug ? "active" : ""}" type="button" data-content-tool="${item.slug}">
-                  <span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(contentToolIntent(item))}</small></span>
+                  <span><strong>${escapeHtml(contentToolName(item))}</strong><small>${escapeHtml(contentToolIntent(item))}</small></span>
                   <b>${item.cost_units * state.contentTokenUnit}</b>
                 </button>
               `).join("")}
@@ -1668,7 +1758,7 @@ function copyStudioPage() {
           `).join("")}
         </aside>
         <form class="panel copy-form-panel" id="copy-form">
-          <div class="mini-head"><h3>${escapeHtml(tool.name)}</h3><span>${cost} ${t("studio.tokens", { n: "" }).trim()}</span></div>
+          <div class="mini-head"><h3>${escapeHtml(contentToolName(tool))}</h3><span>${cost} ${t("studio.tokens", { n: "" }).trim()}</span></div>
           <div class="copy-tool-summary">
             <b>${escapeHtml(contentToolIntent(tool))}</b>
             <span>${t("copy.channelReady")}</span>
@@ -1714,7 +1804,7 @@ function copyStudioPage() {
           </div>
           <pre>${state.contentOutput ? escapeHtml(state.contentOutput) : t("copy.outputEmpty")}</pre>
           ${state.contentNotice ? `<p class="generation-notice">${escapeHtml(state.contentNotice)}</p>` : ""}
-          ${state.contentMeta ? `<p class="result-meta">${escapeHtml(state.contentMeta.tool?.name || tool.name)} · ${escapeHtml(state.contentMeta.provider || "")} · ${state.contentMeta.tokens_charged || cost} ${t("studio.tokens", { n: "" }).trim()}</p>` : ""}
+          ${state.contentMeta ? `<p class="result-meta">${escapeHtml(contentToolName(state.contentMeta.tool || tool))} · ${escapeHtml(state.contentMeta.provider || "")} · ${state.contentMeta.tokens_charged || cost} ${t("studio.tokens", { n: "" }).trim()}</p>` : ""}
         </section>
       </div>
     </section>
@@ -2088,7 +2178,22 @@ function bind() {
 }
 
 function toggleLang() {
+  syncContentFromForm(document.querySelector("#copy-form"));
+  syncMarketplaceConnectFromForm(document.querySelector("#marketplace-connect-form"));
+  syncMarketplaceProductFromForm(document.querySelector("#marketplace-product-form"));
+  const previous = state.lang;
   const next = state.lang === "ru" ? "en" : "ru";
+  const previousDefaults = defaultsForLang(previous);
+  const nextDefaults = defaultsForLang(next);
+  state.contentDraft = replaceKnownDefaults(state.contentDraft, previousDefaults.draft, nextDefaults.draft);
+  state.contentProfile = replaceKnownDefaults(state.contentProfile, previousDefaults.profile, nextDefaults.profile);
+  state.marketplaceProductDraft = replaceKnownDefaults(state.marketplaceProductDraft, previousDefaults.product, nextDefaults.product);
+  state.marketplaceConnectDraft = {
+    ...state.marketplaceConnectDraft,
+    display_name: state.marketplaceConnectDraft.display_name === previousDefaults.connection.display_name
+      ? nextDefaults.connection.display_name
+      : state.marketplaceConnectDraft.display_name,
+  };
   state.lang = next;
   setLang(next);
   render();

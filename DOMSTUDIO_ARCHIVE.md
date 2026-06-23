@@ -1,5 +1,65 @@
 # DomStudio Archive
 
+## June 23, 2026 - Localize AdPilot Defaults And Harden Amvera Startup
+
+User showed AdPilot with Russian selected while field labels/default content still
+appeared in English, then pasted console errors for `/auth/refresh` and
+`/content/tools` where browser CORS preflight failed from
+`https://domstudio.vercel.app` to `https://domstudio1-nate.amvera.io`.
+
+Amvera build log:
+
+- Container builder exited with code `0`.
+- Application archive completed.
+- Archive included the repo sources, `.git`, `DOMSTUDIO_ARCHIVE.md`,
+  `domstudio-backend`, `domstudio-frontend`, `domstudio-mobile`, `amvera.yml`,
+  and related root files.
+
+Live check during the report:
+
+- `https://domstudio1-nate.amvera.io/version` timed out from the terminal.
+- `OPTIONS /content/tools` with origin `https://domstudio.vercel.app` also
+  timed out.
+- Because `/version` timed out, the browser CORS message was treated as a
+  symptom of the backend not serving FastAPI responses, not as a missing origin
+  in the configured CORS list.
+
+Frontend localization fix:
+
+- Added Russian and English field-label keys for AdPilot copy/profile fields.
+- Localized AdPilot tool names, tool categories, and marketplace action types.
+- Added Russian defaults for AdPilot draft/profile fields, marketplace
+  connection name, and manual product import sample.
+- Language toggle now translates only known default/sample values; typed custom
+  user values are preserved.
+- Russian default detection now uses both Russia time zones and browser locale
+  signals, without asking for GPS/geolocation permission.
+
+Backend/Amvera resilience fix:
+
+- Added bounded asyncpg connect/command timeouts.
+- Wrapped FastAPI startup database preparation with a timeout and exception log
+  so the API can still start and answer `/version`, `/content/tools`, and CORS
+  preflights if DB preparation is temporarily unavailable.
+- Changed Amvera run command so a failed/stalled migration does not prevent
+  uvicorn from starting for diagnostics and non-DB routes.
+
+Validation:
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed
+
+cd domstudio-backend
+python -m py_compile main.py database.py migrate.py
+
+compile passed
+```
+
+---
+
 ## June 23, 2026 - Improve Sign-In Recovery And Compact Drafts UI
 
 User reported they could not sign in after the latest UI deploy, then provided

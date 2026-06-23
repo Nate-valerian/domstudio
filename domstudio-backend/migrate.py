@@ -213,13 +213,20 @@ async def run():
     from database import Base
     sa_url = DATABASE_URL if DATABASE_URL.startswith("postgresql+asyncpg") \
         else DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-    _engine = create_async_engine(sa_url, echo=False)
+    _engine = create_async_engine(
+        sa_url,
+        echo=False,
+        connect_args={
+            "timeout": float(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")),
+            "command_timeout": float(os.getenv("DB_COMMAND_TIMEOUT_SECONDS", "20")),
+        },
+    )
     async with _engine.begin() as _conn:
         await _conn.run_sync(Base.metadata.create_all)
     await _engine.dispose()
     print("Base tables ensured.")
 
-    conn = await asyncpg.connect(**_PG_PARAMS)
+    conn = await asyncpg.connect(**_PG_PARAMS, timeout=float(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")))
     try:
         # Ensure tracking table exists
         await conn.execute("""

@@ -7,6 +7,6 @@ build:
   requirementsPath: domstudio-backend/requirements.txt
   useCache: false
 run:
-  command: python domstudio-backend/migrate.py && python -m uvicorn --app-dir domstudio-backend main:app --host 0.0.0.0 --port 80
+  command: python domstudio-backend/migrate.py || echo "Migration failed; starting API for diagnostics"; python -m uvicorn --app-dir domstudio-backend main:app --host 0.0.0.0 --port 80
   persistenceMount: /data
   containerPort: 80

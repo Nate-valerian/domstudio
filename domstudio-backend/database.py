@@ -3,6 +3,8 @@ DomStudio — Database Models
 SQLAlchemy async ORM
 """
 
+import os
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Float, Enum, ForeignKey, Text
@@ -19,7 +21,11 @@ DATABASE_URL = required_env("DATABASE_URL")
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,
-    connect_args={"prepared_statement_cache_size": 0},
+    connect_args={
+        "prepared_statement_cache_size": 0,
+        "timeout": float(os.getenv("DB_CONNECT_TIMEOUT_SECONDS", "10")),
+        "command_timeout": float(os.getenv("DB_COMMAND_TIMEOUT_SECONDS", "20")),
+    },
 )
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

@@ -13,6 +13,7 @@ Env vars required (see .env.example):
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import asyncio
 import logging
 import os
 
@@ -25,16 +26,21 @@ log = logging.getLogger("domstudio")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create all tables on startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        await conn.exec_driver_sql("""
-            ALTER TABLE generation_jobs
-                ADD COLUMN IF NOT EXISTS output_data TEXT,
-                ADD COLUMN IF NOT EXISTS output_format VARCHAR(30),
-                ADD COLUMN IF NOT EXISTS error TEXT;
-        """)
-    log.info("Database tables ready")
+    async def prepare_database():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+            await conn.exec_driver_sql("""
+                ALTER TABLE generation_jobs
+                    ADD COLUMN IF NOT EXISTS output_data TEXT,
+                    ADD COLUMN IF NOT EXISTS output_format VARCHAR(30),
+                    ADD COLUMN IF NOT EXISTS error TEXT;
+            """)
+
+    try:
+        await asyncio.wait_for(prepare_database(), timeout=float(os.getenv("DB_STARTUP_TIMEOUT_SECONDS", "15")))
+        log.info("Database tables ready")
+    except Exception:
+        log.exception("Database startup preparation failed; API will start and DB-backed routes may fail")
     yield
 
 app = FastAPI(
