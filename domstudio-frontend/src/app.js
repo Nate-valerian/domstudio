@@ -2285,9 +2285,6 @@ function authModal() {
 }
 
 function toolsPage() {
-  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
-  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
-  if (!state.user) return gatePage();
   const hasResult = Boolean(state.removeBgResult);
   return `<div class="page tools-page">
     <div class="page-inner narrow">
@@ -2329,7 +2326,13 @@ function toolsPage() {
               <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgBgColor ? "product.jpg" : "no-bg.png"}">${t(state.removeBgBgColor ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
               <button class="button secondary" type="button" data-removebg-reset>${t("tools.removeBg.again")}</button>
             </div>
-            <button class="button gold block" type="button" data-use-in-studio style="margin-top:10px">
+            <div class="tool-send-row">
+              <span class="tool-send-label">${t("tools.sendTo")}</span>
+              <button class="chip" type="button" data-send-to="resizer">${t("tools.resizer.h2")}</button>
+              <button class="chip" type="button" data-send-to="watermark">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="checker">${t("tools.checker.h2")}</button>
+            </div>
+            <button class="button gold block" type="button" data-use-in-studio style="margin-top:6px">
               ${t("tools.useInStudio")}
             </button>
           </div>
@@ -2354,7 +2357,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card">
+      <div class="tool-card" id="tool-resizer">
         <div class="tool-card-head">
           <h2>${t("tools.resizer.h2")}</h2>
           <span class="eyebrow">${t("tools.resizer.free")}</span>
@@ -2375,6 +2378,11 @@ function toolsPage() {
               <a class="button" href="${state.resizerResult}" download="product-${state.resizerFormat}.jpg">${t("tools.resizer.download")}</a>
               <button class="button secondary" type="button" data-resizer-reset>${t("tools.resizer.again")}</button>
             </div>
+            <div class="tool-send-row">
+              <span class="tool-send-label">${t("tools.sendTo")}</span>
+              <button class="chip" type="button" data-send-to="watermark">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="checker">${t("tools.checker.h2")}</button>
+            </div>
           </div>
         ` : `
           <label class="removebg-upload" for="resizer-file">
@@ -2390,7 +2398,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card">
+      <div class="tool-card" id="tool-watermark">
         <div class="tool-card-head">
           <h2>${t("tools.watermark.h2")}</h2>
           <span class="eyebrow">${t("tools.watermark.free")}</span>
@@ -2454,7 +2462,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card">
+      <div class="tool-card" id="tool-checker">
         <div class="tool-card-head">
           <h2>${t("tools.checker.h2")}</h2>
           <span class="eyebrow">${t("tools.checker.free")}</span>
@@ -2719,6 +2727,10 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
+  document.querySelectorAll("[data-send-to]").forEach(el => el.addEventListener("click", () => {
+    const src = state.removeBgComposed || state.removeBgResult || state.resizerResult || null;
+    if (src) sendToTool(el.dataset.sendTo, src);
+  }));
   document.querySelector("[data-checker-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -3049,6 +3061,27 @@ async function applyResizer() {
   ctx.drawImage(img, (fmt.w - sw) / 2, (fmt.h - sh) / 2, sw, sh);
   state.resizerResult = canvas.toDataURL("image/jpeg", 0.92);
   render({ motion: false });
+}
+
+async function sendToTool(toolId, dataUrl) {
+  if (toolId === "resizer") {
+    state.resizerPreview = dataUrl;
+    state.resizerResult = null;
+    render({ motion: false });
+    applyResizer();
+  } else if (toolId === "watermark") {
+    state.watermarkPreview = dataUrl;
+    state.watermarkResult = null;
+    render({ motion: false });
+  } else if (toolId === "checker") {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const fakeFile = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
+    state.checkerPreview = dataUrl;
+    state.checkerResult = null;
+    analyzeChecker(fakeFile, dataUrl);
+  }
+  setTimeout(() => document.getElementById(`tool-${toolId}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
 }
 
 async function analyzeChecker(file, dataUrl) {
