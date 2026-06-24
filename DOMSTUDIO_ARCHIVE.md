@@ -4971,3 +4971,39 @@ build passed — 252 kB JS, 53 kB CSS
 ```
 
 Commit: `0a7ec17`
+
+---
+
+## June 24, 2026 - Amvera Startup Timeout Fix
+
+Production backend on Amvera (Moscow) was throwing `asyncio.TimeoutError` at startup because the `prepare_database()` coroutine was wrapped with a 15-second timeout, which was too short for the Amvera→Supabase (Seoul) round-trip latency. The app continued to start (exception caught), but DB prep may not have completed on first boot.
+
+**What changed (commit `6e0692f`):**
+
+- `domstudio-backend/main.py`: Raised the default `DB_STARTUP_TIMEOUT_SECONDS` from `"15"` to `"60"`.
+- Removed the `ALTER TABLE generation_jobs ADD COLUMN IF NOT EXISTS ...` block from `lifespan()` — those columns have existed in production for months; running them on every boot added extra round trips and confusion. Schema changes belong in `migrate.py`.
+
+---
+
+## June 24, 2026 - AdPilot Context Banner + Language Toggle Fixes
+
+Two bugs found in AdPilot after integrating Studio→AdPilot context flow.
+
+### Bug 1: Context banner layout broken on mobile
+
+The banner showed a gap where the product name should appear because `state.contentDraft.product` was empty (subject not passed correctly or user hadn't typed a product). Fixed by guarding the `<p>` tag so it only renders when product is non-empty. Also:
+
+- Shortened back button text: "← Вернуться к фото" → "← Студия" / "← Back to image" → "← Studio" (prevents wrapping on narrow screens)
+- Added `white-space: nowrap` + `overflow: hidden` to `.copy-context-info` so the "FROM STUDIO" eyebrow never wraps to two lines
+
+### Bug 2: Copy language segment always followed app language toggle
+
+The language selector (Russian / English) defaulted to `"auto"`, which auto-detected language from form content. Since the form defaults always match the app language toggle (via `toggleLang → replaceKnownDefaults`), the copy always came out in the app's current language regardless of what the user selected in the segment.
+
+Fixes:
+
+- `contentOutputLanguage` initial value changed from `"auto"` to `initialLang === "ru" ? "russian" : "english"` — defaults to the current app language explicitly
+- Removed `"auto"` from the segment options; now shows only Russian / English
+- `toggleLang()` now also updates `state.contentOutputLanguage` to match the new app language so the two controls stay in sync
+- When user explicitly picks "Russian" while in English mode (or vice versa), that override is preserved and sent to the backend
+

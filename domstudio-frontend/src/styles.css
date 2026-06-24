@@ -737,8 +737,8 @@ h1 em { color: var(--gold); font-style: normal; }
   width: 56px; height: 56px; object-fit: cover;
   border-radius: 10px; flex-shrink: 0;
 }
-.copy-context-info { flex: 1; min-width: 0; }
-.copy-context-info .eyebrow { font-size: 10px; }
+.copy-context-info { flex: 1; min-width: 0; overflow: hidden; }
+.copy-context-info .eyebrow { font-size: 10px; white-space: nowrap; }
 .copy-context-info p { font-size: 12px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px; }
 .copy-context-back { flex-shrink: 0; font-size: 12px; padding: 6px 12px; min-height: 34px; width: auto; }
 .pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }

@@ -461,7 +461,7 @@ const state = {
   adpilotContextImage: null,
   contentDraft: { ...initialContentDefaults.draft },
   contentProfile: { ...initialContentDefaults.profile },
-  contentOutputLanguage: "auto",
+  contentOutputLanguage: initialLang === "ru" ? "russian" : "english",
   contentOutput: "",
   contentVariations: [],
   contentMeta: null,
@@ -1844,7 +1844,7 @@ function copyStudioPage() {
             <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
             <div class="copy-context-info">
               <span class="eyebrow">${t("adpilotContext.label")}</span>
-              <p>${escapeHtml(truncate(state.contentDraft.product || "", 60))}</p>
+              ${state.contentDraft.product ? `<p>${escapeHtml(truncate(state.contentDraft.product, 60))}</p>` : ""}
             </div>
             <button class="button secondary copy-context-back" type="button" data-route="studio">${t("adpilotContext.back")}</button>
           </div>` : ""}
@@ -1855,7 +1855,7 @@ function copyStudioPage() {
             <button class="link-btn" type="button" data-fill-example>${t("copy.fillExample")}</button>
           </div>
           <div class="copy-language-row" role="group" aria-label="${t("copy.language")}">
-            ${["auto", "english", "russian"].map((lang) => `
+            ${["russian", "english"].map((lang) => `
               <button class="segment ${state.contentOutputLanguage === lang ? "active" : ""}" type="button" data-content-language="${lang}">
                 ${t(`copy.language.${lang}`)}
               </button>
@@ -2354,6 +2354,7 @@ function toggleLang() {
       : state.marketplaceConnectDraft.display_name,
   };
   state.lang = next;
+  state.contentOutputLanguage = next === "ru" ? "russian" : "english";
   setLang(next);
   render();
 }
