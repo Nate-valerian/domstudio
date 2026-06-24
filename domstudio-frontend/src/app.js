@@ -1841,10 +1841,12 @@ function copyStudioPage() {
         </aside>
         <form class="panel copy-form-panel" id="copy-form">
           ${state.adpilotContextImage ? `<div class="copy-context-banner">
-            <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
-            <div class="copy-context-info">
-              <span class="eyebrow">${t("adpilotContext.label")}</span>
-              ${state.contentDraft.product ? `<p>${escapeHtml(truncate(state.contentDraft.product, 60))}</p>` : ""}
+            <div class="copy-context-left">
+              <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
+              <div class="copy-context-info">
+                <span class="eyebrow">${t("adpilotContext.label")}</span>
+                ${state.contentDraft.product ? `<p>${escapeHtml(truncate(state.contentDraft.product, 48))}</p>` : ""}
+              </div>
             </div>
             <button class="button secondary copy-context-back" type="button" data-route="studio">${t("adpilotContext.back")}</button>
           </div>` : ""}
