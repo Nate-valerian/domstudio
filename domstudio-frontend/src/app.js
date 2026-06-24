@@ -483,6 +483,9 @@ const state = {
   watermarkOpacity: 0.55,
   watermarkDark: false,
   watermarkResult: null,
+  checkerFile: null,
+  checkerPreview: null,
+  checkerResult: null,
   removeBgFile: null,
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
@@ -2450,6 +2453,79 @@ function toolsPage() {
           ` : ""}
         `}
       </div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <h2>${t("tools.checker.h2")}</h2>
+          <span class="eyebrow">${t("tools.checker.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.checker.desc")}</p>
+        ${state.checkerResult ? (() => {
+          const r = state.checkerResult;
+          const ok = (v) => `<span class="check-ok">✓</span> ${v}`;
+          const fail = (v) => `<span class="check-fail">✗</span> ${v}`;
+          const dim = `${r.width}×${r.height}px`;
+          const sizeMb = (r.fileSize / 1024 / 1024).toFixed(1) + " MB";
+          const markets = [
+            {
+              name: "Wildberries",
+              rows: [
+                [r.width >= 1080 && r.height >= 1080, t("tools.checker.minSize", { n: "1080×1080" }), dim],
+                [r.isSquare, t("tools.checker.ratio"), r.ratio],
+                [r.fileSize < 10 * 1024 * 1024, t("tools.checker.fileSize", { n: "10 MB" }), sizeMb],
+                [r.bgLight, t("tools.checker.bgLight"), r.bgLight ? t("tools.checker.bgOk") : t("tools.checker.bgWarn")],
+              ],
+            },
+            {
+              name: "Ozon",
+              rows: [
+                [r.width >= 900 && r.height >= 900, t("tools.checker.minSize", { n: "900×900" }), dim],
+                [r.isSquare, t("tools.checker.ratio"), r.ratio],
+                [r.fileSize < 10 * 1024 * 1024, t("tools.checker.fileSize", { n: "10 MB" }), sizeMb],
+              ],
+            },
+            {
+              name: "Avito",
+              rows: [
+                [r.width >= 640, t("tools.checker.minWidth", { n: "640px" }), `${r.width}px`],
+                [r.fileSize < 25 * 1024 * 1024, t("tools.checker.fileSize", { n: "25 MB" }), sizeMb],
+              ],
+            },
+          ];
+          return `
+            <div class="checker-preview-row">
+              <img class="checker-thumb" src="${state.checkerPreview}" alt="" />
+              <div class="checker-meta">
+                <b>${dim}</b>
+                <span>${sizeMb} · ${r.format.replace("image/","").toUpperCase()}</span>
+              </div>
+            </div>
+            <div class="checker-markets">
+              ${markets.map(m => `
+                <div class="checker-market">
+                  <div class="checker-market-name">${m.name}</div>
+                  ${m.rows.map(([pass, label, value]) => `
+                    <div class="checker-row">
+                      ${pass ? ok(label) : fail(label)}
+                      <span class="checker-value">${value}</span>
+                    </div>`).join("")}
+                </div>`).join("")}
+            </div>
+            <button class="button secondary block" type="button" data-checker-reset style="margin-top:12px">${t("tools.checker.again")}</button>
+          `;
+        })() : `
+          <label class="removebg-upload" for="checker-file">
+            ${state.checkerPreview
+              ? `<img class="removebg-preview" src="${state.checkerPreview}" alt="" />`
+              : `<span class="removebg-placeholder">
+                  <span class="removebg-icon">✓</span>
+                  <b>${t("tools.checker.upload")}</b>
+                  <small>${t("tools.checker.uploadHint")}</small>
+                </span>`}
+          </label>
+          <input id="checker-file" type="file" accept="image/*" style="display:none" data-checker-input />
+        `}
+      </div>
     </div>
   </div>`;
 }
@@ -2643,6 +2719,19 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
+  document.querySelector("[data-checker-input]")?.addEventListener("change", e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      state.checkerFile = file;
+      state.checkerPreview = ev.target.result;
+      state.checkerResult = null;
+      analyzeChecker(file, ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+  document.querySelector("[data-checker-reset]")?.addEventListener("click", resetChecker);
   document.querySelector("[data-wm-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2959,6 +3048,44 @@ async function applyResizer() {
   const sh = img.naturalHeight * scale;
   ctx.drawImage(img, (fmt.w - sw) / 2, (fmt.h - sh) / 2, sw, sh);
   state.resizerResult = canvas.toDataURL("image/jpeg", 0.92);
+  render({ motion: false });
+}
+
+async function analyzeChecker(file, dataUrl) {
+  const img = new Image();
+  img.src = dataUrl;
+  await new Promise(r => { img.onload = r; });
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const g = gcd(w, h);
+  const ratio = `${w/g}:${h/g}`;
+  const isSquare = w === h;
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const sampleCorners = (px) => {
+    const pts = [[px,px],[w-px,px],[px,h-px],[w-px,h-px]];
+    let r=0,g2=0,b=0;
+    for (const [x,y] of pts) {
+      const d = ctx.getImageData(x-2,y-2,4,4).data;
+      let cr=0,cg=0,cb=0;
+      for (let i=0;i<d.length;i+=4){cr+=d[i];cg+=d[i+1];cb+=d[i+2];}
+      const n=d.length/4; r+=cr/n; g2+=cg/n; b+=cb/n;
+    }
+    return { r:r/4, g:g2/4, b:b/4 };
+  };
+  const avg = sampleCorners(6);
+  const bgLight = avg.r > 215 && avg.g > 215 && avg.b > 215;
+  state.checkerResult = { width: w, height: h, fileSize: file.size, format: file.type || "image/jpeg", ratio, isSquare, bgLight };
+  render({ motion: false });
+}
+
+function resetChecker() {
+  state.checkerFile = null;
+  state.checkerPreview = null;
+  state.checkerResult = null;
   render({ motion: false });
 }
 

@@ -778,6 +778,18 @@ h1 em { color: var(--gold); font-style: normal; }
 .bg-chip-swatch { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
 .transparent-swatch { background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 12px 12px; }
 .custom-swatch { background: linear-gradient(135deg, #f06,#fc0,#0cf); font-size: 11px; }
+.checker-preview-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.checker-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.checker-meta { display: flex; flex-direction: column; gap: 2px; }
+.checker-meta b { font-size: 14px; }
+.checker-meta span { font-size: 12px; color: var(--muted); }
+.checker-markets { display: flex; flex-direction: column; gap: 14px; }
+.checker-market { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.checker-market-name { font-weight: 700; font-size: 13px; margin-bottom: 8px; color: var(--ink); }
+.checker-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; padding: 3px 0; }
+.checker-value { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.check-ok { color: #22a06b; font-weight: 700; }
+.check-fail { color: #e63946; font-weight: 700; }
 .wm-controls { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
 .wm-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .wm-label { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; min-width: 80px; }
