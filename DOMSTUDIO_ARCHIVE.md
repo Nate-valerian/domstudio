@@ -4913,6 +4913,20 @@ Commit: `34d330a`
 
 ---
 
+## June 24, 2026 - AdPilot Context Image From Studio
+
+User pointed out that clicking "Generate product copy →" in the Studio result panel jumped to AdPilot correctly but showed no image, losing visual context.
+
+**What was added (commit `a84bbeb`):**
+
+- `state.adpilotContextImage` — stores the generated image URL when `goToAdPilotWithContext()` is called
+- `.copy-context-banner` — shown at the top of the AdPilot copy form when arriving from Studio: 56×56 thumbnail of the generated image, product name (truncated), and a "← Back to image" button that returns to Studio
+- Gold border + warm background matches the Studio link panel so the two feel like one connected flow
+- Banner only appears when the user arrived via the Studio link — opening AdPilot directly shows nothing extra
+- i18n: `adpilotContext.label/back` in RU + EN
+
+---
+
 ## June 24, 2026 - Mobile PWA Nav Cleanup
 
 User shared a screenshot of the mobile PWA and flagged three issues.
