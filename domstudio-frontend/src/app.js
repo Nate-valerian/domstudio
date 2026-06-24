@@ -458,6 +458,7 @@ const state = {
   contentTokenUnit: 10,
   contentToolSlug: "avito-ad",
   adpilotView: "tools",
+  adpilotContextImage: null,
   contentDraft: { ...initialContentDefaults.draft },
   contentProfile: { ...initialContentDefaults.profile },
   contentOutputLanguage: "auto",
@@ -1839,6 +1840,14 @@ function copyStudioPage() {
           `).join("")}
         </aside>
         <form class="panel copy-form-panel" id="copy-form">
+          ${state.adpilotContextImage ? `<div class="copy-context-banner">
+            <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
+            <div class="copy-context-info">
+              <span class="eyebrow">${t("adpilotContext.label")}</span>
+              <p>${escapeHtml(truncate(state.contentDraft.product || "", 60))}</p>
+            </div>
+            <button class="button secondary copy-context-back" type="button" data-route="studio">${t("adpilotContext.back")}</button>
+          </div>` : ""}
           <div class="mini-head"><h3>${escapeHtml(contentToolName(tool))}</h3><span>${cost} ${t("studio.tokens", { n: "" }).trim()}</span></div>
           <div class="copy-tool-summary">
             <b>${escapeHtml(contentToolIntent(tool))}</b>
@@ -2560,6 +2569,7 @@ function goToAdPilotWithContext() {
   };
   state.contentDraft = { ...state.contentDraft, product: subject };
   state.contentToolSlug = toolMap[marketplace] || "ozon-wb-card";
+  state.adpilotContextImage = state.generatedImage || null;
   state.adpilotView = "tools";
   state.route = "adpilot";
   toast(t("adpilotLink.toast"));
