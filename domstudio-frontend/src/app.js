@@ -2368,46 +2368,40 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card" id="tool-resizer">
+      <div class="tool-card" id="tool-collage">
         <div class="tool-card-head">
-          <h2>${t("tools.resizer.h2")}</h2>
-          <span class="eyebrow">${t("tools.resizer.free")}</span>
+          <h2>${t("tools.collage.h2")}</h2>
+          <span class="eyebrow">${t("tools.collage.free")}</span>
         </div>
-        <p class="tool-card-desc">${t("tools.resizer.desc")}</p>
-        <div class="resizer-formats">
-          ${RESIZER_FORMATS.map(f => `
-            <button class="resizer-fmt-chip ${state.resizerFormat === f.id ? "active" : ""}" type="button" data-resizer-fmt="${f.id}">
-              <b>${f.label}</b><span>${f.w}×${f.h}</span>
-            </button>`).join("")}
+        <p class="tool-card-desc">${t("tools.collage.desc")}</p>
+        <div class="collage-layouts">
+          ${COLLAGE_LAYOUTS.map(l => `<button class="resizer-fmt-chip ${state.collageLayout === l.id ? "active" : ""}" type="button" data-collage-layout="${l.id}">${l.label}</button>`).join("")}
         </div>
-        ${state.resizerResult ? `
-          <div class="removebg-result">
-            <div class="removebg-canvas" style="background:#f5f5f5">
-              <img src="${state.resizerResult}" alt="resized" />
-            </div>
-            <div class="removebg-actions">
-              <a class="button" href="${state.resizerResult}" download="product-${state.resizerFormat}.jpg">${t("tools.resizer.download")}</a>
-              <button class="button secondary" type="button" data-resizer-reset>${t("tools.resizer.again")}</button>
-            </div>
-            <div class="tool-send-row">
-              <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="watermark" data-send-from="resizer">${t("tools.watermark.h2")}</button>
-              <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
-              <button class="chip" type="button" data-send-to="compressor" data-send-from="resizer">${t("tools.compressor.h2")}</button>
-              <button class="chip" type="button" data-send-to="checker" data-send-from="resizer">${t("tools.checker.h2")}</button>
-            </div>
+        ${state.collageResult ? `
+          <img class="tool-result-img" src="${state.collageResult}" alt="collage" />
+          <div class="tool-actions">
+            <a class="button" href="${state.collageResult}" download="collage.jpg">${t("tools.collage.download")}</a>
+            <button class="button secondary" type="button" data-collage-reset>${t("tools.collage.again")}</button>
+          </div>
+          <div class="tool-send-row">
+            <span class="tool-send-label">${t("tools.sendTo")}</span>
+            <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="watermark" data-send-from="collage">${t("tools.watermark.h2")}</button>
+            <button class="chip" type="button" data-send-to="checker" data-send-from="collage">${t("tools.checker.h2")}</button>
           </div>
         ` : `
-          <label class="removebg-upload" for="resizer-file">
-            ${state.resizerPreview
-              ? `<img class="removebg-preview" src="${state.resizerPreview}" alt="" />`
-              : `<span class="removebg-placeholder">
-                  <span class="removebg-icon">⬛</span>
-                  <b>${t("tools.resizer.upload")}</b>
-                  <small>${t("tools.resizer.uploadHint")}</small>
-                </span>`}
-          </label>
-          <input id="resizer-file" type="file" accept="image/*" style="display:none" data-resizer-input />
+          <div class="collage-upload-grid">
+            ${[0,1,2,3].map(i => {
+              const needed = state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4;
+              if (i >= needed) return "";
+              return state.collagePreviews[i]
+                ? `<div class="collage-slot filled" data-collage-slot="${i}"><img src="${state.collagePreviews[i]}" /><button type="button" data-collage-remove="${i}">✕</button></div>`
+                : `<label class="collage-slot empty" for="collage-file-${i}"><span>+</span><input id="collage-file-${i}" type="file" accept="image/*" style="display:none" data-collage-input="${i}" /></label>`;
+            }).join("")}
+          </div>
+          ${state.collagePreviews.length >= (state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4)
+            ? `<button class="button gold block" type="button" data-collage-build style="margin-top:12px">${t("tools.collage.build")}</button>`
+            : `<p class="tool-hint">${t("tools.collage.hint")}</p>`}
         `}
       </div>
 
@@ -2523,6 +2517,49 @@ function toolsPage() {
         `}
       </div>
 
+      <div class="tool-card" id="tool-resizer">
+        <div class="tool-card-head">
+          <h2>${t("tools.resizer.h2")}</h2>
+          <span class="eyebrow">${t("tools.resizer.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.resizer.desc")}</p>
+        <div class="resizer-formats">
+          ${RESIZER_FORMATS.map(f => `
+            <button class="resizer-fmt-chip ${state.resizerFormat === f.id ? "active" : ""}" type="button" data-resizer-fmt="${f.id}">
+              <b>${f.label}</b><span>${f.w}×${f.h}</span>
+            </button>`).join("")}
+        </div>
+        ${state.resizerResult ? `
+          <div class="removebg-result">
+            <div class="removebg-canvas" style="background:#f5f5f5">
+              <img src="${state.resizerResult}" alt="resized" />
+            </div>
+            <div class="removebg-actions">
+              <a class="button" href="${state.resizerResult}" download="product-${state.resizerFormat}.jpg">${t("tools.resizer.download")}</a>
+              <button class="button secondary" type="button" data-resizer-reset>${t("tools.resizer.again")}</button>
+            </div>
+            <div class="tool-send-row">
+              <span class="tool-send-label">${t("tools.sendTo")}</span>
+              <button class="chip" type="button" data-send-to="watermark" data-send-from="resizer">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
+              <button class="chip" type="button" data-send-to="compressor" data-send-from="resizer">${t("tools.compressor.h2")}</button>
+              <button class="chip" type="button" data-send-to="checker" data-send-from="resizer">${t("tools.checker.h2")}</button>
+            </div>
+          </div>
+        ` : `
+          <label class="removebg-upload" for="resizer-file">
+            ${state.resizerPreview
+              ? `<img class="removebg-preview" src="${state.resizerPreview}" alt="" />`
+              : `<span class="removebg-placeholder">
+                  <span class="removebg-icon">⬛</span>
+                  <b>${t("tools.resizer.upload")}</b>
+                  <small>${t("tools.resizer.uploadHint")}</small>
+                </span>`}
+          </label>
+          <input id="resizer-file" type="file" accept="image/*" style="display:none" data-resizer-input />
+        `}
+      </div>
+
       <div class="tool-card" id="tool-checker">
         <div class="tool-card-head">
           <h2>${t("tools.checker.h2")}</h2>
@@ -2593,43 +2630,6 @@ function toolsPage() {
                 </span>`}
           </label>
           <input id="checker-file" type="file" accept="image/*" style="display:none" data-checker-input />
-        `}
-      </div>
-
-      <div class="tool-card" id="tool-collage">
-        <div class="tool-card-head">
-          <h2>${t("tools.collage.h2")}</h2>
-          <span class="eyebrow">${t("tools.collage.free")}</span>
-        </div>
-        <p class="tool-card-desc">${t("tools.collage.desc")}</p>
-        <div class="collage-layouts">
-          ${COLLAGE_LAYOUTS.map(l => `<button class="resizer-fmt-chip ${state.collageLayout === l.id ? "active" : ""}" type="button" data-collage-layout="${l.id}">${l.label}</button>`).join("")}
-        </div>
-        ${state.collageResult ? `
-          <img class="tool-result-img" src="${state.collageResult}" alt="collage" />
-          <div class="tool-actions">
-            <a class="button" href="${state.collageResult}" download="collage.jpg">${t("tools.collage.download")}</a>
-            <button class="button secondary" type="button" data-collage-reset>${t("tools.collage.again")}</button>
-          </div>
-          <div class="tool-send-row">
-            <span class="tool-send-label">${t("tools.sendTo")}</span>
-            <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
-            <button class="chip" type="button" data-send-to="watermark" data-send-from="collage">${t("tools.watermark.h2")}</button>
-            <button class="chip" type="button" data-send-to="checker" data-send-from="collage">${t("tools.checker.h2")}</button>
-          </div>
-        ` : `
-          <div class="collage-upload-grid">
-            ${[0,1,2,3].map(i => {
-              const needed = state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4;
-              if (i >= needed) return "";
-              return state.collagePreviews[i]
-                ? `<div class="collage-slot filled" data-collage-slot="${i}"><img src="${state.collagePreviews[i]}" /><button type="button" data-collage-remove="${i}">✕</button></div>`
-                : `<label class="collage-slot empty" for="collage-file-${i}"><span>+</span><input id="collage-file-${i}" type="file" accept="image/*" style="display:none" data-collage-input="${i}" /></label>`;
-            }).join("")}
-          </div>
-          ${state.collagePreviews.length >= (state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4)
-            ? `<button class="button gold block" type="button" data-collage-build style="margin-top:12px">${t("tools.collage.build")}</button>`
-            : `<p class="tool-hint">${t("tools.collage.hint")}</p>`}
         `}
       </div>
 
