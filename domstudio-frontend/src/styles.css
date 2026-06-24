@@ -742,7 +742,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .tools-grid { display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 960px) {
   .tools-inner { max-width: 1100px; }
-  .tools-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 20px; }
+  .tools-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; gap: 20px; }
   .tool-card-wide { grid-column: 1 / -1; }
 }
 .tool-result-img { width: 100%; border-radius: 12px; margin-bottom: 12px; display: block; }
@@ -764,7 +764,10 @@ h1 em { color: var(--gold); font-style: normal; }
 .compressor-green { color: #22a06b; }
 .compressor-arrow { font-size: 20px; color: var(--muted); }
 .compressor-saved { margin-left: auto; font-size: 22px; font-weight: 800; color: #22a06b; }
-.tool-card { padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: white; margin-top: 20px; }
+.tool-card { padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: white; margin-top: 20px; display: flex; flex-direction: column; }
+.tool-card .removebg-upload { flex: 1; }
+.tool-card .collage-upload-grid { flex: 1; }
+.tools-grid .tool-card { margin-top: 0; }
 .tool-card-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
 .tool-card-head h2 { margin: 0; font-size: 18px; }
 .tool-card-head .eyebrow { color: #1a9e5c; font-size: 10px; }
