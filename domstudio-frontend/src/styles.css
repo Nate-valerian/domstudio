@@ -767,6 +767,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .removebg-canvas img { max-width: 100%; max-height: 320px; object-fit: contain; }
 .removebg-actions { display: flex; gap: 10px; }
 .removebg-actions .button { flex: 1; }
+.removebg-progress { font-size: 13px; color: var(--muted); text-align: center; margin: 4px 0 0; }
 .adpilot-link-product { margin: 4px 0 12px; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .copy-context-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;

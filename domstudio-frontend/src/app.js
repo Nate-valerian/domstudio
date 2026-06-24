@@ -459,6 +459,7 @@ const state = {
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
   removeBgLoading: false,
+  removeBgProgress: "",
   removeBgError: "",
   overlayMode: null,
   overlayInputValue: "",
@@ -2286,6 +2287,7 @@ function toolsPage() {
           </label>
           <input id="removebg-file" type="file" accept="image/*" style="display:none" data-removebg-input />
           ${state.removeBgError ? `<p class="field-error">${escapeHtml(state.removeBgError)}</p>` : ""}
+          ${state.removeBgLoading && state.removeBgProgress ? `<p class="removebg-progress">${escapeHtml(state.removeBgProgress)}</p>` : ""}
           <button class="button block" type="button" data-removebg-submit
             ${!state.removeBgFile || state.removeBgLoading ? "disabled" : ""}>
             ${state.removeBgLoading ? t("tools.removeBg.processing") : t("tools.removeBg.cta")}
@@ -2662,12 +2664,21 @@ function onRemoveBgFileSelect(event) {
 async function submitRemoveBg() {
   if (!state.removeBgFile || state.removeBgLoading) return;
   state.removeBgLoading = true;
+  state.removeBgProgress = "";
   state.removeBgError = "";
   render({ motion: false });
   try {
-    const form = new FormData();
-    form.append("file", state.removeBgFile);
-    const blob = await apiBinary("/tools/remove-bg", { method: "POST", body: form });
+    const { removeBackground } = await import("@imgly/background-removal");
+    const blob = await removeBackground(state.removeBgFile, {
+      progress: (key, current, total) => {
+        if (total > 0 && current < total) {
+          const pct = Math.round((current / total) * 100);
+          const label = key.includes("fetch") ? t("tools.removeBg.progressDownload") : t("tools.removeBg.progressRun");
+          state.removeBgProgress = `${label} ${pct}%`;
+          render({ motion: false });
+        }
+      },
+    });
     const dataUrl = await new Promise((res, rej) => {
       const reader = new FileReader();
       reader.onload = () => res(reader.result);
@@ -2678,6 +2689,7 @@ async function submitRemoveBg() {
     sessionStorage.setItem("domstudio_removebg_result", dataUrl);
     state.removeBgPreview = null;
     state.removeBgFile = null;
+    state.removeBgProgress = "";
     toast(t("tools.removeBg.done"));
   } catch (err) {
     state.removeBgError = err.message;
