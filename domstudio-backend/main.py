@@ -37,17 +37,11 @@ async def lifespan(app: FastAPI):
     async def prepare_database():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            await conn.exec_driver_sql("""
-                ALTER TABLE generation_jobs
-                    ADD COLUMN IF NOT EXISTS output_data TEXT,
-                    ADD COLUMN IF NOT EXISTS output_format VARCHAR(30),
-                    ADD COLUMN IF NOT EXISTS error TEXT;
-            """)
 
     try:
         await asyncio.wait_for(
             prepare_database(),
-            timeout=env_float("DB_STARTUP_TIMEOUT_SECONDS", "15"),
+            timeout=env_float("DB_STARTUP_TIMEOUT_SECONDS", "60"),
         )
         log.info("Database tables ready")
     except Exception:
