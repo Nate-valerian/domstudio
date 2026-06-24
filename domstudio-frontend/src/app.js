@@ -1084,6 +1084,17 @@ function comparisonPanel() {
   </div>`;
 }
 
+function adpilotLinkPanel() {
+  if (!state.generatedImage || state.generatedVideo || state.generating) return "";
+  const subject = state.lastGenerationPayload?.subject || state.formDraft.subject || "";
+  if (!subject) return "";
+  return `<div class="adpilot-link-panel">
+    <div class="mini-head"><h3>${t("adpilotLink.h3")}</h3><span>${t("adpilotLink.sub")}</span></div>
+    <p class="adpilot-link-product">${escapeHtml(truncate(subject, 80))}</p>
+    <button class="button secondary block" type="button" data-goto-adpilot>${t("adpilotLink.cta")}</button>
+  </div>`;
+}
+
 function contentPackTools() {
   if (!state.generatedImage || state.generating) return "";
   return `<div class="content-pack">
@@ -1545,6 +1556,7 @@ function studioPage() {
           ${videoJobPanel()}
           ${exportTools()}
           ${contentPackTools()}
+          ${adpilotLinkPanel()}
           ${comparisonPanel()}
           ${variationTools()}
           ${historyPanel()}
@@ -2302,6 +2314,7 @@ function bind() {
   document.querySelector("[data-save-brand]")?.addEventListener("click", saveBrandPreferences);
   document.querySelector("[data-build-prompt]")?.addEventListener("click", buildPromptFromHelper);
   document.querySelectorAll("[data-variation]").forEach(el => el.addEventListener("click", () => regenerateVariation(el.dataset.variation)));
+  document.querySelector("[data-goto-adpilot]")?.addEventListener("click", goToAdPilotWithContext);
   document.querySelector("[data-export]")?.addEventListener("click", exportGeneratedImage);
   document.querySelectorAll("[data-pack]").forEach(el => el.addEventListener("click", () => exportForPack(el.dataset.pack)));
   document.querySelectorAll("[data-history-id]").forEach(el => el.addEventListener("click", () => restoreHistoryItem(el.dataset.historyId)));
@@ -2532,6 +2545,27 @@ function buildPromptFromHelper() {
   state.formDraft.style_hint = styleHint;
   state.formDraft.offer_text = values.offer_text || "";
   toast(t("toast.promptBuilt"));
+}
+
+function goToAdPilotWithContext() {
+  const subject = state.lastGenerationPayload?.subject || state.formDraft.subject || "";
+  const marketplace = state.formDraft.marketplace || "wildberries";
+  const toolMap = {
+    wildberries: "ozon-wb-card",
+    ozon: "ozon-wb-card",
+    yandex: "product-description",
+    avito: "avito-ad",
+    instagram: "vk-post",
+    story: "product-description",
+    banner: "product-description",
+  };
+  state.contentDraft = { ...state.contentDraft, product: subject };
+  state.contentToolSlug = toolMap[marketplace] || "ozon-wb-card";
+  state.adpilotView = "tools";
+  state.route = "adpilot";
+  toast(t("adpilotLink.toast"));
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function saveBrandPreferences() {
