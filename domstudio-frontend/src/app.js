@@ -163,6 +163,15 @@ const EXPORT_SIZES = {
   landscape: { label: "Landscape 4:3", width: 1600, height: 1200, layout: "fit", fill: "#ffffff" },
 };
 
+const RESIZER_FORMATS = [
+  { id: "wb",     label: "WB",          w: 1080, h: 1080 },
+  { id: "ozon",   label: "Ozon",        w: 2000, h: 2000 },
+  { id: "avito",  label: "Avito",       w: 1600, h: 1200 },
+  { id: "yandex", label: "Yandex",      w: 1080, h: 1080 },
+  { id: "vk",     label: "VK",          w: 1080, h: 1350 },
+  { id: "story",  label: "Story",       w: 1080, h: 1920 },
+];
+
 const REMOVEBG_BG_PRESETS = [
   { id: "white",  color: "#FFFFFF", labelKey: "tools.bg.white" },
   { id: "beige",  color: "#F5ECD7", labelKey: "tools.bg.beige" },
@@ -463,6 +472,10 @@ const state = {
   previousGeneratedMeta: null,
   lastGenerationPayload: null,
   generationLabel: "",
+  resizerFile: null,
+  resizerPreview: null,
+  resizerFormat: "wb",
+  resizerResult: null,
   removeBgFile: null,
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
@@ -2330,6 +2343,42 @@ function toolsPage() {
           </button>
         `}
       </div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <h2>${t("tools.resizer.h2")}</h2>
+          <span class="eyebrow">${t("tools.resizer.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.resizer.desc")}</p>
+        <div class="resizer-formats">
+          ${RESIZER_FORMATS.map(f => `
+            <button class="resizer-fmt-chip ${state.resizerFormat === f.id ? "active" : ""}" type="button" data-resizer-fmt="${f.id}">
+              <b>${f.label}</b><span>${f.w}×${f.h}</span>
+            </button>`).join("")}
+        </div>
+        ${state.resizerResult ? `
+          <div class="removebg-result">
+            <div class="removebg-canvas" style="background:#f5f5f5">
+              <img src="${state.resizerResult}" alt="resized" />
+            </div>
+            <div class="removebg-actions">
+              <a class="button" href="${state.resizerResult}" download="product-${state.resizerFormat}.jpg">${t("tools.resizer.download")}</a>
+              <button class="button secondary" type="button" data-resizer-reset>${t("tools.resizer.again")}</button>
+            </div>
+          </div>
+        ` : `
+          <label class="removebg-upload" for="resizer-file">
+            ${state.resizerPreview
+              ? `<img class="removebg-preview" src="${state.resizerPreview}" alt="" />`
+              : `<span class="removebg-placeholder">
+                  <span class="removebg-icon">⬛</span>
+                  <b>${t("tools.resizer.upload")}</b>
+                  <small>${t("tools.resizer.uploadHint")}</small>
+                </span>`}
+          </label>
+          <input id="resizer-file" type="file" accept="image/*" style="display:none" data-resizer-input />
+        `}
+      </div>
     </div>
   </div>`;
 }
@@ -2523,6 +2572,25 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
+  document.querySelector("[data-resizer-input]")?.addEventListener("change", e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      state.resizerFile = file;
+      state.resizerPreview = ev.target.result;
+      state.resizerResult = null;
+      applyResizer();
+    };
+    reader.readAsDataURL(file);
+  });
+  document.querySelectorAll("[data-resizer-fmt]").forEach(el => el.addEventListener("click", () => {
+    state.resizerFormat = el.dataset.resizerFmt;
+    state.resizerResult = null;
+    render({ motion: false });
+    if (state.resizerPreview) applyResizer();
+  }));
+  document.querySelector("[data-resizer-reset]")?.addEventListener("click", resetResizer);
   document.querySelector("[data-removebg-reset]")?.addEventListener("click", resetRemoveBg);
   document.querySelector("[data-toggle-shadow]")?.addEventListener("click", () => {
     state.removeBgShadow = !state.removeBgShadow;
@@ -2781,6 +2849,34 @@ function onBrandLogoSelect(event) {
 function clearBrandLogo() {
   state.brandPrefs = { ...state.brandPrefs, brand_logo: "" };
   saveBrandPrefs(state.brandPrefs);
+  render({ motion: false });
+}
+
+async function applyResizer() {
+  if (!state.resizerPreview) return;
+  const fmt = RESIZER_FORMATS.find(f => f.id === state.resizerFormat);
+  if (!fmt) return;
+  const img = new Image();
+  img.src = state.resizerPreview;
+  await new Promise(r => { img.onload = r; });
+  const canvas = document.createElement("canvas");
+  canvas.width = fmt.w;
+  canvas.height = fmt.h;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, fmt.w, fmt.h);
+  const scale = Math.min(fmt.w / img.naturalWidth, fmt.h / img.naturalHeight);
+  const sw = img.naturalWidth * scale;
+  const sh = img.naturalHeight * scale;
+  ctx.drawImage(img, (fmt.w - sw) / 2, (fmt.h - sh) / 2, sw, sh);
+  state.resizerResult = canvas.toDataURL("image/jpeg", 0.92);
+  render({ motion: false });
+}
+
+function resetResizer() {
+  state.resizerFile = null;
+  state.resizerPreview = null;
+  state.resizerResult = null;
   render({ motion: false });
 }
 

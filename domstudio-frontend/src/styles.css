@@ -778,6 +778,12 @@ h1 em { color: var(--gold); font-style: normal; }
 .bg-chip-swatch { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
 .transparent-swatch { background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 12px 12px; }
 .custom-swatch { background: linear-gradient(135deg, #f06,#fc0,#0cf); font-size: 11px; }
+.resizer-formats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.resizer-fmt-chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 14px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 70px; }
+.resizer-fmt-chip b { font-size: 13px; font-weight: 700; color: var(--ink); }
+.resizer-fmt-chip span { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.resizer-fmt-chip.active { border-color: var(--gold); background: #fdf6e3; }
+.resizer-fmt-chip:hover:not(.active) { border-color: var(--ink); }
 .shadow-toggle { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--surface); border: 1.5px solid var(--line); border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: border-color 0.15s, color 0.15s; margin-bottom: 10px; width: 100%; justify-content: center; }
 .shadow-toggle:hover { border-color: var(--ink); color: var(--ink); }
 .shadow-toggle.active { border-color: var(--gold); color: var(--gold); background: #fdf6e3; }
