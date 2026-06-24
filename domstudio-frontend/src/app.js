@@ -476,6 +476,13 @@ const state = {
   resizerPreview: null,
   resizerFormat: "wb",
   resizerResult: null,
+  watermarkFile: null,
+  watermarkPreview: null,
+  watermarkText: "",
+  watermarkPos: "bottom-right",
+  watermarkOpacity: 0.55,
+  watermarkDark: false,
+  watermarkResult: null,
   removeBgFile: null,
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
@@ -2379,6 +2386,70 @@ function toolsPage() {
           <input id="resizer-file" type="file" accept="image/*" style="display:none" data-resizer-input />
         `}
       </div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <h2>${t("tools.watermark.h2")}</h2>
+          <span class="eyebrow">${t("tools.watermark.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.watermark.desc")}</p>
+        ${state.watermarkResult ? `
+          <div class="removebg-result">
+            <div class="removebg-canvas">
+              <img src="${state.watermarkResult}" alt="watermark" />
+            </div>
+            <div class="removebg-actions">
+              <a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>
+              <button class="button secondary" type="button" data-wm-reset>${t("tools.watermark.again")}</button>
+            </div>
+          </div>
+        ` : `
+          <label class="removebg-upload" for="watermark-file">
+            ${state.watermarkPreview
+              ? `<img class="removebg-preview" src="${state.watermarkPreview}" alt="" />`
+              : `<span class="removebg-placeholder">
+                  <span class="removebg-icon">©</span>
+                  <b>${t("tools.watermark.upload")}</b>
+                  <small>${t("tools.watermark.uploadHint")}</small>
+                </span>`}
+          </label>
+          <input id="watermark-file" type="file" accept="image/*" style="display:none" data-wm-input />
+          ${state.watermarkPreview ? `
+            <div class="wm-controls">
+              <div class="field">
+                <label>${t("tools.watermark.textLabel")}</label>
+                <input class="input" type="text" data-wm-text value="${escapeHtml(state.watermarkText)}"
+                  placeholder="${t("tools.watermark.textPlaceholder")}" />
+              </div>
+              <div class="wm-row">
+                <span class="wm-label">${t("tools.watermark.posLabel")}</span>
+                <div class="wm-pos-grid">
+                  ${[["top-left","↖"],["top-right","↗"],["center","·"],["bottom-left","↙"],["bottom-right","↘"]].map(([pos, icon]) =>
+                    `<button class="wm-pos-btn ${state.watermarkPos === pos ? "active" : ""}" type="button" data-wm-pos="${pos}">${icon}</button>`
+                  ).join("")}
+                </div>
+              </div>
+              <div class="wm-row">
+                <span class="wm-label">${t("tools.watermark.opacityLabel")}</span>
+                <div class="wm-chips">
+                  ${[[0.3,"tools.watermark.light"],[0.55,"tools.watermark.medium"],[0.85,"tools.watermark.strong"]].map(([v,key]) =>
+                    `<button class="chip ${state.watermarkOpacity === v ? "active" : ""}" type="button" data-wm-opacity="${v}">${t(key)}</button>`
+                  ).join("")}
+                </div>
+              </div>
+              <div class="wm-row">
+                <span class="wm-label">${t("tools.watermark.colorLabel")}</span>
+                <div class="wm-chips">
+                  <button class="chip ${!state.watermarkDark ? "active" : ""}" type="button" data-wm-color="white">${t("tools.watermark.white")}</button>
+                  <button class="chip ${state.watermarkDark ? "active" : ""}" type="button" data-wm-color="dark">${t("tools.watermark.dark")}</button>
+                </div>
+              </div>
+              <button class="button block" type="button" data-wm-apply
+                ${!state.watermarkText.trim() ? "disabled" : ""}>${t("tools.watermark.apply")}</button>
+            </div>
+          ` : ""}
+        `}
+      </div>
     </div>
   </div>`;
 }
@@ -2572,6 +2643,24 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
+  document.querySelector("[data-wm-input]")?.addEventListener("change", e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      state.watermarkFile = file;
+      state.watermarkPreview = ev.target.result;
+      state.watermarkResult = null;
+      render({ motion: false });
+    };
+    reader.readAsDataURL(file);
+  });
+  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; });
+  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; render({ motion: false }); }));
+  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); render({ motion: false }); }));
+  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; render({ motion: false }); }));
+  document.querySelector("[data-wm-apply]")?.addEventListener("click", applyWatermark);
+  document.querySelector("[data-wm-reset]")?.addEventListener("click", resetWatermark);
   document.querySelector("[data-resizer-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2870,6 +2959,50 @@ async function applyResizer() {
   const sh = img.naturalHeight * scale;
   ctx.drawImage(img, (fmt.w - sw) / 2, (fmt.h - sh) / 2, sw, sh);
   state.resizerResult = canvas.toDataURL("image/jpeg", 0.92);
+  render({ motion: false });
+}
+
+async function applyWatermark() {
+  if (!state.watermarkPreview || !state.watermarkText.trim()) return;
+  const img = new Image();
+  img.src = state.watermarkPreview;
+  await new Promise(r => { img.onload = r; });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const s = img.naturalWidth / 1000;
+  const fontSize = Math.round(38 * s);
+  ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+  const text = state.watermarkText;
+  const tw = ctx.measureText(text).width;
+  const pad = 30 * s;
+  ctx.globalAlpha = state.watermarkOpacity;
+  ctx.fillStyle = state.watermarkDark ? "#1a1a1a" : "#ffffff";
+  ctx.shadowColor = state.watermarkDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 10 * s;
+  ctx.textBaseline = "alphabetic";
+  const positions = {
+    "top-left":     [pad, pad + fontSize],
+    "top-right":    [canvas.width - tw - pad, pad + fontSize],
+    "center":       [(canvas.width - tw) / 2, (canvas.height + fontSize) / 2],
+    "bottom-left":  [pad, canvas.height - pad],
+    "bottom-right": [canvas.width - tw - pad, canvas.height - pad],
+  };
+  const [x, y] = positions[state.watermarkPos] || positions["bottom-right"];
+  ctx.fillText(text, x, y);
+  ctx.globalAlpha = 1;
+  ctx.shadowColor = "transparent";
+  state.watermarkResult = canvas.toDataURL("image/jpeg", 0.92);
+  render({ motion: false });
+}
+
+function resetWatermark() {
+  state.watermarkFile = null;
+  state.watermarkPreview = null;
+  state.watermarkText = "";
+  state.watermarkResult = null;
   render({ motion: false });
 }
 
