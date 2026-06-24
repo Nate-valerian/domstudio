@@ -1136,6 +1136,7 @@ function quickEditsPanel() {
         <button class="chip" type="button" data-overlay-mode="sale">${t("quickEdit.addSale")}</button>
         <button class="chip" type="button" data-overlay-mode="benefits">${t("quickEdit.addBenefits")}</button>
         ${state.brandPrefs.brand_logo ? `<button class="chip" type="button" data-overlay-mode="logo">${t("quickEdit.addLogo")}</button>` : ""}
+        <button class="chip" type="button" data-quick-export="${state.brandPrefs.default_marketplace || "wb"}">${t("quickEdit.exportFor", { mp: (state.brandPrefs.default_marketplace || "wb").toUpperCase() })}</button>
         ${hasOverlay ? `<button class="chip chip-clear" type="button" data-overlay-clear>${t("quickEdit.clearOverlay")}</button>` : ""}
       </div>
     `}
@@ -2460,6 +2461,7 @@ function bind() {
   document.querySelector("#image")?.addEventListener("change", selectImage);
   document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
   document.querySelector("[data-brand-logo-input]")?.addEventListener("change", onBrandLogoSelect);
+  document.querySelector("[data-quick-export]")?.addEventListener("click", e => exportForPack(e.currentTarget.dataset.quickExport));
   document.querySelectorAll("[data-benefit-index]").forEach(el => el.addEventListener("input", e => {
     const i = parseInt(e.target.dataset.benefitIndex);
     state.overlayBenefits[i] = e.target.value;
