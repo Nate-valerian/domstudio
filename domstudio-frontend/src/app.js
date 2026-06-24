@@ -452,6 +452,11 @@ const state = {
   previousGeneratedMeta: null,
   lastGenerationPayload: null,
   generationLabel: "",
+  removeBgFile: null,
+  removeBgPreview: null,
+  removeBgResult: null,
+  removeBgLoading: false,
+  removeBgError: "",
   history: [],
   contentTools: [...CONTENT_TOOLS_FALLBACK],
   contentFieldLabels: { ...CONTENT_FIELD_LABELS },
@@ -565,6 +570,17 @@ function apiErrorMessage(data) {
   }
   if (detail && typeof detail === "object") return detail.msg || detail.message || JSON.stringify(detail);
   return detail || t("toast.requestFailed");
+}
+
+async function apiBinary(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (state.accessToken) headers.Authorization = `Bearer ${state.accessToken}`;
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(apiErrorMessage(data));
+  }
+  return response.blob();
 }
 
 async function refreshSession() {
@@ -1146,6 +1162,7 @@ function nav() {
     ["home", t("nav.home")],
     ["studio", t("nav.studio")],
     ["adpilot", t("nav.copy")],
+    ["tools", t("nav.tools")],
     ["examples", t("nav.examples")],
     ["pricing", t("nav.pricing")],
     ...(logged ? [["history", t("nav.history")]] : []),
@@ -2169,6 +2186,53 @@ function authModal() {
   </div>`;
 }
 
+function toolsPage() {
+  if (!state.user) return gatePage();
+  const hasResult = Boolean(state.removeBgResult);
+  return `<div class="page tools-page">
+    <div class="page-inner narrow">
+      <div class="mini-head"><h1>${t("tools.h1")}</h1><span>${t("tools.sub")}</span></div>
+
+      <div class="tool-card">
+        <div class="tool-card-head">
+          <h2>${t("tools.removeBg.h2")}</h2>
+          <span class="eyebrow">${t("tools.removeBg.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.removeBg.desc")}</p>
+
+        ${hasResult ? `
+          <div class="removebg-result">
+            <div class="removebg-canvas">
+              <img src="${state.removeBgResult}" alt="${t("tools.removeBg.result")}" />
+            </div>
+            <div class="removebg-actions">
+              <a class="button" href="${state.removeBgResult}" download="no-bg.png">${t("tools.removeBg.download")}</a>
+              <button class="button secondary" type="button" data-removebg-reset>${t("tools.removeBg.again")}</button>
+            </div>
+          </div>
+        ` : `
+          <label class="removebg-upload ${state.removeBgLoading ? "loading" : ""}" for="removebg-file">
+            ${state.removeBgPreview
+              ? `<img class="removebg-preview" src="${state.removeBgPreview}" alt="" />`
+              : `<span class="removebg-placeholder">
+                  <span class="removebg-icon">✂</span>
+                  <b>${t("tools.removeBg.upload")}</b>
+                  <small>${t("tools.removeBg.uploadHint")}</small>
+                </span>`
+            }
+          </label>
+          <input id="removebg-file" type="file" accept="image/*" style="display:none" data-removebg-input />
+          ${state.removeBgError ? `<p class="field-error">${escapeHtml(state.removeBgError)}</p>` : ""}
+          <button class="button block" type="button" data-removebg-submit
+            ${!state.removeBgFile || state.removeBgLoading ? "disabled" : ""}>
+            ${state.removeBgLoading ? t("tools.removeBg.processing") : t("tools.removeBg.cta")}
+          </button>
+        `}
+      </div>
+    </div>
+  </div>`;
+}
+
 function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
     : state.route === "adpilot" ? copyStudioPage()
@@ -2176,6 +2240,7 @@ function render(options = {}) {
     : state.route === "pricing" ? pricingPage()
     : state.route === "account" ? accountPage()
     : state.route === "history" ? historyPage()
+    : state.route === "tools" ? toolsPage()
     : homePage();
   document.title = t(`title.${state.route}`) || t("title.home");
   const motionKey = `${state.route}:${state.authMode || "none"}`;
@@ -2339,6 +2404,51 @@ function bind() {
   document.querySelector("[data-dismiss-pwa]")?.addEventListener("click", dismissPwaInstall);
   document.querySelector("#image")?.addEventListener("change", selectImage);
   document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
+  document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
+  document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
+  document.querySelector("[data-removebg-reset]")?.addEventListener("click", resetRemoveBg);
+  document.querySelector(".removebg-upload")?.addEventListener("click", () => document.querySelector("[data-removebg-input]")?.click());
+}
+
+function onRemoveBgFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  state.removeBgFile = file;
+  state.removeBgResult = null;
+  state.removeBgError = "";
+  const reader = new FileReader();
+  reader.onload = (e) => { state.removeBgPreview = e.target.result; render({ motion: false }); };
+  reader.readAsDataURL(file);
+}
+
+async function submitRemoveBg() {
+  if (!state.removeBgFile || state.removeBgLoading) return;
+  state.removeBgLoading = true;
+  state.removeBgError = "";
+  render({ motion: false });
+  try {
+    const form = new FormData();
+    form.append("file", state.removeBgFile);
+    const blob = await apiBinary("/tools/remove-bg", { method: "POST", body: form });
+    state.removeBgResult = URL.createObjectURL(blob);
+    state.removeBgPreview = null;
+    state.removeBgFile = null;
+    toast(t("tools.removeBg.done"));
+  } catch (err) {
+    state.removeBgError = err.message;
+    toast(err.message);
+  } finally {
+    state.removeBgLoading = false;
+    render({ motion: false });
+  }
+}
+
+function resetRemoveBg() {
+  state.removeBgFile = null;
+  state.removeBgPreview = null;
+  state.removeBgResult = null;
+  state.removeBgError = "";
+  render({ motion: false });
 }
 
 function toggleLang() {
