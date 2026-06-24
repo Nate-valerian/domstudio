@@ -467,6 +467,7 @@ const state = {
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
   removeBgBgColor: null,
+  removeBgShadow: false,
   removeBgComposed: null,
   removeBgLoading: false,
   removeBgProgress: "",
@@ -2296,8 +2297,11 @@ function toolsPage() {
                 </label>
               </div>
             </div>
+            <button class="shadow-toggle ${state.removeBgShadow ? "active" : ""}" type="button" data-toggle-shadow>
+              <span class="shadow-toggle-icon">◉</span> ${t("tools.shadow.toggle")}
+            </button>
             <div class="removebg-actions">
-              <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgComposed ? "product.jpg" : "no-bg.png"}">${t(state.removeBgComposed ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
+              <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgComposed ? (state.removeBgBgColor ? "product.jpg" : "no-bg.png") : "no-bg.png"}">${t(state.removeBgBgColor ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
               <button class="button secondary" type="button" data-removebg-reset>${t("tools.removeBg.again")}</button>
             </div>
           </div>
@@ -2515,6 +2519,10 @@ function bind() {
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
   document.querySelector("[data-removebg-reset]")?.addEventListener("click", resetRemoveBg);
+  document.querySelector("[data-toggle-shadow]")?.addEventListener("click", () => {
+    state.removeBgShadow = !state.removeBgShadow;
+    recomposeRemoveBg();
+  });
   document.querySelectorAll("[data-bg-preset]").forEach(el => el.addEventListener("click", () => {
     const color = el.dataset.bgPreset === "none" ? null : el.dataset.bgPreset;
     applyRemoveBgBackground(color);
@@ -2762,9 +2770,11 @@ function clearBrandLogo() {
   render({ motion: false });
 }
 
-function applyRemoveBgBackground(color) {
-  state.removeBgBgColor = color || null;
-  if (!color || !state.removeBgResult) {
+function recomposeRemoveBg() {
+  if (!state.removeBgResult) return;
+  const hasBg = Boolean(state.removeBgBgColor);
+  const hasShadow = state.removeBgShadow;
+  if (!hasBg && !hasShadow) {
     state.removeBgComposed = null;
     render({ motion: false });
     return;
@@ -2775,13 +2785,33 @@ function applyRemoveBgBackground(color) {
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (hasBg) {
+      ctx.fillStyle = state.removeBgBgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    if (hasShadow) {
+      const cx = canvas.width / 2;
+      const sy = canvas.height * 0.89;
+      const rx = canvas.width * 0.30;
+      const ry = Math.round(canvas.width * 0.022);
+      ctx.save();
+      ctx.filter = `blur(${Math.round(canvas.width * 0.016)}px)`;
+      ctx.fillStyle = "rgba(0,0,0,0.36)";
+      ctx.beginPath();
+      ctx.ellipse(cx, sy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
     ctx.drawImage(img, 0, 0);
-    state.removeBgComposed = canvas.toDataURL("image/jpeg", 0.93);
+    state.removeBgComposed = canvas.toDataURL(hasBg ? "image/jpeg" : "image/png", 0.93);
     render({ motion: false });
   };
   img.src = state.removeBgResult;
+}
+
+function applyRemoveBgBackground(color) {
+  state.removeBgBgColor = color || null;
+  recomposeRemoveBg();
 }
 
 function resetRemoveBg() {
@@ -2789,6 +2819,7 @@ function resetRemoveBg() {
   state.removeBgPreview = null;
   state.removeBgResult = null;
   state.removeBgBgColor = null;
+  state.removeBgShadow = false;
   state.removeBgComposed = null;
   state.removeBgError = "";
   sessionStorage.removeItem("domstudio_removebg_result");

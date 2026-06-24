@@ -654,6 +654,7 @@ const T = {
     "tools.bg.sky": "Голубой",
     "tools.bg.dark": "Тёмный",
     "tools.bg.custom": "Свой цвет",
+    "tools.shadow.toggle": "Тень под продуктом",
     "tools.removeBg.done": "Фон удалён — скачайте PNG",
     // modes (name + description)
     "mode.catalog.name": "Каталог",
@@ -1291,6 +1292,7 @@ const T = {
     "tools.bg.sky": "Sky blue",
     "tools.bg.dark": "Dark",
     "tools.bg.custom": "Custom color",
+    "tools.shadow.toggle": "Add ground shadow",
     "tools.removeBg.done": "Background removed — download your PNG",
     // modes
     "mode.catalog.name": "Catalog",
