@@ -424,12 +424,14 @@ const initialBrandPrefs = loadBrandPrefs();
 const initialTokens = readStoredTokens();
 const initialLang = getLang();
 const initialContentDefaults = defaultsForLang(initialLang);
+const initialRemoveBgResult = sessionStorage.getItem("domstudio_removebg_result") || null;
 
 const state = {
   route: location.hash.slice(1) || "home",
   lang: initialLang,
   accessToken: initialTokens.accessToken,
   refreshToken: initialTokens.refreshToken,
+  authInitializing: Boolean(initialTokens.accessToken || initialTokens.refreshToken),
   user: null,
   plans: [...FALLBACK_PLANS],
   authMode: null,
@@ -455,7 +457,7 @@ const state = {
   generationLabel: "",
   removeBgFile: null,
   removeBgPreview: null,
-  removeBgResult: null,
+  removeBgResult: initialRemoveBgResult,
   removeBgLoading: false,
   removeBgError: "",
   overlayMode: null,
@@ -1513,6 +1515,7 @@ function videoJobPanel() {
 }
 
 function studioPage() {
+  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   if (!state.user) return gatePage();
   const sceneModeNotice = state.formDraft.mode === "catalog" && hasSceneIntent(state.formDraft.subject);
   const cost = generationCost();
@@ -1872,6 +1875,7 @@ function marketplaceDashboard() {
 }
 
 function copyStudioPage() {
+  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   if (!state.user) return gatePage();
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
@@ -2004,6 +2008,7 @@ function copyStudioPage() {
 }
 
 function accountPage() {
+  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   if (!state.user) return gatePage();
   const sub = state.user.subscription || {};
   const planName = sub.plan || "free";
@@ -2243,6 +2248,8 @@ function authModal() {
 }
 
 function toolsPage() {
+  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
+  if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   if (!state.user) return gatePage();
   const hasResult = Boolean(state.removeBgResult);
   return `<div class="page tools-page">
@@ -2661,7 +2668,14 @@ async function submitRemoveBg() {
     const form = new FormData();
     form.append("file", state.removeBgFile);
     const blob = await apiBinary("/tools/remove-bg", { method: "POST", body: form });
-    state.removeBgResult = URL.createObjectURL(blob);
+    const dataUrl = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(blob);
+    });
+    state.removeBgResult = dataUrl;
+    sessionStorage.setItem("domstudio_removebg_result", dataUrl);
     state.removeBgPreview = null;
     state.removeBgFile = null;
     toast(t("tools.removeBg.done"));
@@ -2709,6 +2723,7 @@ function resetRemoveBg() {
   state.removeBgPreview = null;
   state.removeBgResult = null;
   state.removeBgError = "";
+  sessionStorage.removeItem("domstudio_removebg_result");
   render({ motion: false });
 }
 
@@ -3895,12 +3910,15 @@ window.addEventListener("appinstalled", () => {
 registerServiceWorker();
 render();
 loadUser()
-  .then(() => Promise.all([
-    loadPlans(),
-    loadContentTools(),
-    loadHistory(),
-    state.user ? loadReferral() : Promise.resolve(),
-    state.user ? loadMarketplaces() : Promise.resolve(),
-  ]))
+  .then(() => {
+    state.authInitializing = false;
+    return Promise.all([
+      loadPlans(),
+      loadContentTools(),
+      loadHistory(),
+      state.user ? loadReferral() : Promise.resolve(),
+      state.user ? loadMarketplaces() : Promise.resolve(),
+    ]);
+  })
   .then(() => { checkReferralParam(); checkPaymentReturn(); })
   .finally(render);
