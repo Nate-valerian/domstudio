@@ -2278,9 +2278,9 @@ function authModal() {
 function toolsPage() {
   const hasResult = Boolean(state.removeBgResult);
   return `<div class="page tools-page">
-    <div class="page-inner narrow">
+    <div class="page-inner tools-inner">
       <div class="mini-head"><h1>${t("tools.h1")}</h1><span>${t("tools.sub")}</span></div>
-
+      <div class="tools-grid">
       <div class="tool-card">
         <div class="tool-card-head">
           <h2>${t("tools.removeBg.h2")}</h2>
@@ -2524,6 +2524,8 @@ function toolsPage() {
           </label>
           <input id="checker-file" type="file" accept="image/*" style="display:none" data-checker-input />
         `}
+      </div>
+    </div>
       </div>
     </div>
   </div>`;
