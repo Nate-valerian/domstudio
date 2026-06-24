@@ -1,5 +1,73 @@
 # DomStudio Archive
 
+## June 25, 2026 - Tools Page Full Sprint (7 tools, layout, UX fixes)
+
+All changes are frontend-only (Canvas API, no backend). Tools page is now fully public — no login required.
+
+### Tools page: no auth required (commit `4824f0f`)
+- Removed auth gate from `toolsPage()` — all 7 tools are free and accessible without account
+- Fixes: logged-out users saw "Create an account first" gate when clicking Tools tab
+
+### Cross-tool image handoff — "Send to →" (commit `4824f0f`)
+- After any tool produces a result, a "Отправить в → / Send to →" chip row appears
+- Each chip sends the current result directly to another tool (pre-loads it, scrolls to it)
+- `sendToTool(toolId, dataUrl)` dispatches to the correct state fields
+- Each button has `data-send-from` so it knows which result to use (not always BG removal)
+- Collage handoff appends to existing slots instead of resetting
+
+### Collage Maker tool (commit `9447cb7`)
+- 3 layouts: 2×1 (side by side), 1+2 (big+two small), 2×2 (4 photos)
+- Upload slots shown per layout, each independently clickable
+- Canvas compositing: scale-to-fill per slot with 6px gap, white background, 1080px output
+- Remove individual slot with ✕ button; build button appears when all slots filled
+- "Send to Collage" from BG Removal appends to next empty slot (enables multi-BG workflow)
+
+### Promo Badge tool (commit `9447cb7`, refined `4dc16c1`)
+- Circular badge with custom text (up to 8 chars), 5 color presets + custom color picker
+- 4 corner positions (top-left, top-right, bottom-left, bottom-right)
+- Live preview — badge updates instantly on every change, no Apply button
+- Badge radius = 14% of shortest image dimension; font scales with badge size
+
+### Image Compressor tool (commit `9447cb7`, refined `4dc16c1`)
+- Quality slider 40–95% (step 5)
+- Shows BEFORE / AFTER KB + % saved in a stat row
+- "Edit quality" button returns to slider without losing the photo
+- `canvas.toDataURL("image/jpeg", quality/100)` — pure client-side
+
+### 7-card layout: BG Removal full-width + 2-column grid (commits `4a45342`, `1c5c210`, `314b678`)
+- BG Removal card spans full width (`grid-column: 1 / -1`) — hero position
+- Remaining 6 cards in 2-column CSS grid at ≥960px; single column on mobile
+- `align-items: stretch` + flex column on cards — cards in same row share equal height
+- Upload placeholders use `flex: 1` to fill remaining height
+
+### Tool order (mobile top-to-bottom) (commit `7241807`)
+```
+1. Background Removal (full width)
+2. Collage
+3. Promo Badge
+4. Watermark
+5. Image Resizer
+6. Image Checker
+7. Compressor
+```
+Desktop grid pairs: Collage|Promo, Watermark|Resizer, Checker|Compressor
+
+### Watermark: live preview (commit `0071619`)
+- Removed two-state model (preview → apply → locked result)
+- Controls always visible alongside the image preview
+- Every change (text, position, opacity, color) immediately calls `applyWatermark()` and updates the displayed image
+- Download JPG available as soon as text is entered; no Apply button
+
+### Marketplace Checker CSS (commit `2922943`)
+- `.checker-preview-row`, `.checker-thumb`, `.checker-meta`, `.checker-markets`, `.checker-market`, `.checker-market-name`, `.checker-row`, `.checker-value`, `.check-ok` (green), `.check-fail` (red)
+
+### Bug fixes
+- `send-to` always used BG removal result regardless of source card → fixed with `data-send-from` attribute per button (commit `0d3eaf2`)
+- Collage/Promo/Compressor cards were outside `tools-grid` due to stray `</div>` → removed (commit `1c5c210`)
+- Presets dropdown removed from navbar — redundant with Studio form (commit `3effa49`)
+
+---
+
 ## June 25, 2026 - Quick Edits: Benefits + WB/Ozon Export + Brand Kit Logo
 
 Continued the post-generation quick edits sprint and brand kit work. All frontend-only.
