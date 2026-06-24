@@ -2337,6 +2337,7 @@ function toolsPage() {
               <span class="tool-send-label">${t("tools.sendTo")}</span>
               <button class="chip" type="button" data-send-to="resizer" data-send-from="removebg">${t("tools.resizer.h2")}</button>
               <button class="chip" type="button" data-send-to="watermark" data-send-from="removebg">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="collage" data-send-from="removebg">${t("tools.collage.h2")}</button>
               <button class="chip" type="button" data-send-to="promo" data-send-from="removebg">${t("tools.promo.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="removebg">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="removebg">${t("tools.checker.h2")}</button>
@@ -3395,7 +3396,15 @@ async function sendToTool(toolId, dataUrl) {
     state.checkerPreview = dataUrl; state.checkerResult = null;
     analyzeChecker(fakeFile, dataUrl);
   } else if (toolId === "collage") {
-    state.collagePreviews = [dataUrl]; state.collageFiles = [null]; state.collageResult = null;
+    const maxSlots = state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4;
+    if (state.collagePreviews.length < maxSlots) {
+      state.collagePreviews.push(dataUrl);
+      state.collageFiles.push(null);
+    } else {
+      state.collagePreviews = [dataUrl];
+      state.collageFiles = [null];
+    }
+    state.collageResult = null;
     render({ motion: false });
   } else if (toolId === "promo") {
     state.promoPreview = dataUrl; state.promoResult = null;
