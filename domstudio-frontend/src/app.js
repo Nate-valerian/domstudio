@@ -2416,61 +2416,55 @@ function toolsPage() {
           <span class="eyebrow">${t("tools.watermark.free")}</span>
         </div>
         <p class="tool-card-desc">${t("tools.watermark.desc")}</p>
-        ${state.watermarkResult ? `
-          <div class="removebg-result">
-            <div class="removebg-canvas">
-              <img src="${state.watermarkResult}" alt="watermark" />
+        ${state.watermarkPreview ? `
+          <div class="removebg-canvas" style="margin-bottom:14px">
+            <img src="${state.watermarkResult || state.watermarkPreview}" alt="watermark preview" />
+          </div>
+          <div class="wm-controls">
+            <div class="field">
+              <label>${t("tools.watermark.textLabel")}</label>
+              <input class="input" type="text" data-wm-text value="${escapeHtml(state.watermarkText)}"
+                placeholder="${t("tools.watermark.textPlaceholder")}" />
             </div>
-            <div class="removebg-actions">
-              <a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>
+            <div class="wm-row">
+              <span class="wm-label">${t("tools.watermark.posLabel")}</span>
+              <div class="wm-pos-grid">
+                ${[["top-left","↖"],["top-right","↗"],["center","·"],["bottom-left","↙"],["bottom-right","↘"]].map(([pos, icon]) =>
+                  `<button class="wm-pos-btn ${state.watermarkPos === pos ? "active" : ""}" type="button" data-wm-pos="${pos}">${icon}</button>`
+                ).join("")}
+              </div>
+            </div>
+            <div class="wm-row">
+              <span class="wm-label">${t("tools.watermark.opacityLabel")}</span>
+              <div class="wm-chips">
+                ${[[0.3,"tools.watermark.light"],[0.55,"tools.watermark.medium"],[0.85,"tools.watermark.strong"]].map(([v,key]) =>
+                  `<button class="chip ${state.watermarkOpacity === v ? "active" : ""}" type="button" data-wm-opacity="${v}">${t(key)}</button>`
+                ).join("")}
+              </div>
+            </div>
+            <div class="wm-row">
+              <span class="wm-label">${t("tools.watermark.colorLabel")}</span>
+              <div class="wm-chips">
+                <button class="chip ${!state.watermarkDark ? "active" : ""}" type="button" data-wm-color="white">${t("tools.watermark.white")}</button>
+                <button class="chip ${state.watermarkDark ? "active" : ""}" type="button" data-wm-color="dark">${t("tools.watermark.dark")}</button>
+              </div>
+            </div>
+            <div class="removebg-actions" style="margin-top:14px">
+              ${state.watermarkResult
+                ? `<a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>`
+                : `<button class="button" type="button" disabled>${t("tools.watermark.download")}</button>`}
               <button class="button secondary" type="button" data-wm-reset>${t("tools.watermark.again")}</button>
             </div>
           </div>
         ` : `
           <label class="removebg-upload" for="watermark-file">
-            ${state.watermarkPreview
-              ? `<img class="removebg-preview" src="${state.watermarkPreview}" alt="" />`
-              : `<span class="removebg-placeholder">
-                  <span class="removebg-icon">©</span>
-                  <b>${t("tools.watermark.upload")}</b>
-                  <small>${t("tools.watermark.uploadHint")}</small>
-                </span>`}
+            <span class="removebg-placeholder">
+              <span class="removebg-icon">©</span>
+              <b>${t("tools.watermark.upload")}</b>
+              <small>${t("tools.watermark.uploadHint")}</small>
+            </span>
           </label>
           <input id="watermark-file" type="file" accept="image/*" style="display:none" data-wm-input />
-          ${state.watermarkPreview ? `
-            <div class="wm-controls">
-              <div class="field">
-                <label>${t("tools.watermark.textLabel")}</label>
-                <input class="input" type="text" data-wm-text value="${escapeHtml(state.watermarkText)}"
-                  placeholder="${t("tools.watermark.textPlaceholder")}" />
-              </div>
-              <div class="wm-row">
-                <span class="wm-label">${t("tools.watermark.posLabel")}</span>
-                <div class="wm-pos-grid">
-                  ${[["top-left","↖"],["top-right","↗"],["center","·"],["bottom-left","↙"],["bottom-right","↘"]].map(([pos, icon]) =>
-                    `<button class="wm-pos-btn ${state.watermarkPos === pos ? "active" : ""}" type="button" data-wm-pos="${pos}">${icon}</button>`
-                  ).join("")}
-                </div>
-              </div>
-              <div class="wm-row">
-                <span class="wm-label">${t("tools.watermark.opacityLabel")}</span>
-                <div class="wm-chips">
-                  ${[[0.3,"tools.watermark.light"],[0.55,"tools.watermark.medium"],[0.85,"tools.watermark.strong"]].map(([v,key]) =>
-                    `<button class="chip ${state.watermarkOpacity === v ? "active" : ""}" type="button" data-wm-opacity="${v}">${t(key)}</button>`
-                  ).join("")}
-                </div>
-              </div>
-              <div class="wm-row">
-                <span class="wm-label">${t("tools.watermark.colorLabel")}</span>
-                <div class="wm-chips">
-                  <button class="chip ${!state.watermarkDark ? "active" : ""}" type="button" data-wm-color="white">${t("tools.watermark.white")}</button>
-                  <button class="chip ${state.watermarkDark ? "active" : ""}" type="button" data-wm-color="dark">${t("tools.watermark.dark")}</button>
-                </div>
-              </div>
-              <button class="button block" type="button" data-wm-apply
-                ${!state.watermarkText.trim() ? "disabled" : ""}>${t("tools.watermark.apply")}</button>
-            </div>
-          ` : ""}
         `}
       </div>
 
@@ -2956,14 +2950,14 @@ function bind() {
       state.watermarkPreview = ev.target.result;
       state.watermarkResult = null;
       render({ motion: false });
+      if (state.watermarkText.trim()) applyWatermark();
     };
     reader.readAsDataURL(file);
   });
-  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; });
-  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; render({ motion: false }); }));
-  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); render({ motion: false }); }));
-  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; render({ motion: false }); }));
-  document.querySelector("[data-wm-apply]")?.addEventListener("click", applyWatermark);
+  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; applyWatermark(); });
+  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; applyWatermark(); }));
+  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); applyWatermark(); }));
+  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; applyWatermark(); }));
   document.querySelector("[data-wm-reset]")?.addEventListener("click", resetWatermark);
   document.querySelector("[data-resizer-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
