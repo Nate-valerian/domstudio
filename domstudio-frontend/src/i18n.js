@@ -655,6 +655,8 @@ const T = {
     "tools.bg.dark": "Тёмный",
     "tools.bg.custom": "Свой цвет",
     "tools.shadow.toggle": "Тень под продуктом",
+    "tools.useInStudio": "→ Использовать в Студии",
+    "tools.useInStudioToast": "Фото загружено в Студию",
     "tools.removeBg.done": "Фон удалён — скачайте PNG",
     // modes (name + description)
     "mode.catalog.name": "Каталог",
@@ -1293,6 +1295,8 @@ const T = {
     "tools.bg.dark": "Dark",
     "tools.bg.custom": "Custom color",
     "tools.shadow.toggle": "Add ground shadow",
+    "tools.useInStudio": "→ Use in Studio",
+    "tools.useInStudioToast": "Photo loaded into Studio",
     "tools.removeBg.done": "Background removed — download your PNG",
     // modes
     "mode.catalog.name": "Catalog",

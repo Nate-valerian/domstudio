@@ -2301,9 +2301,12 @@ function toolsPage() {
               <span class="shadow-toggle-icon">◉</span> ${t("tools.shadow.toggle")}
             </button>
             <div class="removebg-actions">
-              <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgComposed ? (state.removeBgBgColor ? "product.jpg" : "no-bg.png") : "no-bg.png"}">${t(state.removeBgBgColor ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
+              <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgBgColor ? "product.jpg" : "no-bg.png"}">${t(state.removeBgBgColor ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
               <button class="button secondary" type="button" data-removebg-reset>${t("tools.removeBg.again")}</button>
             </div>
+            <button class="button gold block" type="button" data-use-in-studio style="margin-top:10px">
+              ${t("tools.useInStudio")}
+            </button>
           </div>
         ` : `
           <label class="removebg-upload ${state.removeBgLoading ? "loading" : ""}" for="removebg-file">
@@ -2522,6 +2525,15 @@ function bind() {
   document.querySelector("[data-toggle-shadow]")?.addEventListener("click", () => {
     state.removeBgShadow = !state.removeBgShadow;
     recomposeRemoveBg();
+  });
+  document.querySelector("[data-use-in-studio]")?.addEventListener("click", () => {
+    const dataUrl = state.removeBgComposed || state.removeBgResult;
+    if (!dataUrl) return;
+    state.selectedImage = dataUrl.split(",")[1];
+    state.selectedImageName = state.removeBgBgColor ? "product-bg.jpg" : "product-no-bg.png";
+    state.batchQueue = [];
+    navigate("studio");
+    toast(t("tools.useInStudioToast"));
   });
   document.querySelectorAll("[data-bg-preset]").forEach(el => el.addEventListener("click", () => {
     const color = el.dataset.bgPreset === "none" ? null : el.dataset.bgPreset;
