@@ -4910,3 +4910,34 @@ New `domstudio-telegram/` directory. Standalone async Python bot using `python-t
 **Deployment:** `amvera.yml` configured with persistence mount at `/data` so the SQLite file survives restarts. Env vars: `TELEGRAM_TOKEN`, `DOMSTUDIO_API`, `BOT_DB`.
 
 Commit: `34d330a`
+
+---
+
+## June 24, 2026 - AdPilot + Studio Link
+
+Added a "Write product copy" panel that appears in the Studio result area after an image is generated.
+
+**What was added:**
+
+- `adpilotLinkPanel()` render function — shown in the result panel after a successful image generation, below the content pack buttons. Hidden while generating and for video results.
+- Displays the product subject text (truncated to 80 chars) so the seller knows what will be pre-filled.
+- `goToAdPilotWithContext()` — reads `state.lastGenerationPayload.subject` and `state.formDraft.marketplace`, pre-fills `state.contentDraft.product`, auto-selects the best content tool for that marketplace, then navigates to the AdPilot tools view.
+- Marketplace → tool mapping:
+  - wildberries / ozon → `ozon-wb-card`
+  - yandex → `product-description`
+  - avito → `avito-ad`
+  - instagram (VK/Telegram) → `vk-post`
+  - story / banner → `product-description`
+- RU + EN i18n keys: `adpilotLink.h3/sub/cta/toast`
+- CSS: `.adpilot-link-panel` (gold border, warm background to stand out as a next-step prompt), `.adpilot-link-product` (muted truncated product line)
+
+**Validation:**
+
+```text
+cd domstudio-frontend
+npm.cmd run build
+
+build passed — 252 kB JS, 53 kB CSS
+```
+
+Commit: `0a7ec17`
