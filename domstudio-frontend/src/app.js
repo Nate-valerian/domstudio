@@ -486,6 +486,22 @@ const state = {
   checkerFile: null,
   checkerPreview: null,
   checkerResult: null,
+  collageFiles: [],
+  collagePreviews: [],
+  collageLayout: "2x1",
+  collageResult: null,
+  promoFile: null,
+  promoPreview: null,
+  promoText: "-30%",
+  promoColor: "#E63946",
+  promoPos: "top-right",
+  promoResult: null,
+  compressorFile: null,
+  compressorPreview: null,
+  compressorQuality: 80,
+  compressorOrigSize: 0,
+  compressorResult: null,
+  compressorResultSize: 0,
   removeBgFile: null,
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
@@ -2281,7 +2297,7 @@ function toolsPage() {
     <div class="page-inner tools-inner">
       <div class="mini-head"><h1>${t("tools.h1")}</h1><span>${t("tools.sub")}</span></div>
       <div class="tools-grid">
-      <div class="tool-card">
+      <div class="tool-card tool-card-wide">
         <div class="tool-card-head">
           <h2>${t("tools.removeBg.h2")}</h2>
           <span class="eyebrow">${t("tools.removeBg.free")}</span>
@@ -2321,6 +2337,8 @@ function toolsPage() {
               <span class="tool-send-label">${t("tools.sendTo")}</span>
               <button class="chip" type="button" data-send-to="resizer">${t("tools.resizer.h2")}</button>
               <button class="chip" type="button" data-send-to="watermark">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="promo">${t("tools.promo.h2")}</button>
+              <button class="chip" type="button" data-send-to="compressor">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker">${t("tools.checker.h2")}</button>
             </div>
             <button class="button gold block" type="button" data-use-in-studio style="margin-top:6px">
@@ -2372,6 +2390,8 @@ function toolsPage() {
             <div class="tool-send-row">
               <span class="tool-send-label">${t("tools.sendTo")}</span>
               <button class="chip" type="button" data-send-to="watermark">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="promo">${t("tools.promo.h2")}</button>
+              <button class="chip" type="button" data-send-to="compressor">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker">${t("tools.checker.h2")}</button>
             </div>
           </div>
@@ -2526,6 +2546,139 @@ function toolsPage() {
         `}
       </div>
     </div>
+
+      <div class="tool-card" id="tool-collage">
+        <div class="tool-card-head">
+          <h2>${t("tools.collage.h2")}</h2>
+          <span class="eyebrow">${t("tools.collage.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.collage.desc")}</p>
+        <div class="collage-layouts">
+          ${COLLAGE_LAYOUTS.map(l => `<button class="resizer-fmt-chip ${state.collageLayout === l.id ? "active" : ""}" type="button" data-collage-layout="${l.id}">${l.label}</button>`).join("")}
+        </div>
+        ${state.collageResult ? `
+          <img class="tool-result-img" src="${state.collageResult}" alt="collage" />
+          <div class="tool-actions">
+            <a class="button" href="${state.collageResult}" download="collage.jpg">${t("tools.collage.download")}</a>
+            <button class="button secondary" type="button" data-collage-reset>${t("tools.collage.again")}</button>
+          </div>
+          <div class="tool-send-row">
+            <span class="tool-send-label">${t("tools.sendTo")}</span>
+            <button class="chip" type="button" data-send-to="resizer">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="watermark">${t("tools.watermark.h2")}</button>
+            <button class="chip" type="button" data-send-to="checker">${t("tools.checker.h2")}</button>
+          </div>
+        ` : `
+          <div class="collage-upload-grid">
+            ${[0,1,2,3].map(i => {
+              const needed = state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4;
+              if (i >= needed) return "";
+              return state.collagePreviews[i]
+                ? `<div class="collage-slot filled" data-collage-slot="${i}"><img src="${state.collagePreviews[i]}" /><button type="button" data-collage-remove="${i}">✕</button></div>`
+                : `<label class="collage-slot empty" for="collage-file-${i}"><span>+</span><input id="collage-file-${i}" type="file" accept="image/*" style="display:none" data-collage-input="${i}" /></label>`;
+            }).join("")}
+          </div>
+          ${state.collagePreviews.length >= (state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4)
+            ? `<button class="button gold block" type="button" data-collage-build style="margin-top:12px">${t("tools.collage.build")}</button>`
+            : `<p class="tool-hint">${t("tools.collage.hint")}</p>`}
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-promo">
+        <div class="tool-card-head">
+          <h2>${t("tools.promo.h2")}</h2>
+          <span class="eyebrow">${t("tools.promo.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.promo.desc")}</p>
+        ${state.promoResult ? `
+          <img class="tool-result-img" src="${state.promoResult}" alt="promo" />
+          <div class="tool-actions">
+            <a class="button" href="${state.promoResult}" download="promo.jpg">${t("tools.promo.download")}</a>
+            <button class="button secondary" type="button" data-promo-reset>${t("tools.promo.again")}</button>
+          </div>
+          <div class="tool-send-row">
+            <span class="tool-send-label">${t("tools.sendTo")}</span>
+            <button class="chip" type="button" data-send-to="resizer">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="watermark">${t("tools.watermark.h2")}</button>
+            <button class="chip" type="button" data-send-to="checker">${t("tools.checker.h2")}</button>
+          </div>
+        ` : `
+          <label class="removebg-upload" for="promo-file">
+            ${state.promoPreview
+              ? `<img class="removebg-preview" src="${state.promoPreview}" alt="" />`
+              : `<span class="removebg-placeholder"><span class="removebg-icon">%</span><b>${t("tools.promo.upload")}</b><small>${t("tools.promo.uploadHint")}</small></span>`}
+          </label>
+          <input id="promo-file" type="file" accept="image/*" style="display:none" data-promo-input />
+          ${state.promoPreview ? `
+            <div class="wm-controls">
+              <div class="wm-row">
+                <label class="wm-label">${t("tools.promo.text")}</label>
+                <input class="wm-text-input" type="text" maxlength="8" value="${escapeHtml(state.promoText)}" data-promo-text />
+              </div>
+              <div class="wm-row">
+                <label class="wm-label">${t("tools.promo.color")}</label>
+                <div class="wm-chips">
+                  ${["#E63946","#FF9D2E","#22A06B","#1A1A2E","#4361EE"].map(c =>
+                    `<button class="bg-chip ${state.promoColor === c ? "active" : ""}" type="button" data-promo-color="${c}" style="background:${c}; width:28px; height:28px; border-radius:50%; border: 2px solid ${state.promoColor === c ? "#333" : "transparent"}"></button>`
+                  ).join("")}
+                  <input type="color" value="${state.promoColor}" data-promo-color-pick style="width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0" />
+                </div>
+              </div>
+              <div class="wm-row">
+                <label class="wm-label">${t("tools.promo.position")}</label>
+                <div class="wm-pos-grid">
+                  ${["top-left","top-right","bottom-left","bottom-right"].map(p =>
+                    `<button class="wm-pos-btn ${state.promoPos === p ? "active" : ""}" type="button" data-promo-pos="${p}"></button>`
+                  ).join("")}
+                </div>
+              </div>
+              <button class="button gold block" type="button" data-promo-apply>${t("tools.promo.apply")}</button>
+            </div>
+          ` : ""}
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-compressor">
+        <div class="tool-card-head">
+          <h2>${t("tools.compressor.h2")}</h2>
+          <span class="eyebrow">${t("tools.compressor.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.compressor.desc")}</p>
+        ${state.compressorResult ? `
+          <div class="compressor-stats">
+            <div class="compressor-stat">
+              <span class="compressor-stat-label">${t("tools.compressor.before")}</span>
+              <span class="compressor-stat-val">${(state.compressorOrigSize / 1024).toFixed(0)} KB</span>
+            </div>
+            <span class="compressor-arrow">→</span>
+            <div class="compressor-stat">
+              <span class="compressor-stat-label">${t("tools.compressor.after")}</span>
+              <span class="compressor-stat-val compressor-green">${(state.compressorResultSize / 1024).toFixed(0)} KB</span>
+            </div>
+            <span class="compressor-saved">-${Math.round((1 - state.compressorResultSize / state.compressorOrigSize) * 100)}%</span>
+          </div>
+          <img class="tool-result-img" src="${state.compressorResult}" alt="compressed" />
+          <div class="tool-actions">
+            <a class="button" href="${state.compressorResult}" download="compressed.jpg">${t("tools.compressor.download")}</a>
+            <button class="button secondary" type="button" data-compressor-reset>${t("tools.compressor.again")}</button>
+          </div>
+        ` : `
+          <label class="removebg-upload" for="compressor-file">
+            ${state.compressorPreview
+              ? `<img class="removebg-preview" src="${state.compressorPreview}" alt="" />`
+              : `<span class="removebg-placeholder"><span class="removebg-icon">↓</span><b>${t("tools.compressor.upload")}</b><small>${t("tools.compressor.uploadHint")}</small></span>`}
+          </label>
+          <input id="compressor-file" type="file" accept="image/*" style="display:none" data-compressor-input />
+          ${state.compressorPreview ? `
+            <div class="compressor-quality-row">
+              <label class="wm-label">${t("tools.compressor.quality")} ${state.compressorQuality}%</label>
+              <input class="compressor-slider" type="range" min="40" max="95" step="5" value="${state.compressorQuality}" data-compressor-quality />
+            </div>
+            <button class="button gold block" type="button" data-compressor-apply style="margin-top:12px">${t("tools.compressor.apply")}</button>
+          ` : ""}
+        `}
+      </div>
+
       </div>
     </div>
   </div>`;
@@ -2737,6 +2890,56 @@ function bind() {
     reader.readAsDataURL(file);
   });
   document.querySelector("[data-checker-reset]")?.addEventListener("click", resetChecker);
+
+  // Collage
+  document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
+    state.collageLayout = el.dataset.collageLayout;
+    state.collageResult = null;
+    render({ motion: false });
+  }));
+  document.querySelectorAll("[data-collage-input]").forEach(el => el.addEventListener("change", e => {
+    const idx = parseInt(el.dataset.collageInput);
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      state.collageFiles[idx] = file;
+      state.collagePreviews[idx] = ev.target.result;
+      render({ motion: false });
+    };
+    reader.readAsDataURL(file);
+  }));
+  document.querySelectorAll("[data-collage-remove]").forEach(el => el.addEventListener("click", () => {
+    const idx = parseInt(el.dataset.collageRemove);
+    state.collageFiles.splice(idx, 1); state.collagePreviews.splice(idx, 1);
+    state.collageResult = null; render({ motion: false });
+  }));
+  document.querySelector("[data-collage-build]")?.addEventListener("click", buildCollage);
+  document.querySelector("[data-collage-reset]")?.addEventListener("click", resetCollage);
+
+  // Promo Badge
+  document.querySelector("[data-promo-input]")?.addEventListener("change", e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { state.promoFile = file; state.promoPreview = ev.target.result; state.promoResult = null; render({ motion: false }); };
+    reader.readAsDataURL(file);
+  });
+  document.querySelector("[data-promo-text]")?.addEventListener("input", e => { state.promoText = e.target.value; });
+  document.querySelectorAll("[data-promo-color]").forEach(el => el.addEventListener("click", () => { state.promoColor = el.dataset.promoColor; render({ motion: false }); }));
+  document.querySelector("[data-promo-color-pick]")?.addEventListener("input", e => { state.promoColor = e.target.value; render({ motion: false }); });
+  document.querySelectorAll("[data-promo-pos]").forEach(el => el.addEventListener("click", () => { state.promoPos = el.dataset.promoPos; render({ motion: false }); }));
+  document.querySelector("[data-promo-apply]")?.addEventListener("click", applyPromoBadge);
+  document.querySelector("[data-promo-reset]")?.addEventListener("click", resetPromo);
+
+  // Compressor
+  document.querySelector("[data-compressor-input]")?.addEventListener("change", e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { state.compressorFile = file; state.compressorPreview = ev.target.result; state.compressorOrigSize = file.size; state.compressorResult = null; render({ motion: false }); };
+    reader.readAsDataURL(file);
+  });
+  document.querySelector("[data-compressor-quality]")?.addEventListener("input", e => { state.compressorQuality = parseInt(e.target.value); render({ motion: false }); });
+  document.querySelector("[data-compressor-apply]")?.addEventListener("click", applyCompressor);
+  document.querySelector("[data-compressor-reset]")?.addEventListener("click", resetCompressor);
   document.querySelector("[data-wm-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -3056,23 +3259,146 @@ async function applyResizer() {
   render({ motion: false });
 }
 
+const COLLAGE_LAYOUTS = [
+  { id: "2x1", label: "2 фото", cols: 2, rows: 1 },
+  { id: "1+2", label: "1+2", cols: null, rows: null },
+  { id: "2x2", label: "4 фото", cols: 2, rows: 2 },
+];
+
+function buildCollage() {
+  const previews = state.collagePreviews;
+  if (previews.length < 2) return;
+  const layout = state.collageLayout;
+  const SIZE = 1080;
+  const GAP = 6;
+  let cols, rows;
+  if (layout === "2x1") { cols = 2; rows = 1; }
+  else if (layout === "1+2") { cols = 3; rows = 2; }
+  else { cols = 2; rows = 2; }
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE; canvas.height = layout === "2x1" ? SIZE / 2 + GAP : SIZE;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.src = src; });
+  Promise.all(previews.slice(0, layout === "2x2" ? 4 : layout === "1+2" ? 3 : 2).map(loadImg)).then(imgs => {
+    if (layout === "2x1") {
+      const w = (SIZE - GAP) / 2; const h = SIZE / 2;
+      imgs.forEach((img, i) => {
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+        const sw = img.naturalWidth * scale; const sh = img.naturalHeight * scale;
+        const sx = (w - sw) / 2; const sy = (h - sh) / 2;
+        ctx.drawImage(img, sx + i * (w + GAP), sy, sw, sh);
+      });
+    } else if (layout === "1+2") {
+      const bigW = Math.round(SIZE * 0.6) - GAP / 2;
+      const smW = SIZE - bigW - GAP;
+      const smH = (SIZE - GAP) / 2;
+      const draw = (img, x, y, w, h) => {
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+        const sw = img.naturalWidth * scale; const sh = img.naturalHeight * scale;
+        ctx.drawImage(img, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh);
+      };
+      draw(imgs[0], 0, 0, bigW, SIZE);
+      if (imgs[1]) draw(imgs[1], bigW + GAP, 0, smW, smH);
+      if (imgs[2]) draw(imgs[2], bigW + GAP, smH + GAP, smW, smH);
+    } else {
+      const w = (SIZE - GAP) / 2; const h = (SIZE - GAP) / 2;
+      imgs.forEach((img, i) => {
+        const col = i % 2; const row = Math.floor(i / 2);
+        const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+        const sw = img.naturalWidth * scale; const sh = img.naturalHeight * scale;
+        ctx.drawImage(img, col * (w + GAP) + (w - sw) / 2, row * (h + GAP) + (h - sh) / 2, sw, sh);
+      });
+    }
+    state.collageResult = canvas.toDataURL("image/jpeg", 0.93);
+    render({ motion: false });
+  });
+}
+
+function resetCollage() {
+  state.collageFiles = []; state.collagePreviews = []; state.collageResult = null;
+  render({ motion: false });
+}
+
+async function applyPromoBadge() {
+  if (!state.promoPreview) return;
+  const img = new Image();
+  img.src = state.promoPreview;
+  await new Promise(r => { img.onload = r; });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const r = Math.round(Math.min(canvas.width, canvas.height) * 0.14);
+  const pad = Math.round(r * 0.55);
+  const pos = state.promoPos;
+  const cx = pos.includes("right") ? canvas.width - r - pad : r + pad;
+  const cy = pos.includes("bottom") ? canvas.height - r - pad : r + pad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = state.promoColor;
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  const fontSize = Math.round(r * (state.promoText.length > 4 ? 0.36 : 0.44));
+  ctx.font = `800 ${fontSize}px Inter, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(state.promoText, cx, cy);
+  state.promoResult = canvas.toDataURL("image/jpeg", 0.93);
+  render({ motion: false });
+}
+
+function resetPromo() {
+  state.promoFile = null; state.promoPreview = null; state.promoResult = null;
+  render({ motion: false });
+}
+
+async function applyCompressor() {
+  if (!state.compressorPreview) return;
+  const img = new Image();
+  img.src = state.compressorPreview;
+  await new Promise(r => { img.onload = r; });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+  canvas.getContext("2d").drawImage(img, 0, 0);
+  const dataUrl = canvas.toDataURL("image/jpeg", state.compressorQuality / 100);
+  const byteStr = dataUrl.split(",")[1];
+  state.compressorResult = dataUrl;
+  state.compressorResultSize = Math.round(byteStr.length * 0.75);
+  render({ motion: false });
+}
+
+function resetCompressor() {
+  state.compressorFile = null; state.compressorPreview = null;
+  state.compressorResult = null; state.compressorOrigSize = 0; state.compressorResultSize = 0;
+  render({ motion: false });
+}
+
 async function sendToTool(toolId, dataUrl) {
   if (toolId === "resizer") {
-    state.resizerPreview = dataUrl;
-    state.resizerResult = null;
-    render({ motion: false });
-    applyResizer();
+    state.resizerPreview = dataUrl; state.resizerResult = null;
+    render({ motion: false }); applyResizer();
   } else if (toolId === "watermark") {
-    state.watermarkPreview = dataUrl;
-    state.watermarkResult = null;
+    state.watermarkPreview = dataUrl; state.watermarkResult = null;
     render({ motion: false });
   } else if (toolId === "checker") {
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const fakeFile = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
-    state.checkerPreview = dataUrl;
-    state.checkerResult = null;
+    state.checkerPreview = dataUrl; state.checkerResult = null;
     analyzeChecker(fakeFile, dataUrl);
+  } else if (toolId === "collage") {
+    state.collagePreviews = [dataUrl]; state.collageFiles = [null]; state.collageResult = null;
+    render({ motion: false });
+  } else if (toolId === "promo") {
+    state.promoPreview = dataUrl; state.promoResult = null;
+    render({ motion: false });
+  } else if (toolId === "compressor") {
+    state.compressorPreview = dataUrl; state.compressorResult = null;
+    const res = await fetch(dataUrl); const blob = await res.blob();
+    state.compressorOrigSize = blob.size;
+    render({ motion: false });
   }
   setTimeout(() => document.getElementById(`tool-${toolId}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
 }

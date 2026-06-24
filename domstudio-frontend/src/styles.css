@@ -742,8 +742,28 @@ h1 em { color: var(--gold); font-style: normal; }
 .tools-grid { display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 960px) {
   .tools-inner { max-width: 1100px; }
-  .tools-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  .tools-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 20px; }
+  .tool-card-wide { grid-column: 1 / -1; }
 }
+.tool-result-img { width: 100%; border-radius: 12px; margin-bottom: 12px; display: block; }
+.tool-actions { display: flex; gap: 10px; margin-bottom: 6px; }
+.tool-actions .button { flex: 1; text-align: center; }
+.tool-hint { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px; }
+.collage-layouts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.collage-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.collage-slot { border-radius: 12px; overflow: hidden; aspect-ratio: 1; position: relative; }
+.collage-slot.filled img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.collage-slot.filled button { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+.collage-slot.empty { border: 2px dashed var(--line); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 28px; color: var(--muted); background: var(--surface); }
+.compressor-quality-row { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.compressor-slider { width: 100%; accent-color: var(--gold); }
+.compressor-stats { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
+.compressor-stat { display: flex; flex-direction: column; gap: 2px; }
+.compressor-stat-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+.compressor-stat-val { font-size: 18px; font-weight: 700; }
+.compressor-green { color: #22a06b; }
+.compressor-arrow { font-size: 20px; color: var(--muted); }
+.compressor-saved { margin-left: auto; font-size: 22px; font-weight: 800; color: #22a06b; }
 .tool-card { padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: white; margin-top: 20px; }
 .tool-card-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
 .tool-card-head h2 { margin: 0; font-size: 18px; }
