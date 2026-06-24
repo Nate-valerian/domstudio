@@ -360,6 +360,7 @@ const DEFAULT_BRAND_PREFS = {
   do_not_use: "",
   default_marketplace: "wildberries",
   default_style_template: "clean",
+  brand_logo: "",
 };
 
 function loadBrandPrefs() {
@@ -1112,9 +1113,9 @@ function quickEditsPanel() {
     <div class="mini-head"><h3>${t("quickEdit.h3")}</h3><span>${t("quickEdit.sub")}</span></div>
     ${state.overlayMode ? `
       <div class="overlay-form">
-        <input class="input" id="overlay-input" type="text"
+        ${state.overlayMode !== "logo" ? `<input class="input" id="overlay-input" type="text"
           placeholder="${state.overlayMode === "price" ? t("quickEdit.pricePlaceholder") : t("quickEdit.salePlaceholder")}"
-          value="${escapeHtml(state.overlayInputValue)}" />
+          value="${escapeHtml(state.overlayInputValue)}" />` : `<p class="overlay-logo-hint">${t("quickEdit.logoHint")}</p>`}
         <div class="overlay-form-row">
           <button class="button block" type="button" data-overlay-apply ${state.overlayApplying ? "disabled" : ""}>
             ${state.overlayApplying ? t("quickEdit.applying") : t("quickEdit.apply")}
@@ -1126,6 +1127,7 @@ function quickEditsPanel() {
       <div class="chip-row">
         <button class="chip" type="button" data-overlay-mode="price">${t("quickEdit.addPrice")}</button>
         <button class="chip" type="button" data-overlay-mode="sale">${t("quickEdit.addSale")}</button>
+        ${state.brandPrefs.brand_logo ? `<button class="chip" type="button" data-overlay-mode="logo">${t("quickEdit.addLogo")}</button>` : ""}
         ${hasOverlay ? `<button class="chip chip-clear" type="button" data-overlay-clear>${t("quickEdit.clearOverlay")}</button>` : ""}
       </div>
     `}
@@ -1564,6 +1566,19 @@ function studioPage() {
                 <div class="field"><label for="brand_pref_background">${t("studio.brandBg")}</label><input class="input" id="brand_pref_background" name="brand_pref_background" value="${brandPrefValue("preferred_background")}" placeholder="warm light background" /></div>
                 <div class="field"><label for="brand_pref_mood">${t("studio.brandMood")}</label><input class="input" id="brand_pref_mood" name="brand_pref_mood" value="${brandPrefValue("brand_mood")}" placeholder="clean luxury, calm, premium" /></div>
                 <div class="field"><label for="brand_pref_avoid">${t("studio.brandAvoid")}</label><input class="input" id="brand_pref_avoid" name="brand_pref_avoid" value="${brandPrefValue("do_not_use")}" placeholder="neon, cheap plastic, text" /></div>
+              </div>
+              <div class="field brand-logo-field">
+                <label>${t("studio.brandLogo")}</label>
+                <div class="brand-logo-row">
+                  ${state.brandPrefs.brand_logo
+                    ? `<img class="brand-logo-preview" src="${state.brandPrefs.brand_logo}" alt="logo" />`
+                    : `<span class="brand-logo-empty">${t("studio.brandLogoNone")}</span>`}
+                  <label class="button secondary" style="width:auto;padding:0 14px;cursor:pointer">
+                    ${t("studio.brandLogoUpload")}
+                    <input type="file" accept="image/*" style="display:none" data-brand-logo-input />
+                  </label>
+                  ${state.brandPrefs.brand_logo ? `<button class="button secondary" style="width:auto;padding:0 14px" type="button" data-brand-logo-clear>${t("studio.brandLogoClear")}</button>` : ""}
+                </div>
               </div>
               <button class="button secondary block" type="button" data-save-brand>${t("studio.brandSave")}</button>
             </div>` : ""}
@@ -2436,6 +2451,8 @@ function bind() {
   document.querySelector("[data-dismiss-pwa]")?.addEventListener("click", dismissPwaInstall);
   document.querySelector("#image")?.addEventListener("change", selectImage);
   document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
+  document.querySelector("[data-brand-logo-input]")?.addEventListener("change", onBrandLogoSelect);
+  document.querySelector("[data-brand-logo-clear]")?.addEventListener("click", clearBrandLogo);
   document.querySelectorAll("[data-overlay-mode]").forEach(el => el.addEventListener("click", () => {
     state.overlayMode = el.dataset.overlayMode;
     state.overlayInputValue = "";
@@ -2525,6 +2542,24 @@ function drawOverlayOnCanvas(type, value) {
         ctx.fillText(raw, cx, cy);
         ctx.textAlign = "left";
       }
+      if (type === "logo" && state.brandPrefs.brand_logo) {
+        const logo = new Image();
+        logo.onload = () => {
+          const maxW = Math.round(img.naturalWidth * 0.22);
+          const scale2 = Math.min(maxW / logo.naturalWidth, maxW / logo.naturalHeight);
+          const lw = logo.naturalWidth * scale2;
+          const lh = logo.naturalHeight * scale2;
+          const lx = img.naturalWidth - lw - 20 * s;
+          const ly = img.naturalHeight - lh - 20 * s;
+          ctx.globalAlpha = 0.92;
+          ctx.drawImage(logo, lx, ly, lw, lh);
+          ctx.globalAlpha = 1;
+          resolve(canvas.toDataURL("image/jpeg", 0.92));
+        };
+        logo.onerror = () => resolve(canvas.toDataURL("image/jpeg", 0.92));
+        logo.src = state.brandPrefs.brand_logo;
+        return;
+      }
       resolve(canvas.toDataURL("image/jpeg", 0.92));
     };
     img.onerror = () => reject(new Error("Image load failed"));
@@ -2579,6 +2614,36 @@ async function submitRemoveBg() {
     state.removeBgLoading = false;
     render({ motion: false });
   }
+}
+
+function onBrandLogoSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 300;
+      const scale = Math.min(1, MAX / img.naturalWidth, MAX / img.naturalHeight);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL("image/png");
+      state.brandPrefs = { ...state.brandPrefs, brand_logo: compressed };
+      saveBrandPrefs(state.brandPrefs);
+      toast(t("studio.brandLogoSaved"));
+      render({ motion: false });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearBrandLogo() {
+  state.brandPrefs = { ...state.brandPrefs, brand_logo: "" };
+  saveBrandPrefs(state.brandPrefs);
+  render({ motion: false });
 }
 
 function resetRemoveBg() {
