@@ -1253,15 +1253,6 @@ function nav() {
       <button class="brand" data-route="home"><span class="brand-mark">DS</span><span class="brand-word">Dom<span>Studio</span></span></button>
       <div class="nav-links ${state.navMenuOpen ? "open" : ""}">
         ${navItems.map(([route, label]) => `<button class="nav-link ${state.route === route ? "active" : ""}" data-route="${route}">${label}</button>`).join("")}
-        <div class="nav-dropdown ${state.presetsOpen ? "open" : ""}">
-          <button class="nav-link dropdown-trigger" type="button" data-toggle-presets>${t("nav.presets")} <span>⌄</span></button>
-          <div class="preset-menu">
-            ${MARKETPLACE_PRESETS.map((preset) => {
-              const desc = t(`preset.${preset.mode}.desc`);
-              return `<button type="button" data-preset-route="${preset.id}"><b>${preset.label}</b><span>${desc}</span></button>`;
-            }).join("")}
-          </div>
-        </div>
         ${showPrimaryLangToggle ? `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>` : ""}
         ${showPrimaryLangToggle ? "" : `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>`}
       </div>
