@@ -502,6 +502,7 @@ const state = {
   compressorOrigSize: 0,
   compressorResult: null,
   compressorResultSize: 0,
+  compressorEditing: false,
   removeBgFile: null,
   removeBgPreview: null,
   removeBgResult: initialRemoveBgResult,
@@ -2468,6 +2469,60 @@ function toolsPage() {
         `}
       </div>
 
+      <div class="tool-card" id="tool-promo">
+        <div class="tool-card-head">
+          <h2>${t("tools.promo.h2")}</h2>
+          <span class="eyebrow">${t("tools.promo.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.promo.desc")}</p>
+        ${state.promoPreview ? `
+          <div class="removebg-canvas" style="margin-bottom:14px">
+            <img src="${state.promoResult || state.promoPreview}" alt="promo preview" />
+          </div>
+          <div class="wm-controls">
+            <div class="wm-row">
+              <label class="wm-label">${t("tools.promo.text")}</label>
+              <input class="wm-text-input" type="text" maxlength="8" value="${escapeHtml(state.promoText)}" data-promo-text />
+            </div>
+            <div class="wm-row">
+              <label class="wm-label">${t("tools.promo.color")}</label>
+              <div class="wm-chips">
+                ${["#E63946","#FF9D2E","#22A06B","#1A1A2E","#4361EE"].map(c =>
+                  `<button class="bg-chip ${state.promoColor === c ? "active" : ""}" type="button" data-promo-color="${c}" style="background:${c}; width:28px; height:28px; border-radius:50%; border: 2px solid ${state.promoColor === c ? "#333" : "transparent"}"></button>`
+                ).join("")}
+                <input type="color" value="${state.promoColor}" data-promo-color-pick style="width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0" />
+              </div>
+            </div>
+            <div class="wm-row">
+              <label class="wm-label">${t("tools.promo.position")}</label>
+              <div class="wm-pos-grid">
+                ${["top-left","top-right","bottom-left","bottom-right"].map(p =>
+                  `<button class="wm-pos-btn ${state.promoPos === p ? "active" : ""}" type="button" data-promo-pos="${p}"></button>`
+                ).join("")}
+              </div>
+            </div>
+            <div class="removebg-actions" style="margin-top:14px">
+              ${state.promoResult
+                ? `<a class="button" href="${state.promoResult}" download="promo.jpg">${t("tools.promo.download")}</a>`
+                : `<button class="button" disabled>${t("tools.promo.download")}</button>`}
+              <button class="button secondary" type="button" data-promo-reset>${t("tools.promo.again")}</button>
+            </div>
+            ${state.promoResult ? `
+            <div class="tool-send-row">
+              <span class="tool-send-label">${t("tools.sendTo")}</span>
+              <button class="chip" type="button" data-send-to="resizer" data-send-from="promo">${t("tools.resizer.h2")}</button>
+              <button class="chip" type="button" data-send-to="watermark" data-send-from="promo">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="checker" data-send-from="promo">${t("tools.checker.h2")}</button>
+            </div>` : ""}
+          </div>
+        ` : `
+          <label class="removebg-upload" for="promo-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">%</span><b>${t("tools.promo.upload")}</b><small>${t("tools.promo.uploadHint")}</small></span>
+          </label>
+          <input id="promo-file" type="file" accept="image/*" style="display:none" data-promo-input />
+        `}
+      </div>
+
       <div class="tool-card" id="tool-checker">
         <div class="tool-card-head">
           <h2>${t("tools.checker.h2")}</h2>
@@ -2578,98 +2633,45 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card" id="tool-promo">
-        <div class="tool-card-head">
-          <h2>${t("tools.promo.h2")}</h2>
-          <span class="eyebrow">${t("tools.promo.free")}</span>
-        </div>
-        <p class="tool-card-desc">${t("tools.promo.desc")}</p>
-        ${state.promoResult ? `
-          <img class="tool-result-img" src="${state.promoResult}" alt="promo" />
-          <div class="tool-actions">
-            <a class="button" href="${state.promoResult}" download="promo.jpg">${t("tools.promo.download")}</a>
-            <button class="button secondary" type="button" data-promo-reset>${t("tools.promo.again")}</button>
-          </div>
-          <div class="tool-send-row">
-            <span class="tool-send-label">${t("tools.sendTo")}</span>
-            <button class="chip" type="button" data-send-to="resizer" data-send-from="promo">${t("tools.resizer.h2")}</button>
-            <button class="chip" type="button" data-send-to="watermark" data-send-from="promo">${t("tools.watermark.h2")}</button>
-            <button class="chip" type="button" data-send-to="checker" data-send-from="promo">${t("tools.checker.h2")}</button>
-          </div>
-        ` : `
-          <label class="removebg-upload" for="promo-file">
-            ${state.promoPreview
-              ? `<img class="removebg-preview" src="${state.promoPreview}" alt="" />`
-              : `<span class="removebg-placeholder"><span class="removebg-icon">%</span><b>${t("tools.promo.upload")}</b><small>${t("tools.promo.uploadHint")}</small></span>`}
-          </label>
-          <input id="promo-file" type="file" accept="image/*" style="display:none" data-promo-input />
-          ${state.promoPreview ? `
-            <div class="wm-controls">
-              <div class="wm-row">
-                <label class="wm-label">${t("tools.promo.text")}</label>
-                <input class="wm-text-input" type="text" maxlength="8" value="${escapeHtml(state.promoText)}" data-promo-text />
-              </div>
-              <div class="wm-row">
-                <label class="wm-label">${t("tools.promo.color")}</label>
-                <div class="wm-chips">
-                  ${["#E63946","#FF9D2E","#22A06B","#1A1A2E","#4361EE"].map(c =>
-                    `<button class="bg-chip ${state.promoColor === c ? "active" : ""}" type="button" data-promo-color="${c}" style="background:${c}; width:28px; height:28px; border-radius:50%; border: 2px solid ${state.promoColor === c ? "#333" : "transparent"}"></button>`
-                  ).join("")}
-                  <input type="color" value="${state.promoColor}" data-promo-color-pick style="width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0" />
-                </div>
-              </div>
-              <div class="wm-row">
-                <label class="wm-label">${t("tools.promo.position")}</label>
-                <div class="wm-pos-grid">
-                  ${["top-left","top-right","bottom-left","bottom-right"].map(p =>
-                    `<button class="wm-pos-btn ${state.promoPos === p ? "active" : ""}" type="button" data-promo-pos="${p}"></button>`
-                  ).join("")}
-                </div>
-              </div>
-              <button class="button gold block" type="button" data-promo-apply>${t("tools.promo.apply")}</button>
-            </div>
-          ` : ""}
-        `}
-      </div>
-
       <div class="tool-card" id="tool-compressor">
         <div class="tool-card-head">
           <h2>${t("tools.compressor.h2")}</h2>
           <span class="eyebrow">${t("tools.compressor.free")}</span>
         </div>
         <p class="tool-card-desc">${t("tools.compressor.desc")}</p>
-        ${state.compressorResult ? `
-          <div class="compressor-stats">
-            <div class="compressor-stat">
-              <span class="compressor-stat-label">${t("tools.compressor.before")}</span>
-              <span class="compressor-stat-val">${(state.compressorOrigSize / 1024).toFixed(0)} KB</span>
+        ${state.compressorPreview ? `
+          ${state.compressorResult && !state.compressorEditing ? `
+            <div class="compressor-stats">
+              <div class="compressor-stat">
+                <span class="compressor-stat-label">${t("tools.compressor.before")}</span>
+                <span class="compressor-stat-val">${(state.compressorOrigSize / 1024).toFixed(0)} KB</span>
+              </div>
+              <span class="compressor-arrow">→</span>
+              <div class="compressor-stat">
+                <span class="compressor-stat-label">${t("tools.compressor.after")}</span>
+                <span class="compressor-stat-val compressor-green">${(state.compressorResultSize / 1024).toFixed(0)} KB</span>
+              </div>
+              <span class="compressor-saved">-${Math.round((1 - state.compressorResultSize / state.compressorOrigSize) * 100)}%</span>
             </div>
-            <span class="compressor-arrow">→</span>
-            <div class="compressor-stat">
-              <span class="compressor-stat-label">${t("tools.compressor.after")}</span>
-              <span class="compressor-stat-val compressor-green">${(state.compressorResultSize / 1024).toFixed(0)} KB</span>
+            <img class="tool-result-img" src="${state.compressorResult}" alt="compressed" />
+            <div class="tool-actions">
+              <a class="button" href="${state.compressorResult}" download="compressed.jpg">${t("tools.compressor.download")}</a>
+              <button class="button secondary" type="button" data-compressor-edit>${t("tools.compressor.edit")}</button>
             </div>
-            <span class="compressor-saved">-${Math.round((1 - state.compressorResultSize / state.compressorOrigSize) * 100)}%</span>
-          </div>
-          <img class="tool-result-img" src="${state.compressorResult}" alt="compressed" />
-          <div class="tool-actions">
-            <a class="button" href="${state.compressorResult}" download="compressed.jpg">${t("tools.compressor.download")}</a>
-            <button class="button secondary" type="button" data-compressor-reset>${t("tools.compressor.again")}</button>
-          </div>
-        ` : `
-          <label class="removebg-upload" for="compressor-file">
-            ${state.compressorPreview
-              ? `<img class="removebg-preview" src="${state.compressorPreview}" alt="" />`
-              : `<span class="removebg-placeholder"><span class="removebg-icon">↓</span><b>${t("tools.compressor.upload")}</b><small>${t("tools.compressor.uploadHint")}</small></span>`}
-          </label>
-          <input id="compressor-file" type="file" accept="image/*" style="display:none" data-compressor-input />
-          ${state.compressorPreview ? `
+            <button class="button secondary block" type="button" data-compressor-reset style="margin-top:8px">${t("tools.compressor.again")}</button>
+          ` : `
+            <img class="removebg-preview" src="${state.compressorPreview}" alt="" style="width:100%;border-radius:12px;margin-bottom:12px" />
             <div class="compressor-quality-row">
               <label class="wm-label">${t("tools.compressor.quality")} ${state.compressorQuality}%</label>
               <input class="compressor-slider" type="range" min="40" max="95" step="5" value="${state.compressorQuality}" data-compressor-quality />
             </div>
             <button class="button gold block" type="button" data-compressor-apply style="margin-top:12px">${t("tools.compressor.apply")}</button>
-          ` : ""}
+          `}
+        ` : `
+          <label class="removebg-upload" for="compressor-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">↓</span><b>${t("tools.compressor.upload")}</b><small>${t("tools.compressor.uploadHint")}</small></span>
+          </label>
+          <input id="compressor-file" type="file" accept="image/*" style="display:none" data-compressor-input />
         `}
       </div>
 
@@ -2921,25 +2923,25 @@ function bind() {
   document.querySelector("[data-promo-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => { state.promoFile = file; state.promoPreview = ev.target.result; state.promoResult = null; render({ motion: false }); };
+    reader.onload = ev => { state.promoFile = file; state.promoPreview = ev.target.result; state.promoResult = null; render({ motion: false }); applyPromoBadge(); };
     reader.readAsDataURL(file);
   });
-  document.querySelector("[data-promo-text]")?.addEventListener("input", e => { state.promoText = e.target.value; });
-  document.querySelectorAll("[data-promo-color]").forEach(el => el.addEventListener("click", () => { state.promoColor = el.dataset.promoColor; render({ motion: false }); }));
-  document.querySelector("[data-promo-color-pick]")?.addEventListener("input", e => { state.promoColor = e.target.value; render({ motion: false }); });
-  document.querySelectorAll("[data-promo-pos]").forEach(el => el.addEventListener("click", () => { state.promoPos = el.dataset.promoPos; render({ motion: false }); }));
-  document.querySelector("[data-promo-apply]")?.addEventListener("click", applyPromoBadge);
+  document.querySelector("[data-promo-text]")?.addEventListener("input", e => { state.promoText = e.target.value; applyPromoBadge(); });
+  document.querySelectorAll("[data-promo-color]").forEach(el => el.addEventListener("click", () => { state.promoColor = el.dataset.promoColor; applyPromoBadge(); }));
+  document.querySelector("[data-promo-color-pick]")?.addEventListener("input", e => { state.promoColor = e.target.value; applyPromoBadge(); });
+  document.querySelectorAll("[data-promo-pos]").forEach(el => el.addEventListener("click", () => { state.promoPos = el.dataset.promoPos; applyPromoBadge(); }));
   document.querySelector("[data-promo-reset]")?.addEventListener("click", resetPromo);
 
   // Compressor
   document.querySelector("[data-compressor-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => { state.compressorFile = file; state.compressorPreview = ev.target.result; state.compressorOrigSize = file.size; state.compressorResult = null; render({ motion: false }); };
+    reader.onload = ev => { state.compressorFile = file; state.compressorPreview = ev.target.result; state.compressorOrigSize = file.size; state.compressorResult = null; state.compressorEditing = false; render({ motion: false }); };
     reader.readAsDataURL(file);
   });
   document.querySelector("[data-compressor-quality]")?.addEventListener("input", e => { state.compressorQuality = parseInt(e.target.value); render({ motion: false }); });
-  document.querySelector("[data-compressor-apply]")?.addEventListener("click", applyCompressor);
+  document.querySelector("[data-compressor-apply]")?.addEventListener("click", () => { state.compressorEditing = false; applyCompressor(); });
+  document.querySelector("[data-compressor-edit]")?.addEventListener("click", () => { state.compressorEditing = true; render({ motion: false }); });
   document.querySelector("[data-compressor-reset]")?.addEventListener("click", resetCompressor);
   document.querySelector("[data-wm-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
