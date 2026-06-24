@@ -4913,6 +4913,22 @@ Commit: `34d330a`
 
 ---
 
+## June 24, 2026 - Mobile PWA Nav Cleanup
+
+User shared a screenshot of the mobile PWA and flagged three issues.
+
+**Changes (commit `ec6d920`):**
+
+1. **Nav "Create photo" hidden for logged-in users on mobile** — when a user is signed in, the bottom tab bar already has a Studio tab, so the gold "Create photo" button in the top nav was redundant and made the nav crowded. Added `.nav.logged-in .nav-cta { display: none; }` inside the mobile breakpoint.
+
+2. **Footer tab bar: History → Examples (logged-in)** — logged-in users saw Home / Studio / AdPilot / History. History is internal and not useful as a primary tab for new users. Swapped to Examples so both logged-in and logged-out users see the same four tabs: Home / Studio / AdPilot / Examples.
+
+3. **Removed redundant "Create for free" button from mini-studio card** — the home hero had three equivalent CTAs: "Create first photo" (hero), "Upload" (mini-studio card), and "Create for free" (bottom of mini-studio card). Removed the third one — two is enough.
+
+**Also fixed:** added `-webkit-backdrop-filter` prefix alongside `backdrop-filter` on `.media-toggle` sticky bar — previously broke blur on Safari/iOS PWA.
+
+---
+
 ## June 24, 2026 - AdPilot + Studio Link
 
 Added a "Write product copy" panel that appears in the Studio result area after an image is generated.
