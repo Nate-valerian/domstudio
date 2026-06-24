@@ -1264,12 +1264,14 @@ function mobileTabBar() {
         ["home", t("nav.home"), "H"],
         ["studio", t("nav.studio"), "S"],
         ["adpilot", t("nav.copy"), "A"],
+        ["tools", t("nav.tools"), "✂"],
         ["examples", t("nav.examples"), "E"],
       ]
     : [
         ["home", t("nav.home"), "H"],
         ["studio", t("nav.studio"), "S"],
         ["adpilot", t("nav.copy"), "A"],
+        ["tools", t("nav.tools"), "✂"],
         ["examples", t("nav.examples"), "E"],
       ];
   return `<nav class="mobile-tabbar" aria-label="Mobile navigation">

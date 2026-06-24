@@ -1137,13 +1137,13 @@ h1 em { color: var(--gold); font-style: normal; }
   .footer { display: none; }
   .mobile-tabbar {
     position: fixed; left: 8px; right: auto; bottom: 8px; z-index: 35; width: calc(100vw - 16px); min-height: 64px;
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;
     padding: 7px; border: 1px solid rgba(17,17,15,.12); border-radius: 22px;
     background: rgba(255,253,248,.95); box-shadow: 0 18px 54px rgba(32,25,14,.24);
     -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
   }
   .mobile-tabbar button {
-    display: grid; place-items: center; gap: 3px; min-width: 0; min-height: 50px; padding: 4px 2px;
+    display: grid; place-items: center; gap: 2px; min-width: 0; min-height: 50px; padding: 4px 1px;
     border: 0; border-radius: 16px; background: transparent; color: var(--muted); cursor: pointer;
   }
   .mobile-tabbar button.active { color: var(--ink); background: #fff3d8; }
