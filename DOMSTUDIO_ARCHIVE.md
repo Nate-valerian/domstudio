@@ -1,5 +1,77 @@
 # DomStudio Archive
 
+## June 25, 2026 - Quick Edits: Benefits + WB/Ozon Export + Brand Kit Logo
+
+Continued the post-generation quick edits sprint and brand kit work. All frontend-only.
+
+### Feature: Add 3 Benefits overlay (commit `f14d77b`)
+
+- New chip "Добавить преимущества / Add benefits" in `quickEditsPanel()`
+- Three text inputs appear in the overlay form when benefits mode is active
+- Canvas draws gold checkmark pill chips vertically centered on the left side of the image
+- `state.overlayBenefits: ["", "", ""]` tracks the three inputs; reset on new generation
+- `drawOverlayOnCanvas("benefits", [...])` draws each non-empty benefit as a white rounded pill with a gold filled circle ✓ icon and dark bold text
+- RU + EN i18n: `quickEdit.addBenefits`, `quickEdit.benefitPlaceholder`
+
+### Feature: "Ready for WB/Ozon" quick export chip (commit `24021ac`)
+
+- New chip "Готово для WB / Ready for WB" (or whichever marketplace is set as default in brand prefs) in `quickEditsPanel()`
+- One click calls `exportForPack(marketplace_id)` — the same resizing + download path used by `contentPackTools()`
+- No new canvas logic needed; reuses existing `PACK_FORMATS` and `renderToCanvas()`
+- RU + EN i18n: `quickEdit.exportFor`
+
+### Feature: Brand kit logo upload (commit `a474097`)
+
+- `DEFAULT_BRAND_PREFS` now has `brand_logo: ""` field
+- Brand section collapsible now shows a logo upload row with: current logo thumbnail (52×52, checkered BG), "Загрузить / Upload" file picker label, "Удалить / Remove" button
+- `onBrandLogoSelect()`: reads file → draws to canvas at max 300×300px → saves as PNG data URL to `state.brandPrefs.brand_logo` via `saveBrandPrefs()`
+- `clearBrandLogo()`: clears the field and re-renders
+- Logo overlay: `drawOverlayOnCanvas("logo", ...)` draws the brand logo at 22% image width, bottom-right corner, 0.92 opacity
+- RU + EN i18n: `studio.brandLogo*`, `quickEdit.addLogo`, `quickEdit.logoHint`
+- CSS: `.brand-logo-row`, `.brand-logo-preview`, `.overlay-logo-hint`
+
+---
+
+## June 25, 2026 - Auth Gate Flash Fix + RemoveBg Persistence (commit `13cf0ea`)
+
+Two bugs fixed after user reported losing tool state on refresh and seeing the register page briefly.
+
+**Auth gate flash:**
+- All auth-gated pages (`studioPage`, `accountPage`, `historyPage`, `copyStudioPage`, `toolsPage`) now check `state.authInitializing` before showing `gatePage()`
+- `authInitializing: true` is set at startup if tokens exist in localStorage; set to `false` after `loadUser()` resolves
+- While initializing: shows `<main class="page"></main>` (blank) instead of the register gate
+- Prevents the register CTA from flashing for ~1s on every refresh for logged-in users
+
+**RemoveBg result persistence:**
+- `state.removeBgResult` was a `blob:` URL — dies on refresh
+- Now converted to a data URL (via `FileReader.readAsDataURL`) before storing in state
+- Saved to `sessionStorage` under `domstudio_removebg_result` — survives refresh within the same tab session
+- `initialRemoveBgResult` read from sessionStorage at startup and used as the initial value
+- `resetRemoveBg()` also clears `sessionStorage`
+
+---
+
+## June 25, 2026 - Background Removal Moved To Client-Side (commit `dc78dd8`)
+
+**Problem:** Backend was crashing with OOM after `rembg` + `onnxruntime` loaded ~200-300MB into RAM on first call, exceeding the Amvera plan RAM limit.
+
+**Solution:** Replaced backend rembg with `@imgly/background-removal` v1.7.0 — WASM-based ONNX inference running entirely in the user's browser.
+
+Frontend changes:
+- `npm install @imgly/background-removal`
+- `submitRemoveBg()` now uses a dynamic `import("@imgly/background-removal")` — keeps the ONNX bundle (`ort.bundle.min`, ~395KB gzip 108KB) out of the initial JS load; only fetched when user opens the tool
+- Model files (~10MB) download from img.ly CDN on first use, cached by browser; subsequent uses are instant
+- `progress` callback updates `state.removeBgProgress` live: "Загружаем модель 45%" while downloading, "Удаляем фон 80%" while processing
+- `.removebg-progress` CSS for the progress hint line
+- RU + EN i18n: `tools.removeBg.progressDownload`, `tools.removeBg.progressRun`
+
+Backend changes:
+- `domstudio-backend/routers/tools.py` gutted to an empty router placeholder
+- `rembg==2.0.57` and `onnxruntime==1.19.2` removed from `requirements.txt`
+- Amvera backend build is now faster and uses significantly less RAM
+
+---
+
 ## June 23, 2026 - AdPilot Mobile Screen (React Native)
 
 Implemented full AdPilot screen in `domstudio-mobile/App.tsx` (commit `e149d6c`).
