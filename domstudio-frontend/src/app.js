@@ -2411,10 +2411,17 @@ function toolsPage() {
           <span class="eyebrow">${t("tools.watermark.free")}</span>
         </div>
         <p class="tool-card-desc">${t("tools.watermark.desc")}</p>
-        ${state.watermarkPreview ? `
+        ${state.watermarkResult ? `
           <div class="removebg-canvas" style="margin-bottom:14px">
-            <img src="${state.watermarkResult || state.watermarkPreview}" alt="watermark preview" />
+            <img src="${state.watermarkResult}" alt="watermark result" />
           </div>
+          <div class="removebg-actions">
+            <a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>
+            <button class="button secondary" type="button" data-wm-edit>${t("tools.watermark.edit")}</button>
+          </div>
+          <button class="button secondary block" type="button" data-wm-reset style="margin-top:8px">${t("tools.watermark.again")}</button>
+        ` : state.watermarkPreview ? `
+          <img class="removebg-preview" src="${state.watermarkPreview}" style="width:100%;border-radius:12px;margin-bottom:14px" alt="" />
           <div class="wm-controls">
             <div class="field">
               <label>${t("tools.watermark.textLabel")}</label>
@@ -2444,12 +2451,8 @@ function toolsPage() {
                 <button class="chip ${state.watermarkDark ? "active" : ""}" type="button" data-wm-color="dark">${t("tools.watermark.dark")}</button>
               </div>
             </div>
-            <div class="removebg-actions" style="margin-top:14px">
-              ${state.watermarkResult
-                ? `<a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>`
-                : `<button class="button" type="button" disabled>${t("tools.watermark.download")}</button>`}
-              <button class="button secondary" type="button" data-wm-reset>${t("tools.watermark.again")}</button>
-            </div>
+            <button class="button gold block" type="button" data-wm-apply style="margin-top:14px"
+              ${!state.watermarkText.trim() ? "disabled" : ""}>${t("tools.watermark.apply")}</button>
           </div>
         ` : `
           <label class="removebg-upload" for="watermark-file">
@@ -2956,10 +2959,12 @@ function bind() {
     };
     reader.readAsDataURL(file);
   });
-  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; applyWatermark(); });
-  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; applyWatermark(); }));
-  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); applyWatermark(); }));
-  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; applyWatermark(); }));
+  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; });
+  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; render({ motion: false }); }));
+  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); render({ motion: false }); }));
+  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; render({ motion: false }); }));
+  document.querySelector("[data-wm-apply]")?.addEventListener("click", () => { state.watermarkText = document.querySelector("[data-wm-text]")?.value || state.watermarkText; applyWatermark(); });
+  document.querySelector("[data-wm-edit]")?.addEventListener("click", () => { state.watermarkResult = null; render({ motion: false }); });
   document.querySelector("[data-wm-reset]")?.addEventListener("click", resetWatermark);
   document.querySelector("[data-resizer-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
