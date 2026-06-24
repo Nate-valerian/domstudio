@@ -1190,7 +1190,7 @@ function mobileTabBar() {
         ["home", t("nav.home"), "H"],
         ["studio", t("nav.studio"), "S"],
         ["adpilot", t("nav.copy"), "A"],
-        ["history", t("nav.history"), "R"],
+        ["examples", t("nav.examples"), "E"],
       ]
     : [
         ["home", t("nav.home"), "H"],
@@ -1249,7 +1249,6 @@ function homePage() {
               <label><span>${t("home.miniPhoto")}</span><button type="button" data-route="studio">${t("home.miniUpload")}</button></label>
               <label><span>${t("home.miniPromptLabel")}</span><input value="${t("home.miniPromptValue")}" readonly /></label>
               <div class="preset-pills"><span>Wildberries</span><span>Ozon</span><span>Avito</span><span>1080×1080</span></div>
-              <button class="button gold block" type="button" data-route="studio">${t("home.miniCta")}</button>
             </div>
           </div>
         </div>
