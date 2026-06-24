@@ -24,11 +24,13 @@ from runtime_info import runtime_version_payload
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("domstudio")
 
+
 def env_float(name: str, default: str) -> float:
     try:
         return float(os.getenv(name) or default)
     except (TypeError, ValueError):
         return float(default)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,7 +45,10 @@ async def lifespan(app: FastAPI):
             """)
 
     try:
-        await asyncio.wait_for(prepare_database(), timeout=env_float("DB_STARTUP_TIMEOUT_SECONDS", "15"))
+        await asyncio.wait_for(
+            prepare_database(),
+            timeout=env_float("DB_STARTUP_TIMEOUT_SECONDS", "15"),
+        )
         log.info("Database tables ready")
     except Exception:
         log.exception("Database startup preparation failed; API will start and DB-backed routes may fail")
@@ -59,6 +64,8 @@ app = FastAPI(
 DEFAULT_CORS_ORIGINS = {
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
     "https://domstudio.vercel.app",
     "https://domstudio.site",
     "https://www.domstudio.site",

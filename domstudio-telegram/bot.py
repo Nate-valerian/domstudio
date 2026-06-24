@@ -177,7 +177,12 @@ async def api_referral(token: str) -> dict:
 
 
 async def api_generate(token: str, slug: str, fields: dict, language: str) -> str:
-    payload = {"tool_slug": slug, "fields": fields, "language": language}
+    payload = {
+        "tool_slug": slug,
+        "input": fields,
+        "profile": {},
+        "output_language": language,
+    }
     async with aiohttp.ClientSession() as s:
         r = await s.post(
             f"{API}/content/generate",
@@ -188,7 +193,7 @@ async def api_generate(token: str, slug: str, fields: dict, language: str) -> st
         data = await r.json()
         if r.status != 200:
             raise ValueError(data.get("detail", "Generation failed"))
-        return data.get("text") or data.get("result") or str(data)
+        return data.get("output") or data.get("text") or data.get("result") or str(data)
 
 # ─── Keyboards ───────────────────────────────────────────────────────────────
 
