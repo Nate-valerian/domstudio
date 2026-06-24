@@ -726,6 +726,11 @@ h1 em { color: var(--gold); font-style: normal; }
 
 /* ── Content pack ─────────────────────────────────────────────────────────── */
 .content-pack { margin: 18px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: #faf7f0; }
+.quick-edits { margin: 18px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: #faf7f0; }
+.overlay-form { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.overlay-form-row { display: flex; gap: 8px; }
+.chip-clear { background: transparent; border-color: var(--line); color: var(--muted); }
+.chip-clear:hover { border-color: #e63946; color: #e63946; background: transparent; }
 .adpilot-link-panel { margin: 18px 0 0; padding: 16px; border: 1px solid var(--gold); border-radius: 18px; background: #fffbf0; }
 
 /* ── Tools page ─────────────────────────────────── */

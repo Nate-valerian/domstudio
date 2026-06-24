@@ -457,6 +457,10 @@ const state = {
   removeBgResult: null,
   removeBgLoading: false,
   removeBgError: "",
+  overlayMode: null,
+  overlayInputValue: "",
+  overlayImage: null,
+  overlayApplying: false,
   history: [],
   contentTools: [...CONTENT_TOOLS_FALLBACK],
   contentFieldLabels: { ...CONTENT_FIELD_LABELS },
@@ -1101,6 +1105,33 @@ function comparisonPanel() {
   </div>`;
 }
 
+function quickEditsPanel() {
+  if (!state.generatedImage || state.generatedVideo || state.generating) return "";
+  const hasOverlay = Boolean(state.overlayImage);
+  return `<div class="quick-edits">
+    <div class="mini-head"><h3>${t("quickEdit.h3")}</h3><span>${t("quickEdit.sub")}</span></div>
+    ${state.overlayMode ? `
+      <div class="overlay-form">
+        <input class="input" id="overlay-input" type="text"
+          placeholder="${state.overlayMode === "price" ? t("quickEdit.pricePlaceholder") : t("quickEdit.salePlaceholder")}"
+          value="${escapeHtml(state.overlayInputValue)}" />
+        <div class="overlay-form-row">
+          <button class="button block" type="button" data-overlay-apply ${state.overlayApplying ? "disabled" : ""}>
+            ${state.overlayApplying ? t("quickEdit.applying") : t("quickEdit.apply")}
+          </button>
+          <button class="button secondary" type="button" data-overlay-cancel style="width:auto;padding:0 18px">${t("quickEdit.cancel")}</button>
+        </div>
+      </div>
+    ` : `
+      <div class="chip-row">
+        <button class="chip" type="button" data-overlay-mode="price">${t("quickEdit.addPrice")}</button>
+        <button class="chip" type="button" data-overlay-mode="sale">${t("quickEdit.addSale")}</button>
+        ${hasOverlay ? `<button class="chip chip-clear" type="button" data-overlay-clear>${t("quickEdit.clearOverlay")}</button>` : ""}
+      </div>
+    `}
+  </div>`;
+}
+
 function adpilotLinkPanel() {
   if (!state.generatedImage || state.generatedVideo || state.generating) return "";
   const subject = state.lastGenerationPayload?.subject || state.formDraft.subject || "";
@@ -1566,13 +1597,14 @@ function studioPage() {
             ${state.generatedVideo
               ? `<video src="${state.generatedVideo}" controls playsinline loop></video>${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("video.submitGenerating"))}</div>` : ""}`
               : state.generatedImage
-              ? `<img src="${state.generatedImage}" alt="AI result" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("studio.generatingNew"))}</div>` : ""}`
+              ? `<img src="${state.overlayImage || state.generatedImage}" alt="AI result" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("studio.generatingNew"))}</div>` : ""}`
               : `<div class="result-empty"><b>${state.generating ? t("studio.resultSetting") : t("studio.resultEmptyB")}</b>${state.generating ? "" : t("studio.resultEmptyP")}</div>`}
           </div>
           ${state.generatedMeta && !state.generatedVideo ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
           ${videoJobPanel()}
           ${exportTools()}
           ${contentPackTools()}
+          ${quickEditsPanel()}
           ${adpilotLinkPanel()}
           ${comparisonPanel()}
           ${variationTools()}
@@ -2404,10 +2436,116 @@ function bind() {
   document.querySelector("[data-dismiss-pwa]")?.addEventListener("click", dismissPwaInstall);
   document.querySelector("#image")?.addEventListener("change", selectImage);
   document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
+  document.querySelectorAll("[data-overlay-mode]").forEach(el => el.addEventListener("click", () => {
+    state.overlayMode = el.dataset.overlayMode;
+    state.overlayInputValue = "";
+    render({ motion: false });
+  }));
+  document.querySelector("[data-overlay-apply]")?.addEventListener("click", applyOverlay);
+  document.querySelector("[data-overlay-cancel]")?.addEventListener("click", () => { state.overlayMode = null; render({ motion: false }); });
+  document.querySelector("[data-overlay-clear]")?.addEventListener("click", () => { state.overlayImage = null; state.overlayMode = null; render({ motion: false }); });
+  document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
   document.querySelector("[data-removebg-reset]")?.addEventListener("click", resetRemoveBg);
   document.querySelector(".removebg-upload")?.addEventListener("click", () => document.querySelector("[data-removebg-input]")?.click());
+}
+
+function canvasRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawOverlayOnCanvas(type, value) {
+  return new Promise((resolve, reject) => {
+    const src = state.generatedImage;
+    if (!src) return reject(new Error("No image"));
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const s = img.naturalWidth / 1000;
+
+      if (type === "price") {
+        const text = value || "0 ₽";
+        const fontSize = Math.round(52 * s);
+        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        const tw = ctx.measureText(text).width;
+        const pad = 24 * s;
+        const bw = tw + pad * 2;
+        const bh = fontSize * 1.55;
+        const bx = 20 * s;
+        const by = img.naturalHeight - bh - 20 * s;
+        const r = 14 * s;
+        ctx.shadowColor = "rgba(0,0,0,.30)";
+        ctx.shadowBlur = 18 * s;
+        ctx.shadowOffsetY = 4 * s;
+        ctx.fillStyle = "white";
+        canvasRoundRect(ctx, bx, by, bw, bh, r);
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.strokeStyle = "#c7a460";
+        ctx.lineWidth = 3 * s;
+        canvasRoundRect(ctx, bx, by, bw, bh, r);
+        ctx.stroke();
+        ctx.fillStyle = "#1a1a1a";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, bx + pad, by + bh / 2);
+      } else if (type === "sale") {
+        const raw = value ? (value.includes("%") ? value : `−${value}%`) : "SALE";
+        const r = Math.round(88 * s);
+        const cx = img.naturalWidth - r - 20 * s;
+        const cy = r + 20 * s;
+        ctx.shadowColor = "rgba(0,0,0,.28)";
+        ctx.shadowBlur = 18 * s;
+        ctx.fillStyle = "#e63946";
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `bold ${Math.round(40 * s)}px Arial, sans-serif`;
+        ctx.fillText(raw, cx, cy);
+        ctx.textAlign = "left";
+      }
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
+    };
+    img.onerror = () => reject(new Error("Image load failed"));
+    img.src = src;
+  });
+}
+
+async function applyOverlay() {
+  if (!state.overlayMode || !state.generatedImage || state.overlayApplying) return;
+  state.overlayApplying = true;
+  render({ motion: false });
+  try {
+    state.overlayImage = await drawOverlayOnCanvas(state.overlayMode, state.overlayInputValue.trim());
+    state.overlayMode = null;
+    toast(t("quickEdit.done"));
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    state.overlayApplying = false;
+    render({ motion: false });
+  }
 }
 
 function onRemoveBgFileSelect(event) {
@@ -3422,6 +3560,8 @@ async function generateWithPayload(payload, options = {}) {
       state.previousGeneratedMeta = previousMeta;
     }
     state.generatedImage = dataUrl;
+    state.overlayImage = null;
+    state.overlayMode = null;
     state.generatedMeta = resultMeta;
     await rememberResult(resultMeta, dataUrl, payload);
     await loadUser();

@@ -5007,3 +5007,32 @@ Fixes:
 - `toggleLang()` now also updates `state.contentOutputLanguage` to match the new app language so the two controls stay in sync
 - When user explicitly picks "Russian" while in English mode (or vice versa), that override is preserved and sent to the backend
 
+---
+
+## June 25, 2026 - Background Removal Tool (Quick Tools, Feature #1)
+
+Added a new **Tools** section to the app with the first quick tool: background removal.
+
+### What was built
+
+**Backend (`domstudio-backend/`):**
+
+- `routers/tools.py`: `POST /tools/remove-bg` endpoint — accepts image upload, removes background using `rembg` with the `u2netp` model (4.7 MB, CPU-only, no GPU required)
+- Session is lazy-initialised once at first use (model auto-downloads to cache)
+- Max file size: 10 MB; requires auth but costs 0 tokens
+- Returns transparent PNG with `Content-Disposition: attachment; filename="no-bg.png"`
+- Registered in `main.py` under `/tools` prefix
+- Added `rembg==2.0.57` and `onnxruntime==1.19.2` to `requirements.txt`
+
+**Frontend (`domstudio-frontend/src/`):**
+
+- `toolsPage()` render function — upload zone → spinner → result with checkered transparency preview → Download PNG button
+- `apiBinary()` helper for fetching binary (blob) responses from the API without JSON parsing
+- `onRemoveBgFileSelect()`, `submitRemoveBg()`, `resetRemoveBg()` handlers
+- New state fields: `removeBgFile`, `removeBgPreview`, `removeBgResult`, `removeBgLoading`, `removeBgError`
+- Route `#tools` added to route switch and desktop nav (`nav.tools`)
+- Full RU + EN i18n: `tools.*`, `tools.removeBg.*`, `title.tools`
+- CSS: `.tool-card`, `.removebg-upload` (dashed drop zone), `.removebg-canvas` (checkered transparency background), `.removebg-result`, `.removebg-actions`
+
+Commit: `60851c5`
+
