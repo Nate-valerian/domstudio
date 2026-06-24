@@ -460,6 +460,7 @@ const state = {
   removeBgError: "",
   overlayMode: null,
   overlayInputValue: "",
+  overlayBenefits: ["", "", ""],
   overlayImage: null,
   overlayApplying: false,
   history: [],
@@ -1113,9 +1114,15 @@ function quickEditsPanel() {
     <div class="mini-head"><h3>${t("quickEdit.h3")}</h3><span>${t("quickEdit.sub")}</span></div>
     ${state.overlayMode ? `
       <div class="overlay-form">
-        ${state.overlayMode !== "logo" ? `<input class="input" id="overlay-input" type="text"
-          placeholder="${state.overlayMode === "price" ? t("quickEdit.pricePlaceholder") : t("quickEdit.salePlaceholder")}"
-          value="${escapeHtml(state.overlayInputValue)}" />` : `<p class="overlay-logo-hint">${t("quickEdit.logoHint")}</p>`}
+        ${state.overlayMode === "benefits"
+          ? state.overlayBenefits.map((v, i) => `<input class="input" style="margin-bottom:6px" type="text" data-benefit-index="${i}"
+              placeholder="${t("quickEdit.benefitPlaceholder")} ${i + 1}"
+              value="${escapeHtml(v)}" />`).join("")
+          : state.overlayMode === "logo"
+          ? `<p class="overlay-logo-hint">${t("quickEdit.logoHint")}</p>`
+          : `<input class="input" id="overlay-input" type="text"
+              placeholder="${state.overlayMode === "price" ? t("quickEdit.pricePlaceholder") : t("quickEdit.salePlaceholder")}"
+              value="${escapeHtml(state.overlayInputValue)}" />`}
         <div class="overlay-form-row">
           <button class="button block" type="button" data-overlay-apply ${state.overlayApplying ? "disabled" : ""}>
             ${state.overlayApplying ? t("quickEdit.applying") : t("quickEdit.apply")}
@@ -1127,6 +1134,7 @@ function quickEditsPanel() {
       <div class="chip-row">
         <button class="chip" type="button" data-overlay-mode="price">${t("quickEdit.addPrice")}</button>
         <button class="chip" type="button" data-overlay-mode="sale">${t("quickEdit.addSale")}</button>
+        <button class="chip" type="button" data-overlay-mode="benefits">${t("quickEdit.addBenefits")}</button>
         ${state.brandPrefs.brand_logo ? `<button class="chip" type="button" data-overlay-mode="logo">${t("quickEdit.addLogo")}</button>` : ""}
         ${hasOverlay ? `<button class="chip chip-clear" type="button" data-overlay-clear>${t("quickEdit.clearOverlay")}</button>` : ""}
       </div>
@@ -2452,6 +2460,10 @@ function bind() {
   document.querySelector("#image")?.addEventListener("change", selectImage);
   document.querySelectorAll("[data-toggle-lang]").forEach(el => el.addEventListener("click", toggleLang));
   document.querySelector("[data-brand-logo-input]")?.addEventListener("change", onBrandLogoSelect);
+  document.querySelectorAll("[data-benefit-index]").forEach(el => el.addEventListener("input", e => {
+    const i = parseInt(e.target.dataset.benefitIndex);
+    state.overlayBenefits[i] = e.target.value;
+  }));
   document.querySelector("[data-brand-logo-clear]")?.addEventListener("click", clearBrandLogo);
   document.querySelectorAll("[data-overlay-mode]").forEach(el => el.addEventListener("click", () => {
     state.overlayMode = el.dataset.overlayMode;
@@ -2542,6 +2554,49 @@ function drawOverlayOnCanvas(type, value) {
         ctx.fillText(raw, cx, cy);
         ctx.textAlign = "left";
       }
+      if (type === "benefits" && Array.isArray(value)) {
+        const lines = value.filter(v => v.trim());
+        if (lines.length) {
+          const fontSize = Math.round(34 * s);
+          const iconR = Math.round(20 * s);
+          const padX = 20 * s;
+          const padY = 12 * s;
+          const rowH = Math.max(fontSize * 1.5, iconR * 2 + padY * 2);
+          const gap = 10 * s;
+          const totalH = lines.length * rowH + (lines.length - 1) * gap;
+          let startY = (img.naturalHeight - totalH) / 2;
+          const startX = 20 * s;
+          ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+          for (const line of lines) {
+            const textW = ctx.measureText(line).width;
+            const bw = padX + iconR * 2 + 10 * s + textW + padX;
+            const r = rowH / 2;
+            ctx.shadowColor = "rgba(0,0,0,0.22)";
+            ctx.shadowBlur = 14 * s;
+            ctx.fillStyle = "white";
+            canvasRoundRect(ctx, startX, startY, bw, rowH, r);
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            const iconX = startX + padX + iconR;
+            const iconY = startY + rowH / 2;
+            ctx.fillStyle = "#c7a460";
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, iconR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.font = `bold ${Math.round(iconR * 1.1)}px Arial, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("✓", iconX, iconY);
+            ctx.textAlign = "left";
+            ctx.fillStyle = "#1a1a1a";
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            ctx.fillText(line, startX + padX + iconR * 2 + 10 * s, iconY);
+            startY += rowH + gap;
+          }
+        }
+      }
       if (type === "logo" && state.brandPrefs.brand_logo) {
         const logo = new Image();
         logo.onload = () => {
@@ -2572,7 +2627,8 @@ async function applyOverlay() {
   state.overlayApplying = true;
   render({ motion: false });
   try {
-    state.overlayImage = await drawOverlayOnCanvas(state.overlayMode, state.overlayInputValue.trim());
+    const value = state.overlayMode === "benefits" ? state.overlayBenefits : state.overlayInputValue.trim();
+    state.overlayImage = await drawOverlayOnCanvas(state.overlayMode, value);
     state.overlayMode = null;
     toast(t("quickEdit.done"));
   } catch (err) {
@@ -3627,6 +3683,7 @@ async function generateWithPayload(payload, options = {}) {
     state.generatedImage = dataUrl;
     state.overlayImage = null;
     state.overlayMode = null;
+    state.overlayBenefits = ["", "", ""];
     state.generatedMeta = resultMeta;
     await rememberResult(resultMeta, dataUrl, payload);
     await loadUser();
