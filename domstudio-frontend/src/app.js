@@ -2545,7 +2545,6 @@ function toolsPage() {
           <input id="checker-file" type="file" accept="image/*" style="display:none" data-checker-input />
         `}
       </div>
-    </div>
 
       <div class="tool-card" id="tool-collage">
         <div class="tool-card-head">
