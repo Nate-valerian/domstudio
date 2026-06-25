@@ -131,6 +131,15 @@ else
   echo "[domstudio] CLIP vision present"
 fi
 
+WAN_LORA="$MODELS/WanVideo/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"
+if [ ! -f "$WAN_LORA" ] || [ ! -s "$WAN_LORA" ]; then
+  echo "[domstudio] Downloading lightx2v LoRA (~2.9GB)..."
+  wget -q --show-progress -O "$WAN_LORA" \
+    "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"
+else
+  echo "[domstudio] lightx2v LoRA present"
+fi
+
 # ── Start ComfyUI and get tunnel URL ─────────────────────────────────────────
 
 echo "[domstudio] Starting ComfyUI..."
