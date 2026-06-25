@@ -1,6 +1,6 @@
 # DomStudio Archive
 
-## June 25, 2026 — AdPilot UX redesign (commits `8dcdcab`, `bf5d543`, `b7d48b4` + step 5)
+## June 25, 2026 — AdPilot UX redesign (commits `8dcdcab`, `bf5d543`, `b7d48b4`, `e9b9361`)
 
 Frontend-only. Full AdPilot page redesign across 5 steps.
 
