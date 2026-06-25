@@ -2419,6 +2419,13 @@ function toolsPage() {
             <a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>
             <button class="button secondary" type="button" data-wm-edit>${t("tools.watermark.edit")}</button>
           </div>
+          <div class="tool-send-row">
+            <span class="tool-send-label">${t("tools.sendTo")}</span>
+            <button class="chip" type="button" data-send-to="collage" data-send-from="watermark">${t("tools.collage.h2")}</button>
+            <button class="chip" type="button" data-send-to="promo" data-send-from="watermark">${t("tools.promo.h2")}</button>
+            <button class="chip" type="button" data-send-to="resizer" data-send-from="watermark">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="compressor" data-send-from="watermark">${t("tools.compressor.h2")}</button>
+          </div>
           <button class="button secondary block" type="button" data-wm-reset style="margin-top:8px">${t("tools.watermark.again")}</button>
         ` : state.watermarkPreview ? `
           <canvas id="wm-preview-canvas" style="width:100%;border-radius:12px;margin-bottom:14px;display:block"></canvas>
