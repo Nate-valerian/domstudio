@@ -546,8 +546,8 @@ h1 em { color: var(--gold); font-style: normal; }
 .copy-output-empty-icon { font-size: 28px; opacity: 0.5; }
 .copy-output-empty-overlay p { font-size: 13px; font-weight: 700; color: var(--muted); text-align: center; margin: 0; max-width: 200px; }
 .copy-tool-panel-head { margin-bottom: 12px; }
-.copy-back-btn { font-size: 13px; font-weight: 700; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
-.copy-back-btn:hover { color: var(--ink); }
+.copy-back-btn { display: flex; align-items: center; gap: 7px; width: 100%; padding: 10px 14px; border-radius: 12px; border: none; background: var(--acid); color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(255,157,46,.28); transition: opacity .15s; }
+.copy-back-btn:hover { opacity: .88; }
 .copy-tool-group { display: grid; gap: 6px; margin-top: 16px; }
 .copy-tool-group-head { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; font-size: 11px; font-weight: 900; text-transform: uppercase; color: var(--muted); }
 .copy-tool-group-icon { font-size: 14px; }
