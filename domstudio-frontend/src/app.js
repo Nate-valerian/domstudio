@@ -2421,7 +2421,7 @@ function toolsPage() {
           </div>
           <button class="button secondary block" type="button" data-wm-reset style="margin-top:8px">${t("tools.watermark.again")}</button>
         ` : state.watermarkPreview ? `
-          <img class="removebg-preview" src="${state.watermarkPreview}" style="width:100%;border-radius:12px;margin-bottom:14px" alt="" />
+          <canvas id="wm-preview-canvas" style="width:100%;border-radius:12px;margin-bottom:14px;display:block"></canvas>
           <div class="wm-controls">
             <div class="field">
               <label>${t("tools.watermark.textLabel")}</label>
@@ -2451,8 +2451,7 @@ function toolsPage() {
                 <button class="chip ${state.watermarkDark ? "active" : ""}" type="button" data-wm-color="dark">${t("tools.watermark.dark")}</button>
               </div>
             </div>
-            <button class="button gold block" type="button" data-wm-apply style="margin-top:14px"
-              ${!state.watermarkText.trim() ? "disabled" : ""}>${t("tools.watermark.apply")}</button>
+            <button class="button gold block" type="button" data-wm-apply style="margin-top:14px">${t("tools.watermark.apply")}</button>
           </div>
         ` : `
           <label class="removebg-upload" for="watermark-file">
@@ -2959,13 +2958,19 @@ function bind() {
     };
     reader.readAsDataURL(file);
   });
-  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; });
-  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; render({ motion: false }); }));
-  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); render({ motion: false }); }));
-  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; render({ motion: false }); }));
-  document.querySelector("[data-wm-apply]")?.addEventListener("click", () => { state.watermarkText = document.querySelector("[data-wm-text]")?.value || state.watermarkText; applyWatermark(); });
-  document.querySelector("[data-wm-edit]")?.addEventListener("click", () => { state.watermarkResult = null; render({ motion: false }); });
+  document.querySelector("[data-wm-text]")?.addEventListener("input", e => { state.watermarkText = e.target.value; drawWatermarkPreview(); });
+  document.querySelectorAll("[data-wm-pos]").forEach(el => el.addEventListener("click", () => { state.watermarkPos = el.dataset.wmPos; render({ motion: false }); drawWatermarkPreview(); }));
+  document.querySelectorAll("[data-wm-opacity]").forEach(el => el.addEventListener("click", () => { state.watermarkOpacity = parseFloat(el.dataset.wmOpacity); render({ motion: false }); drawWatermarkPreview(); }));
+  document.querySelectorAll("[data-wm-color]").forEach(el => el.addEventListener("click", () => { state.watermarkDark = el.dataset.wmColor === "dark"; render({ motion: false }); drawWatermarkPreview(); }));
+  document.querySelector("[data-wm-apply]")?.addEventListener("click", () => {
+    state.watermarkText = document.querySelector("[data-wm-text]")?.value || state.watermarkText;
+    const canvas = document.getElementById("wm-preview-canvas");
+    if (canvas) { state.watermarkResult = canvas.toDataURL("image/jpeg", 0.92); render({ motion: false }); }
+    else applyWatermark();
+  });
+  document.querySelector("[data-wm-edit]")?.addEventListener("click", () => { state.watermarkResult = null; render({ motion: false }); drawWatermarkPreview(); });
   document.querySelector("[data-wm-reset]")?.addEventListener("click", resetWatermark);
+  drawWatermarkPreview();
   document.querySelector("[data-resizer-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -3455,6 +3460,44 @@ function resetChecker() {
   state.checkerPreview = null;
   state.checkerResult = null;
   render({ motion: false });
+}
+
+function drawWatermarkPreview() {
+  const canvas = document.getElementById("wm-preview-canvas");
+  if (!canvas || !state.watermarkPreview) return;
+  const img = new Image();
+  img.onload = () => {
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    const text = state.watermarkText.trim();
+    if (text) {
+      const s = img.naturalWidth / 1000;
+      const fontSize = Math.round(38 * s);
+      ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+      const tw = ctx.measureText(text).width;
+      const pad = 30 * s;
+      ctx.globalAlpha = state.watermarkOpacity;
+      ctx.fillStyle = state.watermarkDark ? "#1a1a1a" : "#ffffff";
+      ctx.shadowColor = state.watermarkDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)";
+      ctx.shadowBlur = 10 * s;
+      ctx.textBaseline = "alphabetic";
+      const positions = {
+        "top-left":     [pad, pad + fontSize],
+        "top-right":    [canvas.width - tw - pad, pad + fontSize],
+        "center":       [(canvas.width - tw) / 2, (canvas.height + fontSize) / 2],
+        "bottom-left":  [pad, canvas.height - pad],
+        "bottom-right": [canvas.width - tw - pad, canvas.height - pad],
+      };
+      const [x, y] = positions[state.watermarkPos] || positions["bottom-right"];
+      ctx.fillText(text, x, y);
+      ctx.globalAlpha = 1;
+      ctx.shadowColor = "transparent";
+    }
+  };
+  img.src = state.watermarkPreview;
 }
 
 async function applyWatermark() {
