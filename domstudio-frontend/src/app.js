@@ -2337,8 +2337,8 @@ function toolsPage() {
             <div class="tool-send-row">
               <span class="tool-send-label">${t("tools.sendTo")}</span>
               <button class="chip" type="button" data-send-to="collage" data-send-from="removebg">${t("tools.collage.h2")}</button>
-              <button class="chip" type="button" data-send-to="promo" data-send-from="removebg">${t("tools.promo.h2")}</button>
               <button class="chip" type="button" data-send-to="watermark" data-send-from="removebg">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="promo" data-send-from="removebg">${t("tools.promo.h2")}</button>
               <button class="chip" type="button" data-send-to="resizer" data-send-from="removebg">${t("tools.resizer.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="removebg">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="removebg">${t("tools.checker.h2")}</button>
@@ -2386,8 +2386,8 @@ function toolsPage() {
           </div>
           <div class="tool-send-row">
             <span class="tool-send-label">${t("tools.sendTo")}</span>
-            <button class="chip" type="button" data-send-to="promo" data-send-from="collage">${t("tools.promo.h2")}</button>
             <button class="chip" type="button" data-send-to="watermark" data-send-from="collage">${t("tools.watermark.h2")}</button>
+            <button class="chip" type="button" data-send-to="promo" data-send-from="collage">${t("tools.promo.h2")}</button>
             <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
             <button class="chip" type="button" data-send-to="compressor" data-send-from="collage">${t("tools.compressor.h2")}</button>
             <button class="chip" type="button" data-send-to="checker" data-send-from="collage">${t("tools.checker.h2")}</button>
@@ -2556,8 +2556,8 @@ function toolsPage() {
             <div class="tool-send-row">
               <span class="tool-send-label">${t("tools.sendTo")}</span>
               <button class="chip" type="button" data-send-to="collage" data-send-from="resizer">${t("tools.collage.h2")}</button>
-              <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
               <button class="chip" type="button" data-send-to="watermark" data-send-from="resizer">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="resizer">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="resizer">${t("tools.checker.h2")}</button>
             </div>
