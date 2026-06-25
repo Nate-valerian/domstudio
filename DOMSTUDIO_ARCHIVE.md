@@ -2,6 +2,40 @@
 
 ## June 25, 2026 — Session 3: WanVideo I2V setup + generation fixes
 
+### Critical finding: Q RTX 8000 (Turing cc 7.5) incompatible with nunchaku Qwen image generation
+- **Root cause**: nunchaku's AWQ W4A16 kernels (`awq_gemv_w4a16_cuda`) require Ampere (cc 8.0+). Quadro RTX 8000 is Turing (cc 7.5) → assertion failure → ComfyUI crash
+- **Video worked** on Turing because WanVideo uses standard PyTorch, not nunchaku AWQ
+- **Image generation never worked** on this GPU (earlier "success" was video or wrong test)
+- **Fix**: need Ampere 48GB GPU — **RTX A6000** or **A40** (both cc 8.6, 48GB). Run `vast_setup.sh` on new instance
+
+### ComfyUI model folder mapping (learned by trial and error)
+All confirmed for ComfyUI-WanVideoWrapper + ComfyUI-nunchaku:
+
+| Node | Folder |
+|---|---|
+| `NunchakuQwenImageDiTLoader` | `diffusion_models/` |
+| `WanVideoModelLoader` | `diffusion_models/WanVideo/` |
+| `WanVideoVAELoader` | `vae/` |
+| `WanVideoLoraSelect` | `loras/WanVideo/Lightx2v/` |
+| `LoadWanVideoT5TextEncoder` | `clip/` |
+| `CLIPVisionLoader` | `clip_vision/` |
+| `CLIPLoader` (Qwen CLIP) | `clip/` |
+| `VAELoader` (Qwen VAE) | `vae/` |
+| `BiRefNetRMBG` | auto-downloads to `BiRefNet/` |
+
+### ComfyUI --disable-smart-memory fix
+- vast.ai sets `COMFYUI_ARGS` env var, overrides default in `comfyui.sh`
+- Fix: append unconditionally in script: `COMFYUI_ARGS="${COMFYUI_ARGS:---disable-auto-launch --port 18188 --enable-cors-header} --disable-smart-memory"`
+- Confirms in log as: `Disabling smart memory management`
+- Without it: `VRAM > 15GiB, disabling CPU offload` overrides all per-node offload settings
+
+### WanVideo generation confirmed working on Q RTX 8000
+- 4-step lightx2v LoRA: **241 seconds** (~4 min) for 81 frames at 832×480
+- Block swap: 9 blocks on CPU (3.4GB), 31 on GPU (12GB) — fit within 48GB with Qwen offloaded
+- VAE precision must be `fp16` (bf16 fails with cudnn_convolution on Turing)
+- T5 encoder precision must be `bf16` (fp16 not accepted by node)
+- lightx2v LoRA public source: `https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors`
+
 ### Fixes from this session
 - **nunchaku model path**: model must be in `diffusion_models/` (not `nunchaku/`) — `NunchakuQwenImageDiTLoader` registers models via `add_known_models("diffusion_models", ...)`
 - **photo quota removed**: `/generate` endpoint now uses token balance only (no subscription quota gate)
