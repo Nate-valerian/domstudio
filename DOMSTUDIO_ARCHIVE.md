@@ -1,5 +1,17 @@
 # DomStudio Archive
 
+## June 25, 2026 - Send to chip order fixed (commits `e3f10a7`, `2110ea1`)
+
+Frontend-only. Consistent "Send to →" chip order across all tools.
+
+### What changed
+- **Old order (BG Removal):** Resizer, Watermark, Collage, Promo, Compressor — random, Collage buried
+- **New order everywhere:** Collage → Watermark → Promo → Resizer → Compressor → Checker (source tool skipped)
+- **Missing chips added:** BG Removal now includes Checker; Collage now includes Promo and Compressor; Promo now includes Collage, Compressor; Watermark now includes Checker
+- **Files changed:** `domstudio-frontend/src/app.js` (all 5 send-to rows)
+
+---
+
 ## June 25, 2026 - Watermark Tool UX Fixes (live preview + full flow)
 
 All changes are frontend-only. Three commits: `757af90`, `99b71db`, `05259b2`.
