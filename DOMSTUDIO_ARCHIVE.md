@@ -1,5 +1,37 @@
 # DomStudio Archive
 
+## June 25, 2026 — Bug fixes + Template Studio sprint (commits `f1a3a2b`→`68a759c`)
+
+Frontend + backend. Post-AdPilot session.
+
+### Template Studio (added then merged)
+- Built "Marketplace photo" as a separate tool card — auto BG removal + 7 canvas-generated template backgrounds (White, Beige, Gray, Dark, Studio gradient, WB, Ozon)
+- Realized it duplicated BG Removal — removed the standalone card, merged template picker into BG Removal result view
+- Then removed the template picker entirely (user: "unnecessary") — existing color chips already cover it
+- Net result: BG Removal card is cleaner, no redundant tool
+
+### iPhone fixes (`f31646c`, `1f96a5f`)
+- **Upload bug fixed:** `<label for="removebg-file">` already handles click natively; JS `.click()` handler was double-firing and being blocked by iOS Safari security policy → removed the duplicate handler
+- **BG removal on mobile:** switched to `isnet_quint8` (quantized model, ~4× smaller) on iPhone/Android via `navigator.userAgent` check — less memory pressure on iOS
+- **Upload hint updated:** "Фото без рук для лучшего результата" — AI keeps hands as foreground, user needs to know to photograph without hands
+- **CDN issue:** `staticimgly.com` was temporarily down (`ERR_HTTP2_PROTOCOL_ERROR`). Tried jsDelivr — package not on npm, reverted. CDN dependency unavoidable without self-hosting ~150MB model files.
+
+### Tinkoff payment fix (`40b3b78`) — backend
+- `POST /payments/tinkoff/init` returning 500 for all plan purchases
+- Root cause: Receipt block sent `"Email": ""` when user has no email — Tinkoff rejects empty string for fiscal receipt
+- Fix: conditionally include Email/Phone only when non-empty using dict spread
+- Error message improved to include Tinkoff error code for easier debugging
+- **Deployed to Amvera** — backend pushed
+
+### AdPilot orange back button (`47d4ed1`)
+- "← Все категории" back button restyled from plain muted text to orange card matching app's `--acid: #ff9d2e` color
+
+### Files changed
+- `domstudio-frontend/src/app.js` — template tool (added/removed), BG removal iPhone fixes, CDN config
+- `domstudio-frontend/src/i18n.js` — template keys, upload hint update
+- `domstudio-frontend/src/styles.css` — orange back button, template grid CSS
+- `domstudio-backend/routers/payments.py` — Receipt fix, better error message
+
 ## June 25, 2026 — AdPilot UX redesign (commits `8dcdcab`, `bf5d543`, `b7d48b4`, `e9b9361`)
 
 Frontend-only. Full AdPilot page redesign across 5 steps.
