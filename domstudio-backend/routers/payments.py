@@ -116,8 +116,8 @@ async def tinkoff_init(
         "SuccessURL":  f"{FRONTEND_URL}/dashboard?payment=success",
         "FailURL":     f"{FRONTEND_URL}/pricing?payment=failed",
         "Receipt": {
-            "Email":    current_user.email or "",
-            "Phone":    current_user.phone or "",
+            **( {"Email": current_user.email} if current_user.email else {} ),
+            **( {"Phone": current_user.phone} if current_user.phone else {} ),
             "Taxation": "usn_income",
             "Items": [{
                 "Name":     f"DomStudio {req.plan.value}",
@@ -130,7 +130,7 @@ async def tinkoff_init(
     })
 
     if not result.get("Success"):
-        raise HTTPException(500, f"Tinkoff error: {result.get('Message')}")
+        raise HTTPException(502, f"Tinkoff error: {result.get('Message')} (code: {result.get('ErrorCode')})")
 
     payment.provider_order_id = result["PaymentId"]
     return {
@@ -170,8 +170,8 @@ async def tinkoff_topup(
         "SuccessURL":  f"{FRONTEND_URL}/?payment=success",
         "FailURL":     f"{FRONTEND_URL}/?payment=failed",
         "Receipt": {
-            "Email":    current_user.email or "",
-            "Phone":    current_user.phone or "",
+            **( {"Email": current_user.email} if current_user.email else {} ),
+            **( {"Phone": current_user.phone} if current_user.phone else {} ),
             "Taxation": "usn_income",
             "Items": [{
                 "Name":     pack["label"],
@@ -184,7 +184,7 @@ async def tinkoff_topup(
     })
 
     if not result.get("Success"):
-        raise HTTPException(500, f"Tinkoff error: {result.get('Message')}")
+        raise HTTPException(502, f"Tinkoff error: {result.get('Message')} (code: {result.get('ErrorCode')})")
 
     payment.provider_order_id = result["PaymentId"]
     return {
