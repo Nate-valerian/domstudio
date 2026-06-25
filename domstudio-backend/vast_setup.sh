@@ -26,13 +26,13 @@ else
   echo "[domstudio] ComfyUI-RMBG already installed"
 fi
 
-pip install nunchaku -q
+pip install "https://github.com/nunchaku-ai/nunchaku/releases/download/v1.2.1/nunchaku-1.2.1+cu12.8torch2.10-cp312-cp312-linux_x86_64.whl" -q
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
-mkdir -p "$MODELS/nunchaku" "$MODELS/clip" "$MODELS/vae" "$MODELS/BiRefNet"
+mkdir -p "$MODELS/diffusion_models" "$MODELS/clip" "$MODELS/vae" "$MODELS/BiRefNet"
 
-QWEN_MODEL="$MODELS/nunchaku/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
+QWEN_MODEL="$MODELS/diffusion_models/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
 CLIP_MODEL="$MODELS/clip/qwen_2.5_vl_7b_fp8_scaled.safetensors"
 VAE_MODEL="$MODELS/vae/qwen_image_vae.safetensors"
 BIREFNET_MODEL="$MODELS/BiRefNet/General-HR.safetensors"
@@ -40,7 +40,7 @@ BIREFNET_MODEL="$MODELS/BiRefNet/General-HR.safetensors"
 if [ ! -f "$QWEN_MODEL" ]; then
   echo "[domstudio] Downloading Qwen DiT model (~4GB)..."
   wget -q --show-progress -O "$QWEN_MODEL" \
-    "https://huggingface.co/nunchaku-tech/nunchaku-qwen-image-edit-2509/resolve/main/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
+    "https://huggingface.co/nunchaku-ai/nunchaku-qwen-image-edit-2509/resolve/main/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
 else
   echo "[domstudio] Qwen DiT model present"
 fi
