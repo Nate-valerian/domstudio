@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /
+
+# Route /imgly/* to PHP proxy (fetches from staticimgly.com CDN with CORS headers)
+RewriteRule ^imgly/(.+)$ imgly-proxy.php?file=$1 [L,QSA]
+
+# SPA fallback — serve index.html for all non-file paths
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

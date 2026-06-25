@@ -1,5 +1,31 @@
 # DomStudio Archive
 
+## June 25, 2026 — imgly self-hosting + sweb.ru PHP proxy prep
+
+Two complementary solutions for iOS Safari BG removal CORS issue.
+
+### Vercel: self-host model files during build
+- `scripts/download-imgly.js` — downloads `resources.json` + all model chunk files from staticimgly.com into `public/imgly/` during Vercel build (runs before `npm run build`)
+- `vercel.json` buildCommand: `node scripts/download-imgly.js && npm run build`
+- Vite copies `public/imgly/` → `dist/imgly/`, served as static assets
+- `publicPath` in app.js: `/imgly/` on production, CDN on localhost
+- No CORS issue: browser requests same-origin `/imgly/resources.json`
+- Model files are ~250MB total, NOT committed to git (`.gitignore` excludes `public/imgly/`)
+
+### sweb.ru: PHP proxy (for future shared hosting deployment)
+- `hosting/imgly-proxy.php` — PHP script that fetches from staticimgly.com and adds `Access-Control-Allow-Origin: *`
+- `hosting/.htaccess` — routes `/imgly/*` to proxy, plus SPA fallback to `index.html`
+- Deploy: build locally with `cd domstudio-frontend && npm run build` (skip download script), upload `dist/` contents + `imgly-proxy.php` + `.htaccess` to `public_html/`
+- No 250MB upload needed — proxy fetches on demand from CDN with CORS headers added
+
+### Files added/changed
+- `domstudio-frontend/scripts/download-imgly.js` — Vercel build-time model downloader
+- `domstudio-frontend/hosting/imgly-proxy.php` — sweb.ru PHP proxy
+- `domstudio-frontend/hosting/.htaccess` — Apache routing for proxy + SPA
+- `domstudio-frontend/vercel.json` — buildCommand updated
+- `domstudio-frontend/src/app.js` — publicPath uses `/imgly/` on prod, CDN on localhost
+- `.gitignore` — added `domstudio-frontend/public/imgly/`
+
 ## June 25, 2026 — imgly CDN proxy fix (vercel.json rewrite)
 
 Replaced broken Vercel serverless function with a Vercel edge rewrite to proxy staticimgly.com CDN.
