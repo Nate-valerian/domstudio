@@ -521,7 +521,7 @@ const state = {
   contentTools: [...CONTENT_TOOLS_FALLBACK],
   contentFieldLabels: { ...CONTENT_FIELD_LABELS },
   contentTokenUnit: 10,
-  contentToolSlug: "avito-ad",
+  contentToolSlug: null,
   adpilotView: "tools",
   adpilotContextImage: null,
   contentDraft: { ...initialContentDefaults.draft },
@@ -1980,6 +1980,44 @@ function copyStudioPage() {
     </main>`;
   }
 
+  const CATEGORY_META = {
+    Marketplace: { icon: "🛒", desc: t("adpilot.cat.marketplace") },
+    Avito:       { icon: "📋", desc: t("adpilot.cat.avito") },
+    Ads:         { icon: "📣", desc: t("adpilot.cat.ads") },
+    Social:      { icon: "📱", desc: t("adpilot.cat.social") },
+    Retention:   { icon: "💬", desc: t("adpilot.cat.retention") },
+    Beauty:      { icon: "💄", desc: t("adpilot.cat.beauty") },
+    Food:        { icon: "🍽", desc: t("adpilot.cat.food") },
+    Auto:        { icon: "🚗", desc: t("adpilot.cat.auto") },
+    Pages:       { icon: "📄", desc: t("adpilot.cat.pages") },
+  };
+
+  if (!state.contentToolSlug) {
+    const categories = [...new Set(state.contentTools.map((item) => item.category))];
+    return `<main class="app-layout">
+      ${appSidebar("adpilot")}
+      <section class="workspace copy-workspace adpilot-landing">
+        <div class="adpilot-landing-head">
+          <div class="eyebrow">${t("copy.eyebrow")}</div>
+          <h1>${t("adpilot.landing.h1")}</h1>
+          <p>${t("adpilot.landing.p")}</p>
+        </div>
+        <div class="adpilot-cat-grid">
+          ${categories.map(cat => {
+            const meta = CATEGORY_META[cat] || { icon: "✦", desc: "" };
+            const tools = state.contentTools.filter(t2 => t2.category === cat);
+            return `<button class="adpilot-cat-card" type="button" data-content-tool="${tools[0].slug}">
+              <span class="adpilot-cat-icon">${meta.icon}</span>
+              <strong>${cat}</strong>
+              <span class="adpilot-cat-desc">${meta.desc}</span>
+              <span class="adpilot-cat-count">${tools.length} ${t("adpilot.landing.tools")}</span>
+            </button>`;
+          }).join("")}
+        </div>
+      </section>
+    </main>`;
+  }
+
   const categories = [...new Set(state.contentTools.map((item) => item.category))];
   return `<main class="app-layout">
     ${appSidebar("adpilot")}
@@ -1989,18 +2027,25 @@ function copyStudioPage() {
       </header>
       <div class="copy-grid">
         <aside class="panel copy-tool-panel">
-          <div class="mini-head"><h3>${t("copy.toolsTitle")}</h3><span>${state.contentTools.length}</span></div>
-          ${categories.map((category) => `
-            <div class="copy-tool-group">
-              <p>${escapeHtml(contentToolCategory(category))}</p>
+          <div class="copy-tool-panel-head">
+            <button class="copy-back-btn" type="button" data-adpilot-home title="${t("adpilot.backToCategories")}">← ${t("adpilot.backToCategories")}</button>
+          </div>
+          ${categories.map((category) => {
+            const meta = CATEGORY_META[category] || { icon: "✦", desc: "" };
+            return `<div class="copy-tool-group">
+              <div class="copy-tool-group-head">
+                <span class="copy-tool-group-icon">${meta.icon}</span>
+                <span>${escapeHtml(contentToolCategory(category))}</span>
+              </div>
               ${state.contentTools.filter((item) => item.category === category).map((item) => `
-                <button class="copy-tool ${item.slug === tool.slug ? "active" : ""}" type="button" data-content-tool="${item.slug}">
-                  <span><strong>${escapeHtml(contentToolName(item))}</strong><small>${escapeHtml(contentToolIntent(item))}</small></span>
-                  <b>${item.cost_units * state.contentTokenUnit}</b>
+                <button class="copy-tool-card ${item.slug === tool.slug ? "active" : ""}" type="button" data-content-tool="${item.slug}">
+                  <strong>${escapeHtml(contentToolName(item))}</strong>
+                  <small>${escapeHtml(contentToolIntent(item))}</small>
+                  <span class="copy-tool-cost">${item.cost_units * state.contentTokenUnit} т.</span>
                 </button>
               `).join("")}
-            </div>
-          `).join("")}
+            </div>`;
+          }).join("")}
         </aside>
         <form class="panel copy-form-panel" id="copy-form">
           ${state.adpilotContextImage ? `<div class="copy-context-banner">
@@ -2832,6 +2877,7 @@ function bind() {
   document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
   document.querySelector("#copy-form")?.addEventListener("input", event => syncContentFromForm(event.currentTarget));
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
+  document.querySelector("[data-adpilot-home]")?.addEventListener("click", () => { state.contentToolSlug = null; render({ motion: false }); });
 
   document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
