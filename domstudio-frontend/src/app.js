@@ -3144,7 +3144,6 @@ function bind() {
     applyRemoveBgBackground(color);
   }));
   document.querySelector("[data-bg-custom]")?.addEventListener("input", e => applyRemoveBgBackground(e.target.value));
-  document.querySelector(".removebg-upload")?.addEventListener("click", () => document.querySelector("[data-removebg-input]")?.click());
 }
 
 function canvasRoundRect(ctx, x, y, w, h, r) {
