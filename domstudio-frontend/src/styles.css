@@ -244,8 +244,8 @@ h1 em { color: var(--gold); font-style: normal; }
 .mode-card h3 { margin: 0 20px 12px; font-size: 20px; }
 .mode-card p { margin: 0; color: var(--muted); line-height: 1.6; }
 .mode-card p { margin-left: 20px; margin-right: 20px; }
-.examples-hero { padding-top: 40px; padding-bottom: 12px; }
-.examples-hero .section-head { margin-bottom: 20px; }
+.examples-hero { padding-top: 20px; padding-bottom: 6px; }
+.examples-hero .section-head { margin-bottom: 14px; }
 .examples-strip {
   display: flex; flex-wrap: wrap; gap: 10px;
   max-width: 1180px; margin: 0 auto;
@@ -255,7 +255,7 @@ h1 em { color: var(--gold); font-style: normal; }
   border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.62);
   color: var(--muted); font-size: 13px; font-weight: 800;
 }
-.examples-section { padding-top: 8px; }
+.examples-section { padding-top: 0; }
 .examples-grid {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
   max-width: 1180px; margin: 0 auto;
