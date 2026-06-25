@@ -45,9 +45,9 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
-  { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: examplePerfumeCreativeUrl },
-  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
   { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: examplePerfumeCatalogUrl },
+  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
+  { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: examplePerfumeCreativeUrl },
   { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: examplePerfumeLifestyleUrl },
   { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: examplePerfumeFittingUrl },
   { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: examplePerfumeMobileUrl, shape: "portrait" },
