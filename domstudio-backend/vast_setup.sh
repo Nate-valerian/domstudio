@@ -95,7 +95,7 @@ else
 fi
 
 WAN_MODEL="$MODELS/diffusion_models/WanVideo/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors"
-WAN_T5="$MODELS/WanVideo/umt5-xxl-enc-bf16.safetensors"
+WAN_T5="$MODELS/clip/umt5-xxl-enc-bf16.safetensors"
 WAN_VAE="$MODELS/vae/Wan2_1_VAE_bf16.safetensors"
 WAN_CLIP="$MODELS/clip_vision/clip_vision_h.safetensors"
 
