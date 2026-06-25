@@ -1,5 +1,32 @@
 # DomStudio Archive
 
+## June 25, 2026 - Watermark Tool UX Fixes (live preview + full flow)
+
+All changes are frontend-only. Three commits: `757af90`, `99b71db`, `05259b2`.
+
+### Problem 1: Text input lost focus on every keystroke
+- **Root cause:** `applyWatermark()` was called on every `input` event → triggered `render()` → destroyed and recreated the DOM including the text field → focus lost after each character → impossible to type multi-word text
+- **Fix:** Replaced the `<img>` preview with a `<canvas id="wm-preview-canvas">`. Added `drawWatermarkPreview()` which draws directly to the existing canvas element without calling `render()`. Text `input` handler now only calls `drawWatermarkPreview()` — no re-render, no focus loss.
+
+### Problem 2: No proper Apply → result flow
+- **Old behaviour:** Controls always visible, result overlaid on preview image — no clear moment of "done"
+- **New flow:**
+  1. Upload photo → shown on canvas, controls below
+  2. Type text / pick position / opacity / color → watermark appears live on canvas
+  3. **Apply** → canvas `.toDataURL()` saves the result → switches to result view
+  4. Result view: **Download JPG** + **Edit** (clears result, returns to canvas with same photo and settings) + **Another photo** (full reset)
+- Position/opacity/color buttons call `render()` to update active chip state, then immediately call `drawWatermarkPreview()` to redraw canvas
+
+### Problem 3: No "Send to →" after watermark applied
+- Result view was missing the cross-tool handoff row
+- Added chips: Send to Collage, Promo Badge, Resizer, Compressor (`data-send-from="watermark"`)
+
+### Files changed
+- `domstudio-frontend/src/app.js` — `drawWatermarkPreview()` function, watermark card HTML (3 states: upload / canvas+controls / result), bind handlers
+- `domstudio-frontend/src/i18n.js` — added `tools.watermark.edit` key (RU: "Редактировать", EN: "Edit")
+
+---
+
 ## June 25, 2026 - Tools Page Full Sprint (7 tools, layout, UX fixes)
 
 All changes are frontend-only (Canvas API, no backend). Tools page is now fully public — no login required.
