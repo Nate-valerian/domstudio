@@ -31,6 +31,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# imgly model files (downloaded during Vercel build, not committed)
+domstudio-frontend/public/imgly/
+
 # Local experiment artifacts
 design-preview*.html
 six-mode-comparison/

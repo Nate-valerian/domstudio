@@ -3328,7 +3328,9 @@ async function submitRemoveBg() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const blob = await removeBackground(state.removeBgFile, {
       model: isMobile ? "isnet_quint8" : "isnet",
-      publicPath: `${location.origin}/api/imgly/`,
+      publicPath: location.hostname === "localhost"
+        ? "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/"
+        : `${location.origin}/imgly/`,
       progress: (key, current, total) => {
         if (total > 0 && current < total) {
           const pct = Math.round((current / total) * 100);

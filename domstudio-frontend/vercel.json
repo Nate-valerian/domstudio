@@ -1,11 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/download-imgly.js && npm run build",
   "outputDirectory": "dist",
-  "rewrites": [
-    {
-      "source": "/api/imgly/:path*",
-      "destination": "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/:path*"
-    },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
