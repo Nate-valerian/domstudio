@@ -1,5 +1,22 @@
 # DomStudio Archive
 
+## June 25, 2026 — imgly CDN proxy fix (vercel.json rewrite)
+
+Replaced broken Vercel serverless function with a Vercel edge rewrite to proxy staticimgly.com CDN.
+
+### Problem
+`api/imgly/[...path].js` was returning 400 "Missing path" — `req.query.path` was `undefined` in the catch-all handler. Serverless functions in Vercel also take priority over rewrites, so the broken function blocked everything.
+
+### Fix
+- Deleted `domstudio-frontend/api/imgly/[...path].js`
+- Added Vercel edge rewrite in `vercel.json`: `/api/imgly/:path*` → `https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/:path*`
+- Edge rewrite makes the browser think it's a same-origin request (`domstudio.vercel.app`) — no CORS check needed
+- `publicPath` in `app.js` stays as `` `${location.origin}/api/imgly/` ``
+
+### Files changed
+- `domstudio-frontend/vercel.json` — added imgly rewrite rule (before SPA catch-all)
+- deleted `domstudio-frontend/api/imgly/[...path].js`
+
 ## June 25, 2026 — Bug fixes + Template Studio sprint (commits `f1a3a2b`→`68a759c`)
 
 Frontend + backend. Post-AdPilot session.

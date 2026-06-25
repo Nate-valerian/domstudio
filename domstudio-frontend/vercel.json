@@ -1,5 +1,11 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/api/imgly/:path*",
+      "destination": "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/:path*"
+    },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
