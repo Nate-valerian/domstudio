@@ -809,10 +809,11 @@ h1 em { color: var(--gold); font-style: normal; }
 .tool-card .removebg-upload { flex: 1; }
 .tool-card .collage-upload-grid { flex: 1; }
 .tools-grid .tool-card { margin-top: 0; }
-.tool-card-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.tool-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .tool-card-head h2 { margin: 0; font-size: 18px; }
-.tool-card-head .eyebrow { color: #1a9e5c; font-size: 10px; }
-.tool-card-desc { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.tool-card-badge { background: #eafaf2; color: #1a9e5c; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; }
+.tool-card-desc { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.55; }
+.tool-card-studio-link { background: none; border: none; padding: 0; cursor: pointer; color: var(--gold); font-size: 13px; font-weight: 600; line-height: inherit; }
 .removebg-upload {
   display: flex; align-items: center; justify-content: center;
   min-height: 180px; border: 2px dashed var(--line); border-radius: 16px;
