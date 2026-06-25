@@ -1115,6 +1115,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .examples-grid { grid-template-columns: 1fr; }
   .example-card.has-video { grid-column: auto; }
   .example-media-pair { gap: 6px; padding: 6px 6px 0; }
+  .examples-hero { padding-top: 20px; padding-bottom: 0; }
+  .examples-section { padding-top: 0; padding-bottom: 24px; }
   .examples-strip { gap: 8px; }
   .examples-strip span { min-height: 34px; padding: 0 11px; font-size: 12px; }
   .examples-cta { align-items: stretch; flex-direction: column; padding: 18px 0 0; }
