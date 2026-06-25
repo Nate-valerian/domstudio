@@ -2423,7 +2423,8 @@ function toolsPage() {
           <h2>${t("tools.removeBg.h2")}</h2>
           <span class="tool-card-badge">${t("tools.removeBg.free")}</span>
         </div>
-        <p class="tool-card-desc">${t("tools.removeBg.desc")} <button class="tool-card-studio-link" data-route="studio">${t("tools.removeBg.studioHint")}</button></p>
+        <p class="tool-card-desc">${t("tools.removeBg.desc")}</p>
+        <p class="tool-card-studio-hint"><button class="tool-card-studio-link" data-route="studio">${t("tools.removeBg.studioHint")}</button></p>
 
         ${hasResult ? `
           <div class="removebg-result">
