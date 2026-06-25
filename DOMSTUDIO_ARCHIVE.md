@@ -1,5 +1,71 @@
 # DomStudio Archive
 
+## June 25, 2026 — Session 2: Vast.ai GPU setup + UI fixes
+
+### Vast.ai Q RTX 8000 — first working instance
+- Switched GPU backend from AutoDL to vast.ai
+- Instance ID: **42539729**, Machine ID: 52304, Host: 110043
+- GPU: Q RTX 8000, 48GB VRAM, 5000 ports, $0.019/hr (best offer)
+- Image: `vastai/aio-studio:2026-04-16` — ComfyUI pre-installed at `/workspace/ComfyUI`
+- ComfyUI started via `supervisorctl start comfyui`, runs on port **18188**
+- Tunnel: `https://trackbacks-seniors-athletic-formula.trycloudflare.com` (changes on reboot — use tunnel_manager API to refresh)
+- SSH: direct `root@136.175.252.85:46863`, proxy `ssh9.vast.ai:19729`
+- SSH key: `C:\Users\nate-\.ssh\vastai_key` (passwordless ed25519, registered as id 1016938)
+- **Note**: Claude cannot SSH directly (no TTY in Bash tool) — user must SSH from their terminal
+
+### Vast.ai tunnel refresh procedure (on reboot)
+```bash
+curl -s "http://localhost:11112/get-quick-tunnel/http://localhost:18188" | python3 -m json.tool
+# Copy tunnel_url → update COMFYUI_URL in Amvera dashboard
+```
+
+### Vast.ai SSH key setup (for reference)
+- Key generated: `ssh-keygen -t ed25519 -f C:\Users\nate-\.ssh\vastai_key` (press Enter for no passphrase)
+- Registered: `vastai create ssh-key "ssh-ed25519 AAAA..."`
+- Must register key BEFORE creating instance — attach to running instance doesn't propagate
+
+### UI fixes (commits pushed earlier in session)
+- BG removal card: removed `——` line (changed `.eyebrow` to `.tool-card-badge`)
+- Studio CTA: "For better results — use AI models in Studio →" as orange chip below description
+- Tools page: added horizontal padding (`padding: 0 16px` mobile, `0 32px` desktop)
+- Examples page: removed dead space above/below section (mobile specificity fix)
+- Example card order: Creative first, Product second, Catalog third
+
+---
+
+## June 25, 2026 — Session wrap (BG removal + hosting prep, commits `bd020fd`→`7b8d10a`)
+
+Full session focused on fixing BG removal for iOS Safari. Four commits, all pushed.
+
+### What was done
+
+**imgly CORS fix — 3 iterations:**
+1. Vercel serverless function `api/imgly/[...path].js` was returning 400 (catch-all route never got `req.query.path`) → replaced with Vercel edge rewrite in `vercel.json`
+2. Edge rewrite alone doesn't self-host — switched to download-during-build: `scripts/download-imgly.js` downloads all model chunks (~250MB) from staticimgly.com into `public/imgly/` before `npm run build`. Vite copies to `dist/imgly/`, served as static same-origin files. No CORS check, no CDN dependency.
+3. `publicPath` in app.js: `${location.origin}/imgly/` on prod, CDN on localhost
+
+**sweb.ru prep (future hosting):**
+- `hosting/imgly-proxy.php` — PHP proxy fetches from staticimgly.com + adds CORS headers
+- `hosting/.htaccess` — routes `/imgly/*` to proxy + SPA fallback to `index.html`
+- Deploy: build locally (`npx vite build`, skip download script), upload `dist/` + proxy files. No 250MB upload.
+
+**iPhone OOM error:**
+- iPhone 8 Plus: WASM heap OOM during model session creation (hardware RAM limit)
+- iPhone 11+: works fine
+- Fix: detect "Out of memory" in catch block, show friendly RU/EN message instead of raw error
+- Server-side BG removal (rembg) rejected — Amvera latency too high
+
+### Commits
+- `bd020fd` — Fix imgly proxy: edge rewrite instead of broken serverless fn
+- `dfb8cec` — Self-host imgly models via Vercel build-time download
+- `907eaa3` — PHP proxy + .htaccess for sweb.ru
+- `7b8d10a` — Friendly OOM error message for old iPhones
+
+### Deferred
+- React Native sync (next session)
+- Tinkoff payment live test
+- sweb.ru actual deployment
+
 ## June 25, 2026 — iPhone BG removal OOM error: friendly message
 
 **Error:** `RangeError: Out of memory` during WASM session creation on iPhone.
