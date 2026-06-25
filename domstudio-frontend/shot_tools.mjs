@@ -26,12 +26,11 @@ await page.evaluate(() => {
 await page.waitForTimeout(800);
 // Inject a mock removed-bg result so we can see the template picker
 await page.evaluate(() => {
-  // Create a tiny transparent PNG as a stand-in for the removed bg result
   const c = document.createElement('canvas'); c.width = 200; c.height = 200;
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#e0c080'; ctx.beginPath(); ctx.arc(100,100,80,0,Math.PI*2); ctx.fill();
-  window.__state.templateBgRemoved = c.toDataURL();
-  window.__state.templateSelected = 'studio';
+  window.__state.removeBgResult = c.toDataURL();
+  window.__state.removeBgTemplateSelected = 'studio';
   window.__render({ motion: false });
 });
 await page.waitForTimeout(400);
