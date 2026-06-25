@@ -1,5 +1,34 @@
 # DomStudio Archive
 
+## June 25, 2026 — Session 3: WanVideo I2V setup + generation fixes
+
+### Fixes from this session
+- **nunchaku model path**: model must be in `diffusion_models/` (not `nunchaku/`) — `NunchakuQwenImageDiTLoader` registers models via `add_known_models("diffusion_models", ...)`
+- **photo quota removed**: `/generate` endpoint now uses token balance only (no subscription quota gate)
+- **nunchaku version**: PyPI 0.16.1 won't work — must install wheel from GitHub releases: `nunchaku-1.2.1+cu12.8torch2.10-cp312-cp312-linux_x86_64.whl`
+
+### WanVideo I2V setup (image-to-video on vast.ai)
+Custom nodes installed:
+- `ComfyUI-WanVideoWrapper` (kijai) — WanVideo nodes
+- `ComfyUI-VideoHelperSuite` (Kosinkadink) — VHS_VideoCombine
+- `ComfyUI-KJNodes` (kijai) — ImageResizeKJv2
+
+Models downloaded to `/workspace/ComfyUI/models/`:
+- `WanVideo/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors` — main I2V model (16GB, from `Kijai/WanVideo_comfy`)
+- `WanVideo/umt5-xxl-enc-bf16.safetensors` — T5 text encoder (11GB, from `Kijai/WanVideo_comfy`)
+- `wanvideo/Wan2_1_VAE_bf16.safetensors` — VAE (243MB, from `Kijai/WanVideo_comfy`)
+- `clip_vision/clip_vision_h.safetensors` — CLIP vision (from `Comfy-Org/Wan_2.1_ComfyUI_repackaged`)
+
+**LoRA note**: lightx2v 4-step LoRA is gated on HuggingFace (401). Workflow updated to use 20 steps without LoRA instead (unipc scheduler, cfg=6). ~2-3 min per video on Q RTX 8000 vs ~30s with LoRA.
+
+### Workflow update
+`product_video_wan_local.json`: removed `WanVideoLoraSelect` node, changed steps 4→20, scheduler `dpm++_sde`→`unipc`, cfg 1→6, blocks_to_swap 10→20.
+
+### vast_setup.sh updated
+Now also installs WanVideoWrapper + VideoHelperSuite + KJNodes and downloads all 4 WanVideo models. Use `[ ! -s ]` check for files that may exist as 0-byte (failed downloads).
+
+---
+
 ## June 25, 2026 — Session 2: Vast.ai GPU setup + UI fixes
 
 ### Vast.ai Q RTX 8000 — first working instance

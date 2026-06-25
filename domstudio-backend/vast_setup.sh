@@ -26,11 +26,36 @@ else
   echo "[domstudio] ComfyUI-RMBG already installed"
 fi
 
+if [ ! -d "$NODES/ComfyUI-WanVideoWrapper" ]; then
+  echo "[domstudio] Installing ComfyUI-WanVideoWrapper..."
+  GIT_TERMINAL_PROMPT=0 git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git "$NODES/ComfyUI-WanVideoWrapper"
+  pip install -r "$NODES/ComfyUI-WanVideoWrapper/requirements.txt" -q
+else
+  echo "[domstudio] ComfyUI-WanVideoWrapper already installed"
+fi
+
+if [ ! -d "$NODES/ComfyUI-VideoHelperSuite" ]; then
+  echo "[domstudio] Installing ComfyUI-VideoHelperSuite..."
+  GIT_TERMINAL_PROMPT=0 git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git "$NODES/ComfyUI-VideoHelperSuite"
+  pip install -r "$NODES/ComfyUI-VideoHelperSuite/requirements.txt" -q
+else
+  echo "[domstudio] ComfyUI-VideoHelperSuite already installed"
+fi
+
+if [ ! -d "$NODES/ComfyUI-KJNodes" ]; then
+  echo "[domstudio] Installing ComfyUI-KJNodes..."
+  GIT_TERMINAL_PROMPT=0 git clone https://github.com/kijai/ComfyUI-KJNodes.git "$NODES/ComfyUI-KJNodes"
+  pip install -r "$NODES/ComfyUI-KJNodes/requirements.txt" -q
+else
+  echo "[domstudio] ComfyUI-KJNodes already installed"
+fi
+
 pip install "https://github.com/nunchaku-ai/nunchaku/releases/download/v1.2.1/nunchaku-1.2.1+cu12.8torch2.10-cp312-cp312-linux_x86_64.whl" -q
 
 # ── Models ────────────────────────────────────────────────────────────────────
 
-mkdir -p "$MODELS/diffusion_models" "$MODELS/clip" "$MODELS/vae" "$MODELS/BiRefNet"
+mkdir -p "$MODELS/diffusion_models" "$MODELS/clip" "$MODELS/vae" "$MODELS/BiRefNet" \
+         "$MODELS/WanVideo/Lightx2v" "$MODELS/wanvideo" "$MODELS/clip_vision"
 
 QWEN_MODEL="$MODELS/diffusion_models/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
 CLIP_MODEL="$MODELS/clip/qwen_2.5_vl_7b_fp8_scaled.safetensors"
@@ -67,6 +92,43 @@ if [ ! -f "$BIREFNET_MODEL" ]; then
     "https://huggingface.co/ZhengPeng7/BiRefNet/resolve/main/model.safetensors"
 else
   echo "[domstudio] BiRefNet model present"
+fi
+
+WAN_MODEL="$MODELS/WanVideo/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors"
+WAN_T5="$MODELS/WanVideo/umt5-xxl-enc-bf16.safetensors"
+WAN_VAE="$MODELS/wanvideo/Wan2_1_VAE_bf16.safetensors"
+WAN_CLIP="$MODELS/clip_vision/clip_vision_h.safetensors"
+
+if [ ! -f "$WAN_MODEL" ]; then
+  echo "[domstudio] Downloading Wan2.1 14B I2V model (~16GB)..."
+  wget -q --show-progress -O "$WAN_MODEL" \
+    "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors"
+else
+  echo "[domstudio] Wan2.1 model present"
+fi
+
+if [ ! -f "$WAN_T5" ]; then
+  echo "[domstudio] Downloading T5 text encoder (~11GB)..."
+  wget -q --show-progress -O "$WAN_T5" \
+    "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-bf16.safetensors"
+else
+  echo "[domstudio] T5 encoder present"
+fi
+
+if [ ! -f "$WAN_VAE" ] || [ ! -s "$WAN_VAE" ]; then
+  echo "[domstudio] Downloading Wan2.1 VAE (~243MB)..."
+  wget -q --show-progress -O "$WAN_VAE" \
+    "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan2_1_VAE_bf16.safetensors"
+else
+  echo "[domstudio] Wan2.1 VAE present"
+fi
+
+if [ ! -f "$WAN_CLIP" ] || [ ! -s "$WAN_CLIP" ]; then
+  echo "[domstudio] Downloading CLIP vision (~1GB)..."
+  wget -q --show-progress -O "$WAN_CLIP" \
+    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors"
+else
+  echo "[domstudio] CLIP vision present"
 fi
 
 # ── Start ComfyUI and get tunnel URL ─────────────────────────────────────────
