@@ -1504,7 +1504,7 @@ const T = {
     "tools.useInStudio": "→ Use in Studio",
     "tools.useInStudioToast": "Photo loaded into Studio",
     "tools.removeBg.done": "Background removed — download your PNG",
-    "tools.removeBg.studioHint": "For better results — AI models in Studio →",
+    "tools.removeBg.studioHint": "For better results — use AI models in Studio →",
     "tools.removeBg.errorOom": "Not enough memory on iPhone to run the AI model. Open on a desktop — it works there.",
     // modes
     "mode.catalog.name": "Catalog",
