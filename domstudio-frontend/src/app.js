@@ -512,6 +512,14 @@ const state = {
   removeBgLoading: false,
   removeBgProgress: "",
   removeBgError: "",
+  templateFile: null,
+  templatePreview: null,
+  templateBgRemoved: null,
+  templateLoading: false,
+  templateProgress: "",
+  templateError: "",
+  templateSelected: null,
+  templateResult: null,
   overlayMode: null,
   overlayInputValue: "",
   overlayBenefits: ["", "", ""],
@@ -1960,6 +1968,26 @@ function marketplaceDashboard() {
   </div>`;
 }
 
+const TEMPLATE_BACKGROUNDS = [
+  { id: "white",    label: "Белый",   draw: (ctx, w, h) => { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); } },
+  { id: "beige",    label: "Бежевый", draw: (ctx, w, h) => { ctx.fillStyle = "#f5ede0"; ctx.fillRect(0, 0, w, h); } },
+  { id: "gray",     label: "Серый",   draw: (ctx, w, h) => { ctx.fillStyle = "#efefef"; ctx.fillRect(0, 0, w, h); } },
+  { id: "dark",     label: "Тёмный",  draw: (ctx, w, h) => { ctx.fillStyle = "#1a1a1a"; ctx.fillRect(0, 0, w, h); } },
+  { id: "studio",   label: "Студия",  draw: (ctx, w, h) => {
+    const g = ctx.createRadialGradient(w/2, h*0.45, 0, w/2, h/2, w*0.7);
+    g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#ddd8d0");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  }},
+  { id: "wb",       label: "WB",      draw: (ctx, w, h) => { ctx.fillStyle = "#f0f0ff"; ctx.fillRect(0, 0, w, h); } },
+  { id: "ozon",     label: "Ozon",    draw: (ctx, w, h) => { ctx.fillStyle = "#fff8f0"; ctx.fillRect(0, 0, w, h); } },
+];
+
+function templateBgThumb(tpl) {
+  const c = document.createElement("canvas"); c.width = 80; c.height = 80;
+  const ctx = c.getContext("2d"); tpl.draw(ctx, 80, 80);
+  return c.toDataURL();
+}
+
 const TOOL_EXAMPLE_OUTPUT = {
   Marketplace: `🛒 Название: Кроссовки беговые мужские ProRun X5\n\nОписание:\nЛёгкие беговые кроссовки с амортизирующей подошвой EVA и дышащим верхом из сетки. Подходят для ежедневных тренировок и прогулок.\n\n✅ Вес — 245 г\n✅ Подошва — EVA + резиновая накладка\n✅ Стелька — съёмная, ортопедическая\n✅ Уход — протирать влажной тканью\n\nКлючевые слова: беговые кроссовки, мужские кроссовки, кроссовки для бега, лёгкие кроссовки`,
   Avito:       `Продаю диван угловой в отличном состоянии — пользовались 1 год, без пятен и повреждений. Ткань — рогожка серая, раскладывается в спальное место 140×200 см.\n\nОтдам за 18 000 ₽, торг уместен. Самовывоз из Химок, возможна доставка за доп. плату. Звоните или пишите в WhatsApp.`,
@@ -2487,6 +2515,64 @@ function toolsPage() {
         `}
       </div>
 
+      <div class="tool-card tool-card-wide" id="tool-template">
+        <div class="tool-card-head">
+          <h2>${t("tools.template.h2")}</h2>
+          <span class="eyebrow">${t("tools.template.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.template.desc")}</p>
+        ${state.templateResult ? `
+          <div class="removebg-canvas" style="margin-bottom:14px">
+            <img src="${state.templateResult}" alt="template result" />
+          </div>
+          <div class="removebg-actions">
+            <a class="button" href="${state.templateResult}" download="marketplace-photo.jpg">${t("tools.template.download")}</a>
+            <button class="button secondary" type="button" data-template-edit>${t("tools.watermark.edit")}</button>
+          </div>
+          <div class="tool-send-row">
+            <span class="tool-send-label">${t("tools.sendTo")}</span>
+            <button class="chip" type="button" data-send-to="watermark" data-send-from="template">${t("tools.watermark.h2")}</button>
+            <button class="chip" type="button" data-send-to="promo" data-send-from="template">${t("tools.promo.h2")}</button>
+            <button class="chip" type="button" data-send-to="resizer" data-send-from="template">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="compressor" data-send-from="template">${t("tools.compressor.h2")}</button>
+            <button class="chip" type="button" data-send-to="checker" data-send-from="template">${t("tools.checker.h2")}</button>
+          </div>
+          <button class="button secondary block" type="button" data-template-reset style="margin-top:8px">${t("tools.template.again")}</button>
+        ` : state.templateBgRemoved ? `
+          <div class="template-picker">
+            <p class="template-picker-label">${t("tools.template.pickBg")}</p>
+            <div class="template-grid">
+              ${TEMPLATE_BACKGROUNDS.map(tpl => `
+                <button class="template-thumb ${state.templateSelected === tpl.id ? "active" : ""}" type="button" data-tpl="${tpl.id}" title="${tpl.label}">
+                  <img src="${templateBgThumb(tpl)}" alt="${tpl.label}" />
+                  <span>${tpl.label}</span>
+                </button>
+              `).join("")}
+            </div>
+            <button class="button gold block" type="button" data-template-apply style="margin-top:16px" ${state.templateSelected ? "" : "disabled"}>${t("tools.template.apply")}</button>
+            <button class="button secondary block" type="button" data-template-reset style="margin-top:8px">${t("tools.template.again")}</button>
+          </div>
+        ` : `
+          <label class="removebg-upload ${state.templateLoading ? "loading" : ""}" for="template-file">
+            ${state.templatePreview
+              ? `<img class="removebg-preview" src="${state.templatePreview}" alt="" />`
+              : `<span class="removebg-placeholder">
+                  <span class="removebg-icon">🖼</span>
+                  <b>${t("tools.template.upload")}</b>
+                  <small>${t("tools.template.uploadHint")}</small>
+                </span>`
+            }
+          </label>
+          <input id="template-file" type="file" accept="image/*" style="display:none" data-template-input />
+          ${state.templateError ? `<p class="field-error">${escapeHtml(state.templateError)}</p>` : ""}
+          ${state.templateLoading && state.templateProgress ? `<p class="removebg-progress">${escapeHtml(state.templateProgress)}</p>` : ""}
+          <button class="button block" type="button" data-template-submit
+            ${!state.templateFile || state.templateLoading ? "disabled" : ""}>
+            ${state.templateLoading ? t("tools.removeBg.processing") : t("tools.template.cta")}
+          </button>
+        `}
+      </div>
+
       <div class="tool-card" id="tool-collage">
         <div class="tool-card-head">
           <h2>${t("tools.collage.h2")}</h2>
@@ -2814,6 +2900,7 @@ function toolsPage() {
   </div>`;
 }
 
+if (typeof window !== "undefined") { window.__state = state; window.__render = render; }
 function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
     : state.route === "adpilot" ? copyStudioPage()
@@ -3004,6 +3091,24 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
+  document.querySelector("[data-template-input]")?.addEventListener("change", e => {
+    const file = e.target.files?.[0]; if (!file) return;
+    state.templateFile = file;
+    const reader = new FileReader();
+    reader.onload = ev => { state.templatePreview = ev.target.result; render({ motion: false }); };
+    reader.readAsDataURL(file);
+  });
+  document.querySelector("[data-template-submit]")?.addEventListener("click", submitTemplate);
+  document.querySelectorAll("[data-tpl]").forEach(el => el.addEventListener("click", () => {
+    state.templateSelected = el.dataset.tpl; render({ motion: false });
+  }));
+  document.querySelector("[data-template-apply]")?.addEventListener("click", applyTemplate);
+  document.querySelector("[data-template-edit]")?.addEventListener("click", () => { state.templateResult = null; render({ motion: false }); });
+  document.querySelector("[data-template-reset]")?.addEventListener("click", () => {
+    state.templateFile = null; state.templatePreview = null; state.templateBgRemoved = null;
+    state.templateLoading = false; state.templateProgress = ""; state.templateError = "";
+    state.templateSelected = null; state.templateResult = null; render({ motion: false });
+  });
   document.querySelectorAll("[data-send-to]").forEach(el => el.addEventListener("click", () => {
     const from = el.dataset.sendFrom;
     let src = null;
@@ -3013,6 +3118,7 @@ function bind() {
     else if (from === "watermark") src = state.watermarkResult;
     else if (from === "promo") src = state.promoResult;
     else if (from === "compressor") src = state.compressorResult;
+    else if (from === "template") src = state.templateResult;
     if (src) sendToTool(el.dataset.sendTo, src);
   }));
   document.querySelector("[data-checker-input]")?.addEventListener("change", e => {
@@ -3313,6 +3419,69 @@ function onRemoveBgFileSelect(event) {
   const reader = new FileReader();
   reader.onload = (e) => { state.removeBgPreview = e.target.result; render({ motion: false }); };
   reader.readAsDataURL(file);
+}
+
+async function submitTemplate() {
+  if (!state.templateFile || state.templateLoading) return;
+  state.templateLoading = true;
+  state.templateProgress = "";
+  state.templateError = "";
+  render({ motion: false });
+  try {
+    const { removeBackground } = await import("@imgly/background-removal");
+    const blob = await removeBackground(state.templateFile, {
+      progress: (key, current, total) => {
+        if (total > 0 && current < total) {
+          const pct = Math.round((current / total) * 100);
+          const label = key.includes("fetch") ? t("tools.removeBg.progressDownload") : t("tools.removeBg.progressRun");
+          state.templateProgress = `${label} ${pct}%`;
+          render({ motion: false });
+        }
+      },
+    });
+    const dataUrl = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(blob);
+    });
+    state.templateBgRemoved = dataUrl;
+    state.templatePreview = null;
+    state.templateFile = null;
+    state.templateProgress = "";
+    state.templateSelected = "studio";
+  } catch (err) {
+    state.templateError = err.message;
+  } finally {
+    state.templateLoading = false;
+    render({ motion: false });
+  }
+}
+
+function applyTemplate() {
+  const tpl = TEMPLATE_BACKGROUNDS.find(t => t.id === state.templateSelected);
+  if (!tpl || !state.templateBgRemoved) return;
+  const SIZE = 1000;
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext("2d");
+  tpl.draw(ctx, SIZE, SIZE);
+  const product = new Image();
+  product.onload = () => {
+    const scale = Math.min((SIZE * 0.82) / product.naturalWidth, (SIZE * 0.82) / product.naturalHeight);
+    const pw = product.naturalWidth * scale;
+    const ph = product.naturalHeight * scale;
+    const px = (SIZE - pw) / 2;
+    const py = (SIZE - ph) / 2;
+    ctx.shadowColor = "rgba(0,0,0,0.18)";
+    ctx.shadowBlur = 28;
+    ctx.shadowOffsetY = 10;
+    ctx.drawImage(product, px, py, pw, ph);
+    ctx.shadowColor = "transparent";
+    state.templateResult = canvas.toDataURL("image/jpeg", 0.93);
+    render({ motion: false });
+  };
+  product.src = state.templateBgRemoved;
 }
 
 async function submitRemoveBg() {
