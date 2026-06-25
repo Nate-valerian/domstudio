@@ -2,7 +2,7 @@
   "1": {
     "class_type": "NunchakuQwenImageDiTLoader",
     "inputs": {
-      "model_name": "svdq-int4_r128-qwen-image-edit-2509-lightning-4steps-251115.safetensors",
+      "model_name": "svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors",
       "cpu_offload": "auto",
       "num_blocks_on_gpu": 24,
       "use_pin_memory": "disable"
