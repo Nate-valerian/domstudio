@@ -3,7 +3,7 @@
     "class_type": "LoadWanVideoT5TextEncoder",
     "inputs": {
       "model_name": "umt5-xxl-enc-bf16.safetensors",
-      "precision": "bf16",
+      "precision": "fp16",
       "load_device": "offload_device",
       "quantization": "disabled"
     }
@@ -85,7 +85,7 @@
     "class_type": "WanVideoVAELoader",
     "inputs": {
       "model_name": "Wan2_1_VAE_bf16.safetensors",
-      "precision": "bf16"
+      "precision": "fp16"
     }
   },
   "39": {
