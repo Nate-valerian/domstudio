@@ -512,7 +512,6 @@ const state = {
   removeBgLoading: false,
   removeBgProgress: "",
   removeBgError: "",
-  removeBgTemplateSelected: null,
   overlayMode: null,
   overlayInputValue: "",
   overlayBenefits: ["", "", ""],
@@ -1961,25 +1960,7 @@ function marketplaceDashboard() {
   </div>`;
 }
 
-const TEMPLATE_BACKGROUNDS = [
-  { id: "white",    label: "Белый",   draw: (ctx, w, h) => { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h); } },
-  { id: "beige",    label: "Бежевый", draw: (ctx, w, h) => { ctx.fillStyle = "#f5ede0"; ctx.fillRect(0, 0, w, h); } },
-  { id: "gray",     label: "Серый",   draw: (ctx, w, h) => { ctx.fillStyle = "#efefef"; ctx.fillRect(0, 0, w, h); } },
-  { id: "dark",     label: "Тёмный",  draw: (ctx, w, h) => { ctx.fillStyle = "#1a1a1a"; ctx.fillRect(0, 0, w, h); } },
-  { id: "studio",   label: "Студия",  draw: (ctx, w, h) => {
-    const g = ctx.createRadialGradient(w/2, h*0.45, 0, w/2, h/2, w*0.7);
-    g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#ddd8d0");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  }},
-  { id: "wb",       label: "WB",      draw: (ctx, w, h) => { ctx.fillStyle = "#f0f0ff"; ctx.fillRect(0, 0, w, h); } },
-  { id: "ozon",     label: "Ozon",    draw: (ctx, w, h) => { ctx.fillStyle = "#fff8f0"; ctx.fillRect(0, 0, w, h); } },
-];
 
-function templateBgThumb(tpl) {
-  const c = document.createElement("canvas"); c.width = 80; c.height = 80;
-  const ctx = c.getContext("2d"); tpl.draw(ctx, 80, 80);
-  return c.toDataURL();
-}
 
 const TOOL_EXAMPLE_OUTPUT = {
   Marketplace: `🛒 Название: Кроссовки беговые мужские ProRun X5\n\nОписание:\nЛёгкие беговые кроссовки с амортизирующей подошвой EVA и дышащим верхом из сетки. Подходят для ежедневных тренировок и прогулок.\n\n✅ Вес — 245 г\n✅ Подошва — EVA + резиновая накладка\n✅ Стелька — съёмная, ортопедическая\n✅ Уход — протирать влажной тканью\n\nКлючевые слова: беговые кроссовки, мужские кроссовки, кроссовки для бега, лёгкие кроссовки`,
@@ -2469,20 +2450,8 @@ function toolsPage() {
             <button class="shadow-toggle ${state.removeBgShadow ? "active" : ""}" type="button" data-toggle-shadow>
               <span class="shadow-toggle-icon">◉</span> ${t("tools.shadow.toggle")}
             </button>
-            <div class="template-picker" style="margin-top:14px">
-              <p class="template-picker-label">${t("tools.template.pickBg")}</p>
-              <div class="template-grid">
-                ${TEMPLATE_BACKGROUNDS.map(tpl => `
-                  <button class="template-thumb ${state.removeBgTemplateSelected === tpl.id ? "active" : ""}" type="button" data-tpl="${tpl.id}" title="${tpl.label}">
-                    <img src="${templateBgThumb(tpl)}" alt="${tpl.label}" />
-                    <span>${tpl.label}</span>
-                  </button>
-                `).join("")}
-              </div>
-              ${state.removeBgTemplateSelected ? `<button class="button gold block" type="button" data-template-apply style="margin-top:12px">${t("tools.template.apply")}</button>` : ""}
-            </div>
             <div class="removebg-actions" style="margin-top:14px">
-              <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgBgColor || state.removeBgTemplateSelected ? "product.jpg" : "no-bg.png"}">${t(state.removeBgBgColor || state.removeBgTemplateSelected ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
+              <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgBgColor ? "product.jpg" : "no-bg.png"}">${t(state.removeBgBgColor ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
               <button class="button secondary" type="button" data-removebg-reset>${t("tools.removeBg.again")}</button>
             </div>
             <div class="tool-send-row">
@@ -3037,12 +3006,6 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
-  document.querySelectorAll("[data-tpl]").forEach(el => el.addEventListener("click", () => {
-    state.removeBgTemplateSelected = el.dataset.tpl;
-    state.removeBgBgColor = null;
-    render({ motion: false });
-  }));
-  document.querySelector("[data-template-apply]")?.addEventListener("click", applyTemplate);
   document.querySelectorAll("[data-send-to]").forEach(el => el.addEventListener("click", () => {
     const from = el.dataset.sendFrom;
     let src = null;
@@ -3178,13 +3141,9 @@ function bind() {
   });
   document.querySelectorAll("[data-bg-preset]").forEach(el => el.addEventListener("click", () => {
     const color = el.dataset.bgPreset === "none" ? null : el.dataset.bgPreset;
-    state.removeBgTemplateSelected = null;
     applyRemoveBgBackground(color);
   }));
-  document.querySelector("[data-bg-custom]")?.addEventListener("input", e => {
-    state.removeBgTemplateSelected = null;
-    applyRemoveBgBackground(e.target.value);
-  });
+  document.querySelector("[data-bg-custom]")?.addEventListener("input", e => applyRemoveBgBackground(e.target.value));
   document.querySelector(".removebg-upload")?.addEventListener("click", () => document.querySelector("[data-removebg-input]")?.click());
 }
 
@@ -3358,31 +3317,6 @@ function onRemoveBgFileSelect(event) {
   reader.readAsDataURL(file);
 }
 
-function applyTemplate() {
-  const tpl = TEMPLATE_BACKGROUNDS.find(t => t.id === state.removeBgTemplateSelected);
-  if (!tpl || !state.removeBgResult) return;
-  const SIZE = 1000;
-  const canvas = document.createElement("canvas");
-  canvas.width = SIZE; canvas.height = SIZE;
-  const ctx = canvas.getContext("2d");
-  tpl.draw(ctx, SIZE, SIZE);
-  const product = new Image();
-  product.onload = () => {
-    const scale = Math.min((SIZE * 0.82) / product.naturalWidth, (SIZE * 0.82) / product.naturalHeight);
-    const pw = product.naturalWidth * scale;
-    const ph = product.naturalHeight * scale;
-    const px = (SIZE - pw) / 2;
-    const py = (SIZE - ph) / 2;
-    ctx.shadowColor = "rgba(0,0,0,0.18)";
-    ctx.shadowBlur = 28;
-    ctx.shadowOffsetY = 10;
-    ctx.drawImage(product, px, py, pw, ph);
-    ctx.shadowColor = "transparent";
-    state.removeBgComposed = canvas.toDataURL("image/jpeg", 0.93);
-    render({ motion: false });
-  };
-  product.src = state.removeBgResult;
-}
 
 async function submitRemoveBg() {
   if (!state.removeBgFile || state.removeBgLoading) return;
