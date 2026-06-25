@@ -55,7 +55,7 @@ pip install "https://github.com/nunchaku-ai/nunchaku/releases/download/v1.2.1/nu
 # ── Models ────────────────────────────────────────────────────────────────────
 
 mkdir -p "$MODELS/diffusion_models" "$MODELS/clip" "$MODELS/vae" "$MODELS/BiRefNet" \
-         "$MODELS/WanVideo/Lightx2v" "$MODELS/clip_vision"
+         "$MODELS/WanVideo" "$MODELS/clip_vision"
 
 QWEN_MODEL="$MODELS/diffusion_models/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
 CLIP_MODEL="$MODELS/clip/qwen_2.5_vl_7b_fp8_scaled.safetensors"
@@ -131,9 +131,10 @@ else
   echo "[domstudio] CLIP vision present"
 fi
 
-WAN_LORA="$MODELS/WanVideo/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"
+WAN_LORA="$MODELS/loras/WanVideo/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"
 if [ ! -f "$WAN_LORA" ] || [ ! -s "$WAN_LORA" ]; then
   echo "[domstudio] Downloading lightx2v LoRA (~2.9GB)..."
+  mkdir -p "$MODELS/loras/WanVideo/Lightx2v"
   wget -q --show-progress -O "$WAN_LORA" \
     "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"
 else
