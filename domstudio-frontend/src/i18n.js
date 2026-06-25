@@ -760,6 +760,7 @@ const T = {
     "tools.useInStudio": "→ Использовать в Студии",
     "tools.useInStudioToast": "Фото загружено в Студию",
     "tools.removeBg.done": "Фон удалён — скачайте PNG",
+    "tools.removeBg.errorOom": "iPhone не хватает памяти для запуска ИИ-модели. Откройте на компьютере — там работает.",
     // modes (name + description)
     "mode.catalog.name": "Каталог",
     "mode.catalog.desc": "Чистый фон и точная подача для маркетплейсов.",
@@ -1502,6 +1503,7 @@ const T = {
     "tools.useInStudio": "→ Use in Studio",
     "tools.useInStudioToast": "Photo loaded into Studio",
     "tools.removeBg.done": "Background removed — download your PNG",
+    "tools.removeBg.errorOom": "Not enough memory on iPhone to run the AI model. Open on a desktop — it works there.",
     // modes
     "mode.catalog.name": "Catalog",
     "mode.catalog.desc": "Clean background and precise presentation for marketplaces.",

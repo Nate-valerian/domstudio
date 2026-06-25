@@ -1,5 +1,19 @@
 # DomStudio Archive
 
+## June 25, 2026 — iPhone BG removal OOM error: friendly message
+
+**Error:** `RangeError: Out of memory` during WASM session creation on iPhone.
+**Root cause:** iOS Safari limits WASM heap size. Even `isnet_quint8` (43MB file) needs ~200-400MB at runtime for tensor allocation — exceeds available WASM memory on many iPhones.
+**Fix:** Detect "Out of memory" in the catch block, show localized message instead of raw error.
+- RU: "iPhone не хватает памяти для запуска ИИ-модели. Откройте на компьютере — там работает."
+- EN: "Not enough memory on iPhone to run the AI model. Open on a desktop — it works there."
+
+**Long-term:** Server-side BG removal via backend (rembg Python lib) — not yet implemented.
+
+### Files changed
+- `domstudio-frontend/src/app.js` — OOM detection in `submitRemoveBg` catch block
+- `domstudio-frontend/src/i18n.js` — `tools.removeBg.errorOom` key (RU + EN)
+
 ## June 25, 2026 — imgly self-hosting + sweb.ru PHP proxy prep
 
 Two complementary solutions for iOS Safari BG removal CORS issue.

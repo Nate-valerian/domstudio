@@ -3353,8 +3353,10 @@ async function submitRemoveBg() {
     state.removeBgProgress = "";
     toast(t("tools.removeBg.done"));
   } catch (err) {
-    state.removeBgError = err.message;
-    toast(err.message);
+    const isOom = /out of memory/i.test(err.message);
+    const msg = isOom ? t("tools.removeBg.errorOom") : err.message;
+    state.removeBgError = msg;
+    toast(msg);
   } finally {
     state.removeBgLoading = false;
     render({ motion: false });
