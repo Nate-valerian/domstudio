@@ -2070,11 +2070,20 @@ function copyStudioPage() {
             </div>
             <button class="button secondary copy-context-back" type="button" data-route="studio">${t("adpilotContext.back")}</button>
           </div>` : ""}
-          <div class="mini-head"><h3>${escapeHtml(contentToolName(tool))}</h3><span>${cost} ${t("studio.tokens", { n: "" }).trim()}</span></div>
-          <div class="copy-tool-summary">
-            <b>${escapeHtml(contentToolIntent(tool))}</b>
-            <span>${t("copy.channelReady")}</span>
-            <button class="link-btn" type="button" data-fill-example>${t("copy.fillExample")}</button>
+          <div class="copy-form-head">
+            <div class="copy-form-head-top">
+              <span class="copy-form-cat-icon">${(CATEGORY_META[tool.category] || { icon: "✦" }).icon}</span>
+              <div class="copy-form-head-titles">
+                <h3>${escapeHtml(contentToolName(tool))}</h3>
+                <span class="copy-form-cat-label">${escapeHtml(tool.category)}</span>
+              </div>
+              <span class="copy-form-cost-badge">${cost} ${t("studio.tokens", { n: "" }).trim()}</span>
+            </div>
+            <p class="copy-form-intent">${escapeHtml(contentToolIntent(tool))}</p>
+            <div class="copy-form-head-row">
+              <span class="copy-form-channel-tag">${t("copy.channelReady")}</span>
+              <button class="link-btn" type="button" data-fill-example>${t("copy.fillExample")}</button>
+            </div>
           </div>
           <div class="copy-language-row" role="group" aria-label="${t("copy.language")}">
             ${["russian", "english"].map((lang) => `
