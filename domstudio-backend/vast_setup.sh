@@ -55,7 +55,7 @@ pip install "https://github.com/nunchaku-ai/nunchaku/releases/download/v1.2.1/nu
 # ── Models ────────────────────────────────────────────────────────────────────
 
 mkdir -p "$MODELS/diffusion_models" "$MODELS/clip" "$MODELS/vae" "$MODELS/BiRefNet" \
-         "$MODELS/WanVideo/Lightx2v" "$MODELS/wanvideo" "$MODELS/clip_vision"
+         "$MODELS/WanVideo/Lightx2v" "$MODELS/clip_vision"
 
 QWEN_MODEL="$MODELS/diffusion_models/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors"
 CLIP_MODEL="$MODELS/clip/qwen_2.5_vl_7b_fp8_scaled.safetensors"
@@ -96,7 +96,7 @@ fi
 
 WAN_MODEL="$MODELS/WanVideo/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors"
 WAN_T5="$MODELS/WanVideo/umt5-xxl-enc-bf16.safetensors"
-WAN_VAE="$MODELS/wanvideo/Wan2_1_VAE_bf16.safetensors"
+WAN_VAE="$MODELS/vae/Wan2_1_VAE_bf16.safetensors"
 WAN_CLIP="$MODELS/clip_vision/clip_vision_h.safetensors"
 
 if [ ! -f "$WAN_MODEL" ]; then
