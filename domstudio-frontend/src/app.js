@@ -2336,11 +2336,12 @@ function toolsPage() {
             </div>
             <div class="tool-send-row">
               <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="resizer" data-send-from="removebg">${t("tools.resizer.h2")}</button>
-              <button class="chip" type="button" data-send-to="watermark" data-send-from="removebg">${t("tools.watermark.h2")}</button>
               <button class="chip" type="button" data-send-to="collage" data-send-from="removebg">${t("tools.collage.h2")}</button>
               <button class="chip" type="button" data-send-to="promo" data-send-from="removebg">${t("tools.promo.h2")}</button>
+              <button class="chip" type="button" data-send-to="watermark" data-send-from="removebg">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="resizer" data-send-from="removebg">${t("tools.resizer.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="removebg">${t("tools.compressor.h2")}</button>
+              <button class="chip" type="button" data-send-to="checker" data-send-from="removebg">${t("tools.checker.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="removebg">${t("tools.checker.h2")}</button>
             </div>
             <button class="button gold block" type="button" data-use-in-studio style="margin-top:6px">
@@ -2385,8 +2386,10 @@ function toolsPage() {
           </div>
           <div class="tool-send-row">
             <span class="tool-send-label">${t("tools.sendTo")}</span>
-            <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="promo" data-send-from="collage">${t("tools.promo.h2")}</button>
             <button class="chip" type="button" data-send-to="watermark" data-send-from="collage">${t("tools.watermark.h2")}</button>
+            <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
+            <button class="chip" type="button" data-send-to="compressor" data-send-from="collage">${t("tools.compressor.h2")}</button>
             <button class="chip" type="button" data-send-to="checker" data-send-from="collage">${t("tools.checker.h2")}</button>
           </div>
         ` : `
@@ -2425,6 +2428,7 @@ function toolsPage() {
             <button class="chip" type="button" data-send-to="promo" data-send-from="watermark">${t("tools.promo.h2")}</button>
             <button class="chip" type="button" data-send-to="resizer" data-send-from="watermark">${t("tools.resizer.h2")}</button>
             <button class="chip" type="button" data-send-to="compressor" data-send-from="watermark">${t("tools.compressor.h2")}</button>
+            <button class="chip" type="button" data-send-to="checker" data-send-from="watermark">${t("tools.checker.h2")}</button>
           </div>
           <button class="button secondary block" type="button" data-wm-reset style="margin-top:8px">${t("tools.watermark.again")}</button>
         ` : state.watermarkPreview ? `
@@ -2513,8 +2517,10 @@ function toolsPage() {
             ${state.promoResult ? `
             <div class="tool-send-row">
               <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="resizer" data-send-from="promo">${t("tools.resizer.h2")}</button>
+              <button class="chip" type="button" data-send-to="collage" data-send-from="promo">${t("tools.collage.h2")}</button>
               <button class="chip" type="button" data-send-to="watermark" data-send-from="promo">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="resizer" data-send-from="promo">${t("tools.resizer.h2")}</button>
+              <button class="chip" type="button" data-send-to="compressor" data-send-from="promo">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="promo">${t("tools.checker.h2")}</button>
             </div>` : ""}
           </div>
@@ -2549,8 +2555,9 @@ function toolsPage() {
             </div>
             <div class="tool-send-row">
               <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="watermark" data-send-from="resizer">${t("tools.watermark.h2")}</button>
+              <button class="chip" type="button" data-send-to="collage" data-send-from="resizer">${t("tools.collage.h2")}</button>
               <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
+              <button class="chip" type="button" data-send-to="watermark" data-send-from="resizer">${t("tools.watermark.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="resizer">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="resizer">${t("tools.checker.h2")}</button>
             </div>
