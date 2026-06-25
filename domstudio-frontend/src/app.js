@@ -1412,6 +1412,47 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section free-tools-section">
+        <div class="section-head">
+          <h2>${t("home.toolsH2")}</h2>
+          <p>${t("home.toolsP")}</p>
+        </div>
+        <div class="home-tools-grid">
+          <article class="home-tool-card">
+            <span class="home-tool-icon">✂</span>
+            <div>
+              <h3>${t("tools.removeBg.h2")}</h3>
+              <p>${t("tools.removeBg.desc")}</p>
+            </div>
+          </article>
+          <article class="home-tool-card">
+            <span class="home-tool-icon">©</span>
+            <div>
+              <h3>${t("tools.watermark.h2")} &amp; ${t("tools.promo.h2")}</h3>
+              <p>${t("home.toolsCard2")}</p>
+            </div>
+          </article>
+          <article class="home-tool-card">
+            <span class="home-tool-icon">▦</span>
+            <div>
+              <h3>${t("tools.collage.h2")} &amp; ${t("tools.resizer.h2")}</h3>
+              <p>${t("home.toolsCard3")}</p>
+            </div>
+          </article>
+          <article class="home-tool-card">
+            <span class="home-tool-icon">✓</span>
+            <div>
+              <h3>${t("tools.checker.h2")} &amp; ${t("tools.compressor.h2")}</h3>
+              <p>${t("home.toolsCard4")}</p>
+            </div>
+          </article>
+        </div>
+        <div class="section-cta">
+          <button class="button gold" data-route="tools">${t("home.toolsCta")}</button>
+          <span class="section-cta-note">${t("home.toolsCtaNote")}</span>
+        </div>
+      </section>
+
       <section class="section dark workflow-section">
         <div class="section-head"><h2>${t("home.workflowH2")}</h2><p>${t("home.workflowP")}</p></div>
         <div class="steps">
