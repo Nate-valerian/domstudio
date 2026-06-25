@@ -2118,11 +2118,13 @@ function copyStudioPage() {
         </form>
         <section class="panel copy-output-panel" aria-label="${outputTitle}">
           <div class="output-panel-head">
-            <div class="mini-head">
-              <div>
-                <h3>${outputTitle}</h3>
+            <div class="output-panel-title">
+              <span class="copy-form-cat-icon">${(CATEGORY_META[tool.category] || { icon: "✦" }).icon}</span>
+              <div class="output-panel-title-text">
+                <h3>${escapeHtml(contentToolName(tool))}</h3>
                 <span>${t(`copy.outputUse.${contentOutputKind(tool)}`)}</span>
               </div>
+              ${state.contentOutput ? `<span class="output-ready-badge">${t("copy.outputReady")}</span>` : ""}
             </div>
             <div class="output-actions">
               <button class="button secondary" type="button" data-save-draft-local ${state.contentOutput && !state.contentSavingDraft ? "" : "disabled"}>${t("copy.saveDraft")}</button>

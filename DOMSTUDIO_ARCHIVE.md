@@ -1,5 +1,21 @@
 # DomStudio Archive
 
+## June 25, 2026 — AdPilot UX redesign (commits `8dcdcab`, `bf5d543`, `b7d48b4` + step 5)
+
+Frontend-only. Full AdPilot page redesign across 5 steps.
+
+### What changed
+- **Category landing screen:** First view is now a 3-col category grid (emoji icon, name, desc, tool count). `contentToolSlug: null` on init shows landing instead of jumping into a tool.
+- **Tool list → icon cards:** Left panel now has `.copy-tool-card` cards with name, intent, and token cost badge. Category group headers with emoji icons (💄 КРАСОТА, etc.). Back button "← Все категории" returns to landing.
+- **Blurred example output:** Empty output panel shows a realistic per-category blurred example text behind a "Заполните форму и нажмите «Сгенерировать»" overlay. `TOOL_EXAMPLE_OUTPUT` map covers all 9 categories.
+- **Better form header:** Replaced generic `mini-head` with structured header: category emoji + tool name + CATEGORY label + token cost badge + intent description + "Готово к использованию" green tag + Fill Example link.
+- **Better output panel header:** Now mirrors form header — tool name + category icon + "Скопируйте в карточку..." hint + "✓ Готово" green badge when output is ready.
+
+### Files changed
+- `domstudio-frontend/src/app.js` — `CATEGORY_META`, `TOOL_EXAMPLE_OUTPUT`, landing HTML, tool panel aside, form header, output panel header
+- `domstudio-frontend/src/i18n.js` — 9 category descs, `adpilot.backToCategories`, `copy.outputEmptyHint`, `copy.outputReady`
+- `domstudio-frontend/src/styles.css` — all new AdPilot + output empty state + form/output header styles
+
 ## June 25, 2026 - Send to chip order fixed (commits `e3f10a7`, `2110ea1`)
 
 Frontend-only. Consistent "Send to →" chip order across all tools.
