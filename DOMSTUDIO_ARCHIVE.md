@@ -24,6 +24,30 @@ curl -s "http://localhost:11112/get-quick-tunnel/http://localhost:18188" | pytho
 - Registered: `vastai create ssh-key "ssh-ed25519 AAAA..."`
 - Must register key BEFORE creating instance — attach to running instance doesn't propagate
 
+### ComfyUI model setup on vast.ai
+Custom nodes installed:
+- `ComfyUI-nunchaku` (nunchaku-ai/ComfyUI-nunchaku) — Qwen Image DiT loader
+- `ComfyUI-RMBG` (1038lab/ComfyUI-RMBG) — BiRefNet background removal
+
+Models downloaded to `/workspace/ComfyUI/models/`:
+- `nunchaku/svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors` — Qwen img2img (4GB, from `nunchaku-tech/nunchaku-qwen-image-edit-2509`)
+- `clip/qwen_2.5_vl_7b_fp8_scaled.safetensors` — text encoder (8GB, from `Comfy-Org/Qwen-Image_ComfyUI`)
+- `vae/qwen_image_vae.safetensors` — VAE (300MB, from `Comfy-Org/Qwen-Image_ComfyUI`)
+- `BiRefNet/General-HR.safetensors` — background removal (800MB, from `ZhengPeng7/BiRefNet` as `model.safetensors`)
+
+Workflow updates (commits `934c04a`):
+- `product_image.json` + `product_image_img2img.json`: updated model filename to `lightningv2.0-4steps` (was `lightning-4steps-251115`)
+- `catalog_birefnet.json`: rewrote to use `BiRefNetRMBG` node (replaces `AutoDownloadBiRefNetModel`+`RembgByBiRefNet` which aren't in this plugin)
+
+### Auto-setup script for new vast.ai instances
+`domstudio-backend/vast_setup.sh` — one command to fully set up a fresh instance:
+```bash
+wget -q -O /workspace/vast_setup.sh "https://raw.githubusercontent.com/Nate-valerian/domstudio/main/domstudio-backend/vast_setup.sh" && chmod +x /workspace/vast_setup.sh && bash /workspace/vast_setup.sh
+```
+Script: installs nunchaku + RMBG nodes, downloads all 4 models (skips existing), starts ComfyUI, prints cloudflare tunnel URL.
+After it finishes: copy the tunnel URL → update `COMFYUI_URL` in Amvera dashboard.
+Takes ~30 min on first run (model downloads). Subsequent runs on same disk: ~10 seconds (all skips).
+
 ### UI fixes (commits pushed earlier in session)
 - BG removal card: removed `——` line (changed `.eyebrow` to `.tool-card-badge`)
 - Studio CTA: "For better results — use AI models in Studio →" as orange chip below description
