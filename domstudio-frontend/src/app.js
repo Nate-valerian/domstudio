@@ -2033,7 +2033,7 @@ function copyStudioPage() {
   const wizardStep = Math.min(state.contentWizardStep, wizardFields.length - 1);
   const isLastWizardStep = wizardStep >= wizardFields.length - 1;
   const currentWizardField = wizardFields[wizardStep];
-  const wLang = state.lang === "en" ? "en" : "ru";
+  const wLang = state.contentOutputLanguage === "english" ? "en" : "ru";
 
   if (state.adpilotView === "marketplace") {
     return `<main class="app-layout">
