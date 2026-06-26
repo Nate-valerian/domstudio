@@ -1,5 +1,45 @@
 # DomStudio Archive
 
+## June 26, 2026 — Session 6: Warm redesign, nav overhaul, alignment fixes
+
+Files: `domstudio-frontend/src/styles.css`, `domstudio-frontend/src/app.js`
+
+**Warm color palette**
+- Root vars: `--paper: #f8f2e3`, `--card: #fffaef`, `--warm-alt: #fef1d6`, `--gold: #c0870a`
+- Hero changed from dark night background to warm cream with amber radial glow (light color scheme throughout)
+- Proof section and free-tools section use `--warm-alt` background; tool cards use `--card` + gold border
+
+**Full-width desktop nav**
+- Removed floating pill: `border-radius: 999px`, outer padding, box-shadow all gone
+- Full-width bar with bottom border `rgba(192,135,10,.18)` on warm cream background
+- Each nav-link gets its own pill card (`border: 1px solid var(--line); border-radius: 999px`)
+- Flex layout: `brand (flex: 0 0 auto) | nav-links (flex: 1, center) | nav-actions (flex: 0 0 auto)` — prevents Тарифы/Войти overlap
+- Mobile (≤980px) restores original floating pill via media query
+
+**Section content alignment**
+- All sections use `max(clamp(20px, 6vw, 92px), calc((100vw - 1420px) / 2))` horizontal padding
+- Aligns content with nav's 1420px frame at any viewport width
+
+**Heading word-break fix**
+- `overflow-wrap: break-word; word-break: normal` globally — prevents mid-character breaks like "Инструмен-ты"
+- `.mini-head h1` reduced to `clamp(22px, 2.8vw, 40px)`; `.section-head h2` to `clamp(28px, 3.8vw, 52px)`
+- Section-head description color darkened to `#3d3a34` for readability
+
+**AdPilot — removed sidebar, centered on desktop**
+- Removed `appSidebar("adpilot")` from landing and tool form pages
+- Changed wrapper from `app-layout` to `page adpilot-page`; content centered with flex
+
+**Hero top padding reduced**
+- Was `clamp(60px, 9vw, 130px)` uniform — too much empty space at top on desktop
+- Now `clamp(28px, 3.5vw, 52px)` top / `clamp(56px, 7vw, 100px)` bottom; min-height 760px → 680px
+
+**Examples order fixed**
+- Виртуальная примерка (beige suit, video) moved to position 1 only; all other 12 items remain in original order
+- Original: perfume × 6 → bottle catalog → wine/bottle × 5 → beige suit last
+- Fixed: beige suit first → perfume × 6 → bottle catalog → wine/bottle × 5
+
+---
+
 ## June 26, 2026 — Session 5: AdPilot — wizard UX, markdown render, public access
 
 ### Changes committed: `7e0e22e`, `5a19435`, `553d1a0`, `e65bea8`

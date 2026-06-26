@@ -45,8 +45,9 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
-  { mode: "Креатив", product: "Флакон духов", title: "Неоновый рекламный визуал", src: examplePerfumeCreativeUrl },
+  { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
   { mode: "Предметная", product: "Флакон духов", title: "Мрамор и свечи", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
+  { mode: "Креатив", product: "Флакон духов", title: "Неоновый рекламный визуал", src: examplePerfumeCreativeUrl },
   { mode: "Каталог", product: "Флакон духов", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
   { mode: "Lifestyle", product: "Флакон духов", title: "Стол и тёплый свет окна", src: examplePerfumeLifestyleUrl },
   { mode: "Примерка", product: "Флакон духов", title: "Товар в руке", src: examplePerfumeFittingUrl },
@@ -57,7 +58,6 @@ const EXAMPLE_IMAGES = [
   { mode: "Lifestyle", product: "Гранатовый напиток", title: "Сцена в ресторане", src: exampleBottleLifestyleUrl },
   { mode: "Примерка", product: "Гранатовый напиток", title: "Подача в контексте", src: exampleBottleFittingUrl },
   { mode: "Stories", product: "Гранатовый напиток", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
-  { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -1659,15 +1659,15 @@ function studioPage() {
   const submitLabel = state.generating
     ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating"))
     : (state.generationKind === "video" ? videoSubmitLabel : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"));
-  const tokenHint = state.generationKind === "video" && cost === 0
+  const tokenHint = !state.user ? "" : state.generationKind === "video" && cost === 0
     ? t("video.tokenFree")
     : state.generationKind === "video"
     ? t("video.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / cost) })
     : t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) });
-  return `<main class="app-layout">
-    ${appSidebar("studio")}
-    <section class="workspace">
-      <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div><div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div></header>
+  return `<main class="${state.user ? "app-layout" : "page"}">
+    ${state.user ? appSidebar("studio") : ""}
+    <section class="${state.user ? "workspace" : "section pricing-public"}">
+      <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div>${state.user ? `<div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>` : `<button class="button" type="button" data-auth-open>${t("nav.signup")}</button>`}</header>
       <div class="studio-grid">
         <form class="panel studio-form" id="generate-form">
           <div class="media-toggle" role="group" aria-label="${t("studio.outputType")}">
@@ -1675,10 +1675,11 @@ function studioPage() {
             <button type="button" class="${state.generationKind === "video" ? "active" : ""}" data-generation-kind="video">${t("studio.videoTab")}</button>
           </div>
           <div class="mobile-flow-steps" aria-label="Mobile creation flow">
-            <span class="active"><b>1</b>Setup</span>
-            <span class="${state.selectedImage ? "active" : ""}"><b>2</b>Upload</span>
+            <span class="active"><b>1</b>Upload</span>
+            <span class="${state.selectedImage ? "active" : ""}"><b>2</b>Settings</span>
             <span class="${state.generatedImage || state.generatedVideo ? "active" : ""}"><b>3</b>Result</span>
           </div>
+          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
           <div class="form-section">
             <div class="field marketplace-field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select><small>${t("studio.marketplaceHint")}</small></div>
             <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${t(`studio.style.${template.id}`) || template.label}</option>`).join("")}</select></div>
@@ -1747,10 +1748,11 @@ function studioPage() {
           <div class="field"><label for="subject">${t("studio.subjectLabel")}</label><textarea class="textarea" id="subject" name="subject" required placeholder="${t("studio.subjectPlaceholder")}">${draftValue("subject")}</textarea></div>
           ${sceneModeNotice ? `<div class="mode-notice">${t("studio.sceneModeNotice")}</div>` : ""}
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
-          <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
           ${state.generationKind === "photo" ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>` : `<p class="video-note">${t("video.note")}</p>`}
           <button class="button gold block desktop-submit" type="submit" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
-          ${state.user.tokens < cost
+          ${!state.user
+            ? `<p class="token-hint"><a href="#" data-auth-open>${t("nav.signup")}</a> ${t("nav.or")} <a href="#" data-auth-open>${t("nav.login")}</a> ${t("studio.tokenOk", { n: "500", m: "5" })}</p>`
+            : state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
             : `<p class="token-hint">${tokenHint}</p>`}
         </form>
@@ -2028,7 +2030,7 @@ function copyStudioPage() {
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
   const canGenerate = state.online && !state.contentGenerating &&
-    (state.user ? state.user.tokens >= cost : getAnonAdpilotCount() < ANON_ADPILOT_LIMIT);
+    (state.user ? state.user.tokens >= cost : true);
   const outputTitle = contentOutputTitle(tool);
   const wizardFields = getWizardFields(tool);
   const wizardStep = Math.min(state.contentWizardStep, wizardFields.length - 1);
@@ -2061,8 +2063,7 @@ function copyStudioPage() {
   };
 
   if (!state.contentToolSlug) {
-    return `<main class="app-layout">
-      ${appSidebar("adpilot")}
+    return `<main class="page adpilot-page">
       <section class="workspace copy-workspace adpilot-landing">
         ${state.adpilotContextImage ? `<div class="copy-context-banner">
           <div class="copy-context-left">
@@ -2079,16 +2080,6 @@ function copyStudioPage() {
           <h1>${t("adpilot.landing.h1")}</h1>
           <p>${t("adpilot.landing.p")}</p>
         </div>
-        ${!state.user ? (() => {
-          const used = getAnonAdpilotCount();
-          const left = ANON_ADPILOT_LIMIT - used;
-          if (left <= 0) return `<div class="adpilot-anon-limit">
-            <strong>${t("adpilot.anonLimit")}</strong>
-            <p>${t("adpilot.anonLimitSub")}</p>
-            <button class="button gold" type="button" data-auth="register">${t("adpilot.anonRegister")}</button>
-          </div>`;
-          return `<div class="adpilot-anon-badge">${t("adpilot.anonRemaining", { n: left })}</div>`;
-        })() : ""}
         <div class="adpilot-quick-start">
           <label class="adpilot-quick-label" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
           <input id="adpilot-quick-product" class="input adpilot-quick-input" type="text"
@@ -2105,8 +2096,7 @@ function copyStudioPage() {
     </main>`;
   }
 
-  return `<main class="app-layout">
-    ${appSidebar("adpilot")}
+  return `<main class="page adpilot-page">
     <section class="workspace copy-workspace">
       <header class="workspace-head">
         <div>
@@ -2196,7 +2186,7 @@ function copyStudioPage() {
             ? (state.user.tokens < cost
               ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
               : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`)
-            : `<p class="token-hint">${t("adpilot.anonRemaining", { n: ANON_ADPILOT_LIMIT - getAnonAdpilotCount() })}</p>`}
+            : ""}
         </form>
         <section class="panel copy-output-panel" aria-label="${outputTitle}">
           <div class="output-panel-head">
@@ -2394,7 +2384,7 @@ function pricingPage() {
   const cards = state.plans.filter(plan => ["free", "basic", "pro", "business"].includes(plan.name));
   return `<main class="${state.user ? "app-layout" : "page"}">
     ${state.user ? appSidebar("pricing") : ""}
-    <section class="${state.user ? "workspace" : "section"}">
+    <section class="${state.user ? "workspace" : "section pricing-public"}">
       <header class="workspace-head"><div><div class="eyebrow">${t("pricing.eyebrow")}</div><h1>${t("pricing.h1")}</h1></div></header>
       <div class="price-grid">
         ${cards.map(plan => `
@@ -4127,11 +4117,6 @@ async function quickGenerateAdPilot(toolSlug, product) {
     return;
   }
   const isAnon = !state.user;
-  if (isAnon && getAnonAdpilotCount() >= ANON_ADPILOT_LIMIT) {
-    state.authMode = "register";
-    render();
-    return;
-  }
   state.contentDraft = { ...state.contentDraft, product: product.trim() };
   state.contentToolSlug = toolSlug;
   state.contentOutput = "";
@@ -4150,7 +4135,6 @@ async function quickGenerateAdPilot(toolSlug, product) {
           output_language: state.contentOutputLanguage,
         }),
       });
-      incAnonAdpilotCount();
     } else {
       const tool = currentContentTool();
       const cost = contentTokenCost(tool);
@@ -4782,7 +4766,6 @@ async function submitCopyGeneration(event) {
           output_language: state.contentOutputLanguage,
         }),
       });
-      incAnonAdpilotCount();
       state.contentOutput = result.output || "";
       state.contentVariations = [result.output].filter(Boolean);
       state.contentMeta = result;
@@ -4841,6 +4824,7 @@ async function copyContentOutput() {
 
 async function submitGeneration(event) {
   event.preventDefault();
+  if (!state.user) { state.authMode = "login"; render(); return; }
   syncDraftFromForm(event.currentTarget);
   const values = { ...state.formDraft };
   if (state.generationKind === "video") {
