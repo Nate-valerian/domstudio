@@ -32,6 +32,8 @@ import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
 import landingWineAfterUrl from "./assets/landing/wine-after-smoke.png";
 import landingWineVideoUrl from "./assets/landing/wine-after-smoke-5s.mp4";
+import adpilotPremiumFlowPosterUrl from "./assets/adpilot-premium-flow.webp";
+import adpilotPremiumFlowVideoUrl from "./assets/adpilot-premium-flow.mp4";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -2094,6 +2096,9 @@ function copyStudioPage() {
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="product-description">${t("adpilot.quickDesc")}</button>
           </div>
         </div>
+        <figure class="adpilot-visual">
+          <video src="${adpilotPremiumFlowVideoUrl}" poster="${adpilotPremiumFlowPosterUrl}" aria-label="AdPilot AI sales copy workflow visual" autoplay muted loop playsinline preload="metadata"></video>
+        </figure>
       </section>
     </main>`;
   }
@@ -2914,7 +2919,7 @@ function render(options = {}) {
 }
 
 function prepareDemoVideos() {
-  const videos = [...document.querySelectorAll(".landing-media video, .example-media video")];
+  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .adpilot-visual video")];
   videos.forEach((video) => {
     video.muted = true;
     video.defaultMuted = true;
