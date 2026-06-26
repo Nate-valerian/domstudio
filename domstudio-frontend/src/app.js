@@ -2090,6 +2090,8 @@ function copyStudioPage() {
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-ad">${t("adpilot.quickAvito")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="vk-post">${t("adpilot.quickSocial")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-reply">${t("adpilot.quickReply")}</button>
+            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="yandex-ads">${t("adpilot.quickYandex")}</button>
+            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="product-description">${t("adpilot.quickDesc")}</button>
           </div>
         </div>
       </section>
