@@ -512,6 +512,11 @@ h1 em { color: var(--gold); font-style: normal; }
 .adpilot-or-browse::before, .adpilot-or-browse::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .adpilot-cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 .chip-adpilot { background: var(--gold-soft, #f7f0e0); color: var(--gold, #b8860b); font-weight: 700; border-color: var(--gold-soft, #f0e4c4); }
+.adpilot-anon-badge { display: inline-block; background: #f0f9f0; color: #2d7a2d; border: 1px solid #c3e6c3; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 700; margin-bottom: 16px; }
+.adpilot-anon-limit { background: #fffbf0; border: 1px solid var(--gold-soft, #f0e4c4); border-radius: 16px; padding: 20px; margin-bottom: 20px; max-width: 480px; }
+.adpilot-anon-limit strong { font-size: 15px; display: block; margin-bottom: 6px; }
+.adpilot-anon-limit p { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+.adpilot-quick-btns button:disabled { opacity: .5; cursor: wait; }
 .adpilot-cat-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
   padding: 18px 16px; border: 1px solid var(--line); border-radius: 16px;

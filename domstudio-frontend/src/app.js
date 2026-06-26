@@ -2026,6 +2026,16 @@ function copyStudioPage() {
           <h1>${t("adpilot.landing.h1")}</h1>
           <p>${t("adpilot.landing.p")}</p>
         </div>
+        ${!state.user ? (() => {
+          const used = getAnonAdpilotCount();
+          const left = ANON_ADPILOT_LIMIT - used;
+          if (left <= 0) return `<div class="adpilot-anon-limit">
+            <strong>${t("adpilot.anonLimit")}</strong>
+            <p>${t("adpilot.anonLimitSub")}</p>
+            <button class="button gold" type="button" data-auth="register">${t("adpilot.anonRegister")}</button>
+          </div>`;
+          return `<div class="adpilot-anon-badge">${t("adpilot.anonRemaining", { n: left })}</div>`;
+        })() : ""}
         <div class="adpilot-quick-start">
           <label class="adpilot-quick-label" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
           <input id="adpilot-quick-product" class="input adpilot-quick-input" type="text"
@@ -4016,10 +4026,25 @@ function buildPromptFromHelper() {
   toast(t("toast.promptBuilt"));
 }
 
+const ANON_ADPILOT_KEY = "domstudio_adpilot_anon";
+const ANON_ADPILOT_LIMIT = 5;
+
+function getAnonAdpilotCount() {
+  try { return parseInt(localStorage.getItem(ANON_ADPILOT_KEY) || "0", 10); } catch { return 0; }
+}
+function incAnonAdpilotCount() {
+  try { localStorage.setItem(ANON_ADPILOT_KEY, String(getAnonAdpilotCount() + 1)); } catch {}
+}
+
 async function quickGenerateAdPilot(toolSlug, product) {
-  if (!state.user) { state.authMode = "register"; render(); return; }
   if (!product.trim()) {
     document.querySelector("#adpilot-quick-product")?.focus();
+    return;
+  }
+  const isAnon = !state.user;
+  if (isAnon && getAnonAdpilotCount() >= ANON_ADPILOT_LIMIT) {
+    state.authMode = "register";
+    render();
     return;
   }
   state.contentDraft = { ...state.contentDraft, product: product.trim() };
@@ -4029,23 +4054,37 @@ async function quickGenerateAdPilot(toolSlug, product) {
   state.contentGenerating = true;
   render({ motion: false });
   try {
-    const tool = currentContentTool();
-    const cost = contentTokenCost(tool);
-    if (state.user.tokens < cost) { toast(t("toast.requestFailed")); return; }
-    const result = await api("/content/generate", {
-      method: "POST",
-      body: JSON.stringify({
-        tool_slug: toolSlug,
-        input: { product: product.trim() },
-        profile: state.contentProfile,
-        output_language: state.contentOutputLanguage,
-      }),
-    });
+    let result;
+    if (isAnon) {
+      result = await api("/content/generate/public", {
+        method: "POST",
+        body: JSON.stringify({
+          tool_slug: toolSlug,
+          input: { product: product.trim() },
+          profile: {},
+          output_language: state.contentOutputLanguage,
+        }),
+      });
+      incAnonAdpilotCount();
+    } else {
+      const tool = currentContentTool();
+      const cost = contentTokenCost(tool);
+      if (state.user.tokens < cost) { toast(t("toast.requestFailed")); return; }
+      result = await api("/content/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          tool_slug: toolSlug,
+          input: { product: product.trim() },
+          profile: state.contentProfile,
+          output_language: state.contentOutputLanguage,
+        }),
+      });
+      await loadUser();
+    }
     state.contentOutput = result.output || "";
     state.contentVariations = [result.output, ...state.contentVariations].filter(Boolean).slice(0, 3);
     state.contentMeta = result;
     state.contentNotice = result.warning || t("copy.done");
-    await loadUser();
     toast(t("copy.done"));
   } catch (error) {
     toast(error.message);

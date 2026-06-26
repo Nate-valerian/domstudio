@@ -3,15 +3,29 @@
 from __future__ import annotations
 
 import os
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import GenerationJob, JobStatus, TokenBalance, User, get_db
 from dependencies import get_current_user
+
+ANON_DAILY_LIMIT = int(os.getenv("ANON_ADPILOT_LIMIT", "10"))
+_anon_hits: dict[str, list[datetime]] = defaultdict(list)
+
+def _check_anon_rate(ip: str) -> int:
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=24)
+    _anon_hits[ip] = [t for t in _anon_hits[ip] if t > cutoff]
+    if len(_anon_hits[ip]) >= ANON_DAILY_LIMIT:
+        return 0
+    _anon_hits[ip].append(now)
+    return ANON_DAILY_LIMIT - len(_anon_hits[ip])
 from services.content_tools import (
     FIELD_LABELS,
     TOOL_BY_SLUG,
@@ -68,6 +82,43 @@ async def list_tools():
         "tools": public_tools(),
         "field_labels": FIELD_LABELS,
         "token_unit": CONTENT_TOKEN_UNIT,
+    }
+
+
+@router.post("/generate/public")
+async def generate_content_public(req: ContentGenerateRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    remaining = _check_anon_rate(ip)
+    if remaining < 0:
+        raise HTTPException(429, "Daily free limit reached. Register for unlimited access.")
+
+    tool = TOOL_BY_SLUG.get(req.tool_slug)
+    if not tool:
+        raise HTTPException(400, "Unknown content tool")
+
+    input_data = clean_mapping(req.input)
+    profile = clean_mapping(req.profile)
+    output_language = normalize_language(req.output_language, input_data, profile)
+    prompt = build_prompt(tool, input_data, profile, output_language)
+    output = fallback_output(tool.slug, input_data, profile, output_language)
+    provider = "local-template"
+    warning = None
+
+    try:
+        ai_output, warning = await generate_with_text_backend(prompt)
+        if ai_output:
+            output = ai_output
+            provider = "text-ai"
+    except Exception as exc:
+        warning = f"AI unavailable: {exc}"
+
+    return {
+        "output": output,
+        "provider": provider,
+        "warning": warning,
+        "tokens_charged": 0,
+        "balance": None,
+        "remaining_free": remaining,
     }
 
 
