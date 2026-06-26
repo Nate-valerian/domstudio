@@ -2107,35 +2107,16 @@ function copyStudioPage() {
   // Tool form requires login
   if (!state.user) return gatePage();
 
-  const categories = [...new Set(state.contentTools.map((item) => item.category))];
   return `<main class="app-layout">
     ${appSidebar("adpilot")}
     <section class="workspace copy-workspace">
       <header class="workspace-head">
-        <div><div class="eyebrow">${t("copy.eyebrow")}</div><h1>${t("copy.h1")}</h1></div>
+        <div>
+          <button class="copy-back-btn" type="button" data-adpilot-home>← AdPilot</button>
+          <h1>${escapeHtml(contentToolName(tool))}</h1>
+        </div>
       </header>
-      <div class="copy-grid">
-        <aside class="panel copy-tool-panel">
-          <div class="copy-tool-panel-head">
-            <button class="copy-back-btn" type="button" data-adpilot-home>← AdPilot</button>
-          </div>
-          ${categories.map((category) => {
-            const meta = CATEGORY_META[category] || { icon: "✦", desc: "" };
-            return `<div class="copy-tool-group">
-              <div class="copy-tool-group-head">
-                <span class="copy-tool-group-icon">${meta.icon}</span>
-                <span>${escapeHtml(contentToolCategory(category))}</span>
-              </div>
-              ${state.contentTools.filter((item) => item.category === category).map((item) => `
-                <button class="copy-tool-card ${item.slug === tool.slug ? "active" : ""}" type="button" data-content-tool="${item.slug}">
-                  <strong>${escapeHtml(contentToolName(item))}</strong>
-                  <small>${escapeHtml(contentToolIntent(item))}</small>
-                  <span class="copy-tool-cost">${item.cost_units * state.contentTokenUnit} т.</span>
-                </button>
-              `).join("")}
-            </div>`;
-          }).join("")}
-        </aside>
+      <div class="copy-grid copy-grid-no-sidebar">
         <form class="panel copy-form-panel" id="copy-form">
           ${state.adpilotContextImage ? `<div class="copy-context-banner">
             <div class="copy-context-left">
