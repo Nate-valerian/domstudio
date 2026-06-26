@@ -539,6 +539,17 @@ h1 em { color: var(--gold); font-style: normal; }
 .copy-tool-panel,
 .copy-form-panel,
 .copy-output-panel { align-self: stretch; }
+/* Wizard form */
+.wizard-form { display: flex; flex-direction: column; gap: 12px; }
+.wizard-done { display: flex; align-items: flex-start; gap: 8px; background: #f5f3ef; border-radius: 10px; padding: 10px 12px; }
+.wizard-done-body { flex: 1; min-width: 0; }
+.wizard-done-q { display: block; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+.wizard-done-a { display: block; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wizard-done-edit { flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 14px; color: var(--muted); padding: 0 4px; }
+.wizard-step { display: flex; flex-direction: column; gap: 10px; }
+.wizard-q { font-size: 16px; font-weight: 800; line-height: 1.3; color: var(--ink); display: block; margin-bottom: 2px; }
+.wizard-ta { font-size: 15px; min-height: 80px; resize: vertical; }
+.wizard-mode-btn { align-self: flex-start; color: var(--muted); font-size: 12px; margin-top: 4px; }
 .copy-output-rendered { font-size: 14px; line-height: 1.7; padding: 16px; background: var(--surface,#faf9f7); border-radius: 12px; overflow-y: auto; max-height: 520px; white-space: normal; word-break: break-word; }
 .copy-output-rendered .md-h1, .copy-output-rendered .md-h2 { display: block; font-size: 15px; font-weight: 800; margin-top: 20px; margin-bottom: 6px; }
 .copy-output-rendered .md-h3 { display: block; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-top: 18px; margin-bottom: 4px; }
@@ -907,8 +918,8 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .copy-context-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .copy-context-thumb {
-  width: 44px; height: 44px; object-fit: cover;
-  border-radius: 8px; flex-shrink: 0;
+  width: 88px; height: 88px; object-fit: cover;
+  border-radius: 12px; flex-shrink: 0;
 }
 .copy-context-info { min-width: 0; }
 .copy-context-info .eyebrow { font-size: 10px; white-space: nowrap; }
@@ -1198,6 +1209,9 @@ h1 em { color: var(--gold); font-style: normal; }
   .market-empty-actions .button { width: auto; flex: 1 1 130px; }
   .copy-tool-panel { display: block; }
   .copy-output-panel pre { min-height: 320px; max-height: none; font-size: 13px; }
+  .copy-context-banner { flex-wrap: wrap; gap: 12px; }
+  .copy-context-thumb { width: 72px; height: 72px; }
+  .copy-output-rendered { max-height: none; }
   .auth-modal { grid-template-columns: 1fr; }
   .auth-side { display: none; }
   .auth-main, .auth-modal.compact { padding: 22px; }

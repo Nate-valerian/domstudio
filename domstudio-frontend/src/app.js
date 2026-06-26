@@ -277,6 +277,41 @@ const CONTENT_FIELD_LABELS = {
   duration: "Duration",
 };
 
+const WIZARD_QUESTIONS = {
+  product:          { ru: "Что продаёте или предлагаете?",       en: "What are you selling or offering?" },
+  advantages:       { ru: "Главные преимущества — что выделяет вас?", en: "Main advantages — what makes you stand out?" },
+  city:             { ru: "В каком городе?",                     en: "What city?" },
+  price:            { ru: "Цена или диапазон?",                  en: "Price or price range?" },
+  offer:            { ru: "Ваше предложение прямо сейчас?",      en: "Your current offer?" },
+  targetCustomer:   { ru: "Кто ваш покупатель?",                 en: "Who is your target customer?" },
+  tone:             { ru: "Тон общения?",                        en: "Tone of voice?" },
+  customerQuestion: { ru: "Что спросил покупатель?",             en: "What did the customer ask?" },
+  reviewText:       { ru: "Вставьте текст отзыва:",              en: "Paste the customer review:" },
+  businessName:     { ru: "Название вашего бизнеса?",            en: "Business name?" },
+  masterName:       { ru: "Имя мастера?",                        en: "Master's name?" },
+  duration:         { ru: "Сколько занимает услуга?",            en: "How long does the service take?" },
+};
+const WIZARD_PLACEHOLDERS = {
+  product:          { ru: "Замена тормозных колодок, доставка цветов, вечерние платья...", en: "Brake pad replacement, flower delivery, evening dresses..." },
+  advantages:       { ru: "Ремонт за 2 часа, гарантия, без скрытых доплат...",            en: "2-hour turnaround, warranty, no hidden fees..." },
+  city:             { ru: "Москва",                              en: "Moscow" },
+  price:            { ru: "От 4 500 ₽",                         en: "From 4,500 RUB" },
+  offer:            { ru: "Бесплатная диагностика при записи сегодня", en: "Free diagnostics when booking today" },
+  targetCustomer:   { ru: "Занятые автовладельцы",               en: "Busy car owners" },
+  tone:             { ru: "Дружелюбно и по делу",                en: "Friendly and direct" },
+  customerQuestion: { ru: "Есть запись на сегодня, можно дешевле?", en: "Is there a slot today, can you do cheaper?" },
+  reviewText:       { ru: "Результат хороший, но ждать пришлось дольше...", en: "Good result, but waited longer than expected..." },
+  businessName:     { ru: "Пилот Авто",                         en: "Pilot Auto" },
+  masterName:       { ru: "Анна",                                en: "Anna" },
+  duration:         { ru: "1,5 часа",                           en: "1.5 hours" },
+};
+const WIZARD_SINGLE_STEP = new Set(["reviewText", "customerQuestion"]);
+function getWizardFields(tool) {
+  if (WIZARD_SINGLE_STEP.has(tool.fields[0])) return [tool.fields[0]];
+  const candidates = tool.fields.filter((f) => !["tone", "businessName", "targetCustomer"].includes(f));
+  return candidates.slice(0, 2);
+}
+
 const CONTENT_DEFAULTS = {
   en: {
     draft: {
@@ -524,9 +559,11 @@ const state = {
   contentToolSlug: null,
   adpilotView: "tools",
   adpilotContextImage: null,
-  contentDraft: { ...initialContentDefaults.draft },
-  contentProfile: { ...initialContentDefaults.profile },
+  contentDraft: Object.fromEntries(Object.keys(initialContentDefaults.draft).map((k) => [k, ""])),
+  contentProfile: { ...Object.fromEntries(Object.keys(initialContentDefaults.profile).map((k) => [k, ""])), phone: "+7" },
   contentOutputLanguage: "russian",
+  contentFormMode: "wizard",
+  contentWizardStep: 0,
   contentOutput: "",
   contentVariations: [],
   contentMeta: null,
@@ -1993,6 +2030,11 @@ function copyStudioPage() {
   const cost = contentTokenCost(tool);
   const canGenerate = state.online && !state.contentGenerating && state.user.tokens >= cost;
   const outputTitle = contentOutputTitle(tool);
+  const wizardFields = getWizardFields(tool);
+  const wizardStep = Math.min(state.contentWizardStep, wizardFields.length - 1);
+  const isLastWizardStep = wizardStep >= wizardFields.length - 1;
+  const currentWizardField = wizardFields[wizardStep];
+  const wLang = state.lang === "en" ? "en" : "ru";
 
   if (state.adpilotView === "marketplace") {
     return `<main class="app-layout">
@@ -2139,14 +2181,38 @@ function copyStudioPage() {
               </button>
             `).join("")}
           </div>
-          <div class="copy-fields">
-            ${tool.fields.map((field) => `
-              <div class="field">
-                <label for="copy_${field}">${escapeHtml(contentFieldLabel(field))}</label>
-                <textarea class="textarea" id="copy_${field}" name="${field}" rows="${field === "advantages" || field === "reviewText" ? 4 : 2}" placeholder="${t(`copy.placeholder.${field}`)}">${contentDraftValue(field)}</textarea>
+          ${state.contentFormMode === "wizard" ? `
+            <div class="wizard-form">
+              ${wizardFields.slice(0, wizardStep).map((field, i) => `
+                <div class="wizard-done">
+                  <div class="wizard-done-body">
+                    <span class="wizard-done-q">${escapeHtml(WIZARD_QUESTIONS[field]?.[wLang] || field)}</span>
+                    <span class="wizard-done-a">${escapeHtml(contentDraftValue(field) || "—")}</span>
+                  </div>
+                  <button type="button" class="wizard-done-edit" data-wizard-edit="${i}">✎</button>
+                </div>
+              `).join("")}
+              <div class="wizard-step">
+                <label class="wizard-q">${escapeHtml(WIZARD_QUESTIONS[currentWizardField]?.[wLang] || currentWizardField)}</label>
+                <textarea class="textarea wizard-ta" data-wizard-field="${currentWizardField}" rows="3"
+                  placeholder="${escapeHtml(WIZARD_PLACEHOLDERS[currentWizardField]?.[wLang] || "")}">${escapeHtml(contentDraftValue(currentWizardField))}</textarea>
+                ${isLastWizardStep
+                  ? `<button type="button" class="button gold block wizard-generate" data-wizard-generate ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>`
+                  : `<button type="button" class="button primary block" data-wizard-next>Дальше →</button>`}
               </div>
-            `).join("")}
-          </div>
+              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="full">Все поля</button>
+            </div>
+          ` : `
+            <div class="copy-fields">
+              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="wizard">← Быстрый режим</button>
+              ${tool.fields.map((field) => `
+                <div class="field">
+                  <label for="copy_${field}">${escapeHtml(contentFieldLabel(field))}</label>
+                  <textarea class="textarea" id="copy_${field}" name="${field}" rows="${field === "advantages" || field === "reviewText" ? 4 : 2}" placeholder="${t(`copy.placeholder.${field}`)}">${contentDraftValue(field)}</textarea>
+                </div>
+              `).join("")}
+            </div>
+          `}
           <div class="copy-profile">
             <div class="mini-head"><h3>${t("copy.profileTitle")}</h3><span>${t("copy.profileSub")}</span></div>
             <div class="helper-grid">
@@ -2158,7 +2224,7 @@ function copyStudioPage() {
               `).join("")}
             </div>
           </div>
-          <button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>
+          ${state.contentFormMode !== "wizard" ? `<button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>` : ""}
           ${state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
             : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`}
@@ -2960,9 +3026,47 @@ function bind() {
   document.querySelector("#reset-form")?.addEventListener("submit", submitResetPassword);
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
   document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
-  document.querySelector("#copy-form")?.addEventListener("input", event => syncContentFromForm(event.currentTarget));
+  document.querySelector("#copy-form")?.addEventListener("input", event => {
+    if (state.contentFormMode !== "wizard") syncContentFromForm(event.currentTarget);
+  });
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
-  document.querySelector("[data-adpilot-home]")?.addEventListener("click", () => { state.contentToolSlug = null; render({ motion: false }); });
+  document.querySelector("[data-adpilot-home]")?.addEventListener("click", () => { state.contentToolSlug = null; state.contentWizardStep = 0; render({ motion: false }); });
+
+  // Wizard event handlers
+  document.querySelectorAll("[data-wizard-mode]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.wizardMode;
+      if (mode === "full") {
+        const ta = document.querySelector("[data-wizard-field]");
+        if (ta) state.contentDraft = { ...state.contentDraft, [ta.dataset.wizardField]: ta.value };
+      } else {
+        state.contentWizardStep = 0;
+      }
+      state.contentFormMode = mode;
+      render({ motion: false });
+    });
+  });
+  document.querySelector("[data-wizard-next]")?.addEventListener("click", () => {
+    const ta = document.querySelector("[data-wizard-field]");
+    if (!ta?.value?.trim()) { ta?.focus(); return; }
+    state.contentDraft = { ...state.contentDraft, [ta.dataset.wizardField]: ta.value };
+    state.contentWizardStep++;
+    render({ motion: false });
+    setTimeout(() => document.querySelector("[data-wizard-field]")?.focus(), 50);
+  });
+  document.querySelectorAll("[data-wizard-edit]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.contentWizardStep = parseInt(btn.dataset.wizardEdit, 10);
+      render({ motion: false });
+      setTimeout(() => document.querySelector("[data-wizard-field]")?.focus(), 50);
+    });
+  });
+  document.querySelector("[data-wizard-generate]")?.addEventListener("click", () => {
+    const ta = document.querySelector("[data-wizard-field]");
+    if (!ta?.value?.trim()) { ta?.focus(); return; }
+    state.contentDraft = { ...state.contentDraft, [ta.dataset.wizardField]: ta.value };
+    document.querySelector("#copy-form")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+  });
 
   document.querySelectorAll("[data-content-language]").forEach(el => el.addEventListener("click", () => selectContentLanguage(el.dataset.contentLanguage)));
   document.querySelector("[data-copy-output]")?.addEventListener("click", copyContentOutput);
@@ -4474,6 +4578,7 @@ function syncContentFromForm(form) {
 function fillExample() {
   const defaults = defaultsForLang(state.lang);
   state.contentDraft = { ...defaults.draft };
+  state.contentProfile = { ...defaults.profile };
   render({ motion: false });
 }
 
@@ -4506,9 +4611,10 @@ function copySavedOutput(id) {
 
 function selectContentTool(slug) {
   if (state.contentToolSlug === slug) return;
-  syncContentFromForm(document.querySelector("#copy-form"));
+  if (state.contentFormMode !== "wizard") syncContentFromForm(document.querySelector("#copy-form"));
   state.contentToolSlug = slug;
   state.contentNotice = "";
+  state.contentWizardStep = 0;
   render({ motion: false });
 }
 
@@ -4688,7 +4794,7 @@ async function submitCopyGeneration(event) {
     render();
     return;
   }
-  syncContentFromForm(event.currentTarget);
+  if (state.contentFormMode !== "wizard") syncContentFromForm(event.currentTarget);
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
   if (state.user.tokens < cost) {
