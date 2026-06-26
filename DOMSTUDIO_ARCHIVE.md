@@ -1,5 +1,136 @@
 # DomStudio Archive
 
+## June 26, 2026 — Session 2: ngrok tunnel + BiRefNet fix, generation confirmed working
+
+### Tunnel: switched from localhost.run to ngrok (stable)
+
+- localhost.run was unreliable — URL changed on every reconnect and tunnels died after first use
+- Cloudflare POST blocked on this Chinese server (confirmed)
+- **Fix**: ngrok v3 installed at `/autodl-fs/data/bin/ngrok`, authtoken configured
+- Startup: `setsid /autodl-fs/data/bin/ngrok http 8188 > /tmp/ngrok-out.txt 2>&1 < /dev/null &`
+- Get current URL: `curl -s http://localhost:4040/api/tunnels | python3 -c 'import sys,json; d=json.load(sys.stdin); [print(t["public_url"]) for t in d["tunnels"] if t["public_url"].startswith("https")]'`
+- Note: ngrok free URL changes on process restart — update Amvera `COMFYUI_URL` after each reboot
+
+### ComfyUI actual path: /root/autodl-tmp/ComfyUI/ (not /root/ComfyUI/)
+
+Session 1 archive had wrong path. Confirmed via `find /root -maxdepth 3 -name 'main.py'`. Custom nodes are in `/root/autodl-tmp/ComfyUI/custom_nodes/`.
+
+### BiRefNet fix: installed ComfyUI-RMBG node
+
+- Workflow uses `BiRefNetRMBG` node (from 1038lab/ComfyUI-RMBG)
+- `ComfyUI_BiRefNet_ll` was already present but uses different node names — can't substitute
+- Fixed: `git clone https://github.com/1038lab/ComfyUI-RMBG.git` in `/root/autodl-tmp/ComfyUI/custom_nodes/`
+- Deps: `pip install -r requirements.txt` (timm, torchvision, etc.)
+- Note: `AILab_BodySegment.py` in the same plugin throws `libcudart.so.13` error (benign, body segment node only)
+- BiRefNet model downloaded via `hf-mirror.com` (HuggingFace mirror, accessible from China):
+  ```python
+  HF_ENDPOINT=https://hf-mirror.com python3 -c "
+  from huggingface_hub import hf_hub_download
+  hf_hub_download(repo_id='1038lab/BiRefNet', filename='BiRefNet-general.safetensors', local_dir='/root/autodl-tmp/ComfyUI/models/BiRefNet')
+  "
+  ```
+
+### ComfyUI startup: use setsid not nohup
+
+- `nohup ... &` in SSH: exits 255 if SSH drops before process properly detaches
+- **Fix**: `setsid python3 main.py ... >> log 2>&1 < /dev/null &` — fully detaches from session
+- Both ComfyUI and ngrok now started this way in `/autodl-fs/data/start_domstudio.sh`
+
+### CORS: was transient
+
+- CORS errors seen in browser were during Amvera restart (new COMFYUI_URL env var)
+- Backend CORS config is correct: `access-control-allow-origin: https://domstudio.vercel.app` confirmed via preflight test
+- No code fix needed
+
+### AutoDL file store
+
+- Browse persistent `/autodl-fs` without SSH: https://www.autodl.com/console/file-store?disk=west-B
+
+---
+
+## June 26, 2026 — Session 1: AutoDL setup on SeetaCloud vGPU-32GB (Ada Lovelace)
+
+### New AutoDL instance
+
+- SSH: `ssh -p 46594 root@connect.westc.seetacloud.com` (password: QMbVPJmTdx66)
+- GPU: **NVIDIA vGPU-32GB, 32760 MiB, compute cap 8.9 (Ada Lovelace)** — nunchaku AWQ works ✅
+- PyTorch: 2.5.1+cu124
+- nunchaku: 1.0.1+torch2.5 — already installed ✅
+- ComfyUI: at `/root/ComfyUI/` (not /autodl-fs), version 0.3.75
+
+### SSH key set up (no more password dialogs)
+
+- Key: `C:\Users\nate-\.ssh\autodl_key` (ed25519)
+- Added to `/root/.ssh/authorized_keys` on server
+- All future SSH: `ssh -i ~/.ssh/autodl_key -p 46594 root@connect.westc.seetacloud.com`
+
+### Models — all already present on /autodl-fs/data/models/
+
+| Model | Path | Size |
+| --- | --- | --- |
+| Qwen image edit (old v1) | `diffusion_models/svdq-int4_r128-qwen-image-edit-2509-lightning-4steps-251115.safetensors` | 12GB |
+| Qwen CLIP | `clip/qwen_2.5_vl_7b_fp8_scaled.safetensors` | 8.8GB |
+| Qwen VAE | `vae/qwen_image_vae.safetensors` | — |
+| WanVideo I2V 14B | `diffusion_models/WanVideo/Wan2_1-I2V-14B-480P_fp8_e4m3fn.safetensors` | 16GB |
+| WanVideo T5 encoder | `text_encoders/umt5-xxl-enc-bf16.safetensors` | 11GB |
+| WanVideo VAE | `vae/wanvideo/Wan2_1_VAE_bf16.safetensors` | — |
+| WanVideo lightx2v LoRA | `loras/WanVideo/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors` | — |
+| CLIP vision | `clip_vision/clip_vision_h.safetensors` | 1.2GB |
+
+### Custom nodes — all already installed in /root/ComfyUI/custom_nodes/
+
+ComfyUI-nunchaku, ComfyUI-WanVideoWrapper, ComfyUI-VideoHelperSuite, ComfyUI-KJNodes, ComfyUI_BiRefNet_ll, ComfyUI-Manager, and many others.
+
+### Symlinks created (paths workflow expects vs where files actually are)
+
+```bash
+# Qwen model: workflow expects lightningv2.0 filename, we have old v1 filename
+ln -sf .../lightning-4steps-251115.safetensors .../lightningv2.0-4steps.safetensors
+
+# T5 encoder: node looks in clip/, file is in text_encoders/
+ln -sf .../text_encoders/umt5-xxl-enc-bf16.safetensors .../clip/umt5-xxl-enc-bf16.safetensors
+
+# WanVideo VAE: workflow expects vae/ root, file is in vae/wanvideo/
+ln -sf .../vae/wanvideo/Wan2_1_VAE_bf16.safetensors .../vae/Wan2_1_VAE_bf16.safetensors
+```
+
+### extra_model_paths.yaml written to /root/ComfyUI/
+
+Points ComfyUI to `/autodl-fs/data/models/` for all model types.
+
+### Tunnel: localhost.run (cloudflare blocked on this server)
+
+- Cloudflare `api.trycloudflare.com` POST times out from this Chinese server (GET returns 405, but tunnel creation POST hangs)
+- **Fix**: localhost.run SSH tunnel works: `ssh -R 80:localhost:8188 nokey@localhost.run`
+- Current tunnel URL: `https://59bda6bae8f5b9.lhr.life` (changes on reconnect)
+- Tunnel log: `/autodl-fs/data/tunnel.log`
+
+### Startup script: /autodl-fs/data/start_domstudio.sh
+
+After every reboot, run this script then read the new URL from tunnel.log and update Amvera:
+
+```bash
+bash /autodl-fs/data/start_domstudio.sh
+grep lhr.life /autodl-fs/data/tunnel.log | tail -1
+# copy URL → update COMFYUI_URL in Amvera dashboard
+```
+
+### ComfyUI started successfully
+
+- Port 8188, `--disable-smart-memory`, 32GB VRAM free
+- System stats confirmed: `curl http://localhost:8188/system_stats`
+
+### Lesson learned: use JupyterLab terminal for AutoDL server work
+
+Running SSH from the Bash tool caused: GUI password dialogs on user's screen, SSH rate-limiting after rapid parallel connections, dropped connections on any `sleep` in commands. **Going forward: tell user to use JupyterLab terminal (already running on every AutoDL instance) for interactive/long-running work. SSH with key is fine for short automation commands.**
+
+### Next step
+
+- Update `COMFYUI_URL=https://59bda6bae8f5b9.lhr.life` in Amvera dashboard
+- Test image generation on domstudio.vercel.app
+
+---
+
 ## June 25, 2026 — Session 3: WanVideo I2V setup + generation fixes
 
 ### Critical finding: Q RTX 8000 (Turing cc 7.5) incompatible with nunchaku Qwen image generation

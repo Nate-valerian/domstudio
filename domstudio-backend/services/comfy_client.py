@@ -257,6 +257,10 @@ MODE_PROMPT_DIRECTIVES = {
         "center area, strong foreground/background separation, and room for future text overlays. If the scene "
         "mentions props, place them visibly around the lower third or side areas so the story frame is not plain."
     ),
+    "catalog": (
+        "Catalog photography objective: present the product perfectly centered on a pure white background with "
+        "soft even studio lighting, sharp focus, and no shadows or props. Marketplace-ready clean cutout quality."
+    ),
 }
 
 
@@ -744,7 +748,13 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     )
 
     expanded_prompt = None
-    if image_name and not is_catalog:
+    if image_name and is_catalog:
+        expanded_prompt = (
+            "Keep the product exactly as it appears, including all labels, logos, packaging text, shape, and color. "
+            "Place it perfectly centered on a pure white background with soft even studio lighting. "
+            "No props, no shadows, no background elements. Sharp focus, high quality marketplace catalog photo."
+        )
+    elif image_name:
         expanded_prompt = await expand_prompt_for_qwen(
             request.subject,
             getattr(request, "style_hint", ""),
@@ -761,11 +771,6 @@ async def generate_image_with_comfy(request: Any) -> dict[str, Any]:
     )
     result = await client.run_workflow(workflow)
     result.setdefault("mode", effective_mode)
-
-    # Catalog BiRefNet returns RGBA — composite onto white so output is clean white-bg JPEG/PNG
-    if is_catalog and request.image and result.get("status") == "success":
-        result = _composite_on_white(result)
-
     return result
 
 
