@@ -536,6 +536,9 @@ h1 em { color: var(--gold); font-style: normal; }
   align-items: start;
   gap: 18px;
 }
+.copy-grid-no-sidebar {
+  grid-template-columns: minmax(0, 560px) minmax(0, 680px);
+}
 .copy-tool-panel,
 .copy-form-panel,
 .copy-output-panel { align-self: stretch; }
