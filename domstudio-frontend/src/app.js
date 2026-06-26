@@ -45,19 +45,19 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
-  { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: examplePerfumeCreativeUrl },
-  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
-  { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: examplePerfumeCatalogUrl },
-  { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: examplePerfumeLifestyleUrl },
-  { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: examplePerfumeFittingUrl },
-  { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: examplePerfumeMobileUrl, shape: "portrait" },
-  { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card", src: exampleBottleCatalogUrl, shape: "portrait" },
-  { mode: "Product", product: "Wine bottle", title: "Marble table studio setup", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
-  { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame", src: exampleBottleCreativeUrl },
-  { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene", src: exampleBottleLifestyleUrl },
-  { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context", src: exampleBottleFittingUrl },
-  { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame", src: exampleBottleMobileUrl, shape: "portrait" },
-  { mode: "Fitting", product: "Beige suit outfit", title: "Virtual fitting motion preview", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
+  { mode: "Креатив", product: "Флакон духов", title: "Неоновый рекламный визуал", src: examplePerfumeCreativeUrl },
+  { mode: "Предметная", product: "Флакон духов", title: "Мрамор и свечи", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
+  { mode: "Каталог", product: "Флакон духов", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
+  { mode: "Lifestyle", product: "Флакон духов", title: "Стол и тёплый свет окна", src: examplePerfumeLifestyleUrl },
+  { mode: "Примерка", product: "Флакон духов", title: "Товар в руке", src: examplePerfumeFittingUrl },
+  { mode: "Stories", product: "Флакон духов", title: "Вертикальный story-формат", src: examplePerfumeMobileUrl, shape: "portrait" },
+  { mode: "Каталог", product: "Гранатовый напиток", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
+  { mode: "Предметная", product: "Вино", title: "Студия: мрамор и стол", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
+  { mode: "Креатив", product: "Гранатовый напиток", title: "Тёплый премиальный кадр", src: exampleBottleCreativeUrl },
+  { mode: "Lifestyle", product: "Гранатовый напиток", title: "Сцена в ресторане", src: exampleBottleLifestyleUrl },
+  { mode: "Примерка", product: "Гранатовый напиток", title: "Подача в контексте", src: exampleBottleFittingUrl },
+  { mode: "Stories", product: "Гранатовый напиток", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
+  { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -105,7 +105,7 @@ const MARKETPLACE_PRESETS = [
   },
   {
     id: "banner",
-    label: "Website Banner",
+    label: "Баннер для сайта",
     mode: "product",
     hint: "Website banner composition, product on one side, clean negative space for headline and call to action, premium campaign lighting.",
     subjectInstruction: "Make it work as a website banner visual.",
@@ -132,35 +132,35 @@ const MARKETPLACE_SAMPLE_PRODUCT = {
 };
 
 const STYLE_TEMPLATES = [
-  { id: "clean", label: "Clean catalog", hint: "clean catalog style, accurate color, soft shadow, minimal background" },
-  { id: "jewelry", label: "Premium jewelry", hint: "premium jewelry macro, precise reflections, elegant highlights, luxury retail finish" },
-  { id: "cosmetics", label: "Cosmetics macro", hint: "cosmetics macro photography, glossy surfaces, soft gradients, fresh beauty lighting" },
-  { id: "fashion", label: "Fashion model", hint: "fashion editorial look, model context when appropriate, refined styling, natural pose" },
-  { id: "minimal", label: "Minimal beige", hint: "minimal warm neutral background, beige and ivory tones, calm premium composition" },
-  { id: "luxury", label: "Dark luxury", hint: "dark luxury studio setup, dramatic rim light, rich shadows, premium materials" },
-  { id: "social", label: "Social media creative", hint: "bold social media creative, dynamic crop, bright engaging visual, modern campaign feel" },
+  { id: "clean", label: "Чистый каталог", hint: "clean catalog style, accurate color, soft shadow, minimal background" },
+  { id: "jewelry", label: "Ювелирный", hint: "premium jewelry macro, precise reflections, elegant highlights, luxury retail finish" },
+  { id: "cosmetics", label: "Косметика", hint: "cosmetics macro photography, glossy surfaces, soft gradients, fresh beauty lighting" },
+  { id: "fashion", label: "С моделью", hint: "fashion editorial look, model context when appropriate, refined styling, natural pose" },
+  { id: "minimal", label: "Минимал бежевый", hint: "minimal warm neutral background, beige and ivory tones, calm premium composition" },
+  { id: "luxury", label: "Тёмная роскошь", hint: "dark luxury studio setup, dramatic rim light, rich shadows, premium materials" },
+  { id: "social", label: "Для соцсетей", hint: "bold social media creative, dynamic crop, bright engaging visual, modern campaign feel" },
 ];
 
 const VARIATIONS = [
-  { id: "cleaner", label: "Cleaner", hint: "make the result cleaner, simpler, with fewer props and a clearer product silhouette" },
-  { id: "premium", label: "More premium", hint: "make the result feel more premium with refined lighting, elegant materials, and luxury finish" },
-  { id: "brighter", label: "Brighter", hint: "make the image brighter, fresh, optimistic, and more commercially inviting" },
-  { id: "background", label: "Different background", hint: "change the background while keeping the product accurate and realistic" },
-  { id: "closer", label: "Closer crop", hint: "use a closer crop with the product larger in frame and the key details more visible" },
-  { id: "realistic", label: "More realistic", hint: "make the output more photorealistic with natural materials, accurate scale, and believable light" },
+  { id: "cleaner", label: "Чище", hint: "make the result cleaner, simpler, with fewer props and a clearer product silhouette" },
+  { id: "premium", label: "Премиальнее", hint: "make the result feel more premium with refined lighting, elegant materials, and luxury finish" },
+  { id: "brighter", label: "Ярче", hint: "make the image brighter, fresh, optimistic, and more commercially inviting" },
+  { id: "background", label: "Другой фон", hint: "change the background while keeping the product accurate and realistic" },
+  { id: "closer", label: "Ближе к товару", hint: "use a closer crop with the product larger in frame and the key details more visible" },
+  { id: "realistic", label: "Реалистичнее", hint: "make the output more photorealistic with natural materials, accurate scale, and believable light" },
 ];
 
 const EXPORT_SIZES = {
-  original: { label: "Original size", width: null, height: null, layout: "original" },
-  square: { label: "Square 1080", width: 1080, height: 1080, layout: "fit", fill: "#ffffff" },
-  square2k: { label: "Square 2000", width: 2000, height: 2000, layout: "fit", fill: "#ffffff" },
-  feed: { label: "Post 4:5", width: 1080, height: 1350, layout: "blur", fill: "rgba(255,255,255,.24)" },
-  portrait: { label: "Portrait 3:4", width: 1200, height: 1600, layout: "blur", fill: "rgba(255,255,255,.24)" },
-  story: { label: "Story 9:16 fit", width: 1080, height: 1920, layout: "blur", fill: "rgba(255,255,255,.20)" },
-  storyCrop: { label: "Story 9:16 crop", width: 1080, height: 1920, layout: "cover" },
-  widescreen: { label: "Banner 16:9 fit", width: 1920, height: 1080, layout: "blur", fill: "rgba(255,255,255,.24)" },
-  bannerCrop: { label: "Banner 16:9 crop", width: 1920, height: 1080, layout: "cover" },
-  landscape: { label: "Landscape 4:3", width: 1600, height: 1200, layout: "fit", fill: "#ffffff" },
+  original: { label: "Оригинал", width: null, height: null, layout: "original" },
+  square: { label: "Квадрат 1080", width: 1080, height: 1080, layout: "fit", fill: "#ffffff" },
+  square2k: { label: "Квадрат 2000", width: 2000, height: 2000, layout: "fit", fill: "#ffffff" },
+  feed: { label: "Пост 4:5", width: 1080, height: 1350, layout: "blur", fill: "rgba(255,255,255,.24)" },
+  portrait: { label: "Портрет 3:4", width: 1200, height: 1600, layout: "blur", fill: "rgba(255,255,255,.24)" },
+  story: { label: "Story 9:16", width: 1080, height: 1920, layout: "blur", fill: "rgba(255,255,255,.20)" },
+  storyCrop: { label: "Story 9:16 кроп", width: 1080, height: 1920, layout: "cover" },
+  widescreen: { label: "Баннер 16:9", width: 1920, height: 1080, layout: "blur", fill: "rgba(255,255,255,.24)" },
+  bannerCrop: { label: "Баннер 16:9 кроп", width: 1920, height: 1080, layout: "cover" },
+  landscape: { label: "Горизонталь 4:3", width: 1600, height: 1200, layout: "fit", fill: "#ffffff" },
 };
 
 const RESIZER_FORMATS = [
@@ -185,14 +185,14 @@ const PACK_FORMATS = [
   { id: "ozon", label: "Ozon", size: "square2k", format: "jpeg" },
   { id: "yandex", label: "Yandex Market", size: "square", format: "jpeg" },
   { id: "avito", label: "Avito", size: "landscape", format: "jpeg" },
-  { id: "vk", label: "VK post", size: "feed", format: "jpeg" },
-  { id: "telegram", label: "Telegram post", size: "square", format: "jpeg" },
-  { id: "story", label: "Story fit", size: "story", format: "jpeg" },
-  { id: "story_crop", label: "Story crop", size: "storyCrop", format: "jpeg" },
+  { id: "vk", label: "VK пост", size: "feed", format: "jpeg" },
+  { id: "telegram", label: "Telegram пост", size: "square", format: "jpeg" },
+  { id: "story", label: "Story", size: "story", format: "jpeg" },
+  { id: "story_crop", label: "Story кроп", size: "storyCrop", format: "jpeg" },
   { id: "post", labelKey: "pack.post", size: "feed", format: "jpeg" },
   { id: "banner", labelKey: "pack.banner", size: "widescreen", format: "jpeg" },
-  { id: "banner_crop", label: "Banner crop", size: "bannerCrop", format: "jpeg" },
-  { id: "webp_square", label: "WebP square", size: "square", format: "webp" },
+  { id: "banner_crop", label: "Баннер кроп", size: "bannerCrop", format: "jpeg" },
+  { id: "webp_square", label: "WebP квадрат", size: "square", format: "webp" },
 ];
 
 const HISTORY_DB = "domstudio_history";
