@@ -2025,10 +2025,9 @@ const TOOL_EXAMPLE_OUTPUT = {
 
 function copyStudioPage() {
   if (!state.user && state.authInitializing) return `<main class="page"></main>`;
-  if (!state.user) return gatePage();
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
-  const canGenerate = state.online && !state.contentGenerating && state.user.tokens >= cost;
+  const canGenerate = state.online && !state.contentGenerating && (state.user?.tokens ?? 0) >= cost;
   const outputTitle = contentOutputTitle(tool);
   const wizardFields = getWizardFields(tool);
   const wizardStep = Math.min(state.contentWizardStep, wizardFields.length - 1);
@@ -2118,6 +2117,9 @@ function copyStudioPage() {
       </section>
     </main>`;
   }
+
+  // Tool form requires login
+  if (!state.user) return gatePage();
 
   const categories = [...new Set(state.contentTools.map((item) => item.category))];
   return `<main class="app-layout">
