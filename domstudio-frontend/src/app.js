@@ -2011,18 +2011,41 @@ function copyStudioPage() {
     return `<main class="app-layout">
       ${appSidebar("adpilot")}
       <section class="workspace copy-workspace adpilot-landing">
+        ${state.adpilotContextImage ? `<div class="copy-context-banner">
+          <div class="copy-context-left">
+            <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
+            <div class="copy-context-info">
+              <span class="eyebrow">${t("adpilotContext.label")}</span>
+              ${state.contentDraft.product ? `<p>${escapeHtml(truncate(state.contentDraft.product, 48))}</p>` : ""}
+            </div>
+          </div>
+          <button class="button secondary copy-context-back" type="button" data-route="tools">${t("nav.tools")}</button>
+        </div>` : ""}
         <div class="adpilot-landing-head">
           <div class="eyebrow">${t("copy.eyebrow")}</div>
           <h1>${t("adpilot.landing.h1")}</h1>
           <p>${t("adpilot.landing.p")}</p>
         </div>
+        <div class="adpilot-quick-start">
+          <label class="adpilot-quick-label" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
+          <input id="adpilot-quick-product" class="input adpilot-quick-input" type="text"
+            placeholder="${t("adpilot.quickProductPlaceholder")}"
+            value="${escapeHtml(state.contentDraft.product || "")}" />
+          <div class="adpilot-quick-btns">
+            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="ozon-wb-card">${t("adpilot.quickCard")}</button>
+            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-ad">${t("adpilot.quickAvito")}</button>
+            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="vk-post">${t("adpilot.quickSocial")}</button>
+            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-reply">${t("adpilot.quickReply")}</button>
+          </div>
+        </div>
+        <div class="adpilot-or-browse"><span>${t("adpilot.orBrowse")}</span></div>
         <div class="adpilot-cat-grid">
           ${categories.map(cat => {
             const meta = CATEGORY_META[cat] || { icon: "✦", desc: "" };
             const tools = state.contentTools.filter(t2 => t2.category === cat);
             return `<button class="adpilot-cat-card" type="button" data-content-tool="${tools[0].slug}">
               <span class="adpilot-cat-icon">${meta.icon}</span>
-              <strong>${cat}</strong>
+              <strong>${escapeHtml(contentToolCategory(cat))}</strong>
               <span class="adpilot-cat-desc">${meta.desc}</span>
               <span class="adpilot-cat-count">${tools.length} ${t("adpilot.landing.tools")}</span>
             </button>`;
@@ -2463,6 +2486,7 @@ function toolsPage() {
               <button class="chip" type="button" data-send-to="resizer" data-send-from="removebg">${t("tools.resizer.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="removebg">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="removebg">${t("tools.checker.h2")}</button>
+              <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="removebg">${t("tools.sendToAdpilot")}</button>
             </div>
             <button class="button gold block" type="button" data-use-in-studio style="margin-top:6px">
               ${t("tools.useInStudio")}
@@ -2511,6 +2535,7 @@ function toolsPage() {
             <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
             <button class="chip" type="button" data-send-to="compressor" data-send-from="collage">${t("tools.compressor.h2")}</button>
             <button class="chip" type="button" data-send-to="checker" data-send-from="collage">${t("tools.checker.h2")}</button>
+            <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="collage">${t("tools.sendToAdpilot")}</button>
           </div>
         ` : `
           <div class="collage-upload-grid">
@@ -2549,6 +2574,7 @@ function toolsPage() {
             <button class="chip" type="button" data-send-to="resizer" data-send-from="watermark">${t("tools.resizer.h2")}</button>
             <button class="chip" type="button" data-send-to="compressor" data-send-from="watermark">${t("tools.compressor.h2")}</button>
             <button class="chip" type="button" data-send-to="checker" data-send-from="watermark">${t("tools.checker.h2")}</button>
+            <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="watermark">${t("tools.sendToAdpilot")}</button>
           </div>
           <button class="button secondary block" type="button" data-wm-reset style="margin-top:8px">${t("tools.watermark.again")}</button>
         ` : state.watermarkPreview ? `
@@ -2642,6 +2668,7 @@ function toolsPage() {
               <button class="chip" type="button" data-send-to="resizer" data-send-from="promo">${t("tools.resizer.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="promo">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="promo">${t("tools.checker.h2")}</button>
+              <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="promo">${t("tools.sendToAdpilot")}</button>
             </div>` : ""}
           </div>
         ` : `
@@ -2680,6 +2707,7 @@ function toolsPage() {
               <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
               <button class="chip" type="button" data-send-to="compressor" data-send-from="resizer">${t("tools.compressor.h2")}</button>
               <button class="chip" type="button" data-send-to="checker" data-send-from="resizer">${t("tools.checker.h2")}</button>
+              <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="resizer">${t("tools.sendToAdpilot")}</button>
             </div>
           </div>
         ` : `
@@ -3016,8 +3044,26 @@ function bind() {
     else if (from === "watermark") src = state.watermarkResult;
     else if (from === "promo") src = state.promoResult;
     else if (from === "compressor") src = state.compressorResult;
-    if (src) sendToTool(el.dataset.sendTo, src);
+    if (!src) return;
+    if (el.dataset.sendTo === "adpilot") {
+      state.adpilotContextImage = src;
+      state.contentToolSlug = null;
+      navigate("adpilot");
+      toast(t("adpilotLink.toast"));
+    } else {
+      sendToTool(el.dataset.sendTo, src);
+    }
   }));
+  document.querySelectorAll("[data-quick-adpilot]").forEach(el => el.addEventListener("click", () => {
+    const product = document.querySelector("#adpilot-quick-product")?.value || "";
+    quickGenerateAdPilot(el.dataset.quickAdpilot, product);
+  }));
+  document.querySelector("#adpilot-quick-product")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const product = e.target.value;
+      quickGenerateAdPilot("ozon-wb-card", product);
+    }
+  });
   document.querySelector("[data-checker-input]")?.addEventListener("change", e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -3968,6 +4014,45 @@ function buildPromptFromHelper() {
   state.formDraft.style_hint = styleHint;
   state.formDraft.offer_text = values.offer_text || "";
   toast(t("toast.promptBuilt"));
+}
+
+async function quickGenerateAdPilot(toolSlug, product) {
+  if (!state.user) { state.authMode = "register"; render(); return; }
+  if (!product.trim()) {
+    document.querySelector("#adpilot-quick-product")?.focus();
+    return;
+  }
+  state.contentDraft = { ...state.contentDraft, product: product.trim() };
+  state.contentToolSlug = toolSlug;
+  state.contentOutput = "";
+  state.contentNotice = "";
+  state.contentGenerating = true;
+  render({ motion: false });
+  try {
+    const tool = currentContentTool();
+    const cost = contentTokenCost(tool);
+    if (state.user.tokens < cost) { toast(t("toast.requestFailed")); return; }
+    const result = await api("/content/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        tool_slug: toolSlug,
+        input: { product: product.trim() },
+        profile: state.contentProfile,
+        output_language: state.contentOutputLanguage,
+      }),
+    });
+    state.contentOutput = result.output || "";
+    state.contentVariations = [result.output, ...state.contentVariations].filter(Boolean).slice(0, 3);
+    state.contentMeta = result;
+    state.contentNotice = result.warning || t("copy.done");
+    await loadUser();
+    toast(t("copy.done"));
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    state.contentGenerating = false;
+    render({ motion: false });
+  }
 }
 
 function goToAdPilotWithContext() {

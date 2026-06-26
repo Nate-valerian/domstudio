@@ -500,10 +500,18 @@ h1 em { color: var(--gold); font-style: normal; }
 
 /* ── AdPilot landing ───────────────────────────────────────────────────────── */
 .adpilot-landing { padding: 40px 32px; }
-.adpilot-landing-head { margin-bottom: 36px; }
-.adpilot-landing-head h1 { font-size: clamp(26px, 3vw, 40px); margin: 6px 0 10px; }
+.adpilot-landing-head { margin-bottom: 28px; }
+.adpilot-landing-head h1 { font-size: clamp(24px, 3vw, 36px); margin: 6px 0 8px; }
 .adpilot-landing-head p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0; }
+.adpilot-quick-start { background: var(--surface,#faf9f7); border: 1px solid var(--line); border-radius: 18px; padding: 24px; margin-bottom: 28px; max-width: 600px; }
+.adpilot-quick-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.adpilot-quick-input { width: 100%; margin-bottom: 14px; font-size: 15px; }
+.adpilot-quick-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.adpilot-quick-btn { justify-content: center; font-size: 14px; padding: 12px 10px; }
+.adpilot-or-browse { display: flex; align-items: center; gap: 12px; margin: 28px 0 20px; color: var(--muted); font-size: 13px; }
+.adpilot-or-browse::before, .adpilot-or-browse::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .adpilot-cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.chip-adpilot { background: var(--gold-soft, #f7f0e0); color: var(--gold, #b8860b); font-weight: 700; border-color: var(--gold-soft, #f0e4c4); }
 .adpilot-cat-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
   padding: 18px 16px; border: 1px solid var(--line); border-radius: 16px;
