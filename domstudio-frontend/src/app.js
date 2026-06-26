@@ -2027,7 +2027,8 @@ function copyStudioPage() {
   if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
-  const canGenerate = state.online && !state.contentGenerating && (state.user?.tokens ?? 0) >= cost;
+  const canGenerate = state.online && !state.contentGenerating &&
+    (state.user ? state.user.tokens >= cost : getAnonAdpilotCount() < ANON_ADPILOT_LIMIT);
   const outputTitle = contentOutputTitle(tool);
   const wizardFields = getWizardFields(tool);
   const wizardStep = Math.min(state.contentWizardStep, wizardFields.length - 1);
@@ -2103,9 +2104,6 @@ function copyStudioPage() {
       </section>
     </main>`;
   }
-
-  // Tool form requires login
-  if (!state.user) return gatePage();
 
   return `<main class="app-layout">
     ${appSidebar("adpilot")}
@@ -2194,9 +2192,11 @@ function copyStudioPage() {
             </div>
           </div>
           ${state.contentFormMode !== "wizard" ? `<button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>` : ""}
-          ${state.user.tokens < cost
-            ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
-            : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`}
+          ${state.user
+            ? (state.user.tokens < cost
+              ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
+              : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`)
+            : `<p class="token-hint">${t("adpilot.anonRemaining", { n: ANON_ADPILOT_LIMIT - getAnonAdpilotCount() })}</p>`}
         </form>
         <section class="panel copy-output-panel" aria-label="${outputTitle}">
           <div class="output-panel-head">
@@ -4758,18 +4758,47 @@ async function marketplaceActionCommand(actionId, command) {
 
 async function submitCopyGeneration(event) {
   event.preventDefault();
-  if (!state.user) {
-    state.authMode = "register";
-    render();
-    return;
-  }
   if (state.contentFormMode !== "wizard") syncContentFromForm(event.currentTarget);
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
-  if (state.user.tokens < cost) {
-    toast(t("toast.requestFailed"));
+
+  // Anonymous path — public endpoint, no tokens needed
+  if (!state.user) {
+    if (getAnonAdpilotCount() >= ANON_ADPILOT_LIMIT) {
+      state.authMode = "register";
+      render();
+      return;
+    }
+    state.contentGenerating = true;
+    state.contentNotice = "";
+    render({ motion: false });
+    try {
+      const result = await api("/content/generate/public", {
+        method: "POST",
+        body: JSON.stringify({
+          tool_slug: tool.slug,
+          input: { ...state.contentDraft },
+          profile: {},
+          output_language: state.contentOutputLanguage,
+        }),
+      });
+      incAnonAdpilotCount();
+      state.contentOutput = result.output || "";
+      state.contentVariations = [result.output].filter(Boolean);
+      state.contentMeta = result;
+      state.contentNotice = t("copy.done");
+      toast(t("copy.done"));
+    } catch (error) {
+      toast(error.message);
+    } finally {
+      state.contentGenerating = false;
+      render({ motion: false });
+    }
     return;
   }
+
+  // Logged-in path
+  if (state.user.tokens < cost) { toast(t("toast.requestFailed")); return; }
   state.contentGenerating = true;
   state.contentNotice = "";
   render({ motion: false });
