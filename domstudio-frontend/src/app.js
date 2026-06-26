@@ -526,7 +526,7 @@ const state = {
   adpilotContextImage: null,
   contentDraft: { ...initialContentDefaults.draft },
   contentProfile: { ...initialContentDefaults.profile },
-  contentOutputLanguage: initialLang === "ru" ? "russian" : "english",
+  contentOutputLanguage: "russian",
   contentOutput: "",
   contentVariations: [],
   contentMeta: null,
@@ -774,6 +774,18 @@ function escapeHtml(value) {
     "\"": "&quot;",
     "'": "&#39;",
   })[char]);
+}
+
+function renderMarkdown(raw) {
+  let s = escapeHtml(raw);
+  s = s.replace(/^### (.+)$/gm, '<b class="md-h3">$1</b>');
+  s = s.replace(/^## (.+)$/gm, '<b class="md-h2">$1</b>');
+  s = s.replace(/^# (.+)$/gm, '<b class="md-h1">$1</b>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/^--+$/gm, '<hr class="md-hr">');
+  s = s.replace(/\n/g, '<br>');
+  return s;
 }
 
 function draftValue(name) {
@@ -2174,7 +2186,7 @@ function copyStudioPage() {
             </div>
           ` : ""}
           ${state.contentOutput
-            ? `<pre>${escapeHtml(state.contentOutput)}</pre>`
+            ? `<div class="copy-output-rendered">${renderMarkdown(state.contentOutput)}</div>`
             : `<div class="copy-output-empty">
                 <pre class="copy-output-ghost" aria-hidden="true">${escapeHtml(TOOL_EXAMPLE_OUTPUT[tool.category] || TOOL_EXAMPLE_OUTPUT.Avito)}</pre>
                 <div class="copy-output-empty-overlay">
