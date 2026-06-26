@@ -1,5 +1,82 @@
 # DomStudio Archive
 
+## June 26, 2026 — Session 5: AdPilot — wizard UX, markdown render, public access
+
+### Changes committed: `7e0e22e`, `5a19435`, `553d1a0`, `e65bea8`
+
+Files: `domstudio-frontend/src/app.js`, `domstudio-frontend/src/styles.css`, `domstudio-backend/routers/content.py`
+
+**AdPilot quick-start (7e0e22e)**
+- Product name field + 4 action buttons on landing (no form to fill)
+- "AdPilot →" chip added to all 5 tool result rows (removebg, collage, watermark, badge, resizer)
+- Studio → AdPilot and Tools → AdPilot context flows: passes image via `state.adpilotContextImage`
+
+**Public anonymous access (5a19435)**
+- Backend: `/content/generate/public` endpoint, in-memory IP rate limit 10/day (`ANON_ADPILOT_LIMIT` env var)
+- Frontend: localStorage counter (`domstudio_adpilot_anon`), limit 5 client-side, upsell banner after limit
+- Anonymous users call `/content/generate/public` (no token deduction); logged-in users use `/content/generate`
+
+**Markdown rendering + Russian default (553d1a0)**
+- Output language always defaults to Russian (was based on browser locale)
+- `renderMarkdown()` function: `###` → bold heading, `**text**` → `<strong>`, `--` → `<hr>`; safe (escapeHtml first)
+- Output panel changed from `<pre>` to `<div class="copy-output-rendered">` with CSS styles
+
+**Wizard UX + empty form (e65bea8)**
+- Form starts empty (no "Pilot Auto / brake pads" demo data)
+- Wizard mode (default): 2 questions one at a time — "Что продаёте?" → "Главные преимущества?" → generate
+- Single-step for reply tools (`reviewText`, `customerQuestion` as first field)
+- "Все поля" toggles to full form; "Быстрый режим" returns to wizard
+- Context image (from Studio/Tools): 44px → 88px desktop, 64px mobile
+
+**DeepSeek env vars needed in Amvera** (not yet deployed):
+- `TEXT_AI_BASE_URL=https://api.deepseek.com/v1`
+- `TEXT_AI_API_KEY=<key>`
+- `TEXT_AI_MODEL=deepseek-chat`
+
+---
+
+## June 26, 2026 — Session 4: Full Russian localization of frontend
+
+### Changes committed: `0719deb`
+
+Files: `domstudio-frontend/src/app.js`, `domstudio-frontend/src/i18n.js`
+
+- **STYLE_TEMPLATES** (app.js labels + i18n.js RU keys): Чистый каталог, Ювелирный, Косметика, С моделью, Минимал бежевый, Тёмная роскошь, Для соцсетей
+- **VARIATIONS**: Чище, Премиальнее, Ярче, Другой фон, Ближе к товару, Реалистичнее
+- **EXPORT_SIZES**: Оригинал, Квадрат 1080, Квадрат 2000, Пост 4:5, Портрет 3:4, Story 9:16, Story 9:16 кроп, Баннер 16:9, Баннер 16:9 кроп, Горизонталь 4:3
+- **PACK_FORMATS**: VK пост, Telegram пост, Story, Story кроп, Баннер кроп, WebP квадрат (brand names Wildberries/Ozon/Yandex/Avito kept)
+- **MARKETPLACE_PRESETS**: "Website Banner" → "Баннер для сайта"
+- **EXAMPLE_IMAGES**: all mode/product/title fields translated; Lifestyle, Stories kept English as genre terms
+- Words intentionally kept in English: Lifestyle, Stories, Story, AI, WebP, brand names (WB, Ozon, Yandex, Avito, VK, Telegram), aspect ratios
+
+### i18n.js architecture note
+
+- RU locale uses `T.ru` keys; EN locale uses `T.en`; app.js `.label` fields are fallbacks (shown only if `t()` returns falsy, which is rare)
+- `CONTENT_TOOLS_FALLBACK` and `CONTENT_FIELD_LABELS` in app.js: fallbacks only — i18n.js handles display via `copy.tool.*` and `copy.field.*` keys
+- `PAGE_TITLES` constant in app.js: dead code — browser tab title set via `t("title.${route}")`
+
+---
+
+## June 26, 2026 — Session 3: Catalog mode AI generation fix
+
+### catalog_birefnet.json rewritten (12-node workflow)
+
+Old: 3-node workflow — LoadImage → BiRefNetRMBG → SaveImage (no AI, near-identical output)
+New: BiRefNet background removal → Qwen image generation pipeline
+
+- Node 2 (BiRefNetRMBG) outputs clean white-bg cutout
+- Node 7 (TextEncodeQwenImageEdit) receives the cutout as input image
+- Prompt: hardcoded catalog directive in comfy_client.py (no user prompt expansion for catalog mode)
+- Output: proper AI-generated catalog photo, not just a background-erased image
+
+### comfy_client.py changes
+
+- Added `"catalog"` to `MODE_PROMPT_DIRECTIVES`
+- `generate_image_with_comfy()`: catalog+image → fixed catalog prompt, no `expand_prompt_for_qwen()`
+- Removed `_composite_on_white` post-processing for catalog (Qwen outputs RGB)
+
+---
+
 ## June 26, 2026 — Session 2: ngrok tunnel + BiRefNet fix, generation confirmed working
 
 ### Tunnel: switched from localhost.run to ngrok (stable)
