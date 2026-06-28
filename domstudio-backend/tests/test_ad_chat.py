@@ -41,6 +41,14 @@ class AdChatRouterTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
+    def test_system_prompt_includes_domstudio_capabilities(self):
+        prompt = ad_chat._system_prompt("en", "leather boots")
+
+        self.assertIn("DomStudio capabilities", prompt)
+        self.assertIn("Studio creates AI product photos", prompt)
+        self.assertIn("Quick Tools include background removal", prompt)
+        self.assertIn("members get higher AdPilot AI chat limits", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()
