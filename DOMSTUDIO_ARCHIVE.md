@@ -1,5 +1,99 @@
 # DomStudio Archive
 
+## June 28, 2026 - Footer, Tech Dolphin mark, contact page, domain config
+
+Commits:
+- `60e341d` - `Update domain config and footer links`
+- `abfae87` - `Add Tech Dolphin footer mark`
+- `e1ca47e` - `Add contact page and form endpoint`
+
+Push status before this archive note:
+- Feature work had been pushed; `HEAD` and `origin/main` both pointed at `e1ca47e`.
+- Working tree had only untracked temporary preview screenshots in `temp-preview/`; source changes were committed.
+
+### Footer links and company mark
+
+Footer now has four action cards at the end of pages:
+- Help
+- Contact us
+- Careers
+- Partnership
+
+Top nav was intentionally left unchanged so product navigation stays focused.
+
+Footer brand block now shows:
+- `DomStudio`
+- `AI-фотостудия для бизнеса · 2026` / `AI photo studio for business · 2026`
+- Russian: `DomStudio — продукт [tiny dolphin logo] Tech Dolphin`
+- English: `DomStudio is a product of [tiny dolphin logo] Tech Dolphin`
+
+Tech Dolphin logo asset:
+- `domstudio-frontend/src/assets/tech-dolphin-logo.png`
+- Rendered as a tiny circular mark in the footer line, not as a full parent-brand takeover.
+
+### Contact page flow
+
+Footer cards no longer open `mailto:`. They route inside the app:
+- `Help` -> `#contact?reason=help`
+- `Contact us` -> `#contact?reason=contact`
+- `Careers` -> `#contact?reason=careers`
+- `Partnership` -> `#contact?reason=partners`
+
+New contact page includes:
+- Email input
+- Reason dropdown preselected from clicked footer card
+- Message textarea
+- Send button
+- Success/error notice
+
+Frontend files:
+- `domstudio-frontend/src/app.js`
+  - Added `CONTACT_REASONS`
+  - Added `routeFromHash()` and `contactReasonFromHash()` so `#contact?reason=...` works
+  - Added contact-page state fields
+  - Added `contactPage()`
+  - Footer cards now use `data-contact-reason`
+  - Added `openContact()` and `submitContact()`
+- `domstudio-frontend/src/i18n.js`
+  - Added RU/EN contact-page copy
+  - Added `title.contact`
+  - Added RU/EN Tech Dolphin product-line prefix
+- `domstudio-frontend/src/styles.css`
+  - Added contact-page layout
+  - Styled footer cards as buttons
+  - Mobile contact page fits above bottom tab bar
+
+Backend files:
+- `domstudio-backend/routers/contact.py`
+  - New public `POST /contact`
+  - Accepts `email`, `reason`, `message`
+  - Valid reasons: `help`, `contact`, `careers`, `partners`
+  - Sends through Resend when `RESEND_API_KEY` is configured
+  - Logs to console if Resend key is missing, matching existing OTP fallback behavior
+- `domstudio-backend/main.py`
+  - Registers contact router at `/contact`
+- `domstudio-backend/.env.example`
+  - Added `CONTACT_TO_EMAIL=hello@domstudio.site`
+- `domstudio-backend/tests/test_contact.py`
+  - Covers valid payload and short-message rejection
+
+Validation:
+- `npm.cmd run build` passed.
+- `python -m py_compile routers/contact.py main.py` passed from `domstudio-backend`.
+- `python -m unittest tests/test_contact.py -v` passed.
+- Browser smoke: clicking footer `Partnership` on mobile landed at `#contact?reason=partners`, heading rendered, dropdown value was `partners`.
+
+Preview screenshots generated during QA, intentionally untracked:
+- `temp-preview/contact-page-desktop.png`
+- `temp-preview/contact-page-mobile.png`
+- footer preview screenshots from Tech Dolphin footer iterations
+
+Operational note:
+- In production Amvera, set `CONTACT_TO_EMAIL` if messages should go somewhere other than `hello@domstudio.site`.
+- Existing Resend sender config (`RESEND_API_KEY`, `EMAIL_FROM`) is reused.
+
+---
+
 ## June 28, 2026 - Custom domain CORS / Amvera URL check
 
 User noticed Amvera env/info still pointed at Vercel while the site is live at `http://domstudio.site/#home`.
