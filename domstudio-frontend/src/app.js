@@ -243,6 +243,13 @@ const TOKEN_PACKS = [
   { pack_id: "pack_5000", tokens: 5000, price_rub: 699, label: "5 000 токенов" },
 ];
 
+const CONTACT_REASONS = [
+  { id: "help", labelKey: "footer.help", subKey: "footer.helpSub" },
+  { id: "contact", labelKey: "footer.contact", subKey: "footer.contactSub" },
+  { id: "careers", labelKey: "footer.careers", subKey: "footer.careersSub" },
+  { id: "partners", labelKey: "footer.partners", subKey: "footer.partnersSub" },
+];
+
 const CONTENT_TOOLS_FALLBACK = [
   { slug: "beauty-service-ad", name: "Beauty Service Ad", category: "Beauty", cost_units: 1, fields: ["product", "price", "city", "duration", "advantages", "offer"] },
   { slug: "master-bio", name: "Master Bio", category: "Beauty", cost_units: 1, fields: ["masterName", "product", "city", "advantages", "offer"] },
@@ -482,7 +489,7 @@ const initialContentDefaults = defaultsForLang(initialLang);
 const initialRemoveBgResult = sessionStorage.getItem("domstudio_removebg_result") || null;
 
 const state = {
-  route: location.hash.slice(1) || "home",
+  route: routeFromHash(),
   lang: initialLang,
   accessToken: initialTokens.accessToken,
   refreshToken: initialTokens.refreshToken,
@@ -576,6 +583,10 @@ const state = {
   contentSavingDraft: false,
   contentAdjustInstruction: "",
   contentSavedOutputs: JSON.parse(localStorage.getItem("domstudio_saved_outputs") || "[]"),
+  contactDraft: { email: "", reason: contactReasonFromHash() || "contact", message: "" },
+  contactSending: false,
+  contactSent: false,
+  contactError: "",
   referral: null,
   pendingReferralCode: null,
   marketplaceProviders: [],
@@ -626,6 +637,17 @@ const state = {
 const app = document.querySelector("#app");
 let lastMotionKey = "";
 let videoPollTimer = null;
+
+function routeFromHash() {
+  return (location.hash.slice(1).split("?")[0] || "home").trim() || "home";
+}
+
+function contactReasonFromHash() {
+  const raw = location.hash.slice(1);
+  const query = raw.includes("?") ? raw.slice(raw.indexOf("?") + 1) : "";
+  const reason = new URLSearchParams(query).get("reason");
+  return CONTACT_REASONS.some((item) => item.id === reason) ? reason : null;
+}
 
 function navigate(route) {
   state.navMenuOpen = false;
@@ -1368,12 +1390,6 @@ function mobileTabBar() {
 }
 
 function footer() {
-  const links = [
-    ["help", "mailto:hello@domstudio.site?subject=DomStudio%20Help"],
-    ["contact", "mailto:hello@domstudio.site?subject=Contact%20DomStudio"],
-    ["careers", "mailto:hello@domstudio.site?subject=DomStudio%20Careers"],
-    ["partners", "mailto:hello@domstudio.site?subject=DomStudio%20Partnership"],
-  ];
   return `<footer class="footer">
     <div class="footer-brand">
       <b>DomStudio</b>
@@ -1381,11 +1397,11 @@ function footer() {
       <span class="footer-product-line">${t("footer.productPrefix")} <span class="footer-dolphin-mark"><img src="${techDolphinLogoUrl}" alt="" /></span> Tech Dolphin</span>
     </div>
     <div class="footer-links">
-      ${links.map(([key, href]) => `
-        <a class="footer-link" href="${href}">
-          <strong>${t(`footer.${key}`)}</strong>
-          <span>${t(`footer.${key}Sub`)}</span>
-        </a>
+      ${CONTACT_REASONS.map((item) => `
+        <button class="footer-link" type="button" data-contact-reason="${item.id}">
+          <strong>${t(item.labelKey)}</strong>
+          <span>${t(item.subKey)}</span>
+        </button>
       `).join("")}
     </div>
   </footer>`;
@@ -2923,6 +2939,47 @@ function toolsPage() {
   </div>`;
 }
 
+function contactPage() {
+  const emailValue = state.contactDraft.email || state.user?.email || "";
+  const selected = CONTACT_REASONS.some((item) => item.id === state.contactDraft.reason) ? state.contactDraft.reason : "contact";
+  const selectedReason = CONTACT_REASONS.find((item) => item.id === selected) || CONTACT_REASONS[1];
+
+  return `
+    <main class="page contact-page">
+      <section class="contact-section">
+        <div class="contact-copy">
+          <div class="eyebrow">${t("contact.eyebrow")}</div>
+          <h1>${t("contact.h1")}</h1>
+          <p>${t("contact.p")}</p>
+          <div class="contact-reason-preview">
+            <strong>${t(selectedReason.labelKey)}</strong>
+            <span>${t(selectedReason.subKey)}</span>
+          </div>
+        </div>
+        <form class="panel contact-form" id="contact-form">
+          ${state.contactSent ? `<div class="notice">${t("contact.success")}</div>` : ""}
+          ${state.contactError ? `<div class="notice error">${escapeHtml(state.contactError)}</div>` : ""}
+          <div class="field">
+            <label for="contact-email">${t("contact.email")}</label>
+            <input class="input" id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@brand.com" value="${escapeHtml(emailValue)}" />
+          </div>
+          <div class="field">
+            <label for="contact-reason">${t("contact.reason")}</label>
+            <select class="select" id="contact-reason" name="reason">
+              ${CONTACT_REASONS.map((item) => `<option value="${item.id}" ${item.id === selected ? "selected" : ""}>${t(item.labelKey)}</option>`).join("")}
+            </select>
+            <small>${t(selectedReason.subKey)}</small>
+          </div>
+          <div class="field">
+            <label for="contact-message">${t("contact.message")}</label>
+            <textarea class="textarea contact-textarea" id="contact-message" name="message" required minlength="10" maxlength="4000" placeholder="${t("contact.placeholder")}">${escapeHtml(state.contactDraft.message)}</textarea>
+          </div>
+          <button class="button gold block" type="submit" ${state.contactSending ? "disabled" : ""}>${state.contactSending ? t("contact.sending") : t("contact.send")}</button>
+        </form>
+      </section>
+    </main>`;
+}
+
 if (typeof window !== "undefined") { window.__state = state; window.__render = render; }
 function render(options = {}) {
   const page = state.route === "studio" ? studioPage()
@@ -2932,6 +2989,7 @@ function render(options = {}) {
     : state.route === "account" ? accountPage()
     : state.route === "history" ? historyPage()
     : state.route === "tools" ? toolsPage()
+    : state.route === "contact" ? contactPage()
     : homePage();
   document.title = t(`title.${state.route}`) || t("title.home");
   const motionKey = `${state.route}:${state.authMode || "none"}`;
@@ -2982,6 +3040,7 @@ function bind() {
     if (el.dataset.route === "adpilot") { state.adpilotView = "tools"; state.marketplaceTab = "drafts"; }
     navigate(el.dataset.route);
   }));
+  document.querySelectorAll("[data-contact-reason]").forEach(el => el.addEventListener("click", () => openContact(el.dataset.contactReason)));
   document.querySelectorAll("[data-toggle-presets]").forEach(el => el.addEventListener("click", togglePresetsMenu));
   document.querySelectorAll("[data-toggle-menu]").forEach(el => el.addEventListener("click", toggleNavMenu));
   document.querySelectorAll("[data-preset-route]").forEach(el => el.addEventListener("click", () => {
@@ -3015,6 +3074,16 @@ function bind() {
   document.querySelector("#verify-form")?.addEventListener("submit", submitVerification);
   document.querySelector("#forgot-form")?.addEventListener("submit", submitForgotPassword);
   document.querySelector("#reset-form")?.addEventListener("submit", submitResetPassword);
+  document.querySelector("#contact-form")?.addEventListener("submit", submitContact);
+  document.querySelector("#contact-reason")?.addEventListener("change", (event) => {
+    const form = event.target.closest("form");
+    state.contactDraft.reason = event.target.value;
+    state.contactDraft.email = form?.elements.email?.value || state.contactDraft.email;
+    state.contactDraft.message = form?.elements.message?.value || state.contactDraft.message;
+    state.contactSent = false;
+    state.contactError = "";
+    render({ motion: false });
+  });
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
   document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
   document.querySelector("#copy-form")?.addEventListener("input", event => {
@@ -4391,6 +4460,17 @@ async function removeHistoryItem(id) {
   }
 }
 
+function openContact(reason = "contact") {
+  const selected = CONTACT_REASONS.some((item) => item.id === reason) ? reason : "contact";
+  state.contactDraft.reason = selected;
+  state.contactSent = false;
+  state.contactError = "";
+  state.navMenuOpen = false;
+  state.presetsOpen = false;
+  location.hash = `contact?reason=${selected}`;
+  if (state.route === "contact") render({ motion: false });
+}
+
 async function submitAuth(event) {
   event.preventDefault();
   const body = Object.fromEntries(new FormData(event.currentTarget));
@@ -4472,6 +4552,34 @@ async function submitVerification(event) {
     toast(error.message);
     state.authLoading = false;
     render();
+  }
+}
+
+async function submitContact(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const body = {
+    email: String(form.get("email") || "").trim(),
+    reason: String(form.get("reason") || "contact"),
+    message: String(form.get("message") || "").trim(),
+  };
+  state.contactDraft = body;
+  state.contactSending = true;
+  state.contactSent = false;
+  state.contactError = "";
+  render({ motion: false });
+  try {
+    await api("/contact", { method: "POST", body: JSON.stringify(body) });
+    state.contactSending = false;
+    state.contactSent = true;
+    state.contactDraft = { ...body, message: "" };
+    toast(t("contact.success"));
+  } catch (error) {
+    state.contactSending = false;
+    state.contactError = error.message;
+    toast(error.message);
+  } finally {
+    render({ motion: false });
   }
 }
 
@@ -5156,7 +5264,12 @@ function registerServiceWorker() {
 }
 
 window.addEventListener("hashchange", () => {
-  state.route = location.hash.slice(1) || "home";
+  state.route = routeFromHash();
+  if (state.route === "contact") {
+    state.contactDraft.reason = contactReasonFromHash() || state.contactDraft.reason || "contact";
+    state.contactSent = false;
+    state.contactError = "";
+  }
   state.navMenuOpen = false;
   state.presetsOpen = false;
   if (state.route === "adpilot" && state.user && !state.marketplaceLoaded) {
