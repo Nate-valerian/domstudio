@@ -2190,13 +2190,13 @@ function copyStudioPage() {
             placeholder="${t("adpilot.quickProductPlaceholder")}"
             value="${escapeHtml(state.contentDraft.product || "")}" />
           <div class="adpilot-quick-btns">
+            <button class="button adpilot-quick-btn adpilot-quick-chat" type="button" data-adpilot-chat>${t("adpilot.quickChat")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="ozon-wb-card">${t("adpilot.quickCard")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-ad">${t("adpilot.quickAvito")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="vk-post">${t("adpilot.quickSocial")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-reply">${t("adpilot.quickReply")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="yandex-ads">${t("adpilot.quickYandex")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="product-description">${t("adpilot.quickDesc")}</button>
-            <button class="button adpilot-quick-btn adpilot-quick-chat" type="button" data-adpilot-chat>${t("adpilot.quickChat")}</button>
           </div>
         </div>
         <figure class="adpilot-visual">
