@@ -1067,6 +1067,12 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .footer-brand { display: grid; align-content: start; gap: 7px; }
 .footer-brand b { color: var(--ink); font: 800 18px "Unbounded", sans-serif; }
+.footer-product-line { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.footer-dolphin-mark {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; overflow: hidden;
+  border-radius: 50%; background: #071316; box-shadow: 0 0 0 1px rgba(192,135,10,.18);
+}
+.footer-dolphin-mark img { width: 22px; height: 22px; object-fit: cover; object-position: 50% 44%; }
 .footer-links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .footer-link {
   display: grid; gap: 5px; min-height: 92px; padding: 14px;

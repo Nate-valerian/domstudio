@@ -34,6 +34,7 @@ import landingWineAfterUrl from "./assets/landing/wine-after-smoke.png";
 import landingWineVideoUrl from "./assets/landing/wine-after-smoke-5s.mp4";
 import adpilotPremiumFlowPosterUrl from "./assets/adpilot-premium-flow.webp";
 import adpilotPremiumFlowVideoUrl from "./assets/adpilot-premium-flow.mp4";
+import techDolphinLogoUrl from "./assets/tech-dolphin-logo.png";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
@@ -1377,6 +1378,7 @@ function footer() {
     <div class="footer-brand">
       <b>DomStudio</b>
       <span>${t("footer.tagline")}</span>
+      <span class="footer-product-line">${t("footer.productPrefix")} <span class="footer-dolphin-mark"><img src="${techDolphinLogoUrl}" alt="" /></span> Tech Dolphin</span>
     </div>
     <div class="footer-links">
       ${links.map(([key, href]) => `

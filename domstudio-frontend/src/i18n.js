@@ -60,6 +60,7 @@ const T = {
     "nav.tokens": "{n} токенов",
     // footer
     "footer.tagline": "AI-фотостудия для бизнеса · 2026",
+    "footer.productPrefix": "DomStudio — продукт",
     "footer.help": "Помощь",
     "footer.helpSub": "Проблема с сайтом или вопрос по работе сервиса.",
     "footer.contact": "Связаться",
@@ -832,6 +833,7 @@ const T = {
     "nav.tokens": "{n} tokens",
     // footer
     "footer.tagline": "AI photo studio for business · 2026",
+    "footer.productPrefix": "DomStudio is a product of",
     "footer.help": "Help",
     "footer.helpSub": "Site issue or a question about using the service.",
     "footer.contact": "Contact us",
