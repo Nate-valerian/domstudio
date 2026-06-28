@@ -8,6 +8,8 @@ import subprocess
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from cors_config import effective_cors_origins, env_cors_origins
+
 
 BASE_DIR = Path(__file__).resolve().parent
 REPO_DIR = BASE_DIR.parent
@@ -119,7 +121,8 @@ def runtime_version_payload() -> dict[str, object]:
             "worker_url_host": _safe_url_host(os.getenv("GENERATION_API_URL")),
         },
         "cors": {
-            "env_origins": _csv_values("CORS_ORIGINS"),
+            "env_origins": env_cors_origins(),
+            "effective_origins": effective_cors_origins(),
         },
         "comfy": {
             "url_host": _safe_url_host(os.getenv("COMFYUI_URL")),

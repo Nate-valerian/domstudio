@@ -27,6 +27,8 @@ class RuntimeInfoTests(unittest.TestCase):
         self.assertFalse(payload["comfy"]["api_key_present"])
         self.assertTrue(payload["integrations"]["database_url_present"])
         self.assertTrue(payload["integrations"]["deepseek_api_key_present"])
+        self.assertIn("http://domstudio.site", payload["cors"]["effective_origins"])
+        self.assertIn("https://domstudio.site", payload["cors"]["effective_origins"])
 
         serialized = str(payload)
         self.assertNotIn("secret-comfy-key", serialized)

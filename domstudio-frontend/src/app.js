@@ -564,6 +564,7 @@ const state = {
   contentDraft: Object.fromEntries(Object.keys(initialContentDefaults.draft).map((k) => [k, ""])),
   contentProfile: { ...Object.fromEntries(Object.keys(initialContentDefaults.profile).map((k) => [k, ""])), phone: "+7" },
   contentOutputLanguage: "russian",
+  contentOutputLanguageLocked: false,
   contentFormMode: "wizard",
   contentWizardStep: 0,
   contentOutput: "",
@@ -1366,7 +1367,26 @@ function mobileTabBar() {
 }
 
 function footer() {
-  return `<footer class="footer"><b>DomStudio</b><span>${t("footer.tagline")}</span></footer>`;
+  const links = [
+    ["help", "mailto:hello@domstudio.site?subject=DomStudio%20Help"],
+    ["contact", "mailto:hello@domstudio.site?subject=Contact%20DomStudio"],
+    ["careers", "mailto:hello@domstudio.site?subject=DomStudio%20Careers"],
+    ["partners", "mailto:hello@domstudio.site?subject=DomStudio%20Partnership"],
+  ];
+  return `<footer class="footer">
+    <div class="footer-brand">
+      <b>DomStudio</b>
+      <span>${t("footer.tagline")}</span>
+    </div>
+    <div class="footer-links">
+      ${links.map(([key, href]) => `
+        <a class="footer-link" href="${href}">
+          <strong>${t(`footer.${key}`)}</strong>
+          <span>${t(`footer.${key}Sub`)}</span>
+        </a>
+      `).join("")}
+    </div>
+  </footer>`;
 }
 
 function homePage() {
@@ -2039,6 +2059,8 @@ function copyStudioPage() {
   const isLastWizardStep = wizardStep >= wizardFields.length - 1;
   const currentWizardField = wizardFields[wizardStep];
   const wLang = state.contentOutputLanguage === "english" ? "en" : "ru";
+  const generateLabel = state.user ? t("copy.generate", { n: cost }) : t("copy.generateFree");
+  const costBadge = state.user ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : t("copy.freeTry");
 
   if (state.adpilotView === "marketplace") {
     return `<main class="app-layout">
@@ -2081,6 +2103,7 @@ function copyStudioPage() {
           <div class="eyebrow">${t("copy.eyebrow")}</div>
           <h1>${t("adpilot.landing.h1")}</h1>
           <p>${t("adpilot.landing.p")}</p>
+          ${!state.user ? `<span class="adpilot-free-note">${t("adpilot.anonRemaining", { n: Math.max(0, ANON_ADPILOT_LIMIT - getAnonAdpilotCount()) })}</span>` : ""}
         </div>
         <div class="adpilot-quick-start">
           <label class="adpilot-quick-label" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
@@ -2130,7 +2153,7 @@ function copyStudioPage() {
                 <h3>${escapeHtml(contentToolName(tool))}</h3>
                 <span class="copy-form-cat-label">${escapeHtml(tool.category)}</span>
               </div>
-              <span class="copy-form-cost-badge">${cost} ${t("studio.tokens", { n: "" }).trim()}</span>
+              <span class="copy-form-cost-badge">${costBadge}</span>
             </div>
             <p class="copy-form-intent">${escapeHtml(contentToolIntent(tool))}</p>
             <div class="copy-form-head-row">
@@ -2151,7 +2174,7 @@ function copyStudioPage() {
                 <div class="wizard-done">
                   <div class="wizard-done-body">
                     <span class="wizard-done-q">${escapeHtml(WIZARD_QUESTIONS[field]?.[wLang] || field)}</span>
-                    <span class="wizard-done-a">${escapeHtml(contentDraftValue(field) || "—")}</span>
+                    <span class="wizard-done-a">${contentDraftValue(field) || "—"}</span>
                   </div>
                   <button type="button" class="wizard-done-edit" data-wizard-edit="${i}">✎</button>
                 </div>
@@ -2159,16 +2182,16 @@ function copyStudioPage() {
               <div class="wizard-step">
                 <label class="wizard-q">${escapeHtml(WIZARD_QUESTIONS[currentWizardField]?.[wLang] || currentWizardField)}</label>
                 <textarea class="textarea wizard-ta" data-wizard-field="${currentWizardField}" rows="3"
-                  placeholder="${escapeHtml(WIZARD_PLACEHOLDERS[currentWizardField]?.[wLang] || "")}">${escapeHtml(contentDraftValue(currentWizardField))}</textarea>
+                  placeholder="${escapeHtml(WIZARD_PLACEHOLDERS[currentWizardField]?.[wLang] || "")}">${contentDraftValue(currentWizardField)}</textarea>
                 ${isLastWizardStep
-                  ? `<button type="button" class="button gold block wizard-generate" data-wizard-generate ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>`
-                  : `<button type="button" class="button primary block" data-wizard-next>Дальше →</button>`}
+                  ? `<button type="button" class="button gold block wizard-generate" data-wizard-generate ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : generateLabel}</button>`
+                  : `<button type="button" class="button primary block" data-wizard-next>${t("copy.wizardNext")}</button>`}
               </div>
-              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="full">Все поля</button>
+              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="full">${t("copy.allFields")}</button>
             </div>
           ` : `
             <div class="copy-fields">
-              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="wizard">← Быстрый режим</button>
+              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="wizard">${t("copy.quickMode")}</button>
               ${tool.fields.map((field) => `
                 <div class="field">
                   <label for="copy_${field}">${escapeHtml(contentFieldLabel(field))}</label>
@@ -2188,7 +2211,7 @@ function copyStudioPage() {
               `).join("")}
             </div>
           </div>
-          ${state.contentFormMode !== "wizard" ? `<button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : t("copy.generate", { n: cost })}</button>` : ""}
+          ${state.contentFormMode !== "wizard" ? `<button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : generateLabel}</button>` : ""}
           ${state.user
             ? (state.user.tokens < cost
               ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
@@ -3906,7 +3929,9 @@ function toggleLang() {
       : state.marketplaceConnectDraft.display_name,
   };
   state.lang = next;
-  state.contentOutputLanguage = next === "ru" ? "russian" : "english";
+  if (!state.contentOutputLanguageLocked) {
+    state.contentOutputLanguage = next === "ru" ? "russian" : "english";
+  }
   setLang(next);
   render();
 }
@@ -4161,6 +4186,7 @@ async function quickGenerateAdPilot(toolSlug, product) {
     state.contentVariations = [result.output, ...state.contentVariations].filter(Boolean).slice(0, 3);
     state.contentMeta = result;
     state.contentNotice = result.warning || t("copy.done");
+    if (isAnon) incAnonAdpilotCount();
     toast(t("copy.done"));
   } catch (error) {
     toast(error.message);
@@ -4580,7 +4606,8 @@ function selectContentTool(slug) {
 
 function selectContentLanguage(language) {
   syncContentFromForm(document.querySelector("#copy-form"));
-  state.contentOutputLanguage = language || "auto";
+  state.contentOutputLanguage = language || (state.lang === "ru" ? "russian" : "english");
+  state.contentOutputLanguageLocked = true;
   state.contentNotice = "";
   render({ motion: false });
 }
@@ -4777,6 +4804,7 @@ async function submitCopyGeneration(event) {
       state.contentVariations = [result.output].filter(Boolean);
       state.contentMeta = result;
       state.contentNotice = t("copy.done");
+      incAnonAdpilotCount();
       toast(t("copy.done"));
     } catch (error) {
       toast(error.message);

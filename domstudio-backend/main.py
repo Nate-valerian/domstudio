@@ -20,6 +20,7 @@ import os
 from database import engine, Base
 from routers import auth, content, generation, marketplaces, users, payments, subscriptions, tokens, tools
 from runtime_info import runtime_version_payload
+from cors_config import effective_cors_origins
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("domstudio")
@@ -55,28 +56,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-DEFAULT_CORS_ORIGINS = {
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "https://domstudio.vercel.app",
-    "https://domstudio.site",
-    "https://www.domstudio.site",
-}
-
-cors_origins = sorted(
-    DEFAULT_CORS_ORIGINS
-    | {
-        origin.strip()
-        for origin in os.getenv("CORS_ORIGINS", "").split(",")
-        if origin.strip()
-    }
-)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=effective_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

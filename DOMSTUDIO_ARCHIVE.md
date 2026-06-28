@@ -1,5 +1,72 @@
 # DomStudio Archive
 
+## June 28, 2026 - Custom domain CORS / Amvera URL check
+
+User noticed Amvera env/info still pointed at Vercel while the site is live at `http://domstudio.site/#home`.
+
+Findings:
+- CORS origin for `http://domstudio.site/#home` is `http://domstudio.site` (hash/path are not included in browser Origin).
+- Live API host is `https://domstudio1-nate.amvera.io`; `https://domstudio1.amvera.ru` does not resolve in DNS.
+- Live `/version` before fix showed `cors.env_origins=["https://domstudio.vercel.app"]`, which was misleading because backend default origins also allowed `https://domstudio.site`.
+- Live preflight passed for `Origin: https://domstudio.site`.
+- Live preflight failed for `Origin: http://domstudio.site` with `Disallowed CORS origin`.
+
+Code update:
+- Added shared `domstudio-backend/cors_config.py`.
+- `main.py` now uses `effective_cors_origins()` for middleware.
+- `runtime_info.py` now reports both raw `env_origins` and `effective_origins` in `/version`.
+- Effective defaults include both `http` and `https` for `domstudio.site` and `www.domstudio.site`.
+- `.env.example` updated to include both custom-domain schemes.
+
+Amvera env recommendation:
+- `API_URL=https://domstudio1-nate.amvera.io`
+- `FRONTEND_URL=http://domstudio.site` while the site is served over HTTP; switch to `https://domstudio.site` after SSL is active.
+- `CORS_ORIGINS=https://domstudio.vercel.app,http://domstudio.site,https://domstudio.site,http://www.domstudio.site,https://www.domstudio.site`
+
+Validation:
+- `python -m unittest tests/test_runtime_info.py -v` passed from `domstudio-backend`.
+- `python -m py_compile domstudio-backend/cors_config.py domstudio-backend/main.py domstudio-backend/runtime_info.py` passed.
+- Full backend suite still has unrelated pre-existing failures in generation/token/quota tests.
+
+---
+
+## June 26, 2026 - Session 7: Social before/after card assets
+
+Files/folders:
+- `domstudio-frontend/social/before-after-cards-v2/` - approved final card batch
+- `domstudio-frontend/social/generated-source/` - generated source before/after images for rings, earrings, watches
+- `domstudio-frontend/social/mode-cards/` and `before-after-cards/` - earlier drafts / superseded
+- `domstudio-frontend/social/domstudio-card-before-after-*.png` - first card-style tests
+- `domstudio-frontend/social/domstudio-instagram-*.png` - earlier Instagram concept tests
+
+**Approved visual direction**
+- User wanted cards like the in-app example: large "after" image as hero, small "before" inset overlay, orange after/Posle badge, slim bottom caption area.
+- Final approved batch is `before-after-cards-v2`; user said "perfect".
+- Use `before-after-cards-v2`, not the first `before-after-cards` batch.
+
+**Final six card assets**
+- `01-shoes-before-after-card-v2.png`
+- `02-clothes-before-after-card-v2.png`
+- `03-rings-before-after-card-v2.png`
+- `04-earrings-before-after-card-v2.png`
+- `05-watches-before-after-card-v2.png`
+- `06-bag-before-after-card-v2.png`
+- Preview sheet: `00-contact-sheet-v2.png`
+
+**What changed in v2**
+- Footer reduced and pushed lower; v1 footer was too tall/high and stole space from the real image.
+- Before inset reduced and moved so it does not cover too much of the after image.
+- Clothes card uses the real try-on/person image (`mode-fitting-real-v2.webp`), not a ghost mannequin/generated clothing image.
+- Larger media area: approx. 79% image / 21% footer.
+
+**Generated source pairings**
+- Rings: source `06 -> 2` in `generated-source` contact sheet.
+- Earrings: source `07 -> 3`.
+- Watches: source `08 -> 4`.
+- Existing app assets used for shoes, clothes, and bag.
+
+---
+
 ## June 26, 2026 — Session 6: Warm redesign, nav overhaul, alignment fixes
 
 Files: `domstudio-frontend/src/styles.css`, `domstudio-frontend/src/app.js`
@@ -5720,4 +5787,3 @@ Added a new **Tools** section to the app with the first quick tool: background r
 - CSS: `.tool-card`, `.removebg-upload` (dashed drop zone), `.removebg-canvas` (checkered transparency background), `.removebg-result`, `.removebg-actions`
 
 Commit: `60851c5`
-
