@@ -1,5 +1,158 @@
 # DomStudio Archive
 
+## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
+
+Commits:
+- `7782c77` - `Add AdPilot AI chat`
+- `e09a599` - `Move AdPilot AI chat button to top`
+- `70b1f3f` - `Teach AdPilot AI DomStudio capabilities`
+- `cdb5dde` - `Tighten mobile AdPilot chat layout`
+- `eea6e18` - `Reduce mobile AdPilot context spacing`
+- `b90d247` - `Show AdPilot chat first on mobile`
+
+### AdPilot AI chat
+
+AdPilot was renamed in visible navigation/copy to `AdPilot AI`.
+
+New chat flow:
+- The quick-action area has an `AI Chat` / `AI-чат` button.
+- On mobile, `AI Chat` is the first quick-action button.
+- Clicking it opens the AdPilot AI chat view.
+- Chat page includes a product/service context field, prompt chips, chat messages, textarea, and send button.
+- Mobile layout now shows the chat card first, then the product/context card below.
+- Large empty mobile chat space was removed; chat log uses a simple divider line above the input.
+
+Frontend files:
+- `domstudio-frontend/src/app.js`
+  - Added AdPilot chat state.
+  - Added `adPilotChatPage()`.
+  - Added `openAdPilotChat()` and `submitAdPilotChat()`.
+  - Sends chat messages to `POST /ad-chat`.
+- `domstudio-frontend/src/i18n.js`
+  - Added RU/EN copy for AdPilot AI chat.
+  - Updated AdPilot labels/title to `AdPilot AI`.
+- `domstudio-frontend/src/styles.css`
+  - Added chat layout.
+  - Added mobile-first ordering and spacing fixes.
+
+Backend files:
+- `domstudio-backend/routers/ad_chat.py`
+  - New public/member-aware `POST /ad-chat`.
+  - Uses existing OpenAI-compatible `TEXT_AI_*` config, intended for DeepSeek.
+  - Keeps DeepSeek/API key on backend only.
+  - Returns reply, provider, remaining limit, limit, and tier.
+- `domstudio-backend/main.py`
+  - Registers `ad_chat.router` at `/ad-chat`.
+- `domstudio-backend/tests/test_ad_chat.py`
+  - Covers valid payload, invalid empty messages, and DomStudio capability prompt.
+- `domstudio-backend/.env.example`
+  - Added tiered chat limits.
+
+Production env:
+```env
+TEXT_AI_BASE_URL=https://api.deepseek.com/v1
+TEXT_AI_API_KEY=<deepseek key>
+TEXT_AI_MODEL=deepseek-chat
+ADPILOT_CHAT_GUEST_DAILY_LIMIT=10
+ADPILOT_CHAT_FREE_USER_DAILY_LIMIT=30
+ADPILOT_CHAT_PAID_USER_DAILY_LIMIT=150
+ADPILOT_CHAT_MAX_MESSAGES=10
+ADPILOT_CHAT_MAX_TOKENS=900
+```
+
+Limit behavior:
+- Guest users are limited by IP.
+- Logged-in free members are limited by user id.
+- Paid members get the higher paid-user limit by user id.
+
+### DomStudio-aware AI behavior
+
+AdPilot AI system prompt now knows the app's real capabilities and may suggest them when useful:
+- Studio creates AI product photos from uploaded image or text prompt.
+- Studio supports marketplace/product modes, lifestyle, catalog, creative, fitting, stories, and video previews.
+- Marketplace presets cover WB, Ozon, Avito, Yandex, Stories, banners, and social posts.
+- Quick Tools include background removal, collage, watermark, promo badge, resizing, compression, and checks.
+- AdPilot AI writes/improves product cards, Avito listings, social posts, Yandex ads, product descriptions, buyer replies, review replies, landing copy, and similar business copy.
+- Users can send generated images from Studio or Tools into AdPilot for matching text.
+- Members get higher AdPilot AI chat limits than guests.
+- Contact page is for site problems, billing, careers, or partnership requests.
+
+Guardrail:
+- AI may suggest a DomStudio feature only when it helps the current user need.
+- AI should not over-promote DomStudio, invent unsupported capabilities, or promise human support inside chat.
+
+### Agent brainstorm for tomorrow
+
+Good direction: not one giant agent everywhere, but a contextual assistant that understands the user's selling goal and routes them to the right DomStudio action.
+
+Potential agent concepts:
+- `DomStudio Sales Agent`: asks 2-3 questions, recommends Studio/Tools/AdPilot flow, then prepares the next useful output.
+- `Product Launch Agent`: creates a launch pack with title, description, social post, buyer replies, photo direction, and suggested next action.
+- `Listing Doctor`: reviews existing listing/photo for title clarity, trust, buyer desire, missing details, weak photo, and platform fit.
+- `Smart Tool Router`: interprets messy user requests and sends them to Studio, Quick Tools, AdPilot AI, or Contact.
+- `Marketplace Coach`: adapts advice for Avito, WB/Ozon, socials, and Yandex Ads.
+- `Campaign Agent`: builds 7-day promo/content plans, ad angles, and seasonal ideas.
+- `Customer Reply Agent`: handles discount requests, negative reviews, delivery questions, objections, and hesitant buyers.
+
+Best first agent idea:
+- `AdPilot AI Agent: Launch Pack`
+- Lives inside AdPilot AI chat first.
+- User enters product/service.
+- Agent asks a few questions.
+- Agent returns practical output plus one suggested next action.
+- Later can expose action buttons such as `Create Avito listing`, `Open Studio`, `Make social post`, `Resize for WB/Ozon`.
+
+Architecture note:
+- Agent backend can reuse DeepSeek through `TEXT_AI_*`.
+- Suggested backend route: `domstudio-backend/routers/agent.py`, endpoint `POST /agent/chat`.
+- Agent should return structured actions from a strict allowlist, for example:
+```json
+{
+  "reply": "For sofas, start with Avito listing and clean product photo.",
+  "actions": [
+    { "label": "Create Avito listing", "route": "adpilot", "tool": "avito-ad" },
+    { "label": "Open Studio", "route": "studio" },
+    { "label": "Make social post", "route": "adpilot", "tool": "vk-post" }
+  ]
+}
+```
+- DeepSeek can reason and draft text, but backend should control limits, safety, allowed app actions, and routing.
+
+### Validation
+
+Passed during the session:
+- `python -m py_compile main.py routers/ad_chat.py`
+- `python -m py_compile routers/ad_chat.py main.py`
+- `python -m unittest tests/test_ad_chat.py -v`
+- `python -m unittest tests/test_ad_chat.py tests/test_contact.py -v`
+- `npm.cmd run build`
+- Mobile browser smoke checks:
+  - AI Chat opens.
+  - Input is visible.
+  - Chat log/input gap is about 10px after spacing fix.
+  - Mobile ordering puts chat panel above product/context panel.
+
+### Deployment note
+
+Current SpaceWeb frontend upload zip:
+- `domstudio-spaceweb-dist.zip`
+
+Latest build filenames at the end of the session:
+- `domstudio-frontend/dist/index.html`
+- `domstudio-frontend/dist/assets/index-Dgd6-ORX.css`
+- `domstudio-frontend/dist/assets/index-C1vLDdNw.js`
+- `domstudio-frontend/dist/assets/index-CqDKEHQy.js`
+
+Backend deployment needs the AdPilot AI files from the commits above, especially:
+- `domstudio-backend/main.py`
+- `domstudio-backend/routers/ad_chat.py`
+
+Working tree note before archive commit:
+- Source changes were committed.
+- Only generated `domstudio-spaceweb-dist.zip` and old `temp-preview/` screenshots were untracked.
+
+---
+
 ## June 28, 2026 - Footer, Tech Dolphin mark, contact page, domain config
 
 Commits:
