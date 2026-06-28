@@ -583,6 +583,12 @@ const state = {
   contentSavingDraft: false,
   contentAdjustInstruction: "",
   contentSavedOutputs: JSON.parse(localStorage.getItem("domstudio_saved_outputs") || "[]"),
+  adChatProduct: "",
+  adChatMessages: [],
+  adChatDraft: "",
+  adChatSending: false,
+  adChatError: "",
+  adChatRemaining: null,
   contactDraft: { email: "", reason: contactReasonFromHash() || "contact", message: "" },
   contactSending: false,
   contactSent: false,
@@ -849,6 +855,57 @@ function renderMarkdown(raw) {
   s = s.replace(/^--+$/gm, '<hr class="md-hr">');
   s = s.replace(/\n/g, '<br>');
   return s;
+}
+
+function adPilotChatPage() {
+  const product = state.adChatProduct || state.contentDraft.product || "";
+  const suggestions = [
+    t("adpilot.chat.suggestionImprove"),
+    t("adpilot.chat.suggestionIdeas"),
+    t("adpilot.chat.suggestionReply"),
+  ];
+  const messages = state.adChatMessages.length
+    ? state.adChatMessages
+    : [{ role: "assistant", content: t("adpilot.chat.empty") }];
+
+  return `<main class="page adpilot-page">
+    <section class="workspace copy-workspace adpilot-chat-page">
+      <header class="workspace-head adpilot-chat-head">
+        <div>
+          <button class="copy-back-btn adpilot-chat-back" type="button" data-adpilot-home>${t("adpilot.backToHome")}</button>
+          <div class="eyebrow">${t("copy.eyebrow")}</div>
+          <h1>${t("adpilot.chat.h1")}</h1>
+          <p>${t("adpilot.chat.p")}</p>
+        </div>
+      </header>
+      <div class="adpilot-chat-shell">
+        <aside class="panel adpilot-chat-side">
+          <label class="adpilot-quick-label" for="ad-chat-product">${t("adpilot.chat.product")}</label>
+          <input id="ad-chat-product" class="input" type="text" value="${escapeHtml(product)}" placeholder="${t("adpilot.quickProductPlaceholder")}" data-ad-chat-product />
+          <div class="adpilot-chat-prompts">
+            ${suggestions.map((item) => `<button class="chip" type="button" data-ad-chat-suggestion="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("")}
+          </div>
+          ${state.adChatRemaining !== null ? `<p class="adpilot-chat-limit">${t("adpilot.chat.remaining", { n: state.adChatRemaining })}</p>` : ""}
+        </aside>
+        <section class="panel adpilot-chat-panel">
+          <div class="adpilot-chat-log" aria-live="polite">
+            ${messages.map((message) => `
+              <article class="adpilot-chat-msg ${message.role === "user" ? "user" : "assistant"}">
+                <span>${message.role === "user" ? t("adpilot.chat.you") : t("adpilot.chat.ai")}</span>
+                <div>${renderMarkdown(message.content)}</div>
+              </article>
+            `).join("")}
+            ${state.adChatSending ? `<article class="adpilot-chat-msg assistant pending"><span>${t("adpilot.chat.ai")}</span><div>${t("adpilot.chat.thinking")}</div></article>` : ""}
+          </div>
+          ${state.adChatError ? `<div class="notice error">${escapeHtml(state.adChatError)}</div>` : ""}
+          <form class="adpilot-chat-form" id="ad-chat-form">
+            <textarea class="textarea" id="ad-chat-input" rows="3" placeholder="${t("adpilot.chat.placeholder")}" ${state.adChatSending ? "disabled" : ""}>${escapeHtml(state.adChatDraft)}</textarea>
+            <button class="button gold" type="submit" ${state.adChatSending ? "disabled" : ""}>${state.adChatSending ? t("adpilot.chat.sending") : t("adpilot.chat.send")}</button>
+          </form>
+        </section>
+      </div>
+    </section>
+  </main>`;
 }
 
 function draftValue(name) {
@@ -2080,6 +2137,10 @@ function copyStudioPage() {
   const generateLabel = state.user ? t("copy.generate", { n: cost }) : t("copy.generateFree");
   const costBadge = state.user ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : t("copy.freeTry");
 
+  if (state.adpilotView === "chat") {
+    return adPilotChatPage();
+  }
+
   if (state.adpilotView === "marketplace") {
     return `<main class="app-layout">
       ${appSidebar("adpilot")}
@@ -2135,6 +2196,7 @@ function copyStudioPage() {
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-reply">${t("adpilot.quickReply")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="yandex-ads">${t("adpilot.quickYandex")}</button>
             <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="product-description">${t("adpilot.quickDesc")}</button>
+            <button class="button adpilot-quick-btn adpilot-quick-chat" type="button" data-adpilot-chat>${t("adpilot.quickChat")}</button>
           </div>
         </div>
         <figure class="adpilot-visual">
@@ -3090,7 +3152,12 @@ function bind() {
     if (state.contentFormMode !== "wizard") syncContentFromForm(event.currentTarget);
   });
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
-  document.querySelector("[data-adpilot-home]")?.addEventListener("click", () => { state.contentToolSlug = null; state.contentWizardStep = 0; render({ motion: false }); });
+  document.querySelector("[data-adpilot-home]")?.addEventListener("click", () => {
+    state.adpilotView = "tools";
+    state.contentToolSlug = null;
+    state.contentWizardStep = 0;
+    render({ motion: false });
+  });
 
   // Wizard event handlers
   document.querySelectorAll("[data-wizard-mode]").forEach(btn => {
@@ -3243,6 +3310,18 @@ function bind() {
   document.querySelectorAll("[data-quick-adpilot]").forEach(el => el.addEventListener("click", () => {
     const product = document.querySelector("#adpilot-quick-product")?.value || "";
     quickGenerateAdPilot(el.dataset.quickAdpilot, product);
+  }));
+  document.querySelector("[data-adpilot-chat]")?.addEventListener("click", () => {
+    openAdPilotChat(document.querySelector("#adpilot-quick-product")?.value || "");
+  });
+  document.querySelector("#ad-chat-form")?.addEventListener("submit", submitAdPilotChat);
+  document.querySelector("[data-ad-chat-product]")?.addEventListener("input", (event) => {
+    state.adChatProduct = event.target.value;
+  });
+  document.querySelectorAll("[data-ad-chat-suggestion]").forEach(el => el.addEventListener("click", () => {
+    state.adChatDraft = el.dataset.adChatSuggestion || "";
+    render({ motion: false });
+    setTimeout(() => document.querySelector("#ad-chat-input")?.focus(), 30);
   }));
   document.querySelector("#adpilot-quick-product")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -4263,6 +4342,57 @@ async function quickGenerateAdPilot(toolSlug, product) {
     toast(error.message);
   } finally {
     state.contentGenerating = false;
+    render({ motion: false });
+  }
+}
+
+function openAdPilotChat(product = "") {
+  const cleanProduct = product.trim() || state.contentDraft.product || state.adChatProduct || "";
+  state.adChatProduct = cleanProduct;
+  state.contentDraft = { ...state.contentDraft, product: cleanProduct };
+  state.adChatDraft = "";
+  state.adChatError = "";
+  state.adpilotView = "chat";
+  state.contentToolSlug = null;
+  render({ motion: false });
+  setTimeout(() => document.querySelector("#ad-chat-input")?.focus(), 50);
+}
+
+async function submitAdPilotChat(event) {
+  event.preventDefault();
+  if (state.adChatSending) return;
+  const form = event.currentTarget;
+  const input = form.querySelector("#ad-chat-input");
+  const message = (input?.value || "").trim();
+  if (!message) {
+    input?.focus();
+    return;
+  }
+
+  const product = (document.querySelector("[data-ad-chat-product]")?.value || state.adChatProduct || "").trim();
+  state.adChatProduct = product;
+  state.contentDraft = { ...state.contentDraft, product };
+  state.adChatDraft = "";
+  state.adChatError = "";
+  state.adChatSending = true;
+  state.adChatMessages = [...state.adChatMessages, { role: "user", content: message }].slice(-10);
+  render({ motion: false });
+
+  try {
+    const result = await api("/ad-chat", {
+      method: "POST",
+      body: JSON.stringify({
+        product,
+        language: state.lang === "en" ? "en" : "ru",
+        messages: state.adChatMessages.slice(-10),
+      }),
+    });
+    state.adChatMessages = [...state.adChatMessages, { role: "assistant", content: result.reply || "" }].filter((item) => item.content).slice(-10);
+    state.adChatRemaining = Number.isFinite(result.remaining_free) ? result.remaining_free : state.adChatRemaining;
+  } catch (error) {
+    state.adChatError = error.message || t("toast.requestFailed");
+  } finally {
+    state.adChatSending = false;
     render({ motion: false });
   }
 }
