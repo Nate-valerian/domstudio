@@ -3,8 +3,8 @@
     "class_type": "NunchakuQwenImageDiTLoader",
     "inputs": {
       "model_name": "svdq-int4_r128-qwen-image-edit-2509-lightningv2.0-4steps.safetensors",
-      "cpu_offload": "auto",
-      "num_blocks_on_gpu": 24,
+      "cpu_offload": "enable",
+      "num_blocks_on_gpu": 20,
       "use_pin_memory": "disable"
     }
   },
@@ -15,10 +15,20 @@
         "1",
         0
       ],
-      "shift": 3.1
+      "shift": 3
     }
   },
   "3": {
+    "class_type": "CFGNorm",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "strength": 1
+    }
+  },
+  "4": {
     "class_type": "CLIPLoader",
     "inputs": {
       "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
@@ -26,88 +36,126 @@
       "device": "default"
     }
   },
-  "4": {
+  "5": {
     "class_type": "VAELoader",
     "inputs": {
       "vae_name": "qwen_image_vae.safetensors"
     }
   },
-  "5": {
-    "class_type": "CLIPTextEncode",
-    "inputs": {
-      "clip": [
-        "3",
-        0
-      ],
-      "text": "professional ecommerce product photo of {{prompt}}, clean studio lighting, realistic commercial photography, sharp product details, premium catalog composition, natural shadows, high quality"
-    }
-  },
   "6": {
-    "class_type": "CLIPTextEncode",
+    "class_type": "LoadImage",
     "inputs": {
-      "clip": [
-        "3",
-        0
-      ],
-      "text": "low quality, blurry, distorted product, warped geometry, bad text, fake letters, gibberish text, misspelled text, watermark, logo artifacts, fake label, extra objects, messy background, unrealistic"
+      "image": "{{image_name}}"
     }
   },
   "7": {
-    "class_type": "EmptySD3LatentImage",
+    "class_type": "ImageScaleToTotalPixels",
     "inputs": {
-      "width": 1024,
-      "height": 1024,
-      "batch_size": 1
-    }
-  },
-  "8": {
-    "class_type": "KSampler",
-    "inputs": {
-      "model": [
-        "2",
-        0
-      ],
-      "seed": "{{seed}}",
-      "steps": 8,
-      "cfg": 1.0,
-      "sampler_name": "euler",
-      "scheduler": "simple",
-      "positive": [
-        "5",
-        0
-      ],
-      "negative": [
+      "image": [
         "6",
         0
       ],
-      "latent_image": [
+      "upscale_method": "lanczos",
+      "megapixels": 1
+    }
+  },
+  "8": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": [
         "7",
         0
       ],
-      "denoise": 1.0
-    }
-  },
-  "9": {
-    "class_type": "VAEDecode",
-    "inputs": {
-      "samples": [
-        "8",
-        0
-      ],
       "vae": [
-        "4",
+        "5",
         0
       ]
     }
   },
-  "10": {
-    "class_type": "SaveImage",
+  "9": {
+    "class_type": "TextEncodeQwenImageEditPlus",
     "inputs": {
-      "images": [
+      "clip": [
+        "4",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ],
+      "image1": [
+        "7",
+        0
+      ],
+      "prompt": "{{prompt}}"
+    }
+  },
+  "10": {
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "inputs": {
+      "clip": [
+        "4",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ],
+      "image1": [
+        "7",
+        0
+      ],
+      "prompt": "{{negative_prompt}}"
+    }
+  },
+  "11": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "3",
+        0
+      ],
+      "seed": "{{seed}}",
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": [
         "9",
         0
       ],
-      "filename_prefix": "domstudio/product"
+      "negative": [
+        "10",
+        0
+      ],
+      "latent_image": [
+        "8",
+        0
+      ],
+      "denoise": 1
+    }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "11",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ]
+    }
+  },
+  "13": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "12",
+        0
+      ],
+      "filename_prefix": "domstudio/image/{{mode}}"
     }
   }
 }
