@@ -6034,3 +6034,148 @@ Added a new **Tools** section to the app with the first quick tool: background r
 - CSS: `.tool-card`, `.removebg-upload` (dashed drop zone), `.removebg-canvas` (checkered transparency background), `.removebg-result`, `.removebg-actions`
 
 Commit: `60851c5`
+
+---
+
+## July 1, 2026 - Dom Chaya Image Variations And Curated Gallery Pause
+
+User asked to replace wine/perfume examples with Dom Chaya / tea-house item
+assets and to create 5-6 variations for each item across the six user-facing
+functions.
+
+### Live generation setup used
+
+- AutoDL/SeetaCloud SSH key works on the current west-B instance.
+- ComfyUI is live on the remote instance at local port `6006`.
+- Public tunnel used by Amvera:
+
+```text
+https://solo-daisy-successful-zum.trycloudflare.com
+```
+
+- Amvera `/version` confirmed the backend uses:
+
+```text
+commit=25f2c60aa815
+comfy.url_host=solo-daisy-successful-zum.trycloudflare.com
+comfy.url_source=file
+```
+
+### Workflow fixes already deployed
+
+- `domstudio-backend/comfy_url.txt` lets deployed Amvera use the current live
+  tunnel even when the dashboard env still has the stale ngrok URL.
+- `domstudio-backend/workflows/product_image.json` was changed from a text-only
+  Qwen workflow into a real Qwen image-edit workflow that consumes the uploaded
+  image through `LoadImage`.
+- Web and mobile builds passed after the earlier image replacement.
+
+### Generated material
+
+Generated 48 preview images:
+
+```text
+8 items x 6 functions:
+catalog, product, creative, lifestyle, scale/context, story
+```
+
+Preview folder:
+
+```text
+temp-preview/dom-chaya-variations/
+```
+
+Main sheets:
+
+```text
+temp-preview/dom-chaya-variations/all-items-contact-sheet.jpg
+temp-preview/dom-chaya-variations/all-items-contact-sheet-v2.jpg
+```
+
+Items generated:
+
+- porcelain vase
+- gold display
+- khachapuri
+- tea ceremony
+- iced tea
+- storefront facade
+- blue porcelain
+- necklace from `IMG_4053.jpeg`
+
+### Quality decision
+
+The broad "every item through every mode" batch was not good enough. It was
+technically correct but often looked generic or forced.
+
+Rejected for main gallery:
+
+- Khachapuri as a six-mode proof: better than v1 after retry, but still not
+  premium enough for the main product gallery.
+- Facade as a six-mode proof: storefront text/signage is too easy for AI to
+  hallucinate; preservation-first crop/edit is safer, but it should not be a
+  hero proof of all AI modes.
+
+Better facade fallback:
+
+```text
+temp-preview/dom-chaya-variations/facade-v2-contact-sheet.jpg
+```
+
+Better khachapuri fallback:
+
+```text
+temp-preview/dom-chaya-variations/khachapuri-v2-contact-sheet.jpg
+```
+
+### Curated gallery direction
+
+Instead of forcing all items through all modes, the app gallery should use the
+best subject for each function:
+
+- Catalog: porcelain / blue porcelain on clean background.
+- Product: gold display / porcelain studio product shot.
+- Creative: gold display / necklace.
+- Lifestyle: blue porcelain / iced tea.
+- Fitting or context: necklace on model and necklace display.
+- Stories: iced tea and porcelain closeup.
+
+Curated preview:
+
+```text
+temp-preview/dom-chaya-curated-gallery-v1.jpg
+```
+
+This curated direction is visually better than the raw 48-image grid.
+
+### Files changed in working tree before pause
+
+- Web example assets under `domstudio-frontend/src/assets/examples/`.
+- Web landing stills under `domstudio-frontend/src/assets/landing/`.
+- Mobile example assets under `domstudio-mobile/assets/visual/`.
+- Web labels in `domstudio-frontend/src/app.js`.
+- Mobile labels in `domstudio-mobile/App.tsx`.
+
+Internal filenames still include legacy words like `wine` or `perfume` because
+the import paths were reused to avoid a bigger refactor. Visible copy/assets are
+now curated tea-house/porcelain/jewelry examples.
+
+### Tomorrow
+
+Continue from the curated set, not the 48-image raw matrix.
+
+Status at pause:
+
+- Curated assets have been copied into the web/mobile example asset slots.
+- Web/mobile labels were changed to match the curated set.
+- The full raw variation batch remains local in `temp-preview/` for review only.
+- Khachapuri and facade should stay out of the main six-mode proof unless the
+  user explicitly wants them as supporting social/content examples.
+
+Next steps:
+
+1. Review `temp-preview/dom-chaya-curated-gallery-v1.jpg`.
+2. If accepted, deploy/push the committed curated gallery.
+3. If not accepted, regenerate only weak curated slots, one at a time.
+4. Consider renaming legacy asset filenames (`wine`, `perfume`, `bottle`) in a
+   later cleanup commit after the visual direction is final.

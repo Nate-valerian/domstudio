@@ -52,15 +52,15 @@ const EXAMPLE_IMAGES = [
   { mode: "Предметная", product: "Чайная витрина", title: "Золотой свет и фактура", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
   { mode: "Креатив", product: "Чайный сет", title: "Премиальный предметный кадр", src: examplePerfumeCreativeUrl },
   { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
-  { mode: "Lifestyle", product: "Чайная полка", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
-  { mode: "Примерка", product: "Хачапури", title: "Подача блюда в контексте", src: examplePerfumeFittingUrl },
-  { mode: "Stories", product: "Фасад чайного дома", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
+  { mode: "Lifestyle", product: "Синий фарфор", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
+  { mode: "Примерка", product: "Колье", title: "Украшение на модели", src: examplePerfumeFittingUrl },
+  { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
   { mode: "Каталог", product: "Фарфор", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
   { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
   { mode: "Креатив", product: "Золотые флаконы", title: "Тёплый премиальный кадр", src: exampleBottleCreativeUrl },
   { mode: "Lifestyle", product: "Чайная церемония", title: "Сцена в интерьере", src: exampleBottleLifestyleUrl },
-  { mode: "Примерка", product: "Авторский чай", title: "Подача в кафе", src: exampleBottleFittingUrl },
-  { mode: "Stories", product: "Дом Чая и Практик", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
+  { mode: "Примерка", product: "Колье", title: "Витринная подача", src: exampleBottleFittingUrl },
+  { mode: "Stories", product: "Фарфоровая ваза", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
 ];
 
 const MARKETPLACE_PRESETS = [

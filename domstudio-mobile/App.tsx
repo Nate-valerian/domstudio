@@ -203,15 +203,15 @@ const exampleImages = [
   { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
   { mode: "Product", product: "Tea display", title: "Gold light and texture", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, video: perfumeProductVideo, wide: true },
   { mode: "Creative", product: "Tea set", title: "Premium product frame", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
-  { mode: "Lifestyle", product: "Tea shelf", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
-  { mode: "Fitting", product: "Khachapuri", title: "Food serving context", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
-  { mode: "Stories", product: "Tea house facade", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
+  { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
+  { mode: "Fitting", product: "Necklace", title: "Jewelry on model", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
+  { mode: "Stories", product: "House tea", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
   { mode: "Catalog", product: "Porcelain", title: "White-background product card", src: require("./assets/visual/example-bottle-catalog.webp") as ImageSourcePropType, portrait: true },
   { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, video: wineProductVideo, wide: true },
   { mode: "Creative", product: "Gold bottles", title: "Warm premium campaign frame", src: require("./assets/visual/example-bottle-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Tea ceremony", title: "Interior table scene", src: require("./assets/visual/example-bottle-lifestyle.webp") as ImageSourcePropType },
-  { mode: "Fitting", product: "House tea", title: "Cafe serving context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
-  { mode: "Stories", product: "Dom Chaya i Praktik", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
+  { mode: "Fitting", product: "Necklace", title: "Display context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
+  { mode: "Stories", product: "Porcelain vase", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
 ];
 
 const motionExamples = [
@@ -341,15 +341,15 @@ const mobileCopy = {
         { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout" },
         { mode: "Product", product: "Tea display", title: "Gold light and texture" },
         { mode: "Creative", product: "Tea set", title: "Premium product frame" },
-        { mode: "Lifestyle", product: "Tea shelf", title: "Warm interior context" },
-        { mode: "Fitting", product: "Khachapuri", title: "Food serving context" },
-        { mode: "Stories", product: "Tea house facade", title: "Vertical mobile story crop" },
+        { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context" },
+        { mode: "Fitting", product: "Necklace", title: "Jewelry on model" },
+        { mode: "Stories", product: "House tea", title: "Vertical mobile story crop" },
         { mode: "Catalog", product: "Porcelain", title: "White-background product card" },
         { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion" },
         { mode: "Creative", product: "Gold bottles", title: "Warm premium campaign frame" },
         { mode: "Lifestyle", product: "Tea ceremony", title: "Interior table scene" },
-        { mode: "Fitting", product: "House tea", title: "Cafe serving context" },
-        { mode: "Stories", product: "Dom Chaya i Praktik", title: "Vertical social frame" }
+        { mode: "Fitting", product: "Necklace", title: "Display context" },
+        { mode: "Stories", product: "Porcelain vase", title: "Vertical social frame" }
       ],
       motion: [
         { mode: "Product video", product: "Porcelain vase", title: "Autoplay product motion" },
