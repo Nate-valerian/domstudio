@@ -1,6 +1,8 @@
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
 import httpx
 
@@ -80,6 +82,23 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertEqual(url, "https://running.example")
+
+    async def test_repo_comfy_url_file_overrides_stale_env_url(self):
+        with TemporaryDirectory() as tmpdir:
+            url_file = Path(tmpdir) / "comfy_url.txt"
+            url_file.write_text("https://fresh.example\n", encoding="utf-8")
+
+            with patch.dict(
+                "os.environ",
+                {
+                    "COMFYUI_URL": "https://stale.example",
+                    "COMFYUI_URL_FILE": str(url_file),
+                },
+                clear=True,
+            ):
+                url = await comfy_client.resolve_comfy_url()
+
+        self.assertEqual(url, "https://fresh.example")
 
     async def test_render_workflow_replaces_placeholders_with_typed_values(self):
         workflow = {

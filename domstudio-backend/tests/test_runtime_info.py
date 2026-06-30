@@ -1,5 +1,7 @@
 import os
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import runtime_info
@@ -18,11 +20,18 @@ class RuntimeInfoTests(unittest.TestCase):
             "COMFYUI_IMAGE_WORKFLOW": "product_image.json",
         }
 
-        with patch.dict(os.environ, env, clear=True):
-            payload = runtime_info.runtime_version_payload()
+        with TemporaryDirectory() as tmpdir:
+            url_file = Path(tmpdir) / "comfy_url.txt"
+            url_file.write_text("https://fresh-live.example\n", encoding="utf-8")
+            env["COMFYUI_URL_FILE"] = str(url_file)
+
+            with patch.dict(os.environ, env, clear=True):
+                payload = runtime_info.runtime_version_payload()
 
         self.assertEqual(payload["generation"]["provider"], "comfy")
-        self.assertEqual(payload["comfy"]["url_host"], "path-preparation-emerald-answered.trycloudflare.com")
+        self.assertEqual(payload["comfy"]["url_host"], "fresh-live.example")
+        self.assertEqual(payload["comfy"]["url_source"], "file")
+        self.assertEqual(payload["comfy"]["env_url_host"], "path-preparation-emerald-answered.trycloudflare.com")
         self.assertTrue(payload["comfy"]["account_api_key_present"])
         self.assertFalse(payload["comfy"]["api_key_present"])
         self.assertTrue(payload["integrations"]["database_url_present"])

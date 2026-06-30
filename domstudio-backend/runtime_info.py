@@ -13,6 +13,7 @@ from cors_config import effective_cors_origins, env_cors_origins
 
 BASE_DIR = Path(__file__).resolve().parent
 REPO_DIR = BASE_DIR.parent
+DEFAULT_COMFY_URL_FILE = BASE_DIR / "comfy_url.txt"
 
 
 def _short(value: str | None, length: int = 12) -> str | None:
@@ -86,6 +87,30 @@ def _env_present(name: str) -> bool:
     return bool(os.getenv(name, "").strip())
 
 
+def _comfy_url_file_value() -> str:
+    path = Path(os.getenv("COMFYUI_URL_FILE", str(DEFAULT_COMFY_URL_FILE)))
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def _effective_comfy_url() -> tuple[str, str]:
+    override = os.getenv("COMFYUI_URL_OVERRIDE", "").strip()
+    if override:
+        return override, "env_override"
+
+    file_url = _comfy_url_file_value()
+    if file_url:
+        return file_url, "file"
+
+    env_url = os.getenv("COMFYUI_URL", "").strip()
+    if env_url:
+        return env_url, "env"
+
+    return "", "autodl_discovery"
+
+
 def _csv_values(name: str) -> list[str]:
     return [
         item.strip()
@@ -108,6 +133,7 @@ def runtime_version_payload() -> dict[str, object]:
     image_workflow = os.getenv("COMFYUI_IMAGE_WORKFLOW", "product_image.json")
     video_workflow = os.getenv("COMFYUI_VIDEO_WORKFLOW", "product_video_wan_local.json")
     premium_video_workflow = os.getenv("COMFYUI_PREMIUM_VIDEO_WORKFLOW", "product_video.json")
+    comfy_url, comfy_url_source = _effective_comfy_url()
 
     return {
         "service": "domstudio-api",
@@ -125,7 +151,9 @@ def runtime_version_payload() -> dict[str, object]:
             "effective_origins": effective_cors_origins(),
         },
         "comfy": {
-            "url_host": _safe_url_host(os.getenv("COMFYUI_URL")),
+            "url_host": _safe_url_host(comfy_url),
+            "url_source": comfy_url_source,
+            "env_url_host": _safe_url_host(os.getenv("COMFYUI_URL")),
             "port": os.getenv("COMFYUI_PORT", "6006"),
             "api_key_present": _env_present("COMFYUI_API_KEY"),
             "account_api_key_present": _env_present("COMFYUI_ACCOUNT_API_KEY"),

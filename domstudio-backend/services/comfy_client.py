@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_AUTODL_API_URL = "https://api.autodl.com"
 DEFAULT_COMFY_PORT = "6006"
+DEFAULT_COMFY_URL_FILE = Path(__file__).resolve().parents[1] / "comfy_url.txt"
 DEFAULT_WORKFLOW_DIR = Path(__file__).resolve().parents[1] / "workflows"
 DEFAULT_VIDEO_WORKFLOW = "product_video_wan_local.json"
 DEFAULT_PREMIUM_VIDEO_WORKFLOW = "product_video.json"
@@ -167,11 +168,22 @@ async def discover_autodl_deployment_comfy_url(
 
 
 async def resolve_comfy_url() -> str:
-    """Resolve ComfyUI URL from env or AutoDL."""
+    """Resolve ComfyUI URL from repo override, env, or AutoDL."""
+
+    comfy_url = os.getenv("COMFYUI_URL_OVERRIDE", "").strip()
+    if comfy_url:
+        return comfy_url.rstrip("/")
+
+    url_file = Path(os.getenv("COMFYUI_URL_FILE", str(DEFAULT_COMFY_URL_FILE)))
+    if url_file.exists():
+        comfy_url = url_file.read_text(encoding="utf-8").strip()
+        if comfy_url:
+            return comfy_url.rstrip("/")
 
     comfy_url = os.getenv("COMFYUI_URL", "").strip()
     if comfy_url:
         return comfy_url.rstrip("/")
+
     return await discover_autodl_comfy_url()
 
 
