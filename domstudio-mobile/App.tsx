@@ -722,7 +722,7 @@ const mobileCopy = {
       accountLabel: "Баланс аккаунта",
       planLabel: "Тариф",
       bestValue: "Лучший выбор",
-      allModes: "Все режимы съемки",
+      allModes: "Все режимы съёмки",
       currentStarter: "Стартовый тариф",
       upgradePrefix: "Перейти на",
       openingCheckout: "Открываем оплату...",

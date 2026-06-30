@@ -54,7 +54,7 @@ const EXAMPLE_IMAGES = [
   { mode: "Каталог", product: "Флакон духов", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
   { mode: "Lifestyle", product: "Флакон духов", title: "Стол и тёплый свет окна", src: examplePerfumeLifestyleUrl },
   { mode: "Примерка", product: "Флакон духов", title: "Товар в руке", src: examplePerfumeFittingUrl },
-  { mode: "Stories", product: "Флакон духов", title: "Вертикальный story-формат", src: examplePerfumeMobileUrl, shape: "portrait" },
+  { mode: "Stories", product: "Флакон духов", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
   { mode: "Каталог", product: "Гранатовый напиток", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
   { mode: "Предметная", product: "Вино", title: "Студия: мрамор и стол", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
   { mode: "Креатив", product: "Гранатовый напиток", title: "Тёплый премиальный кадр", src: exampleBottleCreativeUrl },
