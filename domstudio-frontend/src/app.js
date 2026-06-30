@@ -49,18 +49,18 @@ const MODES = [
 
 const EXAMPLE_IMAGES = [
   { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
-  { mode: "Предметная", product: "Флакон духов", title: "Мрамор и свечи", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
-  { mode: "Креатив", product: "Флакон духов", title: "Неоновый рекламный визуал", src: examplePerfumeCreativeUrl },
-  { mode: "Каталог", product: "Флакон духов", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
-  { mode: "Lifestyle", product: "Флакон духов", title: "Стол и тёплый свет окна", src: examplePerfumeLifestyleUrl },
-  { mode: "Примерка", product: "Флакон духов", title: "Товар в руке", src: examplePerfumeFittingUrl },
-  { mode: "Stories", product: "Флакон духов", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
-  { mode: "Каталог", product: "Гранатовый напиток", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
-  { mode: "Предметная", product: "Вино", title: "Студия: мрамор и стол", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
-  { mode: "Креатив", product: "Гранатовый напиток", title: "Тёплый премиальный кадр", src: exampleBottleCreativeUrl },
-  { mode: "Lifestyle", product: "Гранатовый напиток", title: "Сцена в ресторане", src: exampleBottleLifestyleUrl },
-  { mode: "Примерка", product: "Гранатовый напиток", title: "Подача в контексте", src: exampleBottleFittingUrl },
-  { mode: "Stories", product: "Гранатовый напиток", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
+  { mode: "Предметная", product: "Чайная витрина", title: "Золотой свет и фактура", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
+  { mode: "Креатив", product: "Чайный сет", title: "Премиальный предметный кадр", src: examplePerfumeCreativeUrl },
+  { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
+  { mode: "Lifestyle", product: "Чайная полка", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
+  { mode: "Примерка", product: "Хачапури", title: "Подача блюда в контексте", src: examplePerfumeFittingUrl },
+  { mode: "Stories", product: "Фасад чайного дома", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
+  { mode: "Каталог", product: "Фарфор", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
+  { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
+  { mode: "Креатив", product: "Золотые флаконы", title: "Тёплый премиальный кадр", src: exampleBottleCreativeUrl },
+  { mode: "Lifestyle", product: "Чайная церемония", title: "Сцена в интерьере", src: exampleBottleLifestyleUrl },
+  { mode: "Примерка", product: "Авторский чай", title: "Подача в кафе", src: exampleBottleFittingUrl },
+  { mode: "Stories", product: "Дом Чая и Практик", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -1487,15 +1487,15 @@ function homePage() {
             <div class="hero-proof-frame media-pair-card media-story-card">
               <figure class="landing-media before-media">
                 <span class="media-tag dark">${t("home.before")}</span>
-                <img src="${landingWineBeforeUrl}" alt="Original wine bottle photo" />
+                <img src="${landingWineBeforeUrl}" alt="Original porcelain tea-house photo" />
               </figure>
               <figure class="landing-media after-media">
                 <span class="media-tag">${t("home.after")}</span>
-                <img src="${landingWineAfterUrl}" alt="Generated wine bottle product image" />
+                <img src="${landingWineAfterUrl}" alt="Generated porcelain product image" />
               </figure>
               <figure class="landing-media video-media">
                 <span class="media-tag">${t("home.video")}</span>
-                <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
+                <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="auto"></video>
               </figure>
             </div>
             <div class="mini-studio-controls">
@@ -1516,15 +1516,15 @@ function homePage() {
           <article class="proof-visual media-pair-card media-story-card">
             <figure class="landing-media before-media">
               <span class="media-tag dark">${t("home.before")}</span>
-              <img src="${landingWineBeforeUrl}" alt="Original wine bottle photo" />
+              <img src="${landingWineBeforeUrl}" alt="Original porcelain tea-house photo" />
             </figure>
             <figure class="landing-media after-media">
               <span class="media-tag">${t("home.after")}</span>
-              <img src="${landingWineAfterUrl}" alt="Generated wine bottle product image" />
+              <img src="${landingWineAfterUrl}" alt="Generated porcelain product image" />
             </figure>
             <figure class="landing-media video-media">
               <span class="media-tag">${t("home.video")}</span>
-              <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio wine bottle video" autoplay muted loop playsinline controls preload="auto"></video>
+              <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="auto"></video>
             </figure>
           </article>
           <div class="proof-copy">

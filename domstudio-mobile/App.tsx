@@ -180,8 +180,8 @@ const modes = [
 ] satisfies ModeOption[];
 
 const samplePrompts = [
-  "Wine bottle on marble table",
-  "Perfume in warm boutique light",
+  "Porcelain tea vase in boutique light",
+  "Tea-house display in warm window light",
   "Marketplace card, clean shadow"
 ];
 
@@ -200,22 +200,22 @@ const planKickers: Record<string, string> = {
 };
 
 const exampleImages = [
-  { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
-  { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, video: perfumeProductVideo, wide: true },
-  { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
-  { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
-  { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
-  { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
-  { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card", src: require("./assets/visual/example-bottle-catalog.webp") as ImageSourcePropType, portrait: true },
-  { mode: "Product", product: "Wine bottle", title: "Marble table studio setup", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, video: wineProductVideo, wide: true },
-  { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame", src: require("./assets/visual/example-bottle-creative.webp") as ImageSourcePropType },
-  { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene", src: require("./assets/visual/example-bottle-lifestyle.webp") as ImageSourcePropType },
-  { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
-  { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
+  { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
+  { mode: "Product", product: "Tea display", title: "Gold light and texture", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, video: perfumeProductVideo, wide: true },
+  { mode: "Creative", product: "Tea set", title: "Premium product frame", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
+  { mode: "Lifestyle", product: "Tea shelf", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
+  { mode: "Fitting", product: "Khachapuri", title: "Food serving context", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
+  { mode: "Stories", product: "Tea house facade", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
+  { mode: "Catalog", product: "Porcelain", title: "White-background product card", src: require("./assets/visual/example-bottle-catalog.webp") as ImageSourcePropType, portrait: true },
+  { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, video: wineProductVideo, wide: true },
+  { mode: "Creative", product: "Gold bottles", title: "Warm premium campaign frame", src: require("./assets/visual/example-bottle-creative.webp") as ImageSourcePropType },
+  { mode: "Lifestyle", product: "Tea ceremony", title: "Interior table scene", src: require("./assets/visual/example-bottle-lifestyle.webp") as ImageSourcePropType },
+  { mode: "Fitting", product: "House tea", title: "Cafe serving context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
+  { mode: "Stories", product: "Dom Chaya i Praktik", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
 ];
 
 const motionExamples = [
-  { mode: "Product video", product: "Wine bottle", title: "Autoplay product motion", src: proofAfter, video: proofVideo },
+  { mode: "Product video", product: "Porcelain vase", title: "Autoplay product motion", src: proofAfter, video: proofVideo },
   { mode: "Fitting video", product: "Beige suit outfit", title: "Virtual fitting motion preview", src: require("./assets/visual/mode-fitting-real-v2.webp") as ImageSourcePropType, video: fashionFittingVideo }
 ];
 
@@ -301,7 +301,7 @@ const mobileCopy = {
       video: "Video",
       productPhoto: "Product photo",
       upload: "Upload",
-      teaserTitle: "Wine bottle on marble table",
+      teaserTitle: "Porcelain tea vase in boutique light",
       teaserBody: "Try the Product mode first, then make a story or catalog card from the same photo.",
       tokensReady: "tokens ready",
       proofTitle: "Real product proof.",
@@ -338,28 +338,28 @@ const mobileCopy = {
     ],
     examplesData: {
       images: [
-        { mode: "Catalog", product: "Perfume bottle", title: "Clean marketplace cutout" },
-        { mode: "Product", product: "Perfume bottle", title: "Marble and candle studio scene" },
-        { mode: "Creative", product: "Perfume bottle", title: "Neon campaign visual" },
-        { mode: "Lifestyle", product: "Perfume bottle", title: "Desk and warm window light" },
-        { mode: "Fitting", product: "Perfume bottle", title: "Scale-in-hand product shot" },
-        { mode: "Stories", product: "Perfume bottle", title: "Vertical mobile story crop" },
-        { mode: "Catalog", product: "Pomegranate bottle", title: "White-background product card" },
-        { mode: "Product", product: "Wine bottle", title: "Marble table studio setup" },
-        { mode: "Creative", product: "Pomegranate bottle", title: "Warm premium campaign frame" },
-        { mode: "Lifestyle", product: "Pomegranate bottle", title: "Restaurant table scene" },
-        { mode: "Fitting", product: "Pomegranate bottle", title: "Scale and serving context" },
-        { mode: "Stories", product: "Pomegranate bottle", title: "Vertical social frame" }
+        { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout" },
+        { mode: "Product", product: "Tea display", title: "Gold light and texture" },
+        { mode: "Creative", product: "Tea set", title: "Premium product frame" },
+        { mode: "Lifestyle", product: "Tea shelf", title: "Warm interior context" },
+        { mode: "Fitting", product: "Khachapuri", title: "Food serving context" },
+        { mode: "Stories", product: "Tea house facade", title: "Vertical mobile story crop" },
+        { mode: "Catalog", product: "Porcelain", title: "White-background product card" },
+        { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion" },
+        { mode: "Creative", product: "Gold bottles", title: "Warm premium campaign frame" },
+        { mode: "Lifestyle", product: "Tea ceremony", title: "Interior table scene" },
+        { mode: "Fitting", product: "House tea", title: "Cafe serving context" },
+        { mode: "Stories", product: "Dom Chaya i Praktik", title: "Vertical social frame" }
       ],
       motion: [
-        { mode: "Product video", product: "Wine bottle", title: "Autoplay product motion" },
+        { mode: "Product video", product: "Porcelain vase", title: "Autoplay product motion" },
         { mode: "Fitting video", product: "Beige suit outfit", title: "Virtual fitting motion preview" }
       ]
     },
     examples: {
       eyebrow: "Examples",
       title: "Product content examples.",
-      body: "The same perfume, bottle, marketplace, product, creative, lifestyle, fitting, and story gallery from the web app.",
+      body: "The same tea-house, marketplace, product, creative, lifestyle, fitting, and story gallery from the web app.",
       badge1: "Marketplace cards",
       badge2: "Social crops",
       badge3: "Video-ready frames",
@@ -437,7 +437,7 @@ const mobileCopy = {
       heroBody: "Choose a proven format, add a product photo, then generate seller-ready content.",
       setup: "setup",
       prompt: "Product prompt",
-      promptPlaceholder: "Wine bottle on marble table, premium product card",
+      promptPlaceholder: "Porcelain tea vase in boutique light, premium product card",
       style: "Style",
       upscale: "Upscale 4K",
       upscaleBody: "Uses backend generation setting",
@@ -459,7 +459,7 @@ const mobileCopy = {
       videoPending: "Queued videos render on the backend. Refresh this card to load the output.",
       refresh: "Refresh",
       refreshing: "Refreshing...",
-      promptSamples: ["Wine bottle on marble table", "Perfume in warm boutique light", "Marketplace card, clean shadow"],
+      promptSamples: ["Porcelain tea vase in boutique light", "Tea-house display in warm window light", "Marketplace card, clean shadow"],
       styleHints: ["clean marketplace card", "premium studio lighting", "social media creative", "warm lifestyle scene", "story-safe vertical composition"],
       offlineGenerate: "Connect to generate a new result.",
       offlineQueue: "Connect to queue a video job.",
