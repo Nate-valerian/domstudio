@@ -222,6 +222,69 @@ MIGRATIONS: list[tuple[str, str, str]] = [
         WHERE referral_code IS NULL;
         """,
     ),
+    (
+        "008",
+        "Create promo codes and commission ledger",
+        """
+        CREATE TABLE IF NOT EXISTS promo_codes (
+            code VARCHAR(32) PRIMARY KEY,
+            owner_label VARCHAR(255) NOT NULL,
+            owner_user_id UUID REFERENCES users(id),
+            parent_code VARCHAR(32) REFERENCES promo_codes(code),
+            discount_percent DOUBLE PRECISION NOT NULL DEFAULT 15,
+            commission_percent DOUBLE PRECISION NOT NULL DEFAULT 15,
+            active BOOLEAN NOT NULL DEFAULT TRUE,
+            starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            expires_at TIMESTAMPTZ,
+            paused_reason VARCHAR(255),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_promo_codes_parent_code
+            ON promo_codes (parent_code);
+
+        ALTER TABLE payments
+            ADD COLUMN IF NOT EXISTS original_amount_rub DOUBLE PRECISION,
+            ADD COLUMN IF NOT EXISTS discount_amount_rub DOUBLE PRECISION NOT NULL DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS promo_code VARCHAR(32),
+            ADD COLUMN IF NOT EXISTS promo_discount_percent DOUBLE PRECISION;
+
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conname = 'fk_payments_promo_code'
+            ) THEN
+                ALTER TABLE payments
+                    ADD CONSTRAINT fk_payments_promo_code
+                    FOREIGN KEY (promo_code) REFERENCES promo_codes(code);
+            END IF;
+        END $$;
+
+        CREATE INDEX IF NOT EXISTS ix_payments_promo_code
+            ON payments (promo_code);
+
+        CREATE TABLE IF NOT EXISTS commission_ledger (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            payment_id UUID NOT NULL REFERENCES payments(id),
+            code VARCHAR(32) NOT NULL REFERENCES promo_codes(code),
+            base_amount_rub DOUBLE PRECISION NOT NULL,
+            commission_rate DOUBLE PRECISION NOT NULL,
+            commission_amount_rub DOUBLE PRECISION NOT NULL,
+            payee VARCHAR(255) NOT NULL,
+            payout_status VARCHAR(30) NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+        CREATE INDEX IF NOT EXISTS ix_commission_ledger_payment_id
+            ON commission_ledger (payment_id);
+        CREATE INDEX IF NOT EXISTS ix_commission_ledger_code
+            ON commission_ledger (code);
+        CREATE UNIQUE INDEX IF NOT EXISTS ux_commission_ledger_payment_code
+            ON commission_ledger (payment_id, code);
+        """,
+    ),
 ]
 
 

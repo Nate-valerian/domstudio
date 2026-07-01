@@ -6178,4 +6178,78 @@ Next steps:
 2. If accepted, deploy/push the committed curated gallery.
 3. If not accepted, regenerate only weak curated slots, one at a time.
 4. Consider renaming legacy asset filenames (`wine`, `perfume`, `bottle`) in a
-   later cleanup commit after the visual direction is final.
+   later pass.
+
+---
+
+## July 1, 2026 - Social Media / Influencer Affiliate Roadmap (planning only, no code)
+
+User wants to run a two-tier influencer affiliate program: one coordinator
+recruits/manages 10-30 people with social media followings; each gets a
+personal discount code. Confirmed structure: coordinator 15% override on
+her whole group's sales, influencers 15% direct on their own code's sales,
+customer gets 15% off the first purchase for Phase 1.
+
+Wrote `SOCIAL_MEDIA_ROADMAP.md` at repo root covering: roles, discount code
+mechanics, content cadence template, payout logistics, and a phased
+rollout (pilot with 3-5 influencers before the full 10-30).
+
+Follow-up edit locked the money rules:
+
+- Customer discount: 15% for Phase 1.
+- Commission base: actual post-discount paid amount.
+- Commission window: first paid purchase only.
+- No stacking, no self-referral, and every code needs active/pause controls.
+- Track funnel states per code: signup, checkout started, paid, refunded,
+  commission pending/approved/paid.
+
+Key finding: the existing referral system (`67c34e5`, live — flat +500
+token bonus via `referral_code`/`referred_by_code`) is structurally close
+but not reusable as-is. It has no percentage discount, no percentage
+commission, and no two-level (coordinator → influencer) hierarchy. A real
+`promo_code` table + commission ledger is new backend work for Phase 1,
+not a copy of the existing system.
+
+Added `tools/build_social_media_roadmap_pdf.py` so
+`SOCIAL_MEDIA_ROADMAP.pdf` can be regenerated cleanly with ReportLab instead
+of browser print footers. Rebuilt the PDF and visually checked the rendered
+pages with PyMuPDF.
+
+Next step: build the Phase 1 backend in this order: promo code storage,
+checkout promo validation/discount, payment attribution, commission ledger,
+then internal report/export.
+
+### Backend implemented after commission correction
+
+User corrected the commission split to influencer 15% + coordinator 15%.
+
+Implemented Phase 1 affiliate backend:
+
+- Added `PromoCode` and `CommissionLedger` models in
+  `domstudio-backend/database.py`.
+- Added payment attribution fields:
+  `original_amount_rub`, `discount_amount_rub`, `promo_code`, and
+  `promo_discount_percent`.
+- Added migration `008` in `domstudio-backend/migrate.py`.
+- `POST /payments/tinkoff/init`, `POST /payments/tinkoff/topup`, and
+  `POST /payments/yandex/init` now accept optional `promo_code`.
+- Promo validation enforces active/window checks, first-paid-purchase-only,
+  no self-referral when `owner_user_id` is known, and 15% default discount.
+- Tinkoff/Yandex confirmed-payment webhooks write commission rows only after
+  payment success:
+  - influencer row: 15% of actual post-discount paid amount
+  - coordinator parent row: 15% of the same paid amount
+- Added admin-token protected endpoints:
+  - `POST /payments/affiliate/promo-codes`
+  - `GET /payments/affiliate/report`
+- Admin endpoints require `AFFILIATE_ADMIN_TOKEN` via
+  `X-Affiliate-Admin-Token`.
+- Updated `SOCIAL_MEDIA_ROADMAP.md` and regenerated
+  `SOCIAL_MEDIA_ROADMAP.pdf`; stale old commission language was removed.
+
+Verification:
+
+- `python -m py_compile database.py routers/payments.py migrate.py`
+- `python -m unittest tests.test_payments` passed.
+- Full `python -m unittest discover -s tests` still has unrelated existing
+  generation/Comfy failures; payment tests are green.

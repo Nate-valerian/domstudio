@@ -13,15 +13,31 @@ import os
 import hmac
 import hashlib
 import json
+import uuid
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
-from pydantic import BaseModel
+from sqlalchemy.orm import selectinload
+from pydantic import BaseModel, field_validator
 from datetime import datetime, timezone, timedelta
 
-from database import get_db, User, Payment, Subscription, TokenBalance, PaymentStatus, PaymentProvider, PlanName, PLANS, TOKEN_PACKS
+from database import (
+    get_db,
+    User,
+    Payment,
+    PromoCode,
+    CommissionLedger,
+    Subscription,
+    TokenBalance,
+    PaymentStatus,
+    PaymentProvider,
+    PayoutStatus,
+    PlanName,
+    PLANS,
+    TOKEN_PACKS,
+)
 from dependencies import get_current_user
 
 router = APIRouter()
@@ -65,12 +81,196 @@ async def tinkoff_request(endpoint: str, payload: dict) -> dict:
 def yandex_sign(body: str) -> str:
     return hmac.new(YANDEX_SECRET.encode(), body.encode(), hashlib.sha256).hexdigest()
 
+
+# ─── PROMO HELPERS ────────────────────────────────────────────────────────────
+def normalize_promo_code(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip().upper()
+    return normalized or None
+
+
+def round_rub(value: float) -> float:
+    return round(float(value) + 1e-9, 2)
+
+
+def aware_utc(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+async def resolve_promo_checkout(
+    db: AsyncSession,
+    current_user: User,
+    promo_code: str | None,
+    original_amount_rub: float,
+) -> dict:
+    original_amount_rub = round_rub(original_amount_rub)
+    if not promo_code:
+        return {
+            "promo": None,
+            "original_amount_rub": original_amount_rub,
+            "discount_amount_rub": 0.0,
+            "amount_rub": original_amount_rub,
+            "discount_percent": None,
+        }
+
+    promo = await db.scalar(
+        select(PromoCode)
+        .where(PromoCode.code == promo_code)
+        .options(selectinload(PromoCode.parent))
+    )
+    if not promo:
+        raise HTTPException(400, "Promo code not found")
+    if not promo.active:
+        raise HTTPException(400, promo.paused_reason or "Promo code is not active")
+
+    now = datetime.now(timezone.utc)
+    starts_at = aware_utc(promo.starts_at)
+    expires_at = aware_utc(promo.expires_at)
+    if starts_at and starts_at > now:
+        raise HTTPException(400, "Promo code is not active yet")
+    if expires_at and expires_at <= now:
+        raise HTTPException(400, "Promo code has expired")
+
+    if promo.owner_user_id and str(promo.owner_user_id) == str(current_user.id):
+        raise HTTPException(400, "Promo code cannot be used for self-referral")
+    if promo.parent and promo.parent.owner_user_id and str(promo.parent.owner_user_id) == str(current_user.id):
+        raise HTTPException(400, "Promo code cannot be used for self-referral")
+
+    previous_payment_id = await db.scalar(
+        select(Payment.id)
+        .where(
+            Payment.user_id == current_user.id,
+            Payment.status == PaymentStatus.succeeded,
+        )
+        .limit(1)
+    )
+    if previous_payment_id:
+        raise HTTPException(400, "Promo codes are only available for the first paid purchase")
+
+    discount_percent = float(promo.discount_percent or 0)
+    if discount_percent <= 0 or discount_percent >= 100:
+        raise HTTPException(400, "Promo code discount is invalid")
+
+    discount_amount = round_rub(original_amount_rub * discount_percent / 100)
+    amount_rub = round_rub(original_amount_rub - discount_amount)
+    if amount_rub <= 0:
+        raise HTTPException(400, "Promo code discount is invalid")
+
+    return {
+        "promo": promo,
+        "original_amount_rub": original_amount_rub,
+        "discount_amount_rub": discount_amount,
+        "amount_rub": amount_rub,
+        "discount_percent": discount_percent,
+    }
+
+
+def commission_amount(base_amount_rub: float, rate: float) -> float:
+    return round_rub(float(base_amount_rub) * float(rate) / 100)
+
+
+async def record_commissions(
+    db: AsyncSession,
+    payment_id,
+    promo_code: str | None,
+    base_amount_rub: float | None,
+) -> None:
+    if not promo_code or not base_amount_rub:
+        return
+
+    promo = await db.scalar(
+        select(PromoCode)
+        .where(PromoCode.code == promo_code)
+        .options(selectinload(PromoCode.parent))
+    )
+    if not promo:
+        return
+
+    base_amount = round_rub(base_amount_rub)
+    ledger_rows = [
+        CommissionLedger(
+            payment_id=payment_id,
+            code=promo.code,
+            base_amount_rub=base_amount,
+            commission_rate=float(promo.commission_percent or 0),
+            commission_amount_rub=commission_amount(base_amount, promo.commission_percent or 0),
+            payee=promo.owner_label,
+            payout_status=PayoutStatus.pending,
+        )
+    ]
+
+    if promo.parent:
+        ledger_rows.append(
+            CommissionLedger(
+                payment_id=payment_id,
+                code=promo.parent.code,
+                base_amount_rub=base_amount,
+                commission_rate=float(promo.parent.commission_percent or 0),
+                commission_amount_rub=commission_amount(base_amount, promo.parent.commission_percent or 0),
+                payee=promo.parent.owner_label,
+                payout_status=PayoutStatus.pending,
+            )
+        )
+
+    for row in ledger_rows:
+        if row.commission_rate > 0 and row.commission_amount_rub > 0:
+            db.add(row)
+
+
+def check_affiliate_admin_token(token: str | None) -> None:
+    expected = os.getenv("AFFILIATE_ADMIN_TOKEN")
+    if not expected or not token or not hmac.compare_digest(token, expected):
+        raise HTTPException(403, "Affiliate report access denied")
+
+
 # ─── SCHEMAS ─────────────────────────────────────────────────────────────────
 class InitPaymentRequest(BaseModel):
     plan: PlanName
+    promo_code: str | None = None
+
+    @field_validator("promo_code")
+    @classmethod
+    def normalize_promo_code(cls, value: str | None) -> str | None:
+        return normalize_promo_code(value)
 
 class TopUpRequest(BaseModel):
     pack_id: str
+    promo_code: str | None = None
+
+    @field_validator("promo_code")
+    @classmethod
+    def normalize_promo_code(cls, value: str | None) -> str | None:
+        return normalize_promo_code(value)
+
+
+class PromoCodeCreateRequest(BaseModel):
+    code: str
+    owner_label: str
+    owner_user_id: uuid.UUID | None = None
+    parent_code: str | None = None
+    discount_percent: float = 15
+    commission_percent: float = 15
+    active: bool = True
+    starts_at: datetime | None = None
+    expires_at: datetime | None = None
+    paused_reason: str | None = None
+
+    @field_validator("code", "parent_code")
+    @classmethod
+    def normalize_codes(cls, value: str | None) -> str | None:
+        return normalize_promo_code(value)
+
+    @field_validator("discount_percent", "commission_percent")
+    @classmethod
+    def validate_percent(cls, value: float) -> float:
+        if value < 0 or value >= 100:
+            raise ValueError("percent must be between 0 and 99.99")
+        return value
 
 class TinkoffWebhook(BaseModel):
     TerminalKey: str
@@ -92,15 +292,21 @@ async def tinkoff_init(
     if req.plan not in PLANS:
         raise HTTPException(400, "Plan is not available")
 
-    plan_cfg   = PLANS[req.plan]
-    amount_kop = int(plan_cfg["price_rub"] * 100)  # Tinkoff uses kopecks
+    plan_cfg = PLANS[req.plan]
+    checkout = await resolve_promo_checkout(db, current_user, req.promo_code, plan_cfg["price_rub"])
+    promo = checkout["promo"]
+    amount_kop = int(round(checkout["amount_rub"] * 100))  # Tinkoff uses kopecks
 
     # Create pending payment record
     payment = Payment(
         user_id=current_user.id,
         provider=PaymentProvider.tinkoff,
         provider_order_id=f"DS-{current_user.id}-{int(datetime.now().timestamp())}",
-        amount_rub=plan_cfg["price_rub"],
+        amount_rub=checkout["amount_rub"],
+        original_amount_rub=checkout["original_amount_rub"],
+        discount_amount_rub=checkout["discount_amount_rub"],
+        promo_code=promo.code if promo else None,
+        promo_discount_percent=checkout["discount_percent"],
         plan=req.plan,
         status=PaymentStatus.pending,
     )
@@ -136,6 +342,10 @@ async def tinkoff_init(
     return {
         "payment_id": str(payment.id),
         "payment_url": result["PaymentURL"],
+        "amount_rub": checkout["amount_rub"],
+        "original_amount_rub": checkout["original_amount_rub"],
+        "discount_amount_rub": checkout["discount_amount_rub"],
+        "promo_code": promo.code if promo else None,
     }
 
 
@@ -148,14 +358,20 @@ async def tinkoff_topup(
     if req.pack_id not in TOKEN_PACKS:
         raise HTTPException(400, "Unknown token pack")
 
-    pack       = TOKEN_PACKS[req.pack_id]
-    amount_kop = int(pack["price_rub"] * 100)
+    pack = TOKEN_PACKS[req.pack_id]
+    checkout = await resolve_promo_checkout(db, current_user, req.promo_code, pack["price_rub"])
+    promo = checkout["promo"]
+    amount_kop = int(round(checkout["amount_rub"] * 100))
 
     payment = Payment(
         user_id=current_user.id,
         provider=PaymentProvider.tinkoff,
         provider_order_id=f"DS-TOP-{current_user.id}-{int(datetime.now().timestamp())}",
-        amount_rub=pack["price_rub"],
+        amount_rub=checkout["amount_rub"],
+        original_amount_rub=checkout["original_amount_rub"],
+        discount_amount_rub=checkout["discount_amount_rub"],
+        promo_code=promo.code if promo else None,
+        promo_discount_percent=checkout["discount_percent"],
         pack_id=req.pack_id,
         status=PaymentStatus.pending,
     )
@@ -190,6 +406,10 @@ async def tinkoff_topup(
     return {
         "payment_id":  str(payment.id),
         "payment_url": result["PaymentURL"],
+        "amount_rub": checkout["amount_rub"],
+        "original_amount_rub": checkout["original_amount_rub"],
+        "discount_amount_rub": checkout["discount_amount_rub"],
+        "promo_code": promo.code if promo else None,
     }
 
 
@@ -226,7 +446,14 @@ async def tinkoff_webhook(
                 Payment.status == PaymentStatus.pending,
             )
             .values(status=PaymentStatus.succeeded)
-            .returning(Payment.id, Payment.user_id, Payment.plan, Payment.pack_id)
+            .returning(
+                Payment.id,
+                Payment.user_id,
+                Payment.plan,
+                Payment.pack_id,
+                Payment.promo_code,
+                Payment.amount_rub,
+            )
         )
         row = result.first()
         if row:
@@ -234,6 +461,12 @@ async def tinkoff_webhook(
                 await activate_topup(row.user_id, row.pack_id, db)
             else:
                 await activate_subscription(row.user_id, row.plan, db)
+            await record_commissions(
+                db,
+                row.id,
+                getattr(row, "promo_code", None),
+                getattr(row, "amount_rub", None),
+            )
 
     elif webhook.Status in ("CANCELED", "REJECTED", "DEADLINE_EXPIRED"):
         await db.execute(
@@ -258,12 +491,18 @@ async def yandex_init(
         raise HTTPException(400, "Plan is not available")
 
     plan_cfg = PLANS[req.plan]
+    checkout = await resolve_promo_checkout(db, current_user, req.promo_code, plan_cfg["price_rub"])
+    promo = checkout["promo"]
 
     payment = Payment(
         user_id=current_user.id,
         provider=PaymentProvider.yandex_pay,
         provider_order_id=f"YP-{current_user.id}-{int(datetime.now().timestamp())}",
-        amount_rub=plan_cfg["price_rub"],
+        amount_rub=checkout["amount_rub"],
+        original_amount_rub=checkout["original_amount_rub"],
+        discount_amount_rub=checkout["discount_amount_rub"],
+        promo_code=promo.code if promo else None,
+        promo_discount_percent=checkout["discount_percent"],
         plan=req.plan,
         status=PaymentStatus.pending,
     )
@@ -278,12 +517,12 @@ async def yandex_init(
                 "productId":   f"domstudio_{req.plan.value}",
                 "title":       f"DomStudio {req.plan.value}",
                 "unitPrice":   str(plan_cfg["price_rub"]),
-                "discountedUnitPrice": str(plan_cfg["price_rub"]),
+                "discountedUnitPrice": str(checkout["amount_rub"]),
                 "tax":         "NO_VAX",
                 "quantity":    {"count": "1", "label": "шт"},
-                "total":       str(plan_cfg["price_rub"]),
+                "total":       str(checkout["amount_rub"]),
             }],
-            "total": {"amount": str(plan_cfg["price_rub"]), "label": "Итого"},
+            "total": {"amount": str(checkout["amount_rub"]), "label": "Итого"},
         },
         "currencyCode":  "RUB",
         "orderId":       str(payment.id),
@@ -313,6 +552,10 @@ async def yandex_init(
     return {
         "payment_id":  str(payment.id),
         "payment_url": result["data"]["paymentUrl"],
+        "amount_rub": checkout["amount_rub"],
+        "original_amount_rub": checkout["original_amount_rub"],
+        "discount_amount_rub": checkout["discount_amount_rub"],
+        "promo_code": promo.code if promo else None,
     }
 
 
@@ -337,7 +580,14 @@ async def yandex_webhook(
             update(Payment)
             .where(Payment.id == order_id, Payment.status == PaymentStatus.pending)
             .values(status=PaymentStatus.succeeded)
-            .returning(Payment.user_id, Payment.plan, Payment.pack_id)
+            .returning(
+                Payment.id,
+                Payment.user_id,
+                Payment.plan,
+                Payment.pack_id,
+                Payment.promo_code,
+                Payment.amount_rub,
+            )
         )
         row = result.first()
         if row:
@@ -345,6 +595,12 @@ async def yandex_webhook(
                 await activate_topup(row.user_id, row.pack_id, db)
             else:
                 await activate_subscription(row.user_id, row.plan, db)
+            await record_commissions(
+                db,
+                row.id,
+                getattr(row, "promo_code", None),
+                getattr(row, "amount_rub", None),
+            )
     elif event in ("ORDER_FAILED", "ORDER_CANCELLED"):
         await db.execute(
             update(Payment)
@@ -353,6 +609,84 @@ async def yandex_webhook(
         )
 
     return {"ok": True}
+
+
+# ─── AFFILIATE REPORT ────────────────────────────────────────────────────────
+@router.post("/affiliate/promo-codes")
+async def create_affiliate_promo_code(
+    req: PromoCodeCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    x_affiliate_admin_token: str | None = Header(default=None),
+):
+    check_affiliate_admin_token(x_affiliate_admin_token)
+    if not req.code:
+        raise HTTPException(400, "Promo code is required")
+    if not req.owner_label.strip():
+        raise HTTPException(400, "Owner label is required")
+
+    existing = await db.scalar(select(PromoCode).where(PromoCode.code == req.code))
+    if existing:
+        raise HTTPException(409, "Promo code already exists")
+
+    if req.parent_code:
+        parent = await db.scalar(select(PromoCode).where(PromoCode.code == req.parent_code))
+        if not parent:
+            raise HTTPException(400, "Parent promo code not found")
+
+    promo = PromoCode(
+        code=req.code,
+        owner_label=req.owner_label.strip(),
+        owner_user_id=req.owner_user_id,
+        parent_code=req.parent_code,
+        discount_percent=req.discount_percent,
+        commission_percent=req.commission_percent,
+        active=req.active,
+        starts_at=req.starts_at,
+        expires_at=req.expires_at,
+        paused_reason=req.paused_reason,
+    )
+    db.add(promo)
+    await db.flush()
+    return {
+        "code": promo.code,
+        "owner_label": promo.owner_label,
+        "owner_user_id": str(promo.owner_user_id) if promo.owner_user_id else None,
+        "parent_code": promo.parent_code,
+        "discount_percent": promo.discount_percent,
+        "commission_percent": promo.commission_percent,
+        "active": promo.active,
+        "starts_at": promo.starts_at,
+        "expires_at": promo.expires_at,
+        "paused_reason": promo.paused_reason,
+    }
+
+
+@router.get("/affiliate/report")
+async def affiliate_report(
+    db: AsyncSession = Depends(get_db),
+    x_affiliate_admin_token: str | None = Header(default=None),
+):
+    check_affiliate_admin_token(x_affiliate_admin_token)
+    result = await db.execute(
+        select(CommissionLedger)
+        .order_by(CommissionLedger.created_at.desc())
+        .limit(500)
+    )
+    rows = result.scalars().all()
+    return [
+        {
+            "id": str(row.id),
+            "payment_id": str(row.payment_id),
+            "code": row.code,
+            "base_amount_rub": row.base_amount_rub,
+            "commission_rate": row.commission_rate,
+            "commission_amount_rub": row.commission_amount_rub,
+            "payee": row.payee,
+            "payout_status": row.payout_status,
+            "created_at": row.created_at,
+        }
+        for row in rows
+    ]
 
 
 # ─── PAYMENT HISTORY ─────────────────────────────────────────────────────────
@@ -373,6 +707,9 @@ async def payment_history(
             "id":         str(p.id),
             "plan":       p.plan,
             "amount_rub": p.amount_rub,
+            "original_amount_rub": p.original_amount_rub,
+            "discount_amount_rub": p.discount_amount_rub,
+            "promo_code": p.promo_code,
             "status":     p.status,
             "provider":   p.provider,
             "created_at": p.created_at,
