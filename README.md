@@ -211,6 +211,14 @@ major implementation sessions, current production notes, generation workflow
 changes, AdPilot AI behavior, mobile app progress, deployment findings, and
 next-step ideas.
 
+## Contact
+
+Created by **Nate**
+
+- Email: [n.nate1544@gmail.com](mailto:n.nate1544@gmail.com)
+- GitHub: [github.com/Nate-valerian](https://github.com/Nate-valerian)
+
+  
 ## License
 
 No license has been published yet. Treat this repository as proprietary unless a
