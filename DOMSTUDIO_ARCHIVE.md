@@ -1,5 +1,35 @@
 # DomStudio Archive
 
+## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
+
+Compared Aidentika (`https://aidentika.com/en`) with DomStudio
+(`http://domstudio.site/#home`).
+
+Direction chosen:
+
+- Do not copy Aidentika as a generic AI product-photo studio.
+- Position DomStudio as the practical seller cockpit for WB/Ozon/Avito:
+  product photos, marketplace formats, quick tools, and AdPilot copy in one
+  place.
+- Keep DomStudio's orange identity, but calm the cream/yellow surfaces so the
+  page feels cleaner and more commercial.
+- Add a Studio mode split later:
+  - Simple/Fast mode: upload, choose marketplace/format, choose style, generate.
+  - Complex/Advanced mode: expose all detailed controls.
+
+Pass 1 landing changes planned as committed chunks:
+
+1. Palette refinement and mobile hero overflow/H1 fix.
+2. Clear "3 steps" section near the top.
+3. Category proof expansion beyond the single bottle/tea-house proof.
+4. Photographer vs DomStudio comparison block.
+5. Honest video/support/FAQ additions.
+
+Commit rule from user:
+
+- After each new change chunk, commit it.
+- Ask the user to push before continuing to the next change chunk.
+
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 
 Commits:
