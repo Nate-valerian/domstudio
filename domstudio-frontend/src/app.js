@@ -1549,6 +1549,35 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section seller-comparison-section">
+        <div class="section-head">
+          <h2>${t("home.compareH2")}</h2>
+          <p>${t("home.compareP")}</p>
+        </div>
+        <div class="seller-comparison-grid">
+          <article class="seller-comparison-card muted-card">
+            <span>${t("home.compare.photoLabel")}</span>
+            <h3>${t("home.compare.photoTitle")}</h3>
+            <ul>
+              <li>${t("home.compare.photoTime")}</li>
+              <li>${t("home.compare.photoCost")}</li>
+              <li>${t("home.compare.photoFlow")}</li>
+            </ul>
+          </article>
+          <div class="comparison-vs">VS</div>
+          <article class="seller-comparison-card domstudio-card">
+            <span>${t("home.compare.domLabel")}</span>
+            <h3>${t("home.compare.domTitle")}</h3>
+            <ul>
+              <li>${t("home.compare.domTime")}</li>
+              <li>${t("home.compare.domCost")}</li>
+              <li>${t("home.compare.domFlow")}</li>
+            </ul>
+            <button class="button gold" type="button" data-route="studio">${t("home.cta")}</button>
+          </article>
+        </div>
+      </section>
+
       <section class="section proof-section">
         <div class="section-head">
           <h2>${t("home.proofH2")}</h2>

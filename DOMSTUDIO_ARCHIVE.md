@@ -38,6 +38,9 @@ Pass 1 progress:
 - Chunk 3 completed: expanded proof beyond one hero example with six category
   cards using real generated/curated assets. Electronics is intentionally not
   claimed until a real electronics proof image exists.
+- Chunk 4 completed: added direct "photographer/studio vs DomStudio" comparison
+  block with conservative traditional-shoot cost language and the real 270 ₽
+  DomStudio entry price.
 
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 
