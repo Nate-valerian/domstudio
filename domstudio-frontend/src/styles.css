@@ -588,6 +588,42 @@ h1 em { color: var(--gold); font-style: normal; }
   font-weight: 900; cursor: pointer;
 }
 .media-toggle button.active { background: white; color: var(--ink); box-shadow: 0 8px 24px rgba(32,25,14,.08); }
+.studio-mode-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(255,157,46,.28);
+  border-radius: 18px;
+  background: #fffaf0;
+}
+.studio-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.studio-mode-switch button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: #725d32;
+  font-weight: 900;
+  cursor: pointer;
+}
+.studio-mode-switch button.active {
+  border-color: rgba(255,157,46,.36);
+  background: white;
+  color: var(--ink);
+  box-shadow: 0 10px 28px rgba(32,25,14,.08);
+}
+.studio-mode-card p {
+  margin: 0;
+  color: #6b5a36;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+}
 .mobile-flow-steps { display: none; }
 .field { display: grid; min-width: 0; gap: 8px; margin-bottom: 18px; }
 .field label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }

@@ -513,6 +513,7 @@ const state = {
   selectedImage: null,
   selectedImageName: null,
   generationKind: "photo",
+  studioDetailMode: "fast",
   generatedImage: null,
   generatedVideo: null,
   videoJob: null,
@@ -1844,6 +1845,7 @@ function studioPage() {
   const cost = generationCost();
   const selectedVideoProvider = currentVideoProvider();
   const videoSubmitLabel = selectedVideoProvider.id === "premium" ? t("video.submitCta") : t("video.submitFreeCta");
+  const isAdvancedStudio = state.studioDetailMode === "advanced";
   const submitLabel = state.generating
     ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating"))
     : (state.generationKind === "video" ? videoSubmitLabel : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"));
@@ -1858,6 +1860,13 @@ function studioPage() {
       <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div>${state.user ? `<div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>` : `<button class="button" type="button" data-auth-open>${t("nav.signup")}</button>`}</header>
       <div class="studio-grid">
         <form class="panel studio-form" id="generate-form">
+          <div class="studio-mode-card">
+            <div class="studio-mode-switch" role="group" aria-label="${t("studio.detailMode")}">
+              <button type="button" class="${state.studioDetailMode === "fast" ? "active" : ""}" data-studio-detail-mode="fast">${t("studio.modeFast")}</button>
+              <button type="button" class="${isAdvancedStudio ? "active" : ""}" data-studio-detail-mode="advanced">${t("studio.modeAdvanced")}</button>
+            </div>
+            <p>${isAdvancedStudio ? t("studio.modeAdvancedHint") : t("studio.modeFastHint")}</p>
+          </div>
           <div class="media-toggle" role="group" aria-label="${t("studio.outputType")}">
             <button type="button" class="${state.generationKind === "photo" ? "active" : ""}" data-generation-kind="photo">${t("studio.photoTab")}</button>
             <button type="button" class="${state.generationKind === "video" ? "active" : ""}" data-generation-kind="video">${t("studio.videoTab")}</button>
@@ -1891,7 +1900,7 @@ function studioPage() {
               </div>
             </div>
           ` : ""}
-          <div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
+          ${isAdvancedStudio ? `<div class="brand-preferences collapsible ${state.brandPrefsOpen ? "open" : ""}">
             <button class="collapsible-head" type="button" data-toggle-brand>
               <span><h3>${t("studio.brandTitle")}</h3><small>${t("studio.brandSub")}</small></span>
               <span class="chevron">${state.brandPrefsOpen ? "−" : "+"}</span>
@@ -1932,7 +1941,7 @@ function studioPage() {
               </div>
               <button class="button secondary block" type="button" data-build-prompt>${t("studio.helperBuild")}</button>
             </div>` : ""}
-          </div>
+          </div>` : ""}
           <div class="field"><label for="subject">${t("studio.subjectLabel")}</label><textarea class="textarea" id="subject" name="subject" required placeholder="${t("studio.subjectPlaceholder")}">${draftValue("subject")}</textarea></div>
           ${sceneModeNotice ? `<div class="mode-notice">${t("studio.sceneModeNotice")}</div>` : ""}
           <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
@@ -1954,13 +1963,13 @@ function studioPage() {
           </div>
           ${state.generatedMeta && !state.generatedVideo ? `<p class="result-meta">${state.generatedMeta.variation_label ? `${escapeHtml(state.generatedMeta.variation_label)} · ` : ""}${state.generatedMeta.width || "?"}×${state.generatedMeta.height || "?"} · ${escapeHtml(state.generatedMeta.mode || "")}</p>` : ""}
           ${videoJobPanel()}
-          ${exportTools()}
+          ${isAdvancedStudio ? exportTools() : ""}
           ${contentPackTools()}
           ${quickEditsPanel()}
           ${adpilotLinkPanel()}
-          ${comparisonPanel()}
-          ${variationTools()}
-          ${historyPanel()}
+          ${isAdvancedStudio ? comparisonPanel() : ""}
+          ${isAdvancedStudio ? variationTools() : ""}
+          ${isAdvancedStudio ? historyPanel() : ""}
         </div>
       </div>
       <div class="mobile-sticky-generate">
@@ -3334,6 +3343,7 @@ function bind() {
   document.querySelectorAll("[data-approve-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.approveAction, "approve")));
   document.querySelectorAll("[data-publish-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.publishAction, "publish")));
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
+  document.querySelectorAll("[data-studio-detail-mode]").forEach(el => el.addEventListener("click", () => setStudioDetailMode(el.dataset.studioDetailMode)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
   });
@@ -4186,6 +4196,12 @@ function setGenerationKind(kind) {
   state.generatedVideo = null;
   state.generatedMeta = null;
   state.videoJob = null;
+  render({ motion: false });
+}
+
+function setStudioDetailMode(mode) {
+  if (!["fast", "advanced"].includes(mode) || state.studioDetailMode === mode) return;
+  state.studioDetailMode = mode;
   render({ motion: false });
 }
 

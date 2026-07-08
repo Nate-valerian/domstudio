@@ -45,6 +45,13 @@ Pass 1 progress:
   opens the existing contact flow because no verified public Telegram handle
   exists in the repo yet.
 
+Pass 2 Studio mode split:
+
+- Chunk 1 completed: added a Studio `Fast / Advanced` switch. Fast mode keeps
+  the main seller flow visible (upload, marketplace, style, brief, generate),
+  while Advanced exposes brand settings, prompt helper, exact export, variations,
+  comparison, and history.
+
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 
 Commits:
