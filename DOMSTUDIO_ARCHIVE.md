@@ -57,6 +57,9 @@ Pass 3 landing "alive" visuals:
 - Chunk 1 completed: upgraded the top "3 steps" section from text cards into a
   visual seller workflow with source-photo cards, marketplace/format presets,
   a final result card, and an autoplay video tile using existing real assets.
+- Chunk 2 completed: added large "live scenario" showcase blocks inspired by
+  the Aidentika references, but positioned for DomStudio: fashion/try-on looks,
+  honest short AI video, and a wider horizontal category rail.
 
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 

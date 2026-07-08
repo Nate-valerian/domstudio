@@ -1565,6 +1565,56 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section showcase-section">
+        <div class="showcase-head">
+          <span>${t("home.showcaseLabel")}</span>
+          <h2>${t("home.showcaseH2")}</h2>
+          <p>${t("home.showcaseP")}</p>
+        </div>
+        <article class="showcase-block look-showcase">
+          <div class="look-inputs" aria-hidden="true">
+            <figure><img src="${modeFittingBeforeUrl}" alt="" loading="lazy" /></figure>
+            <figure><img src="${exampleBottleFittingUrl}" alt="" loading="lazy" /></figure>
+            <div class="prompt-bubble">${t("home.lookPrompt")}</div>
+          </div>
+          <div class="showcase-card-stack">
+            <figure class="showcase-card-main"><img src="${modeFittingUrl}" alt="${t("home.lookH3")}" loading="lazy" /></figure>
+            <figure class="showcase-card-ghost"><img src="${examplePerfumeFittingUrl}" alt="" loading="lazy" /></figure>
+            <figure class="showcase-card-ghost second"><img src="${exampleBottleMobileUrl}" alt="" loading="lazy" /></figure>
+          </div>
+          <div class="showcase-copy">
+            <h3>${t("home.lookH3")}</h3>
+            <ul>
+              <li>${t("home.lookBullet1")}</li>
+              <li>${t("home.lookBullet2")}</li>
+              <li>${t("home.lookBullet3")}</li>
+            </ul>
+            <button class="button gold" type="button" data-route="studio">${t("home.lookCta")}</button>
+          </div>
+        </article>
+        <article class="showcase-block video-showcase">
+          <div class="showcase-video-stack">
+            <figure class="showcase-video-card">
+              <video src="${fashionFittingVideoUrl}" poster="${modeFittingUrl}" aria-label="${t("home.videoShowH3")}" autoplay muted loop playsinline preload="metadata"></video>
+              <span>${t("home.video")}</span>
+            </figure>
+            <figure class="showcase-video-ghost"><img src="${modeStoriesUrl}" alt="" loading="lazy" /></figure>
+            <figure class="showcase-video-ghost second"><img src="${exampleBottleProductUrl}" alt="" loading="lazy" /></figure>
+          </div>
+          <div class="showcase-copy">
+            <span>${t("home.videoShowLabel")}</span>
+            <h3>${t("home.videoShowH3")}</h3>
+            <p>${t("home.videoShowP")}</p>
+            <ul>
+              <li>${t("home.videoShowBullet1")}</li>
+              <li>${t("home.videoShowBullet2")}</li>
+              <li>${t("home.videoShowBullet3")}</li>
+            </ul>
+            <button class="button gold" type="button" data-route="studio">${t("home.videoShowCta")}</button>
+          </div>
+        </article>
+      </section>
+
       <section class="section category-proof-section">
         <div class="section-head">
           <h2>${t("home.categoryH2")}</h2>
@@ -3200,7 +3250,7 @@ function render(options = {}) {
 }
 
 function prepareDemoVideos() {
-  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .adpilot-visual video, .seller-step-media video")];
+  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .adpilot-visual video, .seller-step-media video, .showcase-video-card video")];
   videos.forEach((video) => {
     video.muted = true;
     video.defaultMuted = true;
@@ -4326,7 +4376,7 @@ function runMotion({ entrance = true } = {}) {
     });
     animateFrom(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
     animateTo(".hero-studio-card", { y: -10, rotation: 0.4, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    animateFrom(".proof-visual, .proof-stat, .mode-card, .step, .seller-step-card", {
+    animateFrom(".proof-visual, .proof-stat, .mode-card, .step, .seller-step-card, .showcase-block", {
       y: 26,
       opacity: 0,
       duration: 0.55,
