@@ -1578,6 +1578,34 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section trust-support-section">
+        <div class="video-honesty-card">
+          <div>
+            <span>${t("home.videoTrustLabel")}</span>
+            <h2>${t("home.videoTrustH2")}</h2>
+            <p>${t("home.videoTrustP")}</p>
+          </div>
+          <button class="button secondary" type="button" data-route="studio">${t("home.videoTrustCta")}</button>
+        </div>
+        <div class="faq-support-grid">
+          <div class="faq-list">
+            <h2>${t("home.faqH2")}</h2>
+            ${["preserve", "marketplaces", "video", "price"].map((key) => `
+              <details class="faq-item">
+                <summary>${t(`home.faq.${key}.q`)}</summary>
+                <p>${t(`home.faq.${key}.a`)}</p>
+              </details>
+            `).join("")}
+          </div>
+          <aside class="support-cta-card">
+            <span>${t("home.supportLabel")}</span>
+            <h3>${t("home.supportH3")}</h3>
+            <p>${t("home.supportP")}</p>
+            <button class="button gold" type="button" data-contact-reason="help">${t("home.supportCta")}</button>
+          </aside>
+        </div>
+      </section>
+
       <section class="section proof-section">
         <div class="section-head">
           <h2>${t("home.proofH2")}</h2>

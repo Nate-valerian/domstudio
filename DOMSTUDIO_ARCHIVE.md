@@ -41,6 +41,9 @@ Pass 1 progress:
 - Chunk 4 completed: added direct "photographer/studio vs DomStudio" comparison
   block with conservative traditional-shoot cost language and the real 270 ₽
   DomStudio entry price.
+- Chunk 5 completed: added honest video wording plus FAQ/support CTA. Support
+  opens the existing contact flow because no verified public Telegram handle
+  exists in the repo yet.
 
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 

@@ -458,6 +458,78 @@ h1 em { color: var(--gold); font-style: normal; }
   font: 900 13px "Unbounded";
   box-shadow: 0 18px 42px rgba(255,157,46,.20);
 }
+.trust-support-section {
+  display: grid;
+  gap: 18px;
+  background: #fbf7ef;
+  border-bottom: 1px solid rgba(192,135,10,.10);
+}
+.video-honesty-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid rgba(17,17,15,.10);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse 80% 80% at 100% 0%, rgba(255,157,46,.16), transparent 62%),
+    var(--card);
+  box-shadow: 0 22px 60px rgba(32,25,14,.08);
+}
+.video-honesty-card span,
+.support-cta-card span {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--acid);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.video-honesty-card h2 { max-width: 760px; font-size: clamp(26px, 3.5vw, 46px); line-height: 1.08; }
+.video-honesty-card p { max-width: 720px; margin: 14px 0 0; color: var(--muted); line-height: 1.65; }
+.video-honesty-card .button { flex: 0 0 auto; min-width: 180px; }
+.faq-support-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .42fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.faq-list,
+.support-cta-card {
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid rgba(17,17,15,.10);
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: 0 18px 48px rgba(32,25,14,.06);
+}
+.faq-list h2 { margin-bottom: 18px; font-size: clamp(24px, 3vw, 36px); }
+.faq-item {
+  border-top: 1px solid rgba(17,17,15,.10);
+}
+.faq-item:last-child { border-bottom: 1px solid rgba(17,17,15,.10); }
+.faq-item summary {
+  cursor: pointer;
+  padding: 16px 0;
+  color: var(--ink);
+  font-weight: 900;
+  line-height: 1.35;
+}
+.faq-item summary::marker { color: var(--acid); }
+.faq-item p { margin: -4px 0 16px; color: var(--muted); line-height: 1.6; }
+.support-cta-card {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  background: #fff9ed;
+}
+.support-cta-card h3 { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.12; }
+.support-cta-card p { margin: 0; color: var(--muted); line-height: 1.6; }
+.support-cta-card .button { margin-top: 6px; width: fit-content; min-width: 210px; }
 
 .app-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 82px); min-width: 0; }
 .sidebar { padding: 32px 22px; border-right: 1px solid var(--line); background: rgba(255,255,255,.34); }
@@ -1298,6 +1370,11 @@ h1 em { color: var(--gold); font-style: normal; }
   .category-proof-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .seller-comparison-grid { grid-template-columns: 1fr; }
   .comparison-vs { margin: -4px auto; }
+  .video-honesty-card,
+  .faq-support-grid { grid-template-columns: 1fr; }
+  .video-honesty-card { align-items: stretch; flex-direction: column; }
+  .video-honesty-card .button,
+  .support-cta-card .button { width: 100%; min-width: 0; }
   .mode-grid, .price-grid { grid-template-columns: repeat(2, 1fr); }
   .examples-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .example-card.has-video { grid-column: span 2; }
@@ -1434,6 +1511,17 @@ h1 em { color: var(--gold); font-style: normal; }
   .seller-comparison-card li { font-size: 14px; }
   .seller-comparison-card.domstudio-card .button { width: 100%; min-width: 0; }
   .comparison-vs { width: 48px; height: 48px; font-size: 11px; }
+  .trust-support-section { gap: 12px; }
+  .video-honesty-card,
+  .faq-list,
+  .support-cta-card { padding: 18px; border-radius: 16px; }
+  .video-honesty-card h2 { font-size: 22px; }
+  .video-honesty-card p,
+  .faq-item p,
+  .support-cta-card p { font-size: 14px; }
+  .faq-list h2 { font-size: 24px; }
+  .faq-item summary { padding: 14px 0; font-size: 14px; }
+  .support-cta-card h3 { font-size: 22px; }
   .proof-copy { grid-template-columns: 1fr; }
   .proof-visual { border-radius: 16px; }
   .proof-visual .landing-media { min-height: 0; aspect-ratio: 1 / 1; }
