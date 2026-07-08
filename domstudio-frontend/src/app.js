@@ -1522,10 +1522,46 @@ function homePage() {
 
       <section class="section quick-workflow-section workflow-section">
         <div class="section-head"><h2>${t("home.workflowH2")}</h2><p>${t("home.workflowP")}</p></div>
-        <div class="steps">
-          <article class="step"><b>01</b><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></article>
-          <article class="step"><b>02</b><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></article>
-          <article class="step"><b>03</b><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></article>
+        <div class="seller-workflow-visual">
+          <article class="seller-step-card">
+            <div class="seller-step-copy"><b>01</b><div><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></div></div>
+            <div class="seller-step-media upload-stack">
+              <figure class="upload-stack-main"><img src="${landingWineBeforeUrl}" alt="${t("home.step1h")}" loading="lazy" /></figure>
+              <figure><img src="${modeCatalogBeforeUrl}" alt="${t("home.workflowUploadTag")}" loading="lazy" /></figure>
+              <figure><img src="${modeFittingBeforeUrl}" alt="${t("home.workflowUploadTag")}" loading="lazy" /></figure>
+            </div>
+          </article>
+          <span class="workflow-arrow" aria-hidden="true">→</span>
+          <article class="seller-step-card">
+            <div class="seller-step-copy"><b>02</b><div><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></div></div>
+            <div class="seller-step-media preset-board">
+              <figure><img src="${categoryMarketplaceUrl}" alt="${t("home.step2h")}" loading="lazy" /></figure>
+              <div class="workflow-preset-grid">
+                <span>WB</span><span>Ozon</span><span>Avito</span><span>Stories</span>
+              </div>
+              <div class="workflow-format-row">
+                <span>1:1</span><span>4:5</span><span>3:4</span><span>16:9</span>
+              </div>
+            </div>
+          </article>
+          <span class="workflow-arrow" aria-hidden="true">→</span>
+          <article class="seller-step-card">
+            <div class="seller-step-copy"><b>03</b><div><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></div></div>
+            <div class="seller-step-media result-stack">
+              <figure class="result-card-main">
+                <img src="${landingWineAfterUrl}" alt="${t("home.step3h")}" loading="lazy" />
+                <span>${t("home.after")}</span>
+              </figure>
+              <figure class="result-video-card">
+                <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="${t("home.video")}" autoplay muted loop playsinline preload="metadata"></video>
+                <span>${t("home.video")}</span>
+              </figure>
+            </div>
+          </article>
+        </div>
+        <div class="workflow-bottom-line">
+          <p>${t("home.workflowFoot")}</p>
+          <button class="button gold" type="button" data-route="studio">${t("home.cta")}</button>
         </div>
       </section>
 
@@ -3164,7 +3200,7 @@ function render(options = {}) {
 }
 
 function prepareDemoVideos() {
-  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .adpilot-visual video")];
+  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .adpilot-visual video, .seller-step-media video")];
   videos.forEach((video) => {
     video.muted = true;
     video.defaultMuted = true;
@@ -4290,7 +4326,7 @@ function runMotion({ entrance = true } = {}) {
     });
     animateFrom(".hero-visual", { y: 28, opacity: 0, scale: 0.97, duration: 0.85, ease: "power3.out", delay: 0.08 });
     animateTo(".hero-studio-card", { y: -10, rotation: 0.4, duration: 4.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    animateFrom(".proof-visual, .proof-stat, .mode-card, .step", {
+    animateFrom(".proof-visual, .proof-stat, .mode-card, .step, .seller-step-card", {
       y: 26,
       opacity: 0,
       duration: 0.55,

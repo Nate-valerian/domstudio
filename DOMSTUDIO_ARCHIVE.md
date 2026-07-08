@@ -52,6 +52,12 @@ Pass 2 Studio mode split:
   while Advanced exposes brand settings, prompt helper, exact export, variations,
   comparison, and history.
 
+Pass 3 landing "alive" visuals:
+
+- Chunk 1 completed: upgraded the top "3 steps" section from text cards into a
+  visual seller workflow with source-photo cards, marketplace/format presets,
+  a final result card, and an autoplay video tile using existing real assets.
+
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 
 Commits:

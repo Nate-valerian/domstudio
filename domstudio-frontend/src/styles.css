@@ -322,6 +322,152 @@ h1 em { color: var(--gold); font-style: normal; }
 .quick-workflow-section .section-head { margin-bottom: 26px; }
 .quick-workflow-section .section-head h2 { color: var(--ink); }
 .quick-workflow-section .section-head p { color: var(--muted); }
+.seller-workflow-visual {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr) 42px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+}
+.seller-step-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(17,17,15,.10);
+  border-radius: 22px;
+  background: #fffaf0;
+  box-shadow: 0 18px 48px rgba(32,25,14,.06);
+}
+.seller-step-copy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.seller-step-copy b {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--acid);
+  font: 700 16px "Unbounded";
+}
+.seller-step-copy h3 { margin-bottom: 6px; color: var(--ink); font-size: 19px; line-height: 1.18; }
+.seller-step-copy p { margin: 0; color: var(--muted); font-size: 13px; font-weight: 700; line-height: 1.55; }
+.workflow-arrow {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(17,17,15,.10);
+  border-radius: 50%;
+  background: white;
+  color: var(--gold);
+  font-size: 26px;
+  font-weight: 900;
+}
+.seller-step-media {
+  position: relative;
+  min-height: 300px;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(192,135,10,.045) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(192,135,10,.035) 1px, transparent 1px),
+    #fffdf8;
+  background-size: 46px 46px;
+}
+.seller-step-media figure { margin: 0; overflow: hidden; border: 1px solid rgba(17,17,15,.08); background: white; box-shadow: 0 18px 38px rgba(32,25,14,.10); }
+.seller-step-media img,
+.seller-step-media video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.upload-stack-main {
+  position: absolute;
+  left: 48px;
+  right: 28px;
+  top: 36px;
+  bottom: 28px;
+  border-radius: 18px;
+}
+.upload-stack-main img { object-fit: contain; background: #efe8de; }
+.upload-stack figure:not(.upload-stack-main) {
+  position: absolute;
+  width: 32%;
+  aspect-ratio: 1 / 1.25;
+  border-radius: 14px;
+}
+.upload-stack figure:nth-child(2) { left: 12px; top: 18px; transform: rotate(-5deg); }
+.upload-stack figure:nth-child(3) { right: 10px; bottom: 14px; transform: rotate(4deg); }
+.preset-board {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 10px;
+  padding: 12px;
+}
+.preset-board figure { min-height: 0; border-radius: 16px; }
+.workflow-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.workflow-preset-grid span,
+.workflow-format-row span {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(255,157,46,.30);
+  border-radius: 999px;
+  background: #fff7df;
+  color: #5d4b25;
+  font-size: 12px;
+  font-weight: 900;
+}
+.workflow-format-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.workflow-format-row span { flex: 1 1 48px; min-height: 30px; background: white; }
+.result-stack { min-height: 300px; }
+.result-card-main {
+  position: absolute;
+  left: 16px;
+  right: 46px;
+  top: 18px;
+  bottom: 28px;
+  border-radius: 18px;
+}
+.result-video-card {
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  width: 38%;
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+}
+.result-card-main span,
+.result-video-card span {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 1;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: var(--acid);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.result-video-card span { background: rgba(17,17,15,.76); color: white; }
+.workflow-bottom-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 26px;
+  text-align: center;
+}
+.workflow-bottom-line p { margin: 0; color: var(--muted); font-size: 16px; font-weight: 750; line-height: 1.55; }
 .quick-workflow-section .steps {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
@@ -1402,6 +1548,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .step p { grid-column: 2; }
   .proof-grid { grid-template-columns: 1fr; }
   .proof-copy { grid-template-columns: repeat(3, 1fr); }
+  .seller-workflow-visual { grid-template-columns: 1fr; }
+  .workflow-arrow { margin: -2px auto; transform: rotate(90deg); }
   .quick-workflow-section .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .category-proof-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .seller-comparison-grid { grid-template-columns: 1fr; }
@@ -1519,6 +1667,22 @@ h1 em { color: var(--gold); font-style: normal; }
   .proof-section .section-head h2 { display: block; width: 100%; max-width: calc(100vw - 32px); padding: .08em .12em .12em; }
   .quick-workflow-section { padding-top: 38px; padding-bottom: 38px; }
   .quick-workflow-section .section-head { margin-bottom: 18px; }
+  .seller-workflow-visual { gap: 8px; }
+  .seller-step-card { gap: 12px; padding: 14px; border-radius: 16px; }
+  .seller-step-copy { grid-template-columns: 42px 1fr; gap: 10px; }
+  .seller-step-copy b { width: 42px; height: 42px; font-size: 14px; }
+  .seller-step-copy h3 { font-size: 16px; }
+  .seller-step-copy p { font-size: 12.5px; }
+  .seller-step-media { min-height: 238px; border-radius: 14px; }
+  .upload-stack-main { left: 42px; right: 24px; top: 28px; bottom: 22px; border-radius: 14px; }
+  .upload-stack figure:not(.upload-stack-main) { border-radius: 12px; }
+  .preset-board { padding: 10px; }
+  .workflow-preset-grid span,
+  .workflow-format-row span { font-size: 11px; }
+  .result-card-main { left: 12px; right: 42px; top: 14px; bottom: 22px; border-radius: 14px; }
+  .result-video-card { right: 9px; bottom: 10px; border-radius: 13px; }
+  .workflow-bottom-line { display: grid; gap: 12px; margin-top: 18px; }
+  .workflow-bottom-line .button { width: 100%; }
   .quick-workflow-section .steps { grid-template-columns: 1fr; gap: 10px; }
   .quick-workflow-section .step { min-height: 0; padding: 18px; border-radius: 16px; }
   .quick-workflow-section .step b { font-size: 30px; }
