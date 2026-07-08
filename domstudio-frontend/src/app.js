@@ -1507,6 +1507,15 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section quick-workflow-section workflow-section">
+        <div class="section-head"><h2>${t("home.workflowH2")}</h2><p>${t("home.workflowP")}</p></div>
+        <div class="steps">
+          <article class="step"><b>01</b><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></article>
+          <article class="step"><b>02</b><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></article>
+          <article class="step"><b>03</b><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></article>
+        </div>
+      </section>
+
       <section class="section proof-section">
         <div class="section-head">
           <h2>${t("home.proofH2")}</h2>
@@ -1599,14 +1608,6 @@ function homePage() {
         </div>
       </section>
 
-      <section class="section dark workflow-section">
-        <div class="section-head"><h2>${t("home.workflowH2")}</h2><p>${t("home.workflowP")}</p></div>
-        <div class="steps">
-          <article class="step"><b>01</b><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></article>
-          <article class="step"><b>02</b><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></article>
-          <article class="step"><b>03</b><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></article>
-        </div>
-      </section>
     </main>`;
 }
 

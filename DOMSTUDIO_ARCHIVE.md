@@ -30,6 +30,12 @@ Commit rule from user:
 - After each new change chunk, commit it.
 - Ask the user to push before continuing to the next change chunk.
 
+Pass 1 progress:
+
+- Chunk 1 committed/pushed: palette refinement and mobile hero/H1 fit.
+- Chunk 2 completed: moved the "3 steps" seller flow directly under the hero
+  and made it light, compact, and easy to scan.
+
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 
 Commits:

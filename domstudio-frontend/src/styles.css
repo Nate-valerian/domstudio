@@ -313,6 +313,34 @@ h1 em { color: var(--gold); font-style: normal; }
 .step b { color: var(--acid); font: 700 48px "Unbounded"; }
 .step h3 { margin: 0; color: #f6f1e8; }
 .step p { margin: 0; color: #aaa69f; line-height: 1.7; }
+.quick-workflow-section {
+  padding-top: clamp(42px, 6vw, 76px);
+  padding-bottom: clamp(42px, 6vw, 76px);
+  background: var(--card);
+  border-bottom: 1px solid rgba(192,135,10,.10);
+}
+.quick-workflow-section .section-head { margin-bottom: 26px; }
+.quick-workflow-section .section-head h2 { color: var(--ink); }
+.quick-workflow-section .section-head p { color: var(--muted); }
+.quick-workflow-section .steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  border-top: 0;
+}
+.quick-workflow-section .step {
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 12px;
+  min-height: 210px;
+  padding: 22px;
+  border: 1px solid rgba(17,17,15,.10);
+  border-radius: 20px;
+  background: #fffaf0;
+  box-shadow: 0 18px 48px rgba(32,25,14,.06);
+}
+.quick-workflow-section .step b { font-size: 34px; }
+.quick-workflow-section .step h3 { color: var(--ink); font-size: 20px; }
+.quick-workflow-section .step p { color: var(--muted); font-size: 14px; line-height: 1.6; }
 
 .app-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 82px); min-width: 0; }
 .sidebar { padding: 32px 22px; border-right: 1px solid var(--line); background: rgba(255,255,255,.34); }
@@ -1149,6 +1177,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .step p { grid-column: 2; }
   .proof-grid { grid-template-columns: 1fr; }
   .proof-copy { grid-template-columns: repeat(3, 1fr); }
+  .quick-workflow-section .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mode-grid, .price-grid { grid-template-columns: repeat(2, 1fr); }
   .examples-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .example-card.has-video { grid-column: span 2; }
@@ -1255,6 +1284,11 @@ h1 em { color: var(--gold); font-style: normal; }
   .section-head { gap: 14px; margin-bottom: 24px; }
   .section-head p { font-size: 15px; line-height: 1.6; }
   .proof-section .section-head h2 { display: block; width: 100%; max-width: calc(100vw - 32px); padding: .08em .12em .12em; }
+  .quick-workflow-section { padding-top: 38px; padding-bottom: 38px; }
+  .quick-workflow-section .section-head { margin-bottom: 18px; }
+  .quick-workflow-section .steps { grid-template-columns: 1fr; gap: 10px; }
+  .quick-workflow-section .step { min-height: 0; padding: 18px; border-radius: 16px; }
+  .quick-workflow-section .step b { font-size: 30px; }
   .proof-copy { grid-template-columns: 1fr; }
   .proof-visual { border-radius: 16px; }
   .proof-visual .landing-media { min-height: 0; aspect-ratio: 1 / 1; }
