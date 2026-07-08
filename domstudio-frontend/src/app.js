@@ -32,6 +32,10 @@ import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
 import landingWineAfterUrl from "./assets/landing/wine-after-smoke.png";
 import landingWineVideoUrl from "./assets/landing/wine-after-smoke-5s.mp4";
+import categoryMarketplaceUrl from "./assets/category-proof/category-marketplace.webp";
+import categoryJewelryUrl from "./assets/category-proof/category-jewelry.webp";
+import categoryCafeUrl from "./assets/category-proof/category-cafe.webp";
+import categoryFoodUrl from "./assets/category-proof/category-food.webp";
 import adpilotPremiumFlowPosterUrl from "./assets/adpilot-premium-flow.webp";
 import adpilotPremiumFlowVideoUrl from "./assets/adpilot-premium-flow.mp4";
 import techDolphinLogoUrl from "./assets/tech-dolphin-logo.png";
@@ -1465,6 +1469,14 @@ function footer() {
 }
 
 function homePage() {
+  const categoryProofs = [
+    ["marketplace", categoryMarketplaceUrl],
+    ["beauty", examplePerfumeProductUrl],
+    ["jewelry", categoryJewelryUrl],
+    ["fashion", modeFittingUrl],
+    ["cafe", categoryCafeUrl],
+    ["food", categoryFoodUrl],
+  ];
   return `
     <main class="page">
       <section class="hero">
@@ -1513,6 +1525,27 @@ function homePage() {
           <article class="step"><b>01</b><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></article>
           <article class="step"><b>02</b><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></article>
           <article class="step"><b>03</b><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></article>
+        </div>
+      </section>
+
+      <section class="section category-proof-section">
+        <div class="section-head">
+          <h2>${t("home.categoryH2")}</h2>
+          <p>${t("home.categoryP")}</p>
+        </div>
+        <div class="category-proof-grid">
+          ${categoryProofs.map(([key, src]) => `
+            <article class="category-proof-card">
+              <figure>
+                <img src="${src}" alt="${t(`home.category.${key}.title`)}" loading="lazy" />
+              </figure>
+              <div>
+                <span>${t(`home.category.${key}.tag`)}</span>
+                <h3>${t(`home.category.${key}.title`)}</h3>
+                <p>${t(`home.category.${key}.desc`)}</p>
+              </div>
+            </article>
+          `).join("")}
         </div>
       </section>
 

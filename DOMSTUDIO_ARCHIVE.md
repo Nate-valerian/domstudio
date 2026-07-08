@@ -35,6 +35,9 @@ Pass 1 progress:
 - Chunk 1 committed/pushed: palette refinement and mobile hero/H1 fit.
 - Chunk 2 completed: moved the "3 steps" seller flow directly under the hero
   and made it light, compact, and easy to scan.
+- Chunk 3 completed: expanded proof beyond one hero example with six category
+  cards using real generated/curated assets. Electronics is intentionally not
+  claimed until a real electronics proof image exists.
 
 ## June 29, 2026 - AdPilot AI chat, tiered limits, mobile polish, agent brainstorm
 
