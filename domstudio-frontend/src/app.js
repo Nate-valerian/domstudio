@@ -206,6 +206,7 @@ const HISTORY_DB = "domstudio_history";
 const HISTORY_STORE = "results";
 const HISTORY_LIMIT = 20;
 const BRAND_PREFS_KEY = "domstudio_brand_preferences";
+const APP_MODE_KEY = "domstudio_app_mode";
 const PWA_INSTALL_DISMISSED_KEY = "domstudio_pwa_install_dismissed";
 const AUTH_STORAGE_VERSION_KEY = "domstudio_auth_storage_version";
 const AUTH_STORAGE_VERSION = "2026-06-23-auth-v2";
@@ -486,15 +487,21 @@ function readStoredTokens() {
   return { accessToken: access, refreshToken: refresh };
 }
 
+function loadAppMode() {
+  return localStorage.getItem(APP_MODE_KEY) === "advanced" ? "advanced" : "fast";
+}
+
 const initialBrandPrefs = loadBrandPrefs();
 const initialTokens = readStoredTokens();
 const initialLang = getLang();
 const initialContentDefaults = defaultsForLang(initialLang);
 const initialRemoveBgResult = sessionStorage.getItem("domstudio_removebg_result") || null;
+const initialAppMode = loadAppMode();
 
 const state = {
   route: routeFromHash(),
   lang: initialLang,
+  appMode: initialAppMode,
   accessToken: initialTokens.accessToken,
   refreshToken: initialTokens.refreshToken,
   authInitializing: Boolean(initialTokens.accessToken || initialTokens.refreshToken),
@@ -513,7 +520,6 @@ const state = {
   selectedImage: null,
   selectedImageName: null,
   generationKind: "photo",
-  studioDetailMode: "fast",
   generatedImage: null,
   generatedVideo: null,
   videoJob: null,
@@ -1386,6 +1392,17 @@ function offlineBanner() {
   return `<aside class="offline-banner" role="status"><b>${t("pwa.offlineTitle")}</b><span>${t("pwa.offlineSub")}</span></aside>`;
 }
 
+function appModeSwitch(className = "app-mode-switch", includeHint = false) {
+  const isAdvanced = state.appMode === "advanced";
+  return `<div class="${className}">
+    <div class="app-mode-buttons" role="group" aria-label="${t("appMode.label")}">
+      <button type="button" class="${state.appMode === "fast" ? "active" : ""}" data-app-mode="fast">${t("appMode.fast")}</button>
+      <button type="button" class="${isAdvanced ? "active" : ""}" data-app-mode="advanced">${t("appMode.advanced")}</button>
+    </div>
+    ${includeHint ? `<p>${isAdvanced ? t("appMode.advancedHint") : t("appMode.fastHint")}</p>` : ""}
+  </div>`;
+}
+
 function nav() {
   const logged = Boolean(state.user);
   const lang = state.lang;
@@ -1407,10 +1424,12 @@ function nav() {
       <button class="brand" data-route="home"><span class="brand-mark">DS</span><span class="brand-word">Dom<span>Studio</span></span></button>
       <div class="nav-links ${state.navMenuOpen ? "open" : ""}">
         ${navItems.map(([route, label]) => `<button class="nav-link ${state.route === route ? "active" : ""}" data-route="${route}">${label}</button>`).join("")}
+        ${appModeSwitch("app-mode-switch mobile-menu-mode-switch")}
         ${showPrimaryLangToggle ? `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>` : ""}
         ${showPrimaryLangToggle ? "" : `<button class="nav-link nav-lang-link" type="button" data-toggle-lang>${lang === "ru" ? "English" : "Русский"}</button>`}
       </div>
       <div class="nav-actions">
+        ${appModeSwitch("app-mode-switch nav-mode-switch")}
         ${logged
           ? `<button class="token-pill" data-route="account" title="${state.user.tokens} ${t("nav.tokens", { n: "" }).trim()}"><span>${state.user.tokens}</span></button>
              <button class="profile-pill" data-route="account" title="${t("account.eyebrow")}"><span>${escapeHtml(initials)}</span></button>
@@ -1931,7 +1950,7 @@ function studioPage() {
   const cost = generationCost();
   const selectedVideoProvider = currentVideoProvider();
   const videoSubmitLabel = selectedVideoProvider.id === "premium" ? t("video.submitCta") : t("video.submitFreeCta");
-  const isAdvancedStudio = state.studioDetailMode === "advanced";
+  const isAdvancedStudio = state.appMode === "advanced";
   const submitLabel = state.generating
     ? (state.batchTotal > 1 ? t("studio.submitBatch", { n: state.batchIndex, total: state.batchTotal }) : state.generationKind === "video" ? t("video.submitGenerating") : t("studio.submitGenerating"))
     : (state.generationKind === "video" ? videoSubmitLabel : state.batchQueue.length > 1 ? t("studio.submitBatchCta", { n: state.batchQueue.length * 100 }) : t("studio.submitCta"));
@@ -1946,13 +1965,7 @@ function studioPage() {
       <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div>${state.user ? `<div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>` : `<button class="button" type="button" data-auth-open>${t("nav.signup")}</button>`}</header>
       <div class="studio-grid">
         <form class="panel studio-form" id="generate-form">
-          <div class="studio-mode-card">
-            <div class="studio-mode-switch" role="group" aria-label="${t("studio.detailMode")}">
-              <button type="button" class="${state.studioDetailMode === "fast" ? "active" : ""}" data-studio-detail-mode="fast">${t("studio.modeFast")}</button>
-              <button type="button" class="${isAdvancedStudio ? "active" : ""}" data-studio-detail-mode="advanced">${t("studio.modeAdvanced")}</button>
-            </div>
-            <p>${isAdvancedStudio ? t("studio.modeAdvancedHint") : t("studio.modeFastHint")}</p>
-          </div>
+          ${appModeSwitch("studio-mode-card", true)}
           <div class="media-toggle" role="group" aria-label="${t("studio.outputType")}">
             <button type="button" class="${state.generationKind === "photo" ? "active" : ""}" data-generation-kind="photo">${t("studio.photoTab")}</button>
             <button type="button" class="${state.generationKind === "video" ? "active" : ""}" data-generation-kind="video">${t("studio.videoTab")}</button>
@@ -3429,7 +3442,7 @@ function bind() {
   document.querySelectorAll("[data-approve-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.approveAction, "approve")));
   document.querySelectorAll("[data-publish-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.publishAction, "publish")));
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
-  document.querySelectorAll("[data-studio-detail-mode]").forEach(el => el.addEventListener("click", () => setStudioDetailMode(el.dataset.studioDetailMode)));
+  document.querySelectorAll("[data-app-mode]").forEach(el => el.addEventListener("click", () => setAppMode(el.dataset.appMode)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
   });
@@ -4285,9 +4298,12 @@ function setGenerationKind(kind) {
   render({ motion: false });
 }
 
-function setStudioDetailMode(mode) {
-  if (!["fast", "advanced"].includes(mode) || state.studioDetailMode === mode) return;
-  state.studioDetailMode = mode;
+function setAppMode(mode) {
+  if (!["fast", "advanced"].includes(mode) || state.appMode === mode) return;
+  syncDraftFromForm(document.querySelector("#generate-form"));
+  syncContentFromForm(document.querySelector("#copy-form"));
+  state.appMode = mode;
+  localStorage.setItem(APP_MODE_KEY, mode);
   render({ motion: false });
 }
 

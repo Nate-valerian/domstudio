@@ -1,5 +1,37 @@
 # DomStudio Archive
 
+## July 9, 2026 - App-Wide Fast / Advanced Mode
+
+User asked to expand `Fast / Advanced` beyond the Studio section and to commit
+and archive notes at each step.
+
+Step 1 completed:
+
+- Promoted the former Studio-only detail mode into a global app mode stored in
+  `localStorage` as `domstudio_app_mode`.
+- Added an app-wide Fast / Advanced switch in the main navigation on desktop and
+  inside the opened mobile menu on tablet/mobile.
+- Updated Studio to read the global app mode instead of keeping its own
+  separate mode state.
+- Kept the Studio explanation card, but it now describes the global app mode.
+- Added RU/EN labels and hints for the global mode switch.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/src/styles.css`
+
+Validation:
+
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
+Next step:
+
+- Apply the global mode to AdPilot AI so Fast mode starts with the guided
+  seller flow and Advanced mode exposes the full field/profile controls more
+  directly.
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio

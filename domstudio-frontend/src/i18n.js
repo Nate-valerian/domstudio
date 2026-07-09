@@ -45,6 +45,12 @@ export function setLang(lang) {
 // Flat key → string. Use {var} for interpolation.
 const T = {
   ru: {
+    // app mode
+    "appMode.label": "Режим приложения",
+    "appMode.fast": "Быстро",
+    "appMode.advanced": "Подробно",
+    "appMode.fastHint": "Простой режим: ключевые действия, готовые пресеты и минимум настроек.",
+    "appMode.advancedHint": "Подробный режим: бренд, промпты, экспорт, вариации, история и больше контроля.",
     // nav
     "nav.home": "Главная",
     "nav.studio": "Студия",
@@ -918,6 +924,12 @@ const T = {
   },
 
   en: {
+    // app mode
+    "appMode.label": "App mode",
+    "appMode.fast": "Fast",
+    "appMode.advanced": "Advanced",
+    "appMode.fastHint": "Simple mode: key actions, ready presets and fewer settings.",
+    "appMode.advancedHint": "Advanced mode: brand, prompts, export, variations, history and more control.",
     // nav
     "nav.home": "Home",
     "nav.studio": "Studio",
