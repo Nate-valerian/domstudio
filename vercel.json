@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd domstudio-frontend && npm ci && npm run build",
+  "buildCommand": "cd domstudio-frontend && npm ci && VITE_IMGLY_PUBLIC_PATH=cdn npm run build",
   "outputDirectory": "domstudio-frontend/dist",
   "framework": null
 }
