@@ -1813,18 +1813,18 @@ function homePage() {
           <div class="showcase-copy">
             <span>${t("home.lookH3")}</span>
             <h3>${t(activeLook.titleKey)}</h3>
-            <p>${t("home.lookP")}</p>
-            <ul>
-              <li>${t("home.lookBullet1")}</li>
-              <li>${t("home.lookBullet2")}</li>
-              <li>${t("home.lookBullet3")}</li>
-            </ul>
             <div class="look-scenario-chips" aria-label="${t("home.lookSelectorLabel")}">
               ${LOOK_SCENARIOS.map((item) => `
                 <button class="look-scenario-chip ${item.id === activeLook.id ? "active" : ""}" type="button" data-look-scenario="${item.id}" aria-pressed="${item.id === activeLook.id}">${t(item.metaKey)}</button>
               `).join("")}
             </div>
             <button class="button gold" type="button" data-route="studio">${t("home.lookCta")}</button>
+            <p>${t("home.lookP")}</p>
+            <ul>
+              <li>${t("home.lookBullet1")}</li>
+              <li>${t("home.lookBullet2")}</li>
+              <li>${t("home.lookBullet3")}</li>
+            </ul>
           </div>
         </article>
         <article class="showcase-block video-showcase">
