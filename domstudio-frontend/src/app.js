@@ -32,6 +32,15 @@ import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
 import landingWineAfterUrl from "./assets/landing/wine-after-smoke.png";
 import landingWineVideoUrl from "./assets/landing/wine-after-smoke-5s.mp4";
+import lookWomenFlatlayUrl from "./assets/landing/look-women-flatlay.webp";
+import lookFormalFlatlayUrl from "./assets/landing/look-formal-flatlay.webp";
+import lookJewelryModelUrl from "./assets/landing/look-jewelry-model.webp";
+import lookSmartFlatlayUrl from "./assets/landing/look-smart-flatlay.webp";
+import lookElectronicsUrl from "./assets/landing/look-electronics.webp";
+import lookFoodStorageUrl from "./assets/landing/look-food-storage.webp";
+import lookStorageBoxesUrl from "./assets/landing/look-storage-boxes.webp";
+import lookHomeVaseUrl from "./assets/landing/look-home-vase.webp";
+import lookBackpackUrl from "./assets/landing/look-backpack.webp";
 import categoryMarketplaceUrl from "./assets/category-proof/category-marketplace.webp";
 import categoryJewelryUrl from "./assets/category-proof/category-jewelry.webp";
 import categoryCafeUrl from "./assets/category-proof/category-cafe.webp";
@@ -63,6 +72,104 @@ const EXAMPLE_IMAGES = [
   { mode: "Lifestyle", product: "Чайная церемония", title: "Сцена в интерьере", src: exampleBottleLifestyleUrl },
   { mode: "Примерка", product: "Колье", title: "Витринная подача", src: exampleBottleFittingUrl },
   { mode: "Stories", product: "Фарфоровая ваза", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
+];
+
+const LOOK_SCENARIOS = [
+  {
+    id: "suit",
+    titleKey: "home.look.suit.title",
+    metaKey: "home.look.suit.meta",
+    promptKey: "home.look.suit.prompt",
+    result: modeFittingUrl,
+    sourceA: modeFittingBeforeUrl,
+    sourceB: lookWomenFlatlayUrl,
+    ghostA: lookWomenFlatlayUrl,
+    ghostB: lookSmartFlatlayUrl,
+  },
+  {
+    id: "jewelry",
+    titleKey: "home.look.jewelry.title",
+    metaKey: "home.look.jewelry.meta",
+    promptKey: "home.look.jewelry.prompt",
+    result: lookJewelryModelUrl,
+    sourceA: exampleBottleFittingUrl,
+    sourceB: lookJewelryModelUrl,
+    ghostA: categoryJewelryUrl,
+    ghostB: examplePerfumeFittingUrl,
+  },
+  {
+    id: "electronics",
+    titleKey: "home.look.electronics.title",
+    metaKey: "home.look.electronics.meta",
+    promptKey: "home.look.electronics.prompt",
+    result: lookElectronicsUrl,
+    sourceA: lookElectronicsUrl,
+    sourceB: categoryMarketplaceUrl,
+    ghostA: productProofUrl,
+    ghostB: lookSmartFlatlayUrl,
+  },
+  {
+    id: "food",
+    titleKey: "home.look.food.title",
+    metaKey: "home.look.food.meta",
+    promptKey: "home.look.food.prompt",
+    result: lookFoodStorageUrl,
+    sourceA: lookFoodStorageUrl,
+    sourceB: categoryFoodUrl,
+    ghostA: categoryCafeUrl,
+    ghostB: exampleBottleLifestyleUrl,
+  },
+  {
+    id: "bags",
+    titleKey: "home.look.bags.title",
+    metaKey: "home.look.bags.meta",
+    promptKey: "home.look.bags.prompt",
+    result: lookBackpackUrl,
+    sourceA: lookBackpackUrl,
+    sourceB: lookStorageBoxesUrl,
+    ghostA: lookStorageBoxesUrl,
+    ghostB: lookFormalFlatlayUrl,
+  },
+  {
+    id: "home",
+    titleKey: "home.look.home.title",
+    metaKey: "home.look.home.meta",
+    promptKey: "home.look.home.prompt",
+    result: lookHomeVaseUrl,
+    sourceA: lookHomeVaseUrl,
+    sourceB: exampleBottleProductUrl,
+    ghostA: exampleBottleCatalogUrl,
+    ghostB: examplePerfumeProductUrl,
+  },
+  {
+    id: "outfit",
+    titleKey: "home.look.outfit.title",
+    metaKey: "home.look.outfit.meta",
+    promptKey: "home.look.outfit.prompt",
+    result: lookFormalFlatlayUrl,
+    sourceA: lookFormalFlatlayUrl,
+    sourceB: lookSmartFlatlayUrl,
+    ghostA: lookSmartFlatlayUrl,
+    ghostB: lookWomenFlatlayUrl,
+  },
+];
+
+const VIDEO_SHOWCASE_ITEMS = [
+  {
+    image: modeFittingUrl,
+    video: fashionFittingVideoUrl,
+    labelKey: "home.videoShow.item.fashion",
+  },
+  {
+    image: exampleBottleProductUrl,
+    video: wineProductVideoUrl,
+    labelKey: "home.videoShow.item.product",
+  },
+  {
+    image: examplePerfumeProductUrl,
+    video: perfumeProductVideoUrl,
+    labelKey: "home.videoShow.item.display",
+  },
 ];
 
 const MARKETPLACE_PRESETS = [
@@ -511,6 +618,7 @@ const state = {
   passwordVisible: false,
   navMenuOpen: false,
   presetsOpen: false,
+  selectedLookScenario: "suit",
   navCompact: window.scrollY > 24,
   verificationContact: null,
   verificationKind: "email",
@@ -1487,13 +1595,18 @@ function footer() {
 }
 
 function homePage() {
+  const activeLook = LOOK_SCENARIOS.find((item) => item.id === state.selectedLookScenario) || LOOK_SCENARIOS[0];
   const categoryProofs = [
     ["marketplace", categoryMarketplaceUrl],
     ["beauty", examplePerfumeProductUrl],
     ["jewelry", categoryJewelryUrl],
     ["fashion", modeFittingUrl],
+    ["electronics", lookElectronicsUrl],
     ["cafe", categoryCafeUrl],
     ["food", categoryFoodUrl],
+    ["bags", lookBackpackUrl],
+    ["home", lookHomeVaseUrl],
+    ["storage", lookStorageBoxesUrl],
   ];
   return `
     <main class="page">
@@ -1590,33 +1703,47 @@ function homePage() {
         </div>
         <article class="showcase-block look-showcase">
           <div class="look-inputs" aria-hidden="true">
-            <figure><img src="${modeFittingBeforeUrl}" alt="" loading="lazy" /></figure>
-            <figure><img src="${exampleBottleFittingUrl}" alt="" loading="lazy" /></figure>
-            <div class="prompt-bubble">${t("home.lookPrompt")}</div>
+            <figure><img src="${activeLook.sourceA}" alt="" loading="lazy" /></figure>
+            <figure><img src="${activeLook.sourceB}" alt="" loading="lazy" /></figure>
+            <div class="prompt-bubble">${t(activeLook.promptKey)}</div>
           </div>
           <div class="showcase-card-stack">
-            <figure class="showcase-card-main"><img src="${modeFittingUrl}" alt="${t("home.lookH3")}" loading="lazy" /></figure>
-            <figure class="showcase-card-ghost"><img src="${examplePerfumeFittingUrl}" alt="" loading="lazy" /></figure>
-            <figure class="showcase-card-ghost second"><img src="${exampleBottleMobileUrl}" alt="" loading="lazy" /></figure>
+            <figure class="showcase-card-main"><img src="${activeLook.result}" alt="${t(activeLook.titleKey)}" loading="lazy" /></figure>
+            <figure class="showcase-card-ghost"><img src="${activeLook.ghostA}" alt="" loading="lazy" /></figure>
+            <figure class="showcase-card-ghost second"><img src="${activeLook.ghostB}" alt="" loading="lazy" /></figure>
           </div>
           <div class="showcase-copy">
-            <h3>${t("home.lookH3")}</h3>
+            <span>${t("home.lookH3")}</span>
+            <h3>${t(activeLook.titleKey)}</h3>
             <ul>
               <li>${t("home.lookBullet1")}</li>
               <li>${t("home.lookBullet2")}</li>
               <li>${t("home.lookBullet3")}</li>
             </ul>
+            <div class="look-scenario-grid" aria-label="${t("home.lookSelectorLabel")}">
+              ${LOOK_SCENARIOS.map((item) => `
+                <button class="look-scenario-card ${item.id === activeLook.id ? "active" : ""}" type="button" data-look-scenario="${item.id}" aria-pressed="${item.id === activeLook.id}">
+                  <img src="${item.sourceA}" alt="" loading="lazy" />
+                  <span>${t(item.metaKey)}</span>
+                  <b>${t(item.titleKey)}</b>
+                </button>
+              `).join("")}
+            </div>
             <button class="button gold" type="button" data-route="studio">${t("home.lookCta")}</button>
           </div>
         </article>
         <article class="showcase-block video-showcase">
-          <div class="showcase-video-stack">
-            <figure class="showcase-video-card">
-              <video src="${fashionFittingVideoUrl}" poster="${modeFittingUrl}" aria-label="${t("home.videoShowH3")}" autoplay muted loop playsinline preload="metadata"></video>
-              <span>${t("home.video")}</span>
-            </figure>
-            <figure class="showcase-video-ghost"><img src="${modeStoriesUrl}" alt="" loading="lazy" /></figure>
-            <figure class="showcase-video-ghost second"><img src="${exampleBottleProductUrl}" alt="" loading="lazy" /></figure>
+          <div class="showcase-video-stack video-sequence-stack" aria-label="${t("home.videoShowSequenceLabel")}">
+            ${VIDEO_SHOWCASE_ITEMS.map((item, index) => `
+              <figure class="video-sequence-card video-still-card" style="--step: ${index * 2};">
+                <img src="${item.image}" alt="${t(item.labelKey)}" loading="lazy" />
+                <span>${t("home.videoShowStill")}</span>
+              </figure>
+              <figure class="video-sequence-card video-motion-card" style="--step: ${index * 2 + 1};">
+                <video src="${item.video}" poster="${item.image}" aria-label="${t(item.labelKey)}" autoplay muted loop playsinline preload="metadata"></video>
+                <span>${t("home.video")}</span>
+              </figure>
+            `).join("")}
           </div>
           <div class="showcase-copy">
             <span>${t("home.videoShowLabel")}</span>
@@ -3282,7 +3409,7 @@ function render(options = {}) {
 }
 
 function prepareDemoVideos() {
-  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .seller-step-media video, .showcase-video-card video")];
+  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .seller-step-media video, .showcase-video-card video, .video-sequence-card video")];
   videos.forEach((video) => {
     video.muted = true;
     video.defaultMuted = true;
@@ -3449,6 +3576,7 @@ function bind() {
   document.querySelectorAll("[data-publish-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.publishAction, "publish")));
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
   document.querySelectorAll("[data-app-mode]").forEach(el => el.addEventListener("click", () => setAppMode(el.dataset.appMode)));
+  document.querySelectorAll("[data-look-scenario]").forEach(el => el.addEventListener("click", () => selectLookScenario(el.dataset.lookScenario)));
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
   });
@@ -4313,6 +4441,12 @@ function setAppMode(mode) {
   state.contentFormMode = mode === "advanced" ? "full" : "wizard";
   if (mode === "fast") state.contentWizardStep = 0;
   localStorage.setItem(APP_MODE_KEY, mode);
+  render({ motion: false });
+}
+
+function selectLookScenario(id) {
+  if (!LOOK_SCENARIOS.some((item) => item.id === id) || state.selectedLookScenario === id) return;
+  state.selectedLookScenario = id;
   render({ motion: false });
 }
 
