@@ -112,6 +112,24 @@ Next step:
 - Run a final full check of app-mode behavior, archive the final status, and
   commit any final polish/fixes if needed.
 
+Final check completed:
+
+- Confirmed no stale `studioDetailMode`, `data-studio-detail-mode`,
+  `setStudioDetailMode`, or `data-wizard-mode` hooks remain in
+  `domstudio-frontend/src`.
+- Confirmed the latest commits are the four app-mode implementation chunks.
+- Final `npm.cmd run build` passed in `domstudio-frontend`.
+- Working tree has no modified tracked files after the implementation commits;
+  the remaining untracked items are the pre-existing generated artifacts and
+  local scripts listed by `git status`.
+
+Commits created for this app-mode pass:
+
+- `5f103a5` - `Add global app mode switch`
+- `8d313d0` - `Apply app mode to AdPilot`
+- `c596164` - `Apply app mode to tools`
+- `9e1685f` - `Apply app mode to account views`
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio
