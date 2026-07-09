@@ -566,6 +566,34 @@ h1 em { color: var(--gold); font-style: normal; }
   min-height: 560px;
   isolation: isolate;
 }
+.look-flow-label {
+  position: absolute;
+  z-index: 15;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid rgba(17,17,15,.09);
+  border-radius: 999px;
+  background: rgba(255,255,255,.86);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 14px 34px rgba(32,25,14,.08);
+  backdrop-filter: blur(10px);
+}
+.look-flow-label b {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--acid);
+  font-size: 10px;
+}
+.source-label { left: 4px; top: 18px; }
+.result-label { left: 40%; top: 0; }
 .look-source-stack {
   position: absolute;
   left: 0;
@@ -588,6 +616,19 @@ h1 em { color: var(--gold); font-style: normal; }
 .look-source-stack figure:nth-child(2) { left: 118px; top: 92px; transform: rotate(6deg); }
 .look-source-stack figure:nth-child(3) { left: 42px; top: 178px; transform: rotate(-3deg); opacity: .72; }
 .look-source-stack figure img { width: 100%; height: 100%; object-fit: cover; }
+.look-source-stack figure span {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.86);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(32,25,14,.08);
+}
 .prompt-bubble {
   position: absolute;
   left: 70px;
@@ -603,6 +644,20 @@ h1 em { color: var(--gold); font-style: normal; }
   font-weight: 800;
   line-height: 1.45;
   box-shadow: 0 18px 50px rgba(32,25,14,.08);
+}
+.prompt-bubble span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+.prompt-bubble b {
+  display: block;
+  font-size: inherit;
+  line-height: inherit;
 }
 .prompt-bubble::before {
   content: "";
@@ -629,6 +684,11 @@ h1 em { color: var(--gold); font-style: normal; }
   color: var(--ink);
   font-weight: 950;
   box-shadow: 0 14px 34px rgba(255,157,46,.24);
+}
+.look-flow-arrow small {
+  margin-right: 2px;
+  font-size: 9px;
+  letter-spacing: .04em;
 }
 .look-result-deck {
   position: absolute;
@@ -690,6 +750,17 @@ h1 em { color: var(--gold); font-style: normal; }
   color: var(--ink);
   font-size: 14px;
   line-height: 1.2;
+}
+.look-click-hint {
+  position: absolute;
+  right: 40px;
+  bottom: 6px;
+  z-index: 14;
+  max-width: 280px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
 }
 .showcase-card-stack,
 .showcase-video-stack {
@@ -1957,6 +2028,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .showcase-block,
   .video-showcase { grid-template-columns: 1fr; min-height: 0; }
   .look-demo-stage { min-height: 540px; }
+  .source-label { left: 4%; top: 0; }
+  .result-label { left: 38%; top: 0; }
   .look-source-stack { left: 4%; top: 38px; width: 280px; }
   .look-result-deck { inset: 44px 2% 0 34%; }
   .look-flow-arrow { left: 31%; }
@@ -2121,6 +2194,14 @@ h1 em { color: var(--gold); font-style: normal; }
   .showcase-head p { font-size: 15px; }
   .showcase-block { gap: 20px; }
   .look-demo-stage { min-height: 420px; }
+  .look-flow-label {
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+  .look-flow-label b { width: 18px; height: 18px; font-size: 8px; }
+  .source-label { left: 0; top: 0; }
+  .result-label { left: 43%; top: 0; }
   .look-source-stack {
     left: 0;
     top: 16px;
@@ -2133,6 +2214,12 @@ h1 em { color: var(--gold); font-style: normal; }
   }
   .look-source-stack figure:nth-child(2) { left: 82px; top: 66px; }
   .look-source-stack figure:nth-child(3) { left: 28px; top: 132px; }
+  .look-source-stack figure span {
+    left: 7px;
+    bottom: 7px;
+    padding: 5px 7px;
+    font-size: 8px;
+  }
   .look-flow-arrow {
     left: 42%;
     top: 39%;
@@ -2169,6 +2256,7 @@ h1 em { color: var(--gold); font-style: normal; }
     border-radius: 16px;
     font-size: 13px;
   }
+  .prompt-bubble span { font-size: 8px; }
   .prompt-bubble::before { left: -32px; width: 24px; height: 24px; }
   .showcase-card-stack,
   .showcase-video-stack { min-height: 390px; }
@@ -2184,6 +2272,12 @@ h1 em { color: var(--gold); font-style: normal; }
     min-height: 30px;
     padding: 0 10px;
     font-size: 9px;
+  }
+  .look-click-hint {
+    right: 0;
+    bottom: 0;
+    max-width: 180px;
+    font-size: 10px;
   }
   .showcase-copy .button { width: 100%; min-width: 0; }
   .video-sequence-card {

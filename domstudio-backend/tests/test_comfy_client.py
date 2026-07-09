@@ -217,6 +217,22 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
                 prompt = comfy_client.compose_img2img_prompt("simple scene", "", mode)
                 self.assertIn(expected, prompt)
 
+    async def test_fitting_prompt_uses_items_as_wardrobe_references(self):
+        prompt = comfy_client.compose_img2img_prompt(
+            "loft studio with a realistic full body model",
+            "premium ecommerce fashion photography",
+            "fitting",
+        )
+
+        self.assertIn("Use the uploaded clothing, footwear, jewelry, or accessories as wardrobe references", prompt)
+        self.assertIn("worn naturally by a realistic model", prompt)
+        self.assertIn("Do not show a product pile", prompt)
+        self.assertNotIn("Preserve the uploaded product exactly", prompt)
+
+    async def test_fitting_dimensions_are_portrait(self):
+        self.assertEqual(comfy_client.generation_dimensions("fitting"), (896, 1152))
+        self.assertEqual(comfy_client.video_aspect_ratio("fitting"), "9:16")
+
     async def test_prompt_expander_user_text_keeps_scene_and_style_context(self):
         text = comfy_client.prompt_expander_user_text(
             "ON THE MABEL TABEL WITH CANDELS.",

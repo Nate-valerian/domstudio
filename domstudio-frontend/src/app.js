@@ -41,6 +41,8 @@ import lookFoodStorageUrl from "./assets/landing/look-food-storage.webp";
 import lookStorageBoxesUrl from "./assets/landing/look-storage-boxes.webp";
 import lookHomeVaseUrl from "./assets/landing/look-home-vase.webp";
 import lookBackpackUrl from "./assets/landing/look-backpack.webp";
+import premiumFashionLoftAfterUrl from "./assets/landing/generated-premium/premium-fashion-loft-after.png";
+import premiumFashionLoftVideoUrl from "./assets/landing/generated-premium/premium-fashion-loft-after-5s.mp4";
 import categoryMarketplaceUrl from "./assets/category-proof/category-marketplace.webp";
 import categoryJewelryUrl from "./assets/category-proof/category-jewelry.webp";
 import categoryCafeUrl from "./assets/category-proof/category-cafe.webp";
@@ -80,11 +82,11 @@ const LOOK_SCENARIOS = [
     titleKey: "home.look.suit.title",
     metaKey: "home.look.suit.meta",
     promptKey: "home.look.suit.prompt",
-    result: modeFittingUrl,
+    result: premiumFashionLoftAfterUrl,
     sourceA: modeFittingBeforeUrl,
     sourceB: lookWomenFlatlayUrl,
-    ghostA: lookWomenFlatlayUrl,
-    ghostB: lookSmartFlatlayUrl,
+    ghostA: premiumFashionLoftAfterUrl,
+    ghostB: modeFittingUrl,
   },
   {
     id: "jewelry",
@@ -156,8 +158,8 @@ const LOOK_SCENARIOS = [
 
 const VIDEO_SHOWCASE_ITEMS = [
   {
-    image: modeFittingUrl,
-    video: fashionFittingVideoUrl,
+    image: premiumFashionLoftAfterUrl,
+    video: premiumFashionLoftVideoUrl,
     labelKey: "home.videoShow.item.fashion",
   },
   {
@@ -1705,13 +1707,18 @@ function homePage() {
         </div>
         <article class="showcase-block look-showcase">
           <div class="look-demo-stage">
-            <div class="look-source-stack" aria-hidden="true">
-              <figure><img src="${activeLook.sourceA}" alt="" loading="lazy" /></figure>
-              <figure><img src="${activeLook.sourceB}" alt="" loading="lazy" /></figure>
-              <figure><img src="${lookDeckItems[1].sourceA}" alt="" loading="lazy" /></figure>
+            <div class="look-flow-label source-label"><b>01</b><span>${t("home.lookFlowUpload")}</span></div>
+            <div class="look-source-stack">
+              <figure><img src="${activeLook.sourceA}" alt="${t("home.lookFlowItem")}" loading="lazy" /><span>${t("home.lookFlowItem")}</span></figure>
+              <figure><img src="${activeLook.sourceB}" alt="${t("home.lookFlowDetail")}" loading="lazy" /><span>${t("home.lookFlowDetail")}</span></figure>
+              <figure><img src="${lookDeckItems[1].sourceA}" alt="${t("home.lookFlowReference")}" loading="lazy" /><span>${t("home.lookFlowReference")}</span></figure>
             </div>
-            <div class="prompt-bubble">${t(activeLook.promptKey)}</div>
-            <span class="look-flow-arrow" aria-hidden="true">→</span>
+            <div class="prompt-bubble">
+              <span>${t("home.lookFlowPrompt")}</span>
+              <b>${t(activeLook.promptKey)}</b>
+            </div>
+            <span class="look-flow-arrow" aria-hidden="true"><small>AI</small>→</span>
+            <div class="look-flow-label result-label"><b>02</b><span>${t("home.lookFlowResult")}</span></div>
             <div class="look-result-deck" aria-live="polite">
               ${lookDeckItems.map((item, index) => `
                 <button class="look-deck-card ${index === 0 ? "active" : ""}" type="button" data-look-scenario="${item.id}" style="--deck-index: ${index};" aria-pressed="${index === 0}">
@@ -1721,10 +1728,12 @@ function homePage() {
                 </button>
               `).join("")}
             </div>
+            <div class="look-click-hint">${t("home.lookClickHint")}</div>
           </div>
           <div class="showcase-copy">
             <span>${t("home.lookH3")}</span>
             <h3>${t(activeLook.titleKey)}</h3>
+            <p>${t("home.lookP")}</p>
             <ul>
               <li>${t("home.lookBullet1")}</li>
               <li>${t("home.lookBullet2")}</li>

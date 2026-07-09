@@ -240,10 +240,19 @@ IMAGE_EDIT_PRESERVATION_DIRECTIVE = (
     "Only change the surrounding environment, surface, lighting, reflections, and contact shadows."
 )
 
+FITTING_REFERENCE_DIRECTIVE = (
+    "This is a virtual try-on and fashion styling edit. Use the uploaded clothing, footwear, jewelry, or accessories as wardrobe references, not as objects to keep floating in the scene. "
+    "Create a complete seller-ready fashion result with the items worn naturally by a realistic model in the requested environment. "
+    "Preserve the recognizable colors, patterns, materials, and style of the uploaded garments, but adapt drape, fit, scale, and pose so they look physically worn on the model. "
+    "Do not show a product pile, mannequin, hanger, flat lay, detached garment, floating clothes, or clothes suspended in the air. "
+    "The final image must read as a premium ecommerce fashion photoshoot, not a background swap."
+)
+
 IMAGE_EDIT_NEGATIVE_PROMPT = (
     "low quality, blurry, distorted, warped product, changed product shape, changed label, altered packaging, "
     "rewritten label text, fake label, fake letters, gibberish text, misspelled text, translated text, extra logo, "
-    "new brand name, text overlay, watermark, duplicated product, extra bottle, broken cap, deformed cap, messy background"
+    "new brand name, text overlay, watermark, duplicated product, extra bottle, broken cap, deformed cap, messy background, "
+    "floating clothes, clothes suspended in air, detached garments, empty outfit, product pile, mannequin, hanger"
 )
 
 
@@ -277,6 +286,7 @@ MODE_PROMPT_DIRECTIVES = {
 
 
 MODE_DIMENSIONS = {
+    "fitting": (896, 1152),
     "mobile": (768, 1344),
 }
 
@@ -324,7 +334,10 @@ def sanitize_style_hint_for_image_edit(style_hint: str = "") -> str:
 
 
 def mode_prompt_directive(mode: str | None) -> str:
-    return MODE_PROMPT_DIRECTIVES.get(str(mode or "").strip().lower(), "")
+    selected = str(mode or "").strip().lower()
+    if selected == "catalog":
+        return ""
+    return MODE_PROMPT_DIRECTIVES.get(selected, "")
 
 
 def generation_dimensions(mode: str | None) -> tuple[int, int]:
@@ -332,7 +345,8 @@ def generation_dimensions(mode: str | None) -> tuple[int, int]:
 
 
 def video_aspect_ratio(mode: str | None) -> str:
-    return "9:16" if str(mode or "").strip().lower() == "mobile" else "1:1"
+    selected = str(mode or "").strip().lower()
+    return "9:16" if selected in {"mobile", "fitting"} else "1:1"
 
 
 def video_frame_rate() -> int:
@@ -361,6 +375,18 @@ def video_workflow_for_request(request: Any) -> str:
 def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     scene = normalize_scene_text(subject) or "a clean product photography scene"
     style = sanitize_style_hint_for_image_edit(style_hint)
+    selected_mode = str(mode or "").strip().lower()
+
+    if selected_mode == "fitting":
+        instruction = f"Create a virtual try-on fashion result from the uploaded items: {scene}."
+        directive = mode_prompt_directive(mode)
+        if directive:
+            instruction += f" {directive}"
+        if style:
+            instruction += f" Style direction: {style}."
+        instruction += f" {FITTING_REFERENCE_DIRECTIVE}"
+        return instruction
+
     instruction = f"Place the product in a new environment: {scene}."
     directive = mode_prompt_directive(mode)
     if directive:
@@ -392,6 +418,9 @@ def prompt_expander_user_text(subject: str, style_hint: str = "", mode: str | No
 async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     """Use DeepSeek to expand a short user prompt into a proper Qwen Image Edit instruction.
     Falls back to compose_img2img_prompt() if DEEPSEEK_API_KEY is absent or the call fails."""
+    if str(mode or "").strip().lower() == "fitting":
+        return compose_img2img_prompt(subject, style_hint, mode)
+
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
