@@ -22,7 +22,6 @@ import examplePerfumeFittingUrl from "./assets/examples/example-perfume-fitting.
 import examplePerfumeMobileUrl from "./assets/examples/example-perfume-mobile.webp";
 import exampleBottleCatalogUrl from "./assets/examples/example-bottle-catalog.webp";
 import exampleBottleProductUrl from "./assets/examples/example-bottle-product.webp";
-import exampleBottleCreativeUrl from "./assets/examples/example-bottle-creative.webp";
 import exampleBottleLifestyleUrl from "./assets/examples/example-bottle-lifestyle.webp";
 import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.webp";
 import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
@@ -89,7 +88,6 @@ const EXAMPLE_IMAGES = [
   { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
   { mode: "Каталог", product: "Фарфор", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
   { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
-  { mode: "Креатив", product: "Золотые флаконы", title: "Тёплый премиальный кадр", src: exampleBottleCreativeUrl },
   { mode: "Lifestyle", product: "Чайная церемония", title: "Сцена в интерьере", src: exampleBottleLifestyleUrl },
   { mode: "Примерка", product: "Колье", title: "Витринная подача", src: exampleBottleFittingUrl },
   { mode: "Stories", product: "Фарфоровая ваза", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
