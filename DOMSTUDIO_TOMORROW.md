@@ -191,10 +191,14 @@ Homepage landing state:
 - The look showcase controls should appear immediately under the title:
   scenario chips, then `Create a look`, then descriptive paragraph/bullets.
   If a browser still shows the old order, it is likely a stale service worker
-  cache; cache was bumped to `domstudio-shell-v6`.
+  cache; cache was bumped to `domstudio-shell-v7`.
 - The "Photo shoot or DomStudio?" comparison plus video honesty, FAQ, and
   support block is now directly before the Free tools section.
 - The gold flacon/cosmetics display card was removed from Examples.
+- The stale `Beauty / Cosmetics and displays` category translation keys were
+  also removed. Latest source/dist should not contain:
+  `Cosmetics and displays`, `example-bottle-creative`, or
+  `home.category.beauty`.
 
 Deployment note:
 
@@ -202,7 +206,27 @@ Deployment note:
   ~256 MB of IMG.LY model chunks.
 - `domstudio-frontend/vercel.json` uses
   `VITE_IMGLY_PUBLIC_PATH=cdn npm run build`.
+- Root `vercel.json` also exists and now uses
+  `cd domstudio-frontend && npm ci && VITE_IMGLY_PUBLIC_PATH=cdn npm run build`.
+  This matters if the Vercel project root is the repository root.
 - Runtime path selection is in `imglyPublicPath()` in
   `domstudio-frontend/src/app.js`.
 - Keep `/imgly/` proxy/static behavior for non-Vercel hosting unless we decide
   to make all deployments use the CDN.
+
+## July 10, 2026 Handoff
+
+State:
+
+- `main` is pushed and aligned with `origin/main` at `9eee22d`.
+- The latest app build passed locally with `VITE_IMGLY_PUBLIC_PATH=cdn`.
+- Remaining untracked files are preview artifacts / temp output / old zip /
+  unrelated helper scripts; no tracked app changes are pending.
+
+Start tomorrow by checking the deployed Vercel build:
+
+1. Confirm Vercel deployed commit `9eee22d` or newer.
+2. Open in incognito or hard refresh because of PWA service-worker caching.
+3. If the old gold flacon card still appears, inspect the deployed JS for
+   `Cosmetics and displays` or `example-bottle-creative`; latest build should
+   not include either string.

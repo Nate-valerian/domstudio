@@ -6653,6 +6653,24 @@ Committed landing changes:
     cache kept showing stale mobile layout.
 - `687cbfd Remove gold flacon example card`
   - Removed the gold flacon/cosmetics display card from the Examples section.
+- `9935502 Remove stale beauty category copy`
+  - Removed unused `home.category.beauty.*` i18n keys after the same
+    "Beauty / Cosmetics and displays" card text kept showing up in searches.
+  - Verified no `Cosmetics and displays`, `example-bottle-creative`,
+    `exampleBottleCreativeUrl`, or `home.category.beauty` references remain in
+    `domstudio-frontend/src` or `domstudio-frontend/dist`.
+- `9eee22d Align root Vercel build config`
+  - Root `vercel.json` also existed and could be the active Vercel config when
+    the Vercel project root is the repository root.
+  - Updated root build command to:
+
+```text
+cd domstudio-frontend && npm ci && VITE_IMGLY_PUBLIC_PATH=cdn npm run build
+```
+
+  - Bumped service worker cache again from `domstudio-shell-v6` to
+    `domstudio-shell-v7`.
+  - Pushed `main` to GitHub after this commit so Vercel can see it.
 
 Vercel deploy issue found:
 
@@ -6685,3 +6703,30 @@ VITE_IMGLY_PUBLIC_PATH=cdn npm run build
 Reasoning: avoid committing ~256 MB of model chunks and avoid build-time CDN
 downloads on Vercel. Runtime background removal can still fetch from IMG.LY CDN
 on Vercel, while SpaceWeb-style hosting can keep using the same-origin proxy.
+
+### End-of-day handoff
+
+Current Git state at handoff:
+
+- `main` is aligned with `origin/main` at `9eee22d`.
+- Tracked app/note changes are committed and pushed.
+- Remaining untracked files are local preview artifacts, zip output, `tmp/`,
+  and unrelated CV helper scripts. They were intentionally not committed.
+
+If deployed UI still appears old tomorrow:
+
+1. Confirm Vercel finished a deployment from commit `9eee22d` or newer.
+2. Confirm whether Vercel project root is repo root or `domstudio-frontend`.
+   Both configs now use the CDN build path, but this was the source of the
+   previous confusion.
+3. Hard refresh or open an incognito window because the app is a PWA and old
+   service-worker shells can survive one load.
+4. Search deployed JS for stale strings:
+
+```text
+Cosmetics and displays
+example-bottle-creative
+home.category.beauty
+```
+
+None should exist in the latest built app.
