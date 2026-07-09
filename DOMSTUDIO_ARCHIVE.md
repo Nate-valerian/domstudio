@@ -144,6 +144,17 @@ Validation:
 
 - `npm.cmd run build` passed in `domstudio-frontend`.
 
+AdPilot visual cleanup:
+
+- User asked to remove the image/video on the AdPilot AI landing page because it
+  did not look nice.
+- Removed the AdPilot landing media block and its unused video/poster imports.
+- Removed the dead `.adpilot-visual` CSS and the old video selector reference.
+
+Validation:
+
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio
