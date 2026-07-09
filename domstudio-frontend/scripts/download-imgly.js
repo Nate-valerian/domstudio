@@ -19,12 +19,32 @@ const MODELS = [
   "/onnxruntime-web/ort-wasm-simd-threaded.mjs",
 ];
 
-const BATCH = 8;
+const BATCH = 4;
+const RETRIES = 5;
+const TIMEOUT_MS = 30000;
+
+async function fetchWithRetry(url, retries = RETRIES) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`${res.status} ${url}`);
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      if (attempt === retries) throw err;
+      const delay = 1000 * 2 ** (attempt - 1);
+      console.warn(`\nretry ${attempt}/${retries} for ${url} after ${err.message || err} (waiting ${delay}ms)`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+}
 
 async function dl(url, dest) {
   if (existsSync(dest)) return;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} ${url}`);
+  const res = await fetchWithRetry(url);
   writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
   process.stdout.write(".");
 }
@@ -32,8 +52,7 @@ async function dl(url, dest) {
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const res = await fetch(BASE + "resources.json");
-  if (!res.ok) throw new Error(`resources.json: ${res.status}`);
+  const res = await fetchWithRetry(BASE + "resources.json");
   const resources = await res.json();
   writeFileSync(join(OUT_DIR, "resources.json"), JSON.stringify(resources));
   console.log("resources.json saved");

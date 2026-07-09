@@ -6679,6 +6679,8 @@ VITE_IMGLY_PUBLIC_PATH=cdn npm run build
   - CDN on localhost / `127.0.0.1` / `*.vercel.app`
   - same-origin `/imgly/` for non-Vercel hosting, preserving the existing
     SpaceWeb/PHP proxy path.
+- `scripts/download-imgly.js` remains available for non-Vercel/manual static
+  model hosting and now uses smaller batches plus retry/backoff.
 
 Reasoning: avoid committing ~256 MB of model chunks and avoid build-time CDN
 downloads on Vercel. Runtime background removal can still fetch from IMG.LY CDN
