@@ -1615,16 +1615,13 @@ function homePage() {
   const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
   const categoryProofs = [
-    ["marketplace", categoryMarketplaceUrl],
-    ["beauty", examplePerfumeProductUrl],
-    ["jewelry", categoryJewelryUrl],
-    ["fashion", modeFittingUrl],
-    ["electronics", lookElectronicsUrl],
-    ["cafe", categoryCafeUrl],
-    ["food", categoryFoodUrl],
-    ["bags", lookBackpackUrl],
-    ["home", lookHomeVaseUrl],
-    ["storage", lookStorageBoxesUrl],
+    ["fashion", premiumFashionLoftAfterUrl],
+    ["jewelry", premiumJewelryAfterUrl],
+    ["electronics", premiumElectronicsAfterUrl],
+    ["food", premiumFoodAfterUrl],
+    ["bags", premiumBagsAfterUrl],
+    ["home", premiumHomeAfterUrl],
+    ["marketplace", landingWineAfterUrl],
   ];
   return `
     <main class="page">
