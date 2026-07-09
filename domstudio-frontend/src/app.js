@@ -1595,7 +1595,9 @@ function footer() {
 }
 
 function homePage() {
-  const activeLook = LOOK_SCENARIOS.find((item) => item.id === state.selectedLookScenario) || LOOK_SCENARIOS[0];
+  const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
+  const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
+  const lookDeckItems = [0, 1, 2].map((offset) => LOOK_SCENARIOS[(activeLookIndex + offset) % LOOK_SCENARIOS.length]);
   const categoryProofs = [
     ["marketplace", categoryMarketplaceUrl],
     ["beauty", examplePerfumeProductUrl],
@@ -1702,15 +1704,23 @@ function homePage() {
           <p>${t("home.showcaseP")}</p>
         </div>
         <article class="showcase-block look-showcase">
-          <div class="look-inputs" aria-hidden="true">
-            <figure><img src="${activeLook.sourceA}" alt="" loading="lazy" /></figure>
-            <figure><img src="${activeLook.sourceB}" alt="" loading="lazy" /></figure>
+          <div class="look-demo-stage">
+            <div class="look-source-stack" aria-hidden="true">
+              <figure><img src="${activeLook.sourceA}" alt="" loading="lazy" /></figure>
+              <figure><img src="${activeLook.sourceB}" alt="" loading="lazy" /></figure>
+              <figure><img src="${lookDeckItems[1].sourceA}" alt="" loading="lazy" /></figure>
+            </div>
             <div class="prompt-bubble">${t(activeLook.promptKey)}</div>
-          </div>
-          <div class="showcase-card-stack">
-            <figure class="showcase-card-main"><img src="${activeLook.result}" alt="${t(activeLook.titleKey)}" loading="lazy" /></figure>
-            <figure class="showcase-card-ghost"><img src="${activeLook.ghostA}" alt="" loading="lazy" /></figure>
-            <figure class="showcase-card-ghost second"><img src="${activeLook.ghostB}" alt="" loading="lazy" /></figure>
+            <span class="look-flow-arrow" aria-hidden="true">→</span>
+            <div class="look-result-deck" aria-live="polite">
+              ${lookDeckItems.map((item, index) => `
+                <button class="look-deck-card ${index === 0 ? "active" : ""}" type="button" data-look-scenario="${item.id}" style="--deck-index: ${index};" aria-pressed="${index === 0}">
+                  <img src="${item.result}" alt="${t(item.titleKey)}" loading="lazy" />
+                  <span>${t(item.metaKey)}</span>
+                  <b>${t(item.titleKey)}</b>
+                </button>
+              `).join("")}
+            </div>
           </div>
           <div class="showcase-copy">
             <span>${t("home.lookH3")}</span>
@@ -1720,13 +1730,9 @@ function homePage() {
               <li>${t("home.lookBullet2")}</li>
               <li>${t("home.lookBullet3")}</li>
             </ul>
-            <div class="look-scenario-grid" aria-label="${t("home.lookSelectorLabel")}">
+            <div class="look-scenario-chips" aria-label="${t("home.lookSelectorLabel")}">
               ${LOOK_SCENARIOS.map((item) => `
-                <button class="look-scenario-card ${item.id === activeLook.id ? "active" : ""}" type="button" data-look-scenario="${item.id}" aria-pressed="${item.id === activeLook.id}">
-                  <img src="${item.sourceA}" alt="" loading="lazy" />
-                  <span>${t(item.metaKey)}</span>
-                  <b>${t(item.titleKey)}</b>
-                </button>
+                <button class="look-scenario-chip ${item.id === activeLook.id ? "active" : ""}" type="button" data-look-scenario="${item.id}" aria-pressed="${item.id === activeLook.id}">${t(item.metaKey)}</button>
               `).join("")}
             </div>
             <button class="button gold" type="button" data-route="studio">${t("home.lookCta")}</button>
@@ -1764,19 +1770,21 @@ function homePage() {
           <h2>${t("home.categoryH2")}</h2>
           <p>${t("home.categoryP")}</p>
         </div>
-        <div class="category-proof-grid">
-          ${categoryProofs.map(([key, src]) => `
-            <article class="category-proof-card">
-              <figure>
-                <img src="${src}" alt="${t(`home.category.${key}.title`)}" loading="lazy" />
-              </figure>
-              <div>
-                <span>${t(`home.category.${key}.tag`)}</span>
-                <h3>${t(`home.category.${key}.title`)}</h3>
-                <p>${t(`home.category.${key}.desc`)}</p>
-              </div>
-            </article>
-          `).join("")}
+        <div class="category-proof-window">
+          <div class="category-proof-grid">
+            ${[...categoryProofs, ...categoryProofs].map(([key, src], index) => `
+              <article class="category-proof-card" aria-hidden="${index >= categoryProofs.length}">
+                <figure>
+                  <img src="${src}" alt="${t(`home.category.${key}.title`)}" loading="lazy" />
+                </figure>
+                <div>
+                  <span>${t(`home.category.${key}.tag`)}</span>
+                  <h3>${t(`home.category.${key}.title`)}</h3>
+                  <p>${t(`home.category.${key}.desc`)}</p>
+                </div>
+              </article>
+            `).join("")}
+          </div>
         </div>
       </section>
 
@@ -4445,8 +4453,12 @@ function setAppMode(mode) {
 }
 
 function selectLookScenario(id) {
-  if (!LOOK_SCENARIOS.some((item) => item.id === id) || state.selectedLookScenario === id) return;
-  state.selectedLookScenario = id;
+  const currentIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
+  const selectedIndex = LOOK_SCENARIOS.findIndex((item) => item.id === id);
+  if (selectedIndex === -1) return;
+  state.selectedLookScenario = selectedIndex === currentIndex
+    ? LOOK_SCENARIOS[(currentIndex + 1) % LOOK_SCENARIOS.length].id
+    : id;
   render({ motion: false });
 }
 
