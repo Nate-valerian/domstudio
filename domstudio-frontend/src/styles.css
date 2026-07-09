@@ -195,23 +195,26 @@ h1 em { color: var(--gold); font-style: normal; }
 
 .hero-visual { position: relative; z-index: 1; display: grid; place-items: center; min-width: 0; min-height: 620px; }
 .hero-studio-card {
-  width: min(100%, clamp(560px, 36vw, 720px)); min-width: 0; overflow: hidden; border: 1px solid rgba(192,135,10,.22); border-radius: 28px;
-  background: var(--card); box-shadow: 0 40px 100px rgba(32,25,14,.18);
+  width: min(100%, clamp(620px, 42vw, 780px)); min-width: 0; overflow: hidden; border: 1px solid rgba(192,135,10,.24); border-radius: 30px;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,251,244,.98)); box-shadow: 0 40px 100px rgba(32,25,14,.18), inset 0 1px 0 rgba(255,255,255,.88);
 }
-.studio-card-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 18px; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.studio-card-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 18px 12px; color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
 .studio-card-top b { color: var(--ink); letter-spacing: 0; text-transform: none; }
 .hero .studio-card-top { color: var(--muted); }
 .hero .studio-card-top b { color: var(--ink); }
-.hero-proof-frame { margin: 0 14px; overflow: hidden; border-radius: 20px; background: #e8ddc8; }
+.hero-proof-frame { height: clamp(300px, 27vw, 400px); margin: 0 14px; overflow: hidden; border: 1px solid rgba(17,17,15,.08); border-radius: 22px; background: #e8ddc8; box-shadow: 0 18px 42px rgba(32,25,14,.10); }
 .media-pair-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
-.media-story-card { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.media-story-card { grid-template-columns: .95fr 1.08fr 1.08fr; }
 .landing-media { margin: 0; min-width: 0; overflow: hidden; background: #e9e3d7; aspect-ratio: 1 / 1; }
 .media-pair-card > .landing-media:not(:last-child) { border-right: 2px solid rgba(255,253,248,.88); }
-.hero-proof-frame .landing-media { aspect-ratio: 1 / 1; }
+.hero-proof-frame .landing-media { height: 100%; aspect-ratio: auto; }
 .landing-media img,
 .landing-media video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .landing-media video { background: #111; }
 .before-media img { object-fit: contain; background: #efe8de; }
+.hero-proof-frame .before-media img { object-fit: cover; }
+.hero-proof-frame .after-media img,
+.hero-proof-frame .video-media video { object-position: center top; }
 .media-tag {
   position: absolute; left: 12px; top: 12px; z-index: 2;
   display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px;
@@ -220,17 +223,22 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 .media-tag.dark { background: rgba(17,17,15,.72); color: white; }
 .landing-media { position: relative; }
-.mini-studio-controls { display: grid; gap: 10px; padding: 14px; }
-.mini-studio-controls label { display: grid; grid-template-columns: 105px 1fr; align-items: center; gap: 10px; min-height: 44px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+.mini-studio-controls { display: grid; grid-template-columns: minmax(180px, .68fr) minmax(260px, 1.32fr); gap: 8px; padding: 10px 14px 14px; }
+.mini-studio-controls label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; min-height: 38px; padding: 5px 5px 5px 12px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255,255,255,.92); }
 .hero .mini-studio-controls label { border-color: rgba(192,135,10,.2); background: white; }
-.mini-studio-controls label span { color: var(--muted); font-size: 12px; font-weight: 800; }
+.mini-studio-controls label span { color: var(--muted); font-size: 11px; font-weight: 850; }
 .hero .mini-studio-controls label span { color: var(--muted); }
-.mini-studio-controls input { width: 100%; min-width: 0; border: 0; outline: 0; overflow: hidden; background: transparent; color: var(--ink); font-weight: 700; text-overflow: ellipsis; }
+.hero .mini-studio-controls label:nth-child(2) {
+  grid-template-columns: 1fr;
+  padding-left: 14px;
+}
+.hero .mini-studio-controls label:nth-child(2) span { display: none; }
+.mini-studio-controls input { width: 100%; min-width: 0; border: 0; outline: 0; overflow: hidden; background: transparent; color: var(--ink); font-weight: 800; text-overflow: ellipsis; }
 .hero .mini-studio-controls input { color: var(--ink); }
-.mini-studio-controls label button { min-height: 34px; border: 0; border-radius: 999px; background: var(--ink); color: white; font-weight: 800; cursor: pointer; }
+.mini-studio-controls label button { min-height: 32px; border: 0; border-radius: 999px; background: var(--ink); color: white; font-weight: 800; cursor: pointer; }
 .hero .mini-studio-controls label button { background: var(--acid); color: var(--ink); }
-.preset-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.preset-pills span { padding: 8px 10px; border: 1px solid var(--line); border-radius: 999px; background: #faf7f0; color: var(--muted); font-size: 12px; font-weight: 800; }
+.preset-pills { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.preset-pills span { padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; background: #faf7f0; color: var(--muted); font-size: 11px; font-weight: 850; }
 .hero .preset-pills span { border-color: rgba(192,135,10,.24); background: rgba(192,135,10,.09); color: var(--muted); }
 .section { padding: clamp(64px, 9vw, 120px) max(clamp(20px, 6vw, 92px), calc((100vw - 1420px) / 2)); }
 .section.dark { color: white; background: var(--ink); }
@@ -2324,7 +2332,9 @@ h1 em { color: var(--gold); font-style: normal; }
   .hero-proof-frame { margin: 0 10px; border-radius: 14px; }
   .media-story-card { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .media-tag { left: 7px; top: 7px; min-height: 23px; padding: 0 7px; font-size: 9px; }
-  .mini-studio-controls { display: grid; gap: 8px; padding: 10px; }
+  .mini-studio-controls { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 10px; }
+  .hero .mini-studio-controls label:nth-child(2),
+  .hero .mini-studio-controls .preset-pills { display: none; }
   .mini-studio-controls label { grid-template-columns: 1fr; min-height: auto; padding: 10px; gap: 8px; }
   .mini-studio-controls input { font-size: 14px; line-height: 1.35; }
   .mini-studio-controls label button { width: 100%; }
