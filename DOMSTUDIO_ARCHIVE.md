@@ -32,6 +32,32 @@ Next step:
   seller flow and Advanced mode exposes the full field/profile controls more
   directly.
 
+Step 2 completed:
+
+- Connected AdPilot AI copy generation to the global app mode.
+- Fast mode now uses the guided wizard path and hides the business profile block
+  to reduce first-use friction.
+- Advanced mode now opens the full field form and business profile controls
+  directly.
+- The old local `data-wizard-mode` branch was removed so `All fields` and
+  `Quick mode` switch the global app mode instead of creating a second mode
+  system.
+- Added a small wizard-field sync helper so the current Fast-mode answer is
+  preserved when switching to Advanced.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+
+Validation:
+
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
+Next step:
+
+- Apply the global mode to Quick Tools so Fast mode presents common seller
+  fixes first and Advanced mode exposes the full tool/workflow set.
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio

@@ -1887,6 +1887,10 @@ function appSidebar(active) {
   </aside>`;
 }
 
+function activeContentFormMode() {
+  return state.appMode === "advanced" ? "full" : state.contentFormMode;
+}
+
 function generationCost() {
   return state.generationKind === "video" ? videoTokenCost() : 100;
 }
@@ -2333,6 +2337,8 @@ function copyStudioPage() {
   const isLastWizardStep = wizardStep >= wizardFields.length - 1;
   const currentWizardField = wizardFields[wizardStep];
   const wLang = state.contentOutputLanguage === "english" ? "en" : "ru";
+  const isAdvancedApp = state.appMode === "advanced";
+  const contentFormMode = isAdvancedApp ? "full" : state.contentFormMode;
   const generateLabel = state.user ? t("copy.generate", { n: cost }) : t("copy.generateFree");
   const costBadge = state.user ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : t("copy.freeTry");
 
@@ -2447,7 +2453,7 @@ function copyStudioPage() {
               </button>
             `).join("")}
           </div>
-          ${state.contentFormMode === "wizard" ? `
+          ${contentFormMode === "wizard" ? `
             <div class="wizard-form">
               ${wizardFields.slice(0, wizardStep).map((field, i) => `
                 <div class="wizard-done">
@@ -2466,11 +2472,11 @@ function copyStudioPage() {
                   ? `<button type="button" class="button gold block wizard-generate" data-wizard-generate ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : generateLabel}</button>`
                   : `<button type="button" class="button primary block" data-wizard-next>${t("copy.wizardNext")}</button>`}
               </div>
-              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="full">${t("copy.allFields")}</button>
+              <button type="button" class="link-btn wizard-mode-btn" data-app-mode="advanced">${t("copy.allFields")}</button>
             </div>
           ` : `
             <div class="copy-fields">
-              <button type="button" class="link-btn wizard-mode-btn" data-wizard-mode="wizard">${t("copy.quickMode")}</button>
+              <button type="button" class="link-btn wizard-mode-btn" data-app-mode="fast">${t("copy.quickMode")}</button>
               ${tool.fields.map((field) => `
                 <div class="field">
                   <label for="copy_${field}">${escapeHtml(contentFieldLabel(field))}</label>
@@ -2479,7 +2485,7 @@ function copyStudioPage() {
               `).join("")}
             </div>
           `}
-          <div class="copy-profile">
+          ${isAdvancedApp ? `<div class="copy-profile">
             <div class="mini-head"><h3>${t("copy.profileTitle")}</h3><span>${t("copy.profileSub")}</span></div>
             <div class="helper-grid">
               ${["businessName", "city", "niche", "targetCustomer", "tone", "offer", "phone"].map((field) => `
@@ -2489,8 +2495,8 @@ function copyStudioPage() {
                 </div>
               `).join("")}
             </div>
-          </div>
-          ${state.contentFormMode !== "wizard" ? `<button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : generateLabel}</button>` : ""}
+          </div>` : ""}
+          ${contentFormMode !== "wizard" ? `<button class="button gold block" type="submit" ${canGenerate ? "" : "disabled"}>${state.contentGenerating ? t("copy.generating") : generateLabel}</button>` : ""}
           ${state.user
             ? (state.user.tokens < cost
               ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
@@ -3348,7 +3354,7 @@ function bind() {
   document.querySelector("#generate-form")?.addEventListener("submit", submitGeneration);
   document.querySelector("#copy-form")?.addEventListener("submit", submitCopyGeneration);
   document.querySelector("#copy-form")?.addEventListener("input", event => {
-    if (state.contentFormMode !== "wizard") syncContentFromForm(event.currentTarget);
+    if (activeContentFormMode() !== "wizard") syncContentFromForm(event.currentTarget);
   });
   document.querySelectorAll("[data-content-tool]").forEach(el => el.addEventListener("click", () => selectContentTool(el.dataset.contentTool)));
   document.querySelector("[data-adpilot-home]")?.addEventListener("click", () => {
@@ -3359,19 +3365,6 @@ function bind() {
   });
 
   // Wizard event handlers
-  document.querySelectorAll("[data-wizard-mode]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const mode = btn.dataset.wizardMode;
-      if (mode === "full") {
-        const ta = document.querySelector("[data-wizard-field]");
-        if (ta) state.contentDraft = { ...state.contentDraft, [ta.dataset.wizardField]: ta.value };
-      } else {
-        state.contentWizardStep = 0;
-      }
-      state.contentFormMode = mode;
-      render({ motion: false });
-    });
-  });
   document.querySelector("[data-wizard-next]")?.addEventListener("click", () => {
     const ta = document.querySelector("[data-wizard-field]");
     if (!ta?.value?.trim()) { ta?.focus(); return; }
@@ -4301,8 +4294,11 @@ function setGenerationKind(kind) {
 function setAppMode(mode) {
   if (!["fast", "advanced"].includes(mode) || state.appMode === mode) return;
   syncDraftFromForm(document.querySelector("#generate-form"));
+  syncWizardFieldFromDom();
   syncContentFromForm(document.querySelector("#copy-form"));
   state.appMode = mode;
+  state.contentFormMode = mode === "advanced" ? "full" : "wizard";
+  if (mode === "fast") state.contentWizardStep = 0;
   localStorage.setItem(APP_MODE_KEY, mode);
   render({ motion: false });
 }
@@ -5010,6 +5006,12 @@ function syncContentFromForm(form) {
   state.contentProfile = nextProfile;
 }
 
+function syncWizardFieldFromDom() {
+  const ta = document.querySelector("[data-wizard-field]");
+  if (!ta) return;
+  state.contentDraft = { ...state.contentDraft, [ta.dataset.wizardField]: ta.value };
+}
+
 function fillExample() {
   const defaults = defaultsForLang(state.lang);
   state.contentDraft = { ...defaults.draft };
@@ -5046,7 +5048,7 @@ function copySavedOutput(id) {
 
 function selectContentTool(slug) {
   if (state.contentToolSlug === slug) return;
-  if (state.contentFormMode !== "wizard") syncContentFromForm(document.querySelector("#copy-form"));
+  if (activeContentFormMode() !== "wizard") syncContentFromForm(document.querySelector("#copy-form"));
   state.contentToolSlug = slug;
   state.contentNotice = "";
   state.contentWizardStep = 0;
@@ -5225,7 +5227,7 @@ async function marketplaceActionCommand(actionId, command) {
 
 async function submitCopyGeneration(event) {
   event.preventDefault();
-  if (state.contentFormMode !== "wizard") syncContentFromForm(event.currentTarget);
+  if (activeContentFormMode() !== "wizard") syncContentFromForm(event.currentTarget);
   const tool = currentContentTool();
   const cost = contentTokenCost(tool);
 
