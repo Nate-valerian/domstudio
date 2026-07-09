@@ -1524,7 +1524,10 @@ h1 em { color: var(--gold); font-style: normal; }
 /* ── Tools page ─────────────────────────────────── */
 .tools-inner { max-width: 560px; margin: 0 auto; padding: 0 16px 24px; }
 .tools-grid { display: flex; flex-direction: column; gap: 20px; }
-.tools-mode-note {
+.tools-mode-note,
+.account-mode-note,
+.history-mode-note,
+.pricing-mode-note {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1535,8 +1538,14 @@ h1 em { color: var(--gold); font-style: normal; }
   border-radius: 16px;
   background: #fffaf0;
 }
-.tools-mode-note b { display: block; font-size: 14px; font-weight: 900; }
-.tools-mode-note span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 750; line-height: 1.4; }
+.tools-mode-note b,
+.account-mode-note b,
+.history-mode-note b,
+.pricing-mode-note b { display: block; font-size: 14px; font-weight: 900; }
+.tools-mode-note span,
+.account-mode-note span,
+.history-mode-note span,
+.pricing-mode-note span { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 750; line-height: 1.4; }
 .tools-mode-fast .advanced-tool-card,
 .tools-mode-fast [data-send-to="collage"],
 .tools-mode-fast [data-send-to="watermark"],
@@ -1890,6 +1899,13 @@ h1 em { color: var(--gold); font-style: normal; }
   .nav-cta { overflow: hidden; text-overflow: ellipsis; }
   .nav-links { left: 0; right: 0; top: calc(100% + 8px); max-height: calc(100vh - 86px); overflow-y: auto; }
   .nav-link { padding: 13px 14px; }
+  .tools-mode-note,
+  .account-mode-note,
+  .history-mode-note,
+  .pricing-mode-note {
+    align-items: stretch;
+    flex-direction: column;
+  }
   .pwa-install {
     width: calc(100vw - 20px); grid-template-columns: 1fr 34px; gap: 10px; padding: 12px;
   }

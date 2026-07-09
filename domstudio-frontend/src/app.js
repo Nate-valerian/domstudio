@@ -2560,6 +2560,7 @@ function copyStudioPage() {
 function accountPage() {
   if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   if (!state.user) return gatePage();
+  const isAdvancedAccount = state.appMode === "advanced";
   const sub = state.user.subscription || {};
   const planName = sub.plan || "free";
   const isFree = planName === "free";
@@ -2579,6 +2580,11 @@ function accountPage() {
         <article class="stat"><span>${t("account.statPhotos")}</span><b>${sub.photos_used || 0} / ${sub.photos_limit || 5}</b></article>
       </div>
 
+      ${!isAdvancedAccount ? `<div class="account-mode-note">
+        <div><b>${t("account.fastNoteTitle")}</b><span>${t("account.fastNoteSub")}</span></div>
+        <button class="button secondary compact-button" type="button" data-app-mode="advanced">${t("account.showAdvanced")}</button>
+      </div>` : ""}
+
       ${isFree || lowTokens ? `
       <div class="upgrade-cta">
         <div class="upgrade-cta-copy">
@@ -2588,7 +2594,7 @@ function accountPage() {
         <button class="button gold" data-route="pricing">${t("account.upgradeCta")}</button>
       </div>` : ""}
 
-      ${recentHistory.length ? `
+      ${isAdvancedAccount && recentHistory.length ? `
       <div class="panel account-section">
         <div class="account-section-head"><h3>${t("account.recentH3")}</h3><span>${t("account.recentSub")}</span></div>
         <div class="history-grid">
@@ -2607,7 +2613,7 @@ function accountPage() {
         <button class="button secondary" style="margin-top:14px" data-route="studio">${t("account.openStudio")}</button>
       </div>` : ""}
 
-      ${hasBrand ? `
+      ${isAdvancedAccount && hasBrand ? `
       <div class="panel account-section">
         <div class="account-section-head"><h3>${t("account.brandH3")}</h3><button class="text-button" data-route="studio">${t("account.brandEdit")}</button></div>
         <dl class="brand-summary">
@@ -2646,6 +2652,7 @@ function accountPage() {
 
 function historyPage() {
   const locale = state.lang === "en" ? "en-GB" : "ru-RU";
+  const isAdvancedHistory = state.appMode === "advanced";
   const modeFilters = [
     { id: "all", label: t("historyPage.filterAll") },
     ...MODES.map(([id]) => ({ id, label: t(`mode.${id}.name`) })),
@@ -2653,6 +2660,7 @@ function historyPage() {
   const filtered = state.history.filter(
     item => state.historyFilter === "all" || item.mode === state.historyFilter
   );
+  const visibleHistory = isAdvancedHistory ? filtered : filtered.slice(0, 6);
   return `<main class="${state.user ? "app-layout" : "page"}">
     ${state.user ? appSidebar("history") : ""}
     <section class="${state.user ? "workspace" : "section"}">
@@ -2661,12 +2669,16 @@ function historyPage() {
         ${state.history.length ? `<button class="button secondary" data-clear-history>${t("historyPage.clearAll")}</button>` : ""}
       </header>
       ${state.history.length ? `
-        <div class="chip-row" style="margin-bottom: 20px;">
+        ${!isAdvancedHistory ? `<div class="history-mode-note">
+          <div><b>${t("historyPage.fastNoteTitle")}</b><span>${t("historyPage.fastNoteSub")}</span></div>
+          <button class="button secondary compact-button" type="button" data-app-mode="advanced">${t("historyPage.showAdvanced")}</button>
+        </div>` : ""}
+        ${isAdvancedHistory ? `<div class="chip-row" style="margin-bottom: 20px;">
           ${modeFilters.map(m => `<button class="chip ${state.historyFilter === m.id ? "chip-active" : ""}" type="button" data-history-filter="${m.id}">${m.label}</button>`).join("")}
-        </div>
-        ${filtered.length ? `
+        </div>` : ""}
+        ${visibleHistory.length ? `
           <div class="history-full-grid">
-            ${filtered.map(item => {
+            ${visibleHistory.map(item => {
               const d = new Date(item.createdAt);
               const dateStr = d.toLocaleDateString(locale, { day: "numeric", month: "short" });
               const timeStr = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
@@ -2696,6 +2708,7 @@ function historyPage() {
 }
 
 function pricingPage() {
+  const isAdvancedPricing = state.appMode === "advanced";
   const cards = state.plans.filter(plan => ["free", "basic", "pro", "business"].includes(plan.name));
   return `<main class="${state.user ? "app-layout" : "page"}">
     ${state.user ? appSidebar("pricing") : ""}
@@ -2712,7 +2725,12 @@ function pricingPage() {
           </article>`).join("")}
       </div>
 
-      <div class="topup-section">
+      ${!isAdvancedPricing ? `<div class="pricing-mode-note">
+        <div><b>${t("pricing.fastNoteTitle")}</b><span>${t("pricing.fastNoteSub")}</span></div>
+        <button class="button secondary compact-button" type="button" data-app-mode="advanced">${t("pricing.showAdvanced")}</button>
+      </div>` : ""}
+
+      ${isAdvancedPricing ? `<div class="topup-section">
         <div class="mini-head"><h3>${t("pricing.topupH3")}</h3><span>${t("pricing.topupSub")}</span></div>
         <div class="topup-grid">
           ${TOKEN_PACKS.map(pack => `
@@ -2723,7 +2741,7 @@ function pricingPage() {
               <button class="button secondary" data-pack-id="${pack.pack_id}">${t("pricing.topupBuy")}</button>
             </article>`).join("")}
         </div>
-      </div>
+      </div>` : ""}
     </section>
   </main>`;
 }

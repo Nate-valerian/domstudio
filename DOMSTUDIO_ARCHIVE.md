@@ -85,6 +85,33 @@ Next step:
 - Apply the global mode to pricing/account/history so Fast mode keeps the
   seller path compact while Advanced mode shows deeper account/history detail.
 
+Step 4 completed:
+
+- Connected Pricing, Account, and History pages to the global app mode.
+- Pricing Fast mode keeps the plan grid visible and hides token top-up packs
+  behind an Advanced-mode note.
+- Account Fast mode keeps plan/tokens/usage and the main creation/upgrade path
+  visible, while recent history and brand summaries move to Advanced mode.
+- History Fast mode shows the most recent six browser results without filters;
+  Advanced mode restores full history filtering and the full list.
+- Added RU/EN note copy and responsive note styling shared with the tools mode
+  notes.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/src/styles.css`
+
+Validation:
+
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
+Next step:
+
+- Run a final full check of app-mode behavior, archive the final status, and
+  commit any final polish/fixes if needed.
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio
