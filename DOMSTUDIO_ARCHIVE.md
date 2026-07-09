@@ -58,6 +58,33 @@ Next step:
 - Apply the global mode to Quick Tools so Fast mode presents common seller
   fixes first and Advanced mode exposes the full tool/workflow set.
 
+Step 3 completed:
+
+- Connected the Quick Tools page to the global app mode.
+- Fast mode now focuses the tools page on the common seller utilities:
+  background removal, marketplace resize, image checker, and compressor.
+- Advanced mode reveals the creative/extra tools: collage, watermark, and
+  promo badge.
+- Added a Fast-mode note with a `Show all` button that switches the app into
+  Advanced mode.
+- Hid `Send to` chips for hidden Advanced-only tools while the tools page is in
+  Fast mode, so users are not routed to invisible tool cards.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/src/styles.css`
+
+Validation:
+
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
+Next step:
+
+- Apply the global mode to pricing/account/history so Fast mode keeps the
+  seller path compact while Advanced mode shows deeper account/history detail.
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio
