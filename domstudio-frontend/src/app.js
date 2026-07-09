@@ -1877,6 +1877,57 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section proof-section">
+        <div class="section-head">
+          <h2>${t("home.proofH2")}</h2>
+          <p>${t("home.proofP")}</p>
+        </div>
+        <div class="proof-grid">
+          <article class="proof-visual media-pair-card media-story-card">
+            <figure class="landing-media before-media">
+              <span class="media-tag dark">${t("home.before")}</span>
+              <img src="${landingWineBeforeUrl}" alt="Original porcelain tea-house photo" />
+            </figure>
+            <figure class="landing-media after-media">
+              <span class="media-tag">${t("home.after")}</span>
+              <img src="${landingWineAfterUrl}" alt="Generated porcelain product image" />
+            </figure>
+            <figure class="landing-media video-media">
+              <span class="media-tag">${t("home.video")}</span>
+              <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="auto"></video>
+            </figure>
+          </article>
+          <div class="proof-copy">
+            <div class="proof-stat"><b>30</b><span>${t("home.stat1s")}</span></div>
+            <div class="proof-stat"><b>270 ₽</b><span>${t("home.stat2s")}</span></div>
+            <div class="proof-stat"><b>${t("home.stat3b")}</b><span>${t("home.stat3s")}</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section modes-section">
+        <div class="section-head">
+          <h2>${t("home.modesH2")}</h2>
+          <p>${t("home.modesP")}</p>
+        </div>
+        <div class="mode-grid">
+          ${MODES.map((mode, index) => `
+            <article class="mode-card">
+              <figure class="mode-visual proof-compare">
+                <img class="proof-after" src="${mode[3]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
+                <div class="proof-before">
+                  <img src="${mode[5]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
+                  <span>${t("home.before")}</span>
+                </div>
+                <span class="proof-after-label">${t("home.after")}</span>
+              </figure>
+              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${t("mode." + mode[0] + ".tag")}</span></div>
+              <h3>${t("mode." + mode[0] + ".name")}</h3>
+              <p>${t("mode." + mode[0] + ".desc")}</p>
+            </article>`).join("")}
+        </div>
+      </section>
+
       <section class="section seller-comparison-section">
         <div class="section-head">
           <h2>${t("home.compareH2")}</h2>
@@ -1931,57 +1982,6 @@ function homePage() {
             <p>${t("home.supportP")}</p>
             <button class="button gold" type="button" data-contact-reason="help">${t("home.supportCta")}</button>
           </aside>
-        </div>
-      </section>
-
-      <section class="section proof-section">
-        <div class="section-head">
-          <h2>${t("home.proofH2")}</h2>
-          <p>${t("home.proofP")}</p>
-        </div>
-        <div class="proof-grid">
-          <article class="proof-visual media-pair-card media-story-card">
-            <figure class="landing-media before-media">
-              <span class="media-tag dark">${t("home.before")}</span>
-              <img src="${landingWineBeforeUrl}" alt="Original porcelain tea-house photo" />
-            </figure>
-            <figure class="landing-media after-media">
-              <span class="media-tag">${t("home.after")}</span>
-              <img src="${landingWineAfterUrl}" alt="Generated porcelain product image" />
-            </figure>
-            <figure class="landing-media video-media">
-              <span class="media-tag">${t("home.video")}</span>
-              <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="auto"></video>
-            </figure>
-          </article>
-          <div class="proof-copy">
-            <div class="proof-stat"><b>30</b><span>${t("home.stat1s")}</span></div>
-            <div class="proof-stat"><b>270 ₽</b><span>${t("home.stat2s")}</span></div>
-            <div class="proof-stat"><b>${t("home.stat3b")}</b><span>${t("home.stat3s")}</span></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section modes-section">
-        <div class="section-head">
-          <h2>${t("home.modesH2")}</h2>
-          <p>${t("home.modesP")}</p>
-        </div>
-        <div class="mode-grid">
-          ${MODES.map((mode, index) => `
-            <article class="mode-card">
-              <figure class="mode-visual proof-compare">
-                <img class="proof-after" src="${mode[3]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
-                <div class="proof-before">
-                  <img src="${mode[5]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
-                  <span>${t("home.before")}</span>
-                </div>
-                <span class="proof-after-label">${t("home.after")}</span>
-              </figure>
-              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${t("mode." + mode[0] + ".tag")}</span></div>
-              <h3>${t("mode." + mode[0] + ".name")}</h3>
-              <p>${t("mode." + mode[0] + ".desc")}</p>
-            </article>`).join("")}
         </div>
       </section>
 
