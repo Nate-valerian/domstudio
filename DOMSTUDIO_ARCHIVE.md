@@ -1,5 +1,45 @@
 # DomStudio Archive
 
+## July 9, 2026 - AutoDL West-B Comfy Connection Restored
+
+Restored the current SeetaCloud/AutoDL west-B ComfyUI connection for DomStudio.
+The password was used only for recovery and was not written to this archive.
+
+Connection result:
+
+- Installed the local `autodl_key` public key on the new remote instance so
+  future access works with key-based SSH:
+  `ssh -i $HOME\.ssh\autodl_key -p 27850 root@connect.westb.seetacloud.com`.
+- Verified the remote container as `autodl-container-a3db44bd3d-247df867`.
+- Verified ComfyUI is already running from `/root/autodl-tmp/ComfyUI` on
+  port `6006`.
+- Verified `/system_stats` returns ComfyUI `0.3.75`, PyTorch `2.5.1+cu124`,
+  and `NVIDIA vGPU-32GB`.
+- Verified west-B persistent storage at `/root/autodl-fs` with roughly `145G`
+  free, and current working disk `/root/autodl-tmp` with roughly `2.8G` free.
+- Verified production models are present under `/root/autodl-fs/models`,
+  including Qwen image edit, Wan video, Qwen VAE, Wan VAE, UMT5, and RMBG
+  model files.
+
+Tunnel recovery:
+
+- ngrok binary exists on the persistent disk, but ngrok cannot start because
+  the remote machine has no authenticated ngrok account/token configured.
+- Repaired `/root/autodl-fs/start_domstudio.sh` so it reuses or starts ComfyUI
+  on `127.0.0.1:6006`, removes stale DomStudio Cloudflare tunnel processes,
+  starts one fresh Cloudflare quick tunnel, and prints `COMFYUI_URL=...`.
+- Current live ComfyUI tunnel:
+  `https://magic-illinois-ins-accidents.trycloudflare.com`.
+- Updated `domstudio-backend/comfy_url.txt` to the live tunnel URL.
+
+Validation:
+
+- External curl from the local workstation to
+  `https://magic-illinois-ins-accidents.trycloudflare.com/system_stats`
+  succeeded.
+- Remote process check shows one ComfyUI process and one `cloudflared tunnel`
+  process.
+
 ## July 9, 2026 - AutoDL West-B Connection Notes Read
 
 User provided a new SeetaCloud/AutoDL west-B SSH endpoint and pointed to the
@@ -734,7 +774,7 @@ Session 1 archive had wrong path. Confirmed via `find /root -maxdepth 3 -name 'm
 
 ### New AutoDL instance
 
-- SSH: `ssh -p 46594 root@connect.westc.seetacloud.com` (password: QMbVPJmTdx66)
+- SSH: `ssh -p 46594 root@connect.westc.seetacloud.com` (password: not archived)
 - GPU: **NVIDIA vGPU-32GB, 32760 MiB, compute cap 8.9 (Ada Lovelace)** — nunchaku AWQ works ✅
 - PyTorch: 2.5.1+cu124
 - nunchaku: 1.0.1+torch2.5 — already installed ✅
