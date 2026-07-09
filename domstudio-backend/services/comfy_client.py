@@ -248,11 +248,19 @@ FITTING_REFERENCE_DIRECTIVE = (
     "The final image must read as a premium ecommerce fashion photoshoot, not a background swap."
 )
 
+LIFESTYLE_USE_DIRECTIVE = (
+    "This is a lifestyle usage transformation. Use the uploaded product image as a reference for the product identity, category, color, material, and key visible details, not as a layout to preserve. "
+    "Show the product naturally being used, worn, held, carried, opened, placed by hand, or interacted with by a realistic person when that makes the category clearer. "
+    "Move the product into a different believable premium environment that communicates use and value. "
+    "Do not keep a flat lay, empty packshot, isolated product, or the original camera angle unless the user explicitly asks for catalog output."
+)
+
 IMAGE_EDIT_NEGATIVE_PROMPT = (
     "low quality, blurry, distorted, warped product, changed product shape, changed label, altered packaging, "
     "rewritten label text, fake label, fake letters, gibberish text, misspelled text, translated text, extra logo, "
     "new brand name, text overlay, watermark, duplicated product, extra bottle, broken cap, deformed cap, messy background, "
-    "floating clothes, clothes suspended in air, detached garments, empty outfit, product pile, mannequin, hanger"
+    "floating clothes, clothes suspended in air, detached garments, empty outfit, product pile, mannequin, hanger, "
+    "unchanged flat lay, isolated packshot when lifestyle use is requested, empty scene without user interaction"
 )
 
 
@@ -387,6 +395,16 @@ def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None 
         instruction += f" {FITTING_REFERENCE_DIRECTIVE}"
         return instruction
 
+    if selected_mode == "image":
+        instruction = f"Create a lifestyle usage result from the uploaded product reference: {scene}."
+        directive = mode_prompt_directive(mode)
+        if directive:
+            instruction += f" {directive}"
+        if style:
+            instruction += f" Style direction: {style}."
+        instruction += f" {LIFESTYLE_USE_DIRECTIVE}"
+        return instruction
+
     instruction = f"Place the product in a new environment: {scene}."
     directive = mode_prompt_directive(mode)
     if directive:
@@ -418,7 +436,7 @@ def prompt_expander_user_text(subject: str, style_hint: str = "", mode: str | No
 async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     """Use DeepSeek to expand a short user prompt into a proper Qwen Image Edit instruction.
     Falls back to compose_img2img_prompt() if DEEPSEEK_API_KEY is absent or the call fails."""
-    if str(mode or "").strip().lower() == "fitting":
+    if str(mode or "").strip().lower() in {"fitting", "image"}:
         return compose_img2img_prompt(subject, style_hint, mode)
 
     api_key = os.getenv("DEEPSEEK_API_KEY")

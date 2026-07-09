@@ -229,6 +229,19 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Do not show a product pile", prompt)
         self.assertNotIn("Preserve the uploaded product exactly", prompt)
 
+    async def test_lifestyle_prompt_shows_product_in_use(self):
+        prompt = comfy_client.compose_img2img_prompt(
+            "person using the laptop and headphones in a premium workspace",
+            "editorial ecommerce lifestyle",
+            "image",
+        )
+
+        self.assertIn("lifestyle usage transformation", prompt)
+        self.assertIn("naturally being used", prompt)
+        self.assertIn("realistic person", prompt)
+        self.assertIn("Do not keep a flat lay", prompt)
+        self.assertNotIn("Preserve the uploaded product exactly", prompt)
+
     async def test_fitting_dimensions_are_portrait(self):
         self.assertEqual(comfy_client.generation_dimensions("fitting"), (896, 1152))
         self.assertEqual(comfy_client.video_aspect_ratio("fitting"), "9:16")

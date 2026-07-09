@@ -43,6 +43,16 @@ import lookHomeVaseUrl from "./assets/landing/look-home-vase.webp";
 import lookBackpackUrl from "./assets/landing/look-backpack.webp";
 import premiumFashionLoftAfterUrl from "./assets/landing/generated-premium/premium-fashion-loft-after.png";
 import premiumFashionLoftVideoUrl from "./assets/landing/generated-premium/premium-fashion-loft-after-5s.mp4";
+import premiumElectronicsAfterUrl from "./assets/landing/generated-premium/premium-electronics-use-after.png";
+import premiumElectronicsVideoUrl from "./assets/landing/generated-premium/premium-electronics-after-5s.mp4";
+import premiumBagsAfterUrl from "./assets/landing/generated-premium/premium-bags-after.png";
+import premiumBagsVideoUrl from "./assets/landing/generated-premium/premium-bags-after-5s.mp4";
+import premiumHomeAfterUrl from "./assets/landing/generated-premium/premium-home-after.png";
+import premiumHomeVideoUrl from "./assets/landing/generated-premium/premium-home-after-5s.mp4";
+import premiumFoodAfterUrl from "./assets/landing/generated-premium/premium-food-after.png";
+import premiumFoodVideoUrl from "./assets/landing/generated-premium/premium-food-after-5s.mp4";
+import premiumJewelryAfterUrl from "./assets/landing/generated-premium/premium-jewelry-after.png";
+import premiumJewelryVideoUrl from "./assets/landing/generated-premium/premium-jewelry-after-5s.mp4";
 import categoryMarketplaceUrl from "./assets/category-proof/category-marketplace.webp";
 import categoryJewelryUrl from "./assets/category-proof/category-jewelry.webp";
 import categoryCafeUrl from "./assets/category-proof/category-cafe.webp";
@@ -83,7 +93,8 @@ const LOOK_SCENARIOS = [
     metaKey: "home.look.suit.meta",
     promptKey: "home.look.suit.prompt",
     result: premiumFashionLoftAfterUrl,
-    sourceA: modeFittingBeforeUrl,
+    video: premiumFashionLoftVideoUrl,
+    sourceA: lookWomenFlatlayUrl,
     sourceB: lookWomenFlatlayUrl,
     ghostA: premiumFashionLoftAfterUrl,
     ghostB: modeFittingUrl,
@@ -93,8 +104,9 @@ const LOOK_SCENARIOS = [
     titleKey: "home.look.jewelry.title",
     metaKey: "home.look.jewelry.meta",
     promptKey: "home.look.jewelry.prompt",
-    result: lookJewelryModelUrl,
-    sourceA: exampleBottleFittingUrl,
+    result: premiumJewelryAfterUrl,
+    video: premiumJewelryVideoUrl,
+    sourceA: categoryJewelryUrl,
     sourceB: lookJewelryModelUrl,
     ghostA: categoryJewelryUrl,
     ghostB: examplePerfumeFittingUrl,
@@ -104,7 +116,8 @@ const LOOK_SCENARIOS = [
     titleKey: "home.look.electronics.title",
     metaKey: "home.look.electronics.meta",
     promptKey: "home.look.electronics.prompt",
-    result: lookElectronicsUrl,
+    result: premiumElectronicsAfterUrl,
+    video: premiumElectronicsVideoUrl,
     sourceA: lookElectronicsUrl,
     sourceB: categoryMarketplaceUrl,
     ghostA: productProofUrl,
@@ -115,7 +128,8 @@ const LOOK_SCENARIOS = [
     titleKey: "home.look.food.title",
     metaKey: "home.look.food.meta",
     promptKey: "home.look.food.prompt",
-    result: lookFoodStorageUrl,
+    result: premiumFoodAfterUrl,
+    video: premiumFoodVideoUrl,
     sourceA: lookFoodStorageUrl,
     sourceB: categoryFoodUrl,
     ghostA: categoryCafeUrl,
@@ -126,7 +140,8 @@ const LOOK_SCENARIOS = [
     titleKey: "home.look.bags.title",
     metaKey: "home.look.bags.meta",
     promptKey: "home.look.bags.prompt",
-    result: lookBackpackUrl,
+    result: premiumBagsAfterUrl,
+    video: premiumBagsVideoUrl,
     sourceA: lookBackpackUrl,
     sourceB: lookStorageBoxesUrl,
     ghostA: lookStorageBoxesUrl,
@@ -137,22 +152,12 @@ const LOOK_SCENARIOS = [
     titleKey: "home.look.home.title",
     metaKey: "home.look.home.meta",
     promptKey: "home.look.home.prompt",
-    result: lookHomeVaseUrl,
+    result: premiumHomeAfterUrl,
+    video: premiumHomeVideoUrl,
     sourceA: lookHomeVaseUrl,
     sourceB: exampleBottleProductUrl,
     ghostA: exampleBottleCatalogUrl,
     ghostB: examplePerfumeProductUrl,
-  },
-  {
-    id: "outfit",
-    titleKey: "home.look.outfit.title",
-    metaKey: "home.look.outfit.meta",
-    promptKey: "home.look.outfit.prompt",
-    result: lookFormalFlatlayUrl,
-    sourceA: lookFormalFlatlayUrl,
-    sourceB: lookSmartFlatlayUrl,
-    ghostA: lookSmartFlatlayUrl,
-    ghostB: lookWomenFlatlayUrl,
   },
 ];
 
@@ -163,14 +168,24 @@ const VIDEO_SHOWCASE_ITEMS = [
     labelKey: "home.videoShow.item.fashion",
   },
   {
-    image: exampleBottleProductUrl,
-    video: wineProductVideoUrl,
-    labelKey: "home.videoShow.item.product",
+    image: premiumBagsAfterUrl,
+    video: premiumBagsVideoUrl,
+    labelKey: "home.videoShow.item.bags",
   },
   {
-    image: examplePerfumeProductUrl,
-    video: perfumeProductVideoUrl,
-    labelKey: "home.videoShow.item.display",
+    image: premiumHomeAfterUrl,
+    video: premiumHomeVideoUrl,
+    labelKey: "home.videoShow.item.home",
+  },
+  {
+    image: premiumFoodAfterUrl,
+    video: premiumFoodVideoUrl,
+    labelKey: "home.videoShow.item.food",
+  },
+  {
+    image: premiumJewelryAfterUrl,
+    video: premiumJewelryVideoUrl,
+    labelKey: "home.videoShow.item.jewelry",
   },
 ];
 
@@ -1599,7 +1614,6 @@ function footer() {
 function homePage() {
   const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
-  const lookDeckItems = [0, 1, 2].map((offset) => LOOK_SCENARIOS[(activeLookIndex + offset) % LOOK_SCENARIOS.length]);
   const categoryProofs = [
     ["marketplace", categoryMarketplaceUrl],
     ["beauty", examplePerfumeProductUrl],
@@ -1706,29 +1720,23 @@ function homePage() {
           <p>${t("home.showcaseP")}</p>
         </div>
         <article class="showcase-block look-showcase">
-          <div class="look-demo-stage">
-            <div class="look-flow-label source-label"><b>01</b><span>${t("home.lookFlowUpload")}</span></div>
-            <div class="look-source-stack">
-              <figure><img src="${activeLook.sourceA}" alt="${t("home.lookFlowItem")}" loading="lazy" /><span>${t("home.lookFlowItem")}</span></figure>
-              <figure><img src="${activeLook.sourceB}" alt="${t("home.lookFlowDetail")}" loading="lazy" /><span>${t("home.lookFlowDetail")}</span></figure>
-              <figure><img src="${lookDeckItems[1].sourceA}" alt="${t("home.lookFlowReference")}" loading="lazy" /><span>${t("home.lookFlowReference")}</span></figure>
-            </div>
-            <div class="prompt-bubble">
+          <div class="look-triplet-stage" data-look-scenario-next role="button" tabindex="0" aria-live="polite" aria-label="${t("home.lookSelectorLabel")}">
+            <figure class="triplet-card triplet-before">
+              <span><b>01</b>${t("home.lookFlowBefore")}</span>
+              <img src="${activeLook.sourceA}" alt="${t("home.lookFlowBeforeAlt")}" loading="lazy" />
+            </figure>
+            <div class="triplet-prompt">
               <span>${t("home.lookFlowPrompt")}</span>
               <b>${t(activeLook.promptKey)}</b>
             </div>
-            <span class="look-flow-arrow" aria-hidden="true"><small>AI</small>→</span>
-            <div class="look-flow-label result-label"><b>02</b><span>${t("home.lookFlowResult")}</span></div>
-            <div class="look-result-deck" aria-live="polite">
-              ${lookDeckItems.map((item, index) => `
-                <button class="look-deck-card ${index === 0 ? "active" : ""}" type="button" data-look-scenario="${item.id}" style="--deck-index: ${index};" aria-pressed="${index === 0}">
-                  <img src="${item.result}" alt="${t(item.titleKey)}" loading="lazy" />
-                  <span>${t(item.metaKey)}</span>
-                  <b>${t(item.titleKey)}</b>
-                </button>
-              `).join("")}
-            </div>
-            <div class="look-click-hint">${t("home.lookClickHint")}</div>
+            <figure class="triplet-card triplet-after">
+              <span><b>02</b>${t("home.lookFlowAfter")}</span>
+              <img src="${activeLook.result}" alt="${t(activeLook.titleKey)}" loading="lazy" />
+            </figure>
+            <figure class="triplet-card triplet-video">
+              <span><b>03</b>${t("home.lookFlowVideo")}</span>
+              <video src="${activeLook.video}" poster="${activeLook.result}" aria-label="${t(activeLook.titleKey)} ${t("home.lookFlowVideo")}" autoplay muted loop playsinline preload="metadata"></video>
+            </figure>
           </div>
           <div class="showcase-copy">
             <span>${t("home.lookH3")}</span>
@@ -3426,7 +3434,7 @@ function render(options = {}) {
 }
 
 function prepareDemoVideos() {
-  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .seller-step-media video, .showcase-video-card video, .video-sequence-card video")];
+  const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .seller-step-media video, .showcase-video-card video, .video-sequence-card video, .triplet-card video")];
   videos.forEach((video) => {
     video.muted = true;
     video.defaultMuted = true;
@@ -3594,6 +3602,13 @@ function bind() {
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
   document.querySelectorAll("[data-app-mode]").forEach(el => el.addEventListener("click", () => setAppMode(el.dataset.appMode)));
   document.querySelectorAll("[data-look-scenario]").forEach(el => el.addEventListener("click", () => selectLookScenario(el.dataset.lookScenario)));
+  document.querySelector("[data-look-scenario-next]")?.addEventListener("click", () => advanceLookScenario());
+  document.querySelector("[data-look-scenario-next]")?.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      advanceLookScenario();
+    }
+  });
   document.querySelector("#generate-form")?.addEventListener("input", event => {
     if (event.target.type !== "file") syncDraftFromForm(event.currentTarget);
   });
@@ -4468,6 +4483,12 @@ function selectLookScenario(id) {
   state.selectedLookScenario = selectedIndex === currentIndex
     ? LOOK_SCENARIOS[(currentIndex + 1) % LOOK_SCENARIOS.length].id
     : id;
+  render({ motion: false });
+}
+
+function advanceLookScenario() {
+  const currentIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
+  state.selectedLookScenario = LOOK_SCENARIOS[(currentIndex + 1) % LOOK_SCENARIOS.length].id;
   render({ motion: false });
 }
 
