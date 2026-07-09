@@ -6618,3 +6618,68 @@ Verification:
 - `python -m unittest tests.test_payments` passed.
 - Full `python -m unittest discover -s tests` still has unrelated existing
   generation/Comfy failures; payment tests are green.
+
+---
+
+## July 9, 2026 - Landing Proof Refresh, Mobile Ordering, Vercel Deploy Fix
+
+Goal: make the homepage feel like a premium before/AI-result/video studio for
+marketplace sellers, using real-looking fashion, jewelry, home, food, tech, and
+bag scenarios instead of weak or unrelated examples.
+
+Committed landing changes:
+
+- `cf0e988 Add premium landing try-on examples`
+  - Added user source images under
+    `domstudio-frontend/src/assets/landing/user-sources/`.
+  - Added generated premium still/video assets under
+    `domstudio-frontend/src/assets/landing/generated-premium/`.
+  - Wired the new look scenarios into the homepage showcase.
+- `baf2f28 Use formal try-on proof in hero`
+- `b0227a1 Use women fashion proof in hero`
+- `c2392de Improve hero proof card layout`
+  - Larger first-look media, tighter card, less wasted whitespace.
+- `2a66bb2 Align workflow visuals with fashion hero`
+  - Replaced unrelated/pro-looking workflow imagery with a coherent fashion
+    story.
+- `6a71e1c Move look controls above details`
+  - On the look showcase, category chips and `Create a look` now render before
+    the paragraph and bullets in source order.
+- `ba19a3f Move comparison block before tools`
+  - Moved the full "Photo shoot or DomStudio?" comparison plus video/FAQ/support
+    trust block directly before the Free tools section.
+- `fd0af0a Bump shell cache for landing updates`
+  - Service worker cache bumped from `domstudio-shell-v5` to `v6` after old PWA
+    cache kept showing stale mobile layout.
+- `687cbfd Remove gold flacon example card`
+  - Removed the gold flacon/cosmetics display card from the Examples section.
+
+Vercel deploy issue found:
+
+```text
+node scripts/download-imgly.js && npm run build
+Downloading 64 chunks (~256 MB estimated)...
+TypeError: fetch failed / ETIMEDOUT
+```
+
+Root cause: `domstudio-frontend/vercel.json` forced Vercel to download IMG.LY
+background-removal model chunks during every build. The download is large and
+network-fragile, so the deploy can fail before Vite starts.
+
+Fix made after the error:
+
+- Vercel build command now uses:
+
+```text
+VITE_IMGLY_PUBLIC_PATH=cdn npm run build
+```
+
+- `src/app.js` now chooses IMG.LY public path via `imglyPublicPath()`:
+  - CDN when `VITE_IMGLY_PUBLIC_PATH=cdn`
+  - CDN on localhost / `127.0.0.1` / `*.vercel.app`
+  - same-origin `/imgly/` for non-Vercel hosting, preserving the existing
+    SpaceWeb/PHP proxy path.
+
+Reasoning: avoid committing ~256 MB of model chunks and avoid build-time CDN
+downloads on Vercel. Runtime background removal can still fetch from IMG.LY CDN
+on Vercel, while SpaceWeb-style hosting can keep using the same-origin proxy.

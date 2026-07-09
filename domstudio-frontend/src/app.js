@@ -68,6 +68,15 @@ import categoryFoodUrl from "./assets/category-proof/category-food.webp";
 import techDolphinLogoUrl from "./assets/tech-dolphin-logo.png";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
+const IMGLY_DATA_CDN = "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/";
+
+function imglyPublicPath() {
+  if (import.meta.env.VITE_IMGLY_PUBLIC_PATH === "cdn") return IMGLY_DATA_CDN;
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname.endsWith(".vercel.app")) {
+    return IMGLY_DATA_CDN;
+  }
+  return `${location.origin}/imgly/`;
+}
 
 const MODES = [
   ["catalog", "Каталог", "Чистый фон и точная подача для маркетплейсов.", modeCatalogUrl, "Пример чистой карточки товара для маркетплейса", modeCatalogBeforeUrl, "Фон + тени"],
@@ -4076,9 +4085,7 @@ async function submitRemoveBg() {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const blob = await removeBackground(state.removeBgFile, {
       model: isMobile ? "isnet_quint8" : "isnet",
-      publicPath: location.hostname === "localhost"
-        ? "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/"
-        : `${location.origin}/imgly/`,
+      publicPath: imglyPublicPath(),
       progress: (key, current, total) => {
         if (total > 0 && current < total) {
           const pct = Math.round((current / total) * 100);

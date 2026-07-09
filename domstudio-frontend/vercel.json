@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/download-imgly.js && npm run build",
+  "buildCommand": "VITE_IMGLY_PUBLIC_PATH=cdn npm run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

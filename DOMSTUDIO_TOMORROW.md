@@ -181,3 +181,28 @@ Start with:
 4. Regenerate buttons
 5. Browser-only recent history
 6. Client-side export sizes
+
+## July 9, 2026 Current Notes
+
+Homepage landing state:
+
+- The first-look hero uses the women's outfit proof, not the earlier vase/man
+  variants.
+- The look showcase controls should appear immediately under the title:
+  scenario chips, then `Create a look`, then descriptive paragraph/bullets.
+  If a browser still shows the old order, it is likely a stale service worker
+  cache; cache was bumped to `domstudio-shell-v6`.
+- The "Photo shoot or DomStudio?" comparison plus video honesty, FAQ, and
+  support block is now directly before the Free tools section.
+- The gold flacon/cosmetics display card was removed from Examples.
+
+Deployment note:
+
+- Vercel must not run `scripts/download-imgly.js`; it can timeout downloading
+  ~256 MB of IMG.LY model chunks.
+- `domstudio-frontend/vercel.json` uses
+  `VITE_IMGLY_PUBLIC_PATH=cdn npm run build`.
+- Runtime path selection is in `imglyPublicPath()` in
+  `domstudio-frontend/src/app.js`.
+- Keep `/imgly/` proxy/static behavior for non-Vercel hosting unless we decide
+  to make all deployments use the CDN.
