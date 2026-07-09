@@ -1,5 +1,40 @@
 # DomStudio Archive
 
+## July 9, 2026 - AutoDL West-B Connection Notes Read
+
+User provided a new SeetaCloud/AutoDL west-B SSH endpoint and pointed to the
+AutoDL file-store page for the west-B persistent disk. The password was not
+written to this archive.
+
+Current endpoint to use when needed:
+
+```text
+ssh -p 27850 root@connect.westb.seetacloud.com
+```
+
+Previous AutoDL notes reviewed:
+
+- Before any AutoDL/Comfy/image/video work, follow `DOMSTUDIO_TOMORROW.md`
+  rules: narrow test plan, preserve product identity, do not spend GPU on broad
+  experiments, and do not present fake still-image motion as real video.
+- Preferred Comfy path from prior working instances:
+  `/root/autodl-tmp/ComfyUI`.
+- Comfy should run locally on port `6006`:
+  `python main.py --listen 0.0.0.0 --port 6006`.
+- west-B persistent storage has previously mounted as `/root/autodl-fs` and
+  maps to AutoDL file-store disk `west-B`.
+- Production models were previously organized under `/root/autodl-fs/models`
+  with symlinks from `/root/autodl-tmp/models`.
+- Current local backend fallback tunnel file is
+  `domstudio-backend/comfy_url.txt`, but the URL may be stale after any AutoDL
+  restart.
+
+Connection check:
+
+- Tried passwordless/key-only SSH to the new endpoint.
+- Result: key auth failed, so this new instance currently needs password login
+  or the local `autodl_key` must be added again to `/root/.ssh/authorized_keys`.
+
 ## July 9, 2026 - App-Wide Fast / Advanced Mode
 
 User asked to expand `Fast / Advanced` beyond the Studio section and to commit
