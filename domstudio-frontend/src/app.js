@@ -2817,14 +2817,9 @@ function authModal() {
 
 function toolsPage() {
   const hasResult = Boolean(state.removeBgResult);
-  const isAdvancedTools = state.appMode === "advanced";
-  return `<div class="page tools-page tools-mode-${state.appMode}">
+  return `<div class="page tools-page">
     <div class="page-inner tools-inner">
       <div class="mini-head"><h1>${t("tools.h1")}</h1><span>${t("tools.sub")}</span></div>
-      ${!isAdvancedTools ? `<div class="tools-mode-note">
-        <div><b>${t("tools.fastNoteTitle")}</b><span>${t("tools.fastNoteSub")}</span></div>
-        <button class="button secondary compact-button" type="button" data-app-mode="advanced">${t("tools.showAdvanced")}</button>
-      </div>` : ""}
       <div class="tools-grid">
       <div class="tool-card tool-card-wide">
         <div class="tool-card-head">
@@ -2898,7 +2893,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card advanced-tool-card" id="tool-collage">
+      <div class="tool-card" id="tool-collage">
         <div class="tool-card-head">
           <h2>${t("tools.collage.h2")}</h2>
           <span class="eyebrow">${t("tools.collage.free")}</span>
@@ -2938,7 +2933,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card advanced-tool-card" id="tool-watermark">
+      <div class="tool-card" id="tool-watermark">
         <div class="tool-card-head">
           <h2>${t("tools.watermark.h2")}</h2>
           <span class="eyebrow">${t("tools.watermark.free")}</span>
@@ -3007,7 +3002,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card advanced-tool-card" id="tool-promo">
+      <div class="tool-card" id="tool-promo">
         <div class="tool-card-head">
           <h2>${t("tools.promo.h2")}</h2>
           <span class="eyebrow">${t("tools.promo.free")}</span>
@@ -3064,7 +3059,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card fast-tool-card" id="tool-resizer">
+      <div class="tool-card" id="tool-resizer">
         <div class="tool-card-head">
           <h2>${t("tools.resizer.h2")}</h2>
           <span class="eyebrow">${t("tools.resizer.free")}</span>
@@ -3109,7 +3104,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card fast-tool-card" id="tool-checker">
+      <div class="tool-card" id="tool-checker">
         <div class="tool-card-head">
           <h2>${t("tools.checker.h2")}</h2>
           <span class="eyebrow">${t("tools.checker.free")}</span>
@@ -3182,7 +3177,7 @@ function toolsPage() {
         `}
       </div>
 
-      <div class="tool-card fast-tool-card" id="tool-compressor">
+      <div class="tool-card" id="tool-compressor">
         <div class="tool-card-head">
           <h2>${t("tools.compressor.h2")}</h2>
           <span class="eyebrow">${t("tools.compressor.free")}</span>

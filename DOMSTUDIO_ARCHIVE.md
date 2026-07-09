@@ -130,6 +130,20 @@ Commits created for this app-mode pass:
 - `c596164` - `Apply app mode to tools`
 - `9e1685f` - `Apply app mode to account views`
 
+Correction after user feedback:
+
+- User clarified that Quick Tools must be the same in Fast and Advanced mode
+  because the tools are free.
+- Removed the Tools-specific Fast/Advanced split.
+- Tools now always show the full free tool set in both modes: background
+  removal, collage, watermark, promo badge, resizer, checker, and compressor.
+- Removed the unused Tools Fast-mode note/copy and CSS that hid advanced tool
+  cards/send targets.
+
+Validation:
+
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
 ## July 8, 2026 - Aidentika Comparison And Pass 1 Plan
 
 Compared Aidentika (`https://aidentika.com/en`) with DomStudio
