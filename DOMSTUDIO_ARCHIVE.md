@@ -1,5 +1,28 @@
 # DomStudio Archive
 
+## July 9, 2026 - Amvera Comfy URL Deployment Verified
+
+Pushed the restored Comfy connection commit to the Amvera `master` branch
+because Amvera was still deploying commit `93c2a33` from `master` while the fix
+was local on `main`.
+
+Deployment result:
+
+- Pushed `main` to Amvera `master`:
+  `git push amvera main:master`.
+- Amvera `/version` switched to commit `a95cb2c422e6`.
+- Amvera `/version` now reports:
+  - `generation.provider`: `comfy`
+  - `comfy.url_host`: `magic-illinois-ins-accidents.trycloudflare.com`
+  - `comfy.env_url_host`: `magic-illinois-ins-accidents.trycloudflare.com`
+  - `comfy.url_source`: `file`
+- Amvera `/health` returns `{"status":"ok","service":"domstudio-api"}`.
+- CORS preflight for `https://domstudio.site` to `/generation/generate`
+  returns `200 OK`.
+- CORS preflight for `https://domstudio.space` is still blocked with
+  `Disallowed CORS origin`; add that domain to Amvera `FRONTEND_URL` /
+  `CORS_ORIGINS` if the live frontend uses `.space`.
+
 ## July 9, 2026 - AutoDL West-B Comfy Connection Restored
 
 Restored the current SeetaCloud/AutoDL west-B ComfyUI connection for DomStudio.
