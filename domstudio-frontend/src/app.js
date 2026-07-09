@@ -41,8 +41,17 @@ import lookFoodStorageUrl from "./assets/landing/look-food-storage.webp";
 import lookStorageBoxesUrl from "./assets/landing/look-storage-boxes.webp";
 import lookHomeVaseUrl from "./assets/landing/look-home-vase.webp";
 import lookBackpackUrl from "./assets/landing/look-backpack.webp";
+import mensAccessoriesBeforeUrl from "./assets/landing/user-sources/mens-accessories-before.jpg";
+import formalOutfitBeforeUrl from "./assets/landing/user-sources/formal-outfit-before.jpg";
+import jewelryCloseBeforeUrl from "./assets/landing/user-sources/jewelry-close-before.jpg";
 import premiumFashionLoftAfterUrl from "./assets/landing/generated-premium/premium-fashion-loft-after.png";
 import premiumFashionLoftVideoUrl from "./assets/landing/generated-premium/premium-fashion-loft-after-5s.mp4";
+import premiumMensAccessoriesAfterUrl from "./assets/landing/generated-premium/premium-mens-accessories-after.png";
+import premiumMensAccessoriesVideoUrl from "./assets/landing/generated-premium/premium-mens-accessories-after-5s.mp4";
+import premiumFormalOutfitAfterUrl from "./assets/landing/generated-premium/premium-formal-outfit-after.png";
+import premiumFormalOutfitVideoUrl from "./assets/landing/generated-premium/premium-formal-outfit-after-5s.mp4";
+import premiumJewelryCloseAfterUrl from "./assets/landing/generated-premium/premium-jewelry-close-after.png";
+import premiumJewelryCloseVideoUrl from "./assets/landing/generated-premium/premium-jewelry-close-after-5s.mp4";
 import premiumElectronicsAfterUrl from "./assets/landing/generated-premium/premium-electronics-use-after.png";
 import premiumElectronicsVideoUrl from "./assets/landing/generated-premium/premium-electronics-after-5s.mp4";
 import premiumBagsAfterUrl from "./assets/landing/generated-premium/premium-bags-after.png";
@@ -112,6 +121,42 @@ const LOOK_SCENARIOS = [
     ghostB: examplePerfumeFittingUrl,
   },
   {
+    id: "jewelryClose",
+    titleKey: "home.look.jewelryClose.title",
+    metaKey: "home.look.jewelryClose.meta",
+    promptKey: "home.look.jewelryClose.prompt",
+    result: premiumJewelryCloseAfterUrl,
+    video: premiumJewelryCloseVideoUrl,
+    sourceA: jewelryCloseBeforeUrl,
+    sourceB: categoryJewelryUrl,
+    ghostA: premiumJewelryAfterUrl,
+    ghostB: examplePerfumeFittingUrl,
+  },
+  {
+    id: "formalOutfit",
+    titleKey: "home.look.formalOutfit.title",
+    metaKey: "home.look.formalOutfit.meta",
+    promptKey: "home.look.formalOutfit.prompt",
+    result: premiumFormalOutfitAfterUrl,
+    video: premiumFormalOutfitVideoUrl,
+    sourceA: formalOutfitBeforeUrl,
+    sourceB: lookFormalFlatlayUrl,
+    ghostA: premiumFashionLoftAfterUrl,
+    ghostB: modeFittingUrl,
+  },
+  {
+    id: "mensAccessories",
+    titleKey: "home.look.mensAccessories.title",
+    metaKey: "home.look.mensAccessories.meta",
+    promptKey: "home.look.mensAccessories.prompt",
+    result: premiumMensAccessoriesAfterUrl,
+    video: premiumMensAccessoriesVideoUrl,
+    sourceA: mensAccessoriesBeforeUrl,
+    sourceB: lookSmartFlatlayUrl,
+    ghostA: premiumFormalOutfitAfterUrl,
+    ghostB: lookFormalFlatlayUrl,
+  },
+  {
     id: "electronics",
     titleKey: "home.look.electronics.title",
     metaKey: "home.look.electronics.meta",
@@ -166,6 +211,21 @@ const VIDEO_SHOWCASE_ITEMS = [
     image: premiumFashionLoftAfterUrl,
     video: premiumFashionLoftVideoUrl,
     labelKey: "home.videoShow.item.fashion",
+  },
+  {
+    image: premiumFormalOutfitAfterUrl,
+    video: premiumFormalOutfitVideoUrl,
+    labelKey: "home.videoShow.item.formalOutfit",
+  },
+  {
+    image: premiumMensAccessoriesAfterUrl,
+    video: premiumMensAccessoriesVideoUrl,
+    labelKey: "home.videoShow.item.mensAccessories",
+  },
+  {
+    image: premiumJewelryCloseAfterUrl,
+    video: premiumJewelryCloseVideoUrl,
+    labelKey: "home.videoShow.item.jewelryClose",
   },
   {
     image: premiumBagsAfterUrl,
@@ -1616,7 +1676,10 @@ function homePage() {
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
   const categoryProofs = [
     ["fashion", premiumFashionLoftAfterUrl],
+    ["formal", premiumFormalOutfitAfterUrl],
+    ["mens", premiumMensAccessoriesAfterUrl],
     ["jewelry", premiumJewelryAfterUrl],
+    ["jewelryClose", premiumJewelryCloseAfterUrl],
     ["electronics", premiumElectronicsAfterUrl],
     ["food", premiumFoodAfterUrl],
     ["bags", premiumBagsAfterUrl],

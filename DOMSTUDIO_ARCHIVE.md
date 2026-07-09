@@ -1,5 +1,56 @@
 # DomStudio Archive
 
+## July 9, 2026 - Premium Landing Before/After/Video Assets Committed
+
+Added the three user-provided source images as landing "before" assets and
+connected their generated "after" images plus real 5-second videos to the
+landing showcase.
+
+Source images:
+
+- `domstudio-frontend/src/assets/landing/user-sources/mens-accessories-before.jpg`
+- `domstudio-frontend/src/assets/landing/user-sources/formal-outfit-before.jpg`
+- `domstudio-frontend/src/assets/landing/user-sources/jewelry-close-before.jpg`
+
+Generated assets:
+
+- `premium-mens-accessories-after.png`
+- `premium-mens-accessories-after-5s.mp4`
+- `premium-formal-outfit-after.png`
+- `premium-formal-outfit-after-5s.mp4`
+- `premium-jewelry-close-after.png`
+- `premium-jewelry-close-after-5s.mp4`
+
+Frontend wiring:
+
+- Added the three scenarios to `LOOK_SCENARIOS`, so they appear in the
+  "Before, AI result, and video" landing block.
+- Added the three clips to `VIDEO_SHOWCASE_ITEMS`, so they appear in the
+  photo-then-video sequence.
+- Added the three after-images to the category proof rail.
+- Added RU/EN i18n copy for scenario labels, prompts, video labels, and
+  category cards.
+
+Validation:
+
+- The local copies match the user's supplied files from
+  `C:\Users\nate-\Downloads\BackGround\1.jpg`, `2.jpg`, and `3.jpg` by SHA256.
+- Each mp4 is a real 5.04 second, 24 fps clip with 121 frames, not a pan/zoom
+  still-image mockup.
+- The mp4 metadata shows the `ByteDanceImageToVideoNode` workflow.
+- Visual check: formal outfit and jewelry close-up are strong; men's accessories
+  is polished but less strict about preserving every accessory from the flat lay,
+  so a later targeted regeneration could improve that specific example.
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
+AutoDL status checked during this pass:
+
+- SSH key login works for
+  `ssh -i $HOME\.ssh\autodl_key -p 27850 root@connect.westb.seetacloud.com`.
+- Current container: `autodl-container-a3db44bd3d-247df867`.
+- ComfyUI is running on port `6006`.
+- A Cloudflare tunnel process is running.
+
 ## July 9, 2026 - Amvera Comfy URL Deployment Verified
 
 Pushed the restored Comfy connection commit to the Amvera `master` branch
