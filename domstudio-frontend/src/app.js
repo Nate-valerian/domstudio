@@ -1743,15 +1743,19 @@ function homePage() {
             <div class="seller-step-copy"><b>01</b><div><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></div></div>
             <div class="seller-step-media upload-stack">
               <figure class="upload-stack-main"><img src="${heroProof.before}" alt="${t("home.step1h")}" loading="lazy" /></figure>
-              <figure><img src="${modeCatalogBeforeUrl}" alt="${t("home.workflowUploadTag")}" loading="lazy" /></figure>
-              <figure><img src="${modeFittingBeforeUrl}" alt="${t("home.workflowUploadTag")}" loading="lazy" /></figure>
             </div>
           </article>
           <span class="workflow-arrow" aria-hidden="true">→</span>
           <article class="seller-step-card">
             <div class="seller-step-copy"><b>02</b><div><h3>${t("home.step2h")}</h3><p>${t("home.step2p")}</p></div></div>
             <div class="seller-step-media preset-board">
-              <figure><img src="${categoryMarketplaceUrl}" alt="${t("home.step2h")}" loading="lazy" /></figure>
+              <div class="workflow-device-shell">
+                <div class="workflow-device-top"><span></span><span></span><span></span></div>
+                <div class="workflow-device-preview">
+                  <img src="${heroProof.before}" alt="${t("home.workflowUploadTag")}" loading="lazy" />
+                  <b>${t("home.workflowUploadTag")}</b>
+                </div>
+              </div>
               <div class="workflow-preset-grid">
                 <span>WB</span><span>Ozon</span><span>Avito</span><span>Stories</span>
               </div>
