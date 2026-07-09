@@ -1674,6 +1674,14 @@ function footer() {
 function homePage() {
   const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
+  const heroProof = {
+    before: formalOutfitBeforeUrl,
+    after: premiumFormalOutfitAfterUrl,
+    video: premiumFormalOutfitVideoUrl,
+    beforeAlt: "Original formal outfit flat lay",
+    afterAlt: "Generated formal outfit on model",
+    videoAlt: "DomStudio formal outfit video",
+  };
   const categoryProofs = [
     ["fashion", premiumFashionLoftAfterUrl],
     ["formal", premiumFormalOutfitAfterUrl],
@@ -1708,15 +1716,15 @@ function homePage() {
             <div class="hero-proof-frame media-pair-card media-story-card">
               <figure class="landing-media before-media">
                 <span class="media-tag dark">${t("home.before")}</span>
-                <img src="${landingWineBeforeUrl}" alt="Original porcelain tea-house photo" />
+                <img src="${heroProof.before}" alt="${heroProof.beforeAlt}" />
               </figure>
               <figure class="landing-media after-media">
                 <span class="media-tag">${t("home.after")}</span>
-                <img src="${landingWineAfterUrl}" alt="Generated porcelain product image" />
+                <img src="${heroProof.after}" alt="${heroProof.afterAlt}" />
               </figure>
               <figure class="landing-media video-media">
                 <span class="media-tag">${t("home.video")}</span>
-                <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="auto"></video>
+                <video src="${heroProof.video}" poster="${heroProof.after}" aria-label="${heroProof.videoAlt}" autoplay muted loop playsinline controls preload="auto"></video>
               </figure>
             </div>
             <div class="mini-studio-controls">
@@ -1734,7 +1742,7 @@ function homePage() {
           <article class="seller-step-card">
             <div class="seller-step-copy"><b>01</b><div><h3>${t("home.step1h")}</h3><p>${t("home.step1p")}</p></div></div>
             <div class="seller-step-media upload-stack">
-              <figure class="upload-stack-main"><img src="${landingWineBeforeUrl}" alt="${t("home.step1h")}" loading="lazy" /></figure>
+              <figure class="upload-stack-main"><img src="${heroProof.before}" alt="${t("home.step1h")}" loading="lazy" /></figure>
               <figure><img src="${modeCatalogBeforeUrl}" alt="${t("home.workflowUploadTag")}" loading="lazy" /></figure>
               <figure><img src="${modeFittingBeforeUrl}" alt="${t("home.workflowUploadTag")}" loading="lazy" /></figure>
             </div>
@@ -1757,11 +1765,11 @@ function homePage() {
             <div class="seller-step-copy"><b>03</b><div><h3>${t("home.step3h")}</h3><p>${t("home.step3p")}</p></div></div>
             <div class="seller-step-media result-stack">
               <figure class="result-card-main">
-                <img src="${landingWineAfterUrl}" alt="${t("home.step3h")}" loading="lazy" />
+                <img src="${heroProof.after}" alt="${t("home.step3h")}" loading="lazy" />
                 <span>${t("home.after")}</span>
               </figure>
               <figure class="result-video-card">
-                <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="${t("home.video")}" autoplay muted loop playsinline preload="metadata"></video>
+                <video src="${heroProof.video}" poster="${heroProof.after}" aria-label="${t("home.video")}" autoplay muted loop playsinline preload="metadata"></video>
                 <span>${t("home.video")}</span>
               </figure>
             </div>
