@@ -1675,12 +1675,12 @@ function homePage() {
   const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
   const heroProof = {
-    before: formalOutfitBeforeUrl,
-    after: premiumFormalOutfitAfterUrl,
-    video: premiumFormalOutfitVideoUrl,
-    beforeAlt: "Original formal outfit flat lay",
-    afterAlt: "Generated formal outfit on model",
-    videoAlt: "DomStudio formal outfit video",
+    before: lookWomenFlatlayUrl,
+    after: premiumFashionLoftAfterUrl,
+    video: premiumFashionLoftVideoUrl,
+    beforeAlt: "Original women's outfit flat lay",
+    afterAlt: "Generated women's outfit on model",
+    videoAlt: "DomStudio women's outfit video",
   };
   const categoryProofs = [
     ["fashion", premiumFashionLoftAfterUrl],
