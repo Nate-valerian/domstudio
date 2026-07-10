@@ -115,6 +115,17 @@ type ModeOption = {
   before: ImageSourcePropType;
 };
 
+type ExampleImageItem = {
+  mode: string;
+  product: string;
+  title: string;
+  src: ImageSourcePropType;
+  before?: ImageSourcePropType;
+  video?: number;
+  wide?: boolean;
+  portrait?: boolean;
+};
+
 const proofBefore = require("./assets/visual/wine-before-original.jpeg") as ImageSourcePropType;
 const proofAfter = require("./assets/visual/wine-after-smoke.png") as ImageSourcePropType;
 const proofVideo = require("./assets/visual/wine-after-smoke-5s.mp4") as number;
@@ -198,7 +209,8 @@ const planKickers: Record<string, string> = {
   business: "Store and marketplace growth"
 };
 
-const exampleImages = [
+const exampleImages: ExampleImageItem[] = [
+  { mode: "Before / After", product: "Blueberry pastry", title: "Restaurant presentation", before: require("./assets/visual/pastry-before.jpeg") as ImageSourcePropType, src: require("./assets/visual/pastry-after.jpeg") as ImageSourcePropType, wide: true },
   { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
   { mode: "Creative", product: "Tea set", title: "Premium product frame", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
@@ -336,6 +348,7 @@ const mobileCopy = {
     ],
     examplesData: {
       images: [
+        { mode: "Before / After", product: "Blueberry pastry", title: "Restaurant presentation" },
         { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout" },
         { mode: "Creative", product: "Tea set", title: "Premium product frame" },
         { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context" },
@@ -664,6 +677,7 @@ const mobileCopy = {
     ],
     examplesData: {
       images: [
+        { mode: "До / после", product: "Выпечка с голубикой", title: "Ресторанная подача" },
         { mode: "Каталог", product: "Флакон парфюма", title: "Чистый вырез для маркетплейса" },
         { mode: "Товар", product: "Флакон парфюма", title: "Мрамор и свеча в студийной сцене" },
         { mode: "Креатив", product: "Флакон парфюма", title: "Неоновый кампейн-визуал" },
@@ -1810,7 +1824,17 @@ function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreat
         <View style={styles.exampleGalleryGrid}>
           {localizedExamples.map((item) => (
             <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, item.wide && styles.exampleGalleryWide]}>
-              {item.video ? (
+              {item.before ? (
+                <View style={styles.exampleVideoPair}>
+                  <View style={styles.exampleVideoHalf}>
+                    <Image source={item.before} style={[styles.exampleImage, styles.exampleImageContain]} />
+                  </View>
+                  <View style={styles.exampleVideoHalf}>
+                    <Image source={item.src} style={[styles.exampleImage, styles.exampleImageContain]} />
+                  </View>
+                  <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.mode}</Text></View>
+                </View>
+              ) : item.video ? (
                 <View style={styles.exampleVideoPair}>
                   <View style={styles.exampleVideoHalf}>
                     <Image source={item.src} style={styles.exampleImage} />
@@ -4027,6 +4051,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover"
+  },
+  exampleImageContain: {
+    resizeMode: "contain",
+    backgroundColor: "#efe8de"
   },
   exampleVideoPair: {
     position: "relative",

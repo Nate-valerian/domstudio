@@ -1,5 +1,18 @@
 # DomStudio Archive
 
+## July 10, 2026 - Blueberry Pastry Before/After Added To Examples
+
+Added the two user-provided pastry images to the Examples gallery as one
+before/after proof card.
+
+- Source/before: `11.jpeg`, the phone photo of the blueberry pastry.
+- AI result/after: `12.jpeg`, the square restaurant presentation on a white
+  plate with candles and dining context.
+- Added the paired card to both the web Examples page and the mobile app.
+- Added visible localized Before/After labels on the web pair.
+- Stored local copies under the web and mobile example asset folders.
+- Bumped the frontend service-worker cache from `domstudio-shell-v9` to `v10`.
+
 ## July 10, 2026 - Gold Perfume Display Removed From Examples
 
 Removed the user-identified gold perfume/display image from DomStudio

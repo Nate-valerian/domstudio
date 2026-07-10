@@ -24,6 +24,8 @@ import exampleBottleProductUrl from "./assets/examples/example-bottle-product.we
 import exampleBottleLifestyleUrl from "./assets/examples/example-bottle-lifestyle.webp";
 import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.webp";
 import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
+import pastryBeforeUrl from "./assets/examples/pastry-before.jpeg";
+import pastryAfterUrl from "./assets/examples/pastry-after.jpeg";
 import wineProductVideoUrl from "./assets/examples/videos/wine-product-5s.mp4";
 import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.mp4";
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
@@ -86,6 +88,7 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
+  { mode: "До / после", product: "Выпечка с голубикой", title: "Ресторанная подача", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl },
   { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
   { mode: "Креатив", product: "Чайный сет", title: "Премиальный предметный кадр", src: examplePerfumeCreativeUrl },
   { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
@@ -2050,8 +2053,19 @@ function examplesPage() {
       <section class="section examples-section">
         <div class="examples-grid">
           ${EXAMPLE_IMAGES.map((item) => `
-            <article class="example-card ${item.videoSrc ? "has-video" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
-              ${item.videoSrc ? `
+            <article class="example-card ${item.videoSrc || item.beforeSrc ? "has-video" : ""} ${item.beforeSrc ? "before-after" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
+              ${item.beforeSrc ? `
+                <div class="example-media-pair">
+                  <figure class="example-media">
+                    <img src="${item.beforeSrc}" alt="${escapeHtml(`${item.title} ${t("home.before")}`)}" loading="lazy" />
+                    <span class="example-pair-label">${t("home.before")}</span>
+                  </figure>
+                  <figure class="example-media">
+                    <img src="${item.src}" alt="${escapeHtml(`${item.title} ${t("home.after")}`)}" loading="lazy" />
+                    <span class="example-pair-label">${t("home.after")}</span>
+                  </figure>
+                </div>
+              ` : item.videoSrc ? `
                 <div class="example-media-pair">
                   <figure class="example-media">
                     <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />

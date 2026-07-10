@@ -1,4 +1,4 @@
-const CACHE_NAME = "domstudio-shell-v9";
+const CACHE_NAME = "domstudio-shell-v10";
 const UNCACHEABLE_EXTENSIONS = /\.(mp4|mov|webm|mkv|mp3|m4a|wav|ogg)$/i;
 const SHELL_URLS = [
   "/",
