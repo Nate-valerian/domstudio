@@ -1,5 +1,16 @@
 # DomStudio Archive
 
+## July 11, 2026 - Live Scenario Video Moved To Center
+
+Reordered the Live Scenario visual as requested:
+
+- `01 Before` stays on the left.
+- `02 Video` now plays in the large center card.
+- `03 AI After` is shown on the right.
+- Updated the desktop, tablet, and mobile geometry and entrance animations so
+  each media type moves naturally into its new position.
+- Bumped the PWA cache to `domstudio-shell-v17`.
+
 ## July 11, 2026 - Mobile Scenario Controls Surfaced And Food Choices Added
 
 Fixed the mobile Live Scenarios section where the important scenario controls

@@ -687,25 +687,25 @@ h1 em { color: var(--gold); font-style: normal; }
   animation: triplet-before-enter .62s cubic-bezier(.18,.84,.24,1) both;
 }
 .triplet-after {
-  left: 150px;
-  top: 24px;
-  z-index: 3;
-  width: 300px;
-  height: 455px;
-  transform: rotate(-1deg);
-  animation: triplet-after-enter .72s .08s cubic-bezier(.18,.84,.24,1) both;
-}
-.triplet-video {
   left: 380px;
   top: 86px;
   z-index: 2;
   width: 190px;
   height: 360px;
   transform: rotate(4deg);
-  opacity: .96;
+  animation: triplet-after-enter .72s .08s cubic-bezier(.18,.84,.24,1) both;
+}
+.triplet-video {
+  left: 150px;
+  top: 24px;
+  z-index: 3;
+  width: 300px;
+  height: 455px;
+  transform: rotate(-1deg);
+  opacity: 1;
   animation: triplet-video-enter .76s .18s cubic-bezier(.18,.84,.24,1) both;
 }
-.triplet-video > span {
+.triplet-after > span {
   left: auto;
   right: 14px;
 }
@@ -770,21 +770,21 @@ h1 em { color: var(--gold); font-style: normal; }
 @keyframes triplet-after-enter {
   from {
     opacity: 0;
-    transform: translateX(-18px) rotate(-4deg) scale(.96);
+    transform: translateX(48px) rotate(8deg) scale(.92);
   }
   to {
     opacity: 1;
-    transform: rotate(-1deg) scale(1);
+    transform: rotate(4deg) scale(1);
   }
 }
 @keyframes triplet-video-enter {
   from {
     opacity: 0;
-    transform: translateX(48px) rotate(8deg) scale(.92);
+    transform: translateX(-18px) rotate(-4deg) scale(.96);
   }
   to {
-    opacity: .96;
-    transform: rotate(4deg) scale(1);
+    opacity: 1;
+    transform: rotate(-1deg) scale(1);
   }
 }
 .look-flow-label {
@@ -2261,8 +2261,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .look-demo-stage { min-height: 540px; }
   .look-triplet-stage { min-height: 520px; }
   .triplet-before { left: 2%; top: 86px; width: 245px; height: 300px; }
-  .triplet-after { left: 25%; top: 24px; width: 330px; height: 440px; }
-  .triplet-video { left: 58%; top: 94px; width: 230px; height: 330px; }
+  .triplet-video { left: 25%; top: 24px; width: 330px; height: 440px; }
+  .triplet-after { left: 58%; top: 94px; width: 230px; height: 330px; }
   .triplet-prompt { left: 8%; bottom: 24px; }
   .source-label { left: 4%; top: 0; }
   .result-label { left: 38%; top: 0; }
@@ -2461,18 +2461,18 @@ h1 em { color: var(--gold); font-style: normal; }
     border-radius: 16px;
   }
   .triplet-after {
-    left: 26%;
-    top: 18px;
-    width: 48%;
-    height: 300px;
-    border-radius: 18px;
-  }
-  .triplet-video {
     left: 61%;
     top: 76px;
     width: 37%;
     height: 230px;
     border-radius: 16px;
+  }
+  .triplet-video {
+    left: 26%;
+    top: 18px;
+    width: 48%;
+    height: 300px;
+    border-radius: 18px;
   }
   .triplet-prompt {
     left: 26px;

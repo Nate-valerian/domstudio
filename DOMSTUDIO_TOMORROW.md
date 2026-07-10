@@ -205,6 +205,8 @@ Homepage landing state:
 - On mobile, Live Scenario controls render before the large visual so they are
   immediately usable above the fixed navigation. Pastry and Drinks are separate
   selectable scenarios backed by their approved Before / After / Video assets.
+- The Live Scenario media order is Before on the left, autoplay Video in the
+  large center card, and AI After on the right.
 - The look showcase controls should appear immediately under the title:
   scenario chips, then `Create a look`, then descriptive paragraph/bullets.
   If a browser still shows the old order, it is likely a stale service worker

@@ -1833,13 +1833,13 @@ function homePage() {
               <span>${t("home.lookFlowPrompt")}</span>
               <b>${t(activeLook.promptKey)}</b>
             </div>
-            <figure class="triplet-card triplet-after">
-              <span><b>02</b>${t("home.lookFlowAfter")}</span>
-              <img src="${activeLook.result}" alt="${t(activeLook.titleKey)}" loading="lazy" />
-            </figure>
             <figure class="triplet-card triplet-video">
-              <span><b>03</b>${t("home.lookFlowVideo")}</span>
+              <span><b>02</b>${t("home.lookFlowVideo")}</span>
               <video src="${activeLook.video}" poster="${activeLook.result}" aria-label="${t(activeLook.titleKey)} ${t("home.lookFlowVideo")}" autoplay muted loop playsinline preload="metadata"></video>
+            </figure>
+            <figure class="triplet-card triplet-after">
+              <span><b>03</b>${t("home.lookFlowAfter")}</span>
+              <img src="${activeLook.result}" alt="${t(activeLook.titleKey)}" loading="lazy" />
             </figure>
           </div>
           <div class="showcase-copy">
