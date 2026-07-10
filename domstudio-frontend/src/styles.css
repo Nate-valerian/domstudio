@@ -202,7 +202,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .studio-card-top b { color: var(--ink); letter-spacing: 0; text-transform: none; }
 .hero .studio-card-top { color: var(--muted); }
 .hero .studio-card-top b { color: var(--ink); }
-.hero-proof-frame { height: clamp(300px, 27vw, 400px); margin: 0 14px; overflow: hidden; border: 1px solid rgba(17,17,15,.08); border-radius: 22px; background: #e8ddc8; box-shadow: 0 18px 42px rgba(32,25,14,.10); }
+.hero-proof-frame { height: auto; aspect-ratio: 12 / 5; margin: 0 14px; overflow: hidden; border: 1px solid rgba(17,17,15,.08); border-radius: 22px; background: #e8ddc8; box-shadow: 0 18px 42px rgba(32,25,14,.10); }
 .media-pair-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
 .media-story-card { grid-template-columns: .95fr 1.08fr 1.08fr; }
 .landing-media { margin: 0; min-width: 0; overflow: hidden; background: #e9e3d7; aspect-ratio: 1 / 1; }

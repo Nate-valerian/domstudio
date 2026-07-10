@@ -197,7 +197,8 @@ Start with:
 Homepage landing state:
 
 - The homepage Mini Studio hero uses the approved car Before / After / 5-second
-  Video proof. It replaces the unnatural women's outfit proof.
+  Video proof. It replaces the unnatural women's outfit proof. Its triplet uses
+  the same balanced 4:5 panel proportions as the car card in Examples.
 - The Examples gallery is curated and aligned: full-width pastry/soup/car proof
   rows followed by six distinct feature cards in a 3/2/1-column responsive grid.
   The duplicate gold display and repeated vase/jewelry cards are removed.

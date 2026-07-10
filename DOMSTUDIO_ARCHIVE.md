@@ -1,5 +1,16 @@
 # DomStudio Archive
 
+## July 11, 2026 - Car Mini Studio Triplet Proportions Fixed
+
+The homepage car Before / After / Video panels looked squeezed because the Mini
+Studio forced three square/portrait assets into a tall fixed-height frame.
+
+- Replaced the fixed 300-400px height with the same effective 4:5-per-panel
+  triplet proportion used by the successful car card in Examples.
+- The combined frame now uses `aspect-ratio: 12 / 5`, giving every panel enough
+  horizontal space on both desktop and mobile.
+- Bumped the PWA cache to `domstudio-shell-v15`.
+
 ## July 11, 2026 - Examples Gallery Reorganized And Curated
 
 Rebuilt the uneven Examples gallery into a predictable responsive layout:
