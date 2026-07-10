@@ -1,5 +1,38 @@
 # DomStudio Archive
 
+## July 10, 2026 - AutoDL West-C Tunnel Connected To Amvera
+
+Connected the fresh AutoDL west-C container to the existing west-B persistent
+storage and restored the production ComfyUI tunnel without redownloading the
+56 GB model store.
+
+AutoDL state:
+
+- SSH endpoint: `connect.westc.seetacloud.com:39913`.
+- Container: `autodl-container-8a8a4e88b3-33e17579`.
+- GPU: `NVIDIA vGPU-32GB`.
+- Persistent west-B storage is mounted at `/root/autodl-fs` with roughly
+  51 GB of models under `/root/autodl-fs/models`.
+- The fresh container ComfyUI runtime at `/root/ComfyUI` is linked into the
+  expected `/root/autodl-tmp/ComfyUI` path and reads the persistent models via
+  `extra_model_paths.yaml`.
+- ComfyUI `0.3.75` is running on port `6006`.
+
+Current tunnel:
+
+```text
+https://assistance-edward-egg-oklahoma.trycloudflare.com
+```
+
+Amvera recovery:
+
+- Amvera's `COMFYUI_URL` environment variable was updated, but the backend
+  continued using the tracked `domstudio-backend/comfy_url.txt` because file
+  precedence is intentional in the current client.
+- Updated `domstudio-backend/comfy_url.txt` to the current tunnel so the normal
+  `main -> Amvera master` deployment path can restore generation.
+- The AutoDL password was used only for the connection and was not archived.
+
 ## July 9, 2026 - Premium Landing Before/After/Video Assets Committed
 
 Added the three user-provided source images as landing "before" assets and
