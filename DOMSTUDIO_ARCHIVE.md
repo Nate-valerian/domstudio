@@ -31,12 +31,13 @@ Outputs under `temp-preview/client-function-proofs/`:
 
 Decision:
 
-- Do not add these to production automatically.
-- Show the review outputs to the user first.
-- If approved, copy only selected strong outputs and their source images into
-  tracked frontend/mobile example assets in a separate committed change.
-- If exact text/costume/car preservation is required, use one targeted retry
-  per weak case rather than a broad new batch.
+- User reviewed the four outputs and approved only the car before/after pair.
+- Reject the soup, hotpot, and performer outputs for Examples; do not publish
+  them or present them as client-facing proof.
+- The car pair may be copied into tracked frontend/mobile example assets in a
+  separate change when the user asks to add it.
+- If the other subjects are revisited, use targeted new workflows rather than
+  reusing these rejected outputs.
 
 ## July 10, 2026 - Change, Commit, Then Ask Before Push
 
