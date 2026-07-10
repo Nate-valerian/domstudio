@@ -1,5 +1,21 @@
 # DomStudio Archive
 
+## July 11, 2026 - Examples Gallery Reorganized And Curated
+
+Rebuilt the uneven Examples gallery into a predictable responsive layout:
+
+- Three equal columns on desktop, two on tablet, and one on mobile.
+- Before / After / Video proof triplets remain full-width feature rows.
+- Standard cards and paired photo/video cards now share a consistent visual
+  height, aligned card body, and readable media crop.
+- Curated the secondary examples to six distinct workflows instead of repeating
+  near-identical vase, necklace, and story cards.
+- Removed the gold display example from both web and mobile, matching the prior
+  product decision.
+- Fixed the mobile English/Russian example metadata so it maps exactly to the
+  remaining assets.
+- Bumped the PWA cache to `domstudio-shell-v14`.
+
 ## July 10, 2026 - Homepage Mini Studio Replaced With Car Proof
 
 Replaced the unnatural women's outfit Before / After / Video triplet in the

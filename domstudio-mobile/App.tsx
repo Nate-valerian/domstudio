@@ -214,20 +214,13 @@ const exampleImages: ExampleImageItem[] = [
   { mode: "Before · After · Video", product: "Shrimp soup", title: "Premium candlelit presentation", before: require("./assets/visual/soup-before.jpg") as ImageSourcePropType, src: require("./assets/visual/soup-luxury-after.png") as ImageSourcePropType, video: require("./assets/visual/soup-luxury-5s.mp4") as number, wide: true },
   { mode: "Before · After · Video", product: "Silver supercar", title: "Luxury showroom campaign", before: require("./assets/visual/car-before.jpeg") as ImageSourcePropType, src: require("./assets/visual/car-showroom-after.png") as ImageSourcePropType, video: require("./assets/visual/car-showroom-5s.mp4") as number, wide: true },
   { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
-  { mode: "Creative", product: "Tea set", title: "Premium product frame", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
   { mode: "Fitting", product: "Necklace", title: "Jewelry on model", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
   { mode: "Stories", product: "House tea", title: "Vertical mobile story crop", src: require("./assets/visual/example-perfume-mobile.webp") as ImageSourcePropType, portrait: true },
-  { mode: "Catalog", product: "Porcelain", title: "White-background product card", src: require("./assets/visual/example-bottle-catalog.webp") as ImageSourcePropType, portrait: true },
   { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion", src: require("./assets/visual/example-bottle-product.webp") as ImageSourcePropType, video: wineProductVideo, wide: true },
-  { mode: "Creative", product: "Gold bottles", title: "Warm premium campaign frame", src: require("./assets/visual/example-bottle-creative.webp") as ImageSourcePropType },
-  { mode: "Lifestyle", product: "Tea ceremony", title: "Interior table scene", src: require("./assets/visual/example-bottle-lifestyle.webp") as ImageSourcePropType },
-  { mode: "Fitting", product: "Necklace", title: "Display context", src: require("./assets/visual/example-bottle-fitting.webp") as ImageSourcePropType },
-  { mode: "Stories", product: "Porcelain vase", title: "Vertical social frame", src: require("./assets/visual/example-bottle-mobile.webp") as ImageSourcePropType, portrait: true }
 ];
 
 const motionExamples = [
-  { mode: "Product video", product: "Porcelain vase", title: "Autoplay product motion", src: proofAfter, video: proofVideo },
   { mode: "Fitting video", product: "Beige suit outfit", title: "Virtual fitting motion preview", src: require("./assets/visual/mode-fitting-real-v2.webp") as ImageSourcePropType, video: fashionFittingVideo }
 ];
 
@@ -354,19 +347,12 @@ const mobileCopy = {
         { mode: "Before · After · Video", product: "Shrimp soup", title: "Premium candlelit presentation" },
         { mode: "Before · After · Video", product: "Silver supercar", title: "Luxury showroom campaign" },
         { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout" },
-        { mode: "Creative", product: "Tea set", title: "Premium product frame" },
         { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context" },
         { mode: "Fitting", product: "Necklace", title: "Jewelry on model" },
         { mode: "Stories", product: "House tea", title: "Vertical mobile story crop" },
-        { mode: "Catalog", product: "Porcelain", title: "White-background product card" },
-        { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion" },
-        { mode: "Creative", product: "Gold bottles", title: "Warm premium campaign frame" },
-        { mode: "Lifestyle", product: "Tea ceremony", title: "Interior table scene" },
-        { mode: "Fitting", product: "Necklace", title: "Display context" },
-        { mode: "Stories", product: "Porcelain vase", title: "Vertical social frame" }
+        { mode: "Product", product: "Porcelain vase", title: "AI video with soft motion" }
       ],
       motion: [
-        { mode: "Product video", product: "Porcelain vase", title: "Autoplay product motion" },
         { mode: "Fitting video", product: "Beige suit outfit", title: "Virtual fitting motion preview" }
       ]
     },
@@ -684,21 +670,13 @@ const mobileCopy = {
         { mode: "До · После · Видео", product: "Выпечка с голубикой", title: "Ресторанная подача со сливками" },
         { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами" },
         { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме" },
-        { mode: "Каталог", product: "Флакон парфюма", title: "Чистый вырез для маркетплейса" },
-        { mode: "Товар", product: "Флакон парфюма", title: "Мрамор и свеча в студийной сцене" },
-        { mode: "Креатив", product: "Флакон парфюма", title: "Неоновый кампейн-визуал" },
-        { mode: "Лайфстайл", product: "Флакон парфюма", title: "Стол и теплый свет окна" },
-        { mode: "Примерка", product: "Флакон парфюма", title: "Масштаб товара в руке" },
-        { mode: "Сторис", product: "Флакон парфюма", title: "Вертикальный кроп для мобайла" },
-        { mode: "Каталог", product: "Бутылка граната", title: "Карточка товара на белом фоне" },
-        { mode: "Товар", product: "Бутылка вина", title: "Студийная сцена на мраморном столе" },
-        { mode: "Креатив", product: "Бутылка граната", title: "Теплый премиальный кадр" },
-        { mode: "Лайфстайл", product: "Бутылка граната", title: "Сцена на ресторанном столе" },
-        { mode: "Примерка", product: "Бутылка граната", title: "Масштаб и контекст сервировки" },
-        { mode: "Сторис", product: "Бутылка граната", title: "Вертикальный кадр для соцсетей" }
+        { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса" },
+        { mode: "Lifestyle", product: "Синий фарфор", title: "Тёплый интерьерный контекст" },
+        { mode: "Примерка", product: "Колье", title: "Украшение на модели" },
+        { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис" },
+        { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением" }
       ],
       motion: [
-        { mode: "Видео товара", product: "Бутылка вина", title: "Автовоспроизведение товарного движения" },
         { mode: "Видео примерки", product: "Бежевый костюм", title: "Превью виртуальной примерки в движении" }
       ]
     },

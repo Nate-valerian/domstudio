@@ -198,6 +198,9 @@ Homepage landing state:
 
 - The homepage Mini Studio hero uses the approved car Before / After / 5-second
   Video proof. It replaces the unnatural women's outfit proof.
+- The Examples gallery is curated and aligned: full-width pastry/soup/car proof
+  rows followed by six distinct feature cards in a 3/2/1-column responsive grid.
+  The duplicate gold display and repeated vase/jewelry cards are removed.
 - The look showcase controls should appear immediately under the title:
   scenario chips, then `Create a look`, then descriptive paragraph/bullets.
   If a browser still shows the old order, it is likely a stale service worker

@@ -15,15 +15,12 @@ import modeLifestyleBeforeUrl from "./assets/mode-lifestyle-before.webp";
 import modeFittingBeforeUrl from "./assets/mode-fitting-before.webp";
 import modeStoriesBeforeUrl from "./assets/mode-stories-before.webp";
 import examplePerfumeCatalogUrl from "./assets/examples/example-perfume-catalog.webp";
-import examplePerfumeCreativeUrl from "./assets/examples/example-perfume-creative.webp";
 import examplePerfumeLifestyleUrl from "./assets/examples/example-perfume-lifestyle.webp";
 import examplePerfumeFittingUrl from "./assets/examples/example-perfume-fitting.webp";
 import examplePerfumeMobileUrl from "./assets/examples/example-perfume-mobile.webp";
 import exampleBottleCatalogUrl from "./assets/examples/example-bottle-catalog.webp";
 import exampleBottleProductUrl from "./assets/examples/example-bottle-product.webp";
 import exampleBottleLifestyleUrl from "./assets/examples/example-bottle-lifestyle.webp";
-import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.webp";
-import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
 import pastryBeforeUrl from "./assets/examples/pastry-before.jpeg";
 import pastryAfterUrl from "./assets/examples/pastry-after.jpeg";
 import soupBeforeUrl from "./assets/examples/soup-before.jpg";
@@ -99,16 +96,11 @@ const EXAMPLE_IMAGES = [
   { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
   { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
   { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
-  { mode: "Креатив", product: "Чайный сет", title: "Премиальный предметный кадр", src: examplePerfumeCreativeUrl },
   { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
   { mode: "Lifestyle", product: "Синий фарфор", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
   { mode: "Примерка", product: "Колье", title: "Украшение на модели", src: examplePerfumeFittingUrl },
   { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
-  { mode: "Каталог", product: "Фарфор", title: "Белый фон, карточка товара", src: exampleBottleCatalogUrl, shape: "portrait" },
   { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
-  { mode: "Lifestyle", product: "Чайная церемония", title: "Сцена в интерьере", src: exampleBottleLifestyleUrl },
-  { mode: "Примерка", product: "Колье", title: "Витринная подача", src: exampleBottleFittingUrl },
-  { mode: "Stories", product: "Фарфоровая ваза", title: "Вертикальный соцсети-кадр", src: exampleBottleMobileUrl, shape: "portrait" },
 ];
 
 const LOOK_SCENARIOS = [
