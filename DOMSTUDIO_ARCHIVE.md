@@ -1,5 +1,20 @@
 # DomStudio Archive
 
+## July 10, 2026 - Pastry 5s Cream Video Added
+
+Extended the approved blueberry pastry Before/After example with a real
+5-second premium video.
+
+- Source frame: the approved restaurant pastry After image.
+- Motion: a spoon pours a small amount of white cream onto the blueberry center,
+  background candles flicker, and the camera makes a gentle push-in.
+- The pastry shape and blueberries remain stable across the checked frames.
+- Video prompt id: `748c5aa1-ea1d-442e-8682-31b82b3949e0`.
+- H.264 MP4, 640x640, 5.041667 seconds, 24 fps, 121 frames.
+- Added the clip as the third panel of the pastry Before / After / Video card in
+  both web and mobile Examples galleries.
+- Bumped the PWA shell cache from `domstudio-shell-v11` to `v12`.
+
 ## July 10, 2026 - Soup And Car Before/After/5s Video Proofs Added
 
 User approved using the soup and car source/result pairs on the site and asked

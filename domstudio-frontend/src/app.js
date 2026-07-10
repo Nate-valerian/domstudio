@@ -32,6 +32,7 @@ import carBeforeUrl from "./assets/examples/car-before.jpeg";
 import carShowroomAfterUrl from "./assets/examples/car-showroom-after.png";
 import soupLuxuryVideoUrl from "./assets/examples/videos/soup-luxury-5s.mp4";
 import carShowroomVideoUrl from "./assets/examples/videos/car-showroom-5s.mp4";
+import pastryCreamVideoUrl from "./assets/examples/videos/pastry-cream-5s.mp4";
 import wineProductVideoUrl from "./assets/examples/videos/wine-product-5s.mp4";
 import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.mp4";
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
@@ -94,7 +95,7 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
-  { mode: "До / после", product: "Выпечка с голубикой", title: "Ресторанная подача", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl },
+  { mode: "До · После · Видео", product: "Выпечка с голубикой", title: "Ресторанная подача со сливками", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl, videoSrc: pastryCreamVideoUrl },
   { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
   { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
   { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
