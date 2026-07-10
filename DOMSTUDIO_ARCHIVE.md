@@ -39,6 +39,61 @@ Decision:
 - If the other subjects are revisited, use targeted new workflows rather than
   reusing these rejected outputs.
 
+### Targeted preservation retries
+
+User asked to improve the three rejected subjects. Ran one targeted second pass
+per image instead of another broad batch.
+
+- `soup-creative-v2.png`: requested a brighter restaurant campaign while
+  preserving the exact soup and patterned bowl. The output retained the
+  original glass/napkin/utensil clutter and was not a meaningful improvement.
+  Rejected. Prompt id: `e7825575-bf44-435c-b77d-00d87833184b`.
+- `hotpot-preserve-v2.png`: bypassed generic DeepSeek expansion and instructed
+  Qwen to keep the exact man, apron lettering, hotpot, table, and portrait
+  composition while removing only background people and the prize wheel. Face
+  preservation improved, but wall/apron lettering still changed and part of
+  the wheel remained. Rejected. Prompt id:
+  `656f3229-affe-45a7-b425-45b19bda2e38`.
+- `performer-preserve-v2.png`: bypassed generic expansion and requested a
+  cleanup-only edit with no added fabric or stage props. It avoided the first
+  retry's red staging fabric, but still changed fine costume details and did
+  not reliably remove the left-edge equipment. Rejected. Prompt id:
+  `fa4cb12d-72e5-4905-8e65-0ea5be074b87`.
+
+Workflow conclusion:
+
+- Stop prompt-only Qwen retries for these three sources after two misses in the
+  same preservation direction.
+- The current full-frame Qwen workflow is suitable for the car-style clean,
+  centered product transformation, but not for exact selective cleanup around
+  people, fine costume embroidery, or existing text.
+- Improving those cases requires a dedicated mask/inpainting or
+  segmentation-and-composite workflow, or cleaner replacement source photos.
+- The car before/after pair remains the only approved result from this set.
+
+### Soup two-stage luxury candle workflow
+
+User clarified that the soup should appear in a luxury setting with candles.
+Changed the workflow instead of running a third one-pass edit:
+
+1. Used the cleaner first-pass `soup-product.png` as the new source rather than
+   returning to the cluttered phone photo.
+2. Ran a preservation-first second-stage creative edit that kept the soup and
+   patterned bowl while changing only the table/background.
+3. Requested visible lit candles, warm fine-dining light, ivory linen, dark
+   wood, and restaurant bokeh.
+
+Result:
+
+- `soup-luxury-candles-v3.png`.
+- The bowl and main soup identity remain recognizable.
+- The original glass/napkin/utensil clutter is gone.
+- Two foreground candles and additional warm background candle bokeh create a
+  clear luxury restaurant setting.
+- This is the new soup candidate for user review; it is not yet approved or
+  added to production.
+- Prompt id: `b6dae296-09b9-4baf-a8e4-a6d34bba6406`.
+
 ## July 10, 2026 - Change, Commit, Then Ask Before Push
 
 User established the permanent project workflow:
