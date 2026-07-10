@@ -242,6 +242,32 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Do not keep a flat lay", prompt)
         self.assertNotIn("Preserve the uploaded product exactly", prompt)
 
+    async def test_food_prompt_preserves_food_but_allows_serving_plate_change(self):
+        prompt = comfy_client.compose_img2img_prompt(
+            "Luxury restaurant with candles; only the food on a nice white plate",
+            "warm premium light",
+            "mobile",
+        )
+
+        self.assertIn("food presentation edit", prompt)
+        self.assertIn("original plate", prompt)
+        self.assertIn("may be replaced or removed", prompt)
+        self.assertIn("Follow any requested serving vessel exactly", prompt)
+        self.assertIn("Stories objective", prompt)
+        self.assertNotIn("Preserve the uploaded product exactly", prompt)
+
+    async def test_food_prompt_skips_generic_deepseek_background_expansion(self):
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key"}):
+            prompt = await comfy_client.expand_prompt_for_qwen(
+                "Only the food on a clean white plate",
+                "premium restaurant",
+                "mobile",
+            )
+
+        self.assertIn("food presentation edit", prompt)
+        self.assertIn("white plate", prompt)
+        self.assertNotIn("Preserve the uploaded product exactly", prompt)
+
     async def test_fitting_dimensions_are_portrait(self):
         self.assertEqual(comfy_client.generation_dimensions("fitting"), (896, 1152))
         self.assertEqual(comfy_client.video_aspect_ratio("fitting"), "9:16")

@@ -2148,9 +2148,13 @@ function isMobileViewport() {
 function revealResultOnMobile() {
   if (!isMobileViewport()) return;
   requestAnimationFrame(() => {
-    document.querySelector(".result-panel")?.scrollIntoView({
+    const resultPanel = document.querySelector(".result-panel");
+    if (!resultPanel) return;
+    const navHeight = document.querySelector(".nav")?.getBoundingClientRect().height || 0;
+    const top = Math.max(0, window.scrollY + resultPanel.getBoundingClientRect().top - navHeight - 12);
+    window.scrollTo({
       behavior: "smooth",
-      block: "start",
+      top,
     });
   });
 }
@@ -2286,7 +2290,7 @@ function studioPage() {
             : `<p class="token-hint">${tokenHint}</p>`}
         </form>
         <div class="panel result-panel">
-          <div class="result ${state.generating && !state.generatedImage && !state.generatedVideo ? "loading" : ""} ${state.generationKind === "video" || state.generatedVideo ? "video-result" : ""}">
+          <div class="result ${state.generatedImage && !state.generatedVideo ? "has-image" : ""} ${state.generating && !state.generatedImage && !state.generatedVideo ? "loading" : ""} ${state.generationKind === "video" || state.generatedVideo ? "video-result" : ""}">
             ${state.generatedVideo
               ? `<video src="${state.generatedVideo}" controls playsinline loop></video>${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("video.submitGenerating"))}</div>` : ""}`
               : state.generatedImage

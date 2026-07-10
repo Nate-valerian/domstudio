@@ -1,5 +1,44 @@
 # DomStudio Archive
 
+## July 10, 2026 - iPhone Studio Layout And Food Presentation Fix
+
+Fixed the three issues visible in the user's iPhone Studio screenshots.
+
+Mobile layout:
+
+- Removed the second fixed generate bar on phone layouts and restored the
+  existing submit button inside the Studio form, leaving only the main mobile
+  navigation fixed at the bottom.
+- Added iPhone top safe-area spacing and result scroll offset so automatic
+  result reveal does not place content under the status bar/sticky navigation.
+- Changed the shell's horizontal clipping so it does not create an overflow
+  ancestor that can interfere with sticky positioning in Safari.
+
+Result display:
+
+- Generated images now size from their natural aspect ratio instead of being
+  clipped inside a forced square result box.
+- This specifically fixes 768x1344 Stories results appearing as a cropped
+  full-width square on iOS Safari.
+
+Food generation:
+
+- Added a dedicated food-presentation prompt path.
+- The main food identity, texture, toppings, doneness, and color remain
+  protected, while the original plate/tray/bowl, receipts, napkins, cutlery,
+  table, and background may change when the user requests it.
+- Food presentation requests bypass the generic DeepSeek background-only
+  prompt that previously treated the original metal plate as part of the
+  product and ignored requests for a white plate.
+- Added regression tests for plated-food edits and for bypassing the generic
+  package-preservation expansion.
+
+Cache and validation:
+
+- Bumped the PWA shell cache from `domstudio-shell-v7` to `v8`.
+- `python -m unittest tests.test_comfy_client` passed with 29 tests.
+- `npm.cmd run build` passed in `domstudio-frontend`.
+
 ## July 10, 2026 - AutoDL West-C Tunnel Connected To Amvera
 
 Connected the fresh AutoDL west-C container to the existing west-B persistent

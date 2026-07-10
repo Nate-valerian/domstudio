@@ -240,6 +240,18 @@ IMAGE_EDIT_PRESERVATION_DIRECTIVE = (
     "Only change the surrounding environment, surface, lighting, reflections, and contact shadows."
 )
 
+FOOD_PRESENTATION_PATTERN = re.compile(
+    r"\b(food|dish|meal|plating|dessert|cake|pizza|burger|pastry|khachapuri|cuisine|recipe)\b",
+    re.IGNORECASE,
+)
+
+FOOD_PRESENTATION_DIRECTIVE = (
+    "This is a food presentation edit. Preserve the identity, shape, texture, toppings, doneness, and color of the main food or drink. "
+    "The original plate, tray, bowl, glass, cutlery, napkins, receipts, table surface, and surrounding objects are not part of the food and may be replaced or removed. "
+    "Follow any requested serving vessel exactly, including its color and material. Remove incidental clutter unless the user explicitly requests it as a scene prop. "
+    "Do not duplicate, replace, deform, crop away, or hide the main food. Explicit user instructions about what to keep, remove, or serve take priority over mode styling."
+)
+
 FITTING_REFERENCE_DIRECTIVE = (
     "This is a virtual try-on and fashion styling edit. Use the uploaded clothing, footwear, jewelry, or accessories as wardrobe references, not as objects to keep floating in the scene. "
     "Create a complete seller-ready fashion result with the items worn naturally by a realistic model in the requested environment. "
@@ -314,6 +326,10 @@ def has_scene_intent(text: str) -> bool:
     if CATALOG_BACKGROUND_PATTERN.search(value):
         return False
     return bool(SCENE_INTENT_PATTERN.search(value))
+
+
+def is_food_presentation_request(text: str) -> bool:
+    return bool(FOOD_PRESENTATION_PATTERN.search(str(text or "")))
 
 
 def effective_generation_mode(mode: str | None, subject: str = "", has_image: bool = False) -> str:
@@ -405,6 +421,16 @@ def compose_img2img_prompt(subject: str, style_hint: str = "", mode: str | None 
         instruction += f" {LIFESTYLE_USE_DIRECTIVE}"
         return instruction
 
+    if is_food_presentation_request(scene):
+        instruction = f"Restyle the food presentation and environment according to this request: {scene}."
+        directive = mode_prompt_directive(mode)
+        if directive:
+            instruction += f" {directive}"
+        if style:
+            instruction += f" Use this style direction only where it supports the request: {style}."
+        instruction += f" {FOOD_PRESENTATION_DIRECTIVE}"
+        return instruction
+
     instruction = f"Place the product in a new environment: {scene}."
     directive = mode_prompt_directive(mode)
     if directive:
@@ -436,7 +462,7 @@ def prompt_expander_user_text(subject: str, style_hint: str = "", mode: str | No
 async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str | None = None) -> str:
     """Use DeepSeek to expand a short user prompt into a proper Qwen Image Edit instruction.
     Falls back to compose_img2img_prompt() if DEEPSEEK_API_KEY is absent or the call fails."""
-    if str(mode or "").strip().lower() in {"fitting", "image"}:
+    if str(mode or "").strip().lower() in {"fitting", "image"} or is_food_presentation_request(subject):
         return compose_img2img_prompt(subject, style_hint, mode)
 
     api_key = os.getenv("DEEPSEEK_API_KEY")
