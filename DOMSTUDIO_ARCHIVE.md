@@ -1,5 +1,19 @@
 # DomStudio Archive
 
+## July 11, 2026 - Mobile Scenario Controls Surfaced And Food Choices Added
+
+Fixed the mobile Live Scenarios section where the important scenario controls
+started below the tall image stack and were hidden behind the fixed navigation.
+
+- On mobile, the scenario title, selector chips, and `Create a look` action now
+  appear before the large Before / AI result / Video visual.
+- Hid the supporting paragraph and bullet list on small screens to keep the
+  primary interaction and result visible without unnecessary scrolling.
+- Added dedicated `Pastry` and `Drinks` choices in English and Russian.
+- Pastry uses the approved blueberry pastry Before / After / cream video proof.
+- Drinks uses the approved bottle Before / After / video proof.
+- Bumped the PWA cache to `domstudio-shell-v16`.
+
 ## July 11, 2026 - Car Mini Studio Triplet Proportions Fixed
 
 The homepage car Before / After / Video panels looked squeezed because the Mini

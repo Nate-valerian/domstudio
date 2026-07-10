@@ -202,6 +202,9 @@ Homepage landing state:
 - The Examples gallery is curated and aligned: full-width pastry/soup/car proof
   rows followed by six distinct feature cards in a 3/2/1-column responsive grid.
   The duplicate gold display and repeated vase/jewelry cards are removed.
+- On mobile, Live Scenario controls render before the large visual so they are
+  immediately usable above the fixed navigation. Pastry and Drinks are separate
+  selectable scenarios backed by their approved Before / After / Video assets.
 - The look showcase controls should appear immediately under the title:
   scenario chips, then `Create a look`, then descriptive paragraph/bullets.
   If a browser still shows the old order, it is likely a stale service worker

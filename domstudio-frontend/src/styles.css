@@ -2433,6 +2433,10 @@ h1 em { color: var(--gold); font-style: normal; }
   .showcase-head h2 { font-size: clamp(27px, 8vw, 34px); }
   .showcase-head p { font-size: 15px; }
   .showcase-block { gap: 20px; }
+  .look-showcase .showcase-copy { order: -1; }
+  .look-showcase .showcase-copy p,
+  .look-showcase .showcase-copy ul { display: none; }
+  .look-showcase { gap: 16px; }
   .look-demo-stage { min-height: 420px; }
   .look-triplet-stage { min-height: 430px; }
   .triplet-card { border-radius: 18px; }
