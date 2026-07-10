@@ -1,5 +1,43 @@
 # DomStudio Archive
 
+## July 10, 2026 - New Client Function Proofs Generated For Review
+
+Used the live DomStudio backend and current AutoDL Qwen image-edit workflow on
+four new user-provided photos. These are review outputs only and were not added
+to the live Examples gallery.
+
+Outputs under `temp-preview/client-function-proofs/`:
+
+- `soup-product.png` - Product/food presentation from `IMG_4148.JPG`.
+  Preserved the shrimp soup, toppings, color, and blue-and-white bowl while
+  removing the beer glass and table clutter. Strong result and suitable for
+  further example consideration. Comfy prompt id:
+  `579573da-0c28-4d33-acf8-dcffa53bb3a9`.
+- `hotpot-creative.png` - Creative restaurant campaign from `IMG_4063.JPG`.
+  Preserved the person's face, pose, hotpot, and table arrangement well and
+  removed the distracting people/wheel, but the apron lettering shifted
+  slightly. Strong composition, not strict text-preservation proof. Prompt id:
+  `2ec380d8-cdf3-4720-92e4-c990bcd4dae5`.
+- `performer-story.png` - Vertical Stories creative from `IMG_4146.JPG`.
+  Preserved the performer, mask, fan, pose, and overall costume direction, but
+  added red staging fabric and changed some fine costume/stage details. Good
+  creative proof, not exact wardrobe-preservation proof. Prompt id:
+  `bcc599b5-2ae6-480c-ae07-eacd531761f4`.
+- `car-product.png` - Product/automotive campaign from `IMG_4151.jpeg`.
+  Removed the social-media overlay and produced a clean luxury showroom frame,
+  but changed some front/door geometry. Visually strong, not yet acceptable as
+  an exact vehicle-identity proof. Prompt id:
+  `6c2dabda-cd6d-4102-8cad-20c406eed8af`.
+
+Decision:
+
+- Do not add these to production automatically.
+- Show the review outputs to the user first.
+- If approved, copy only selected strong outputs and their source images into
+  tracked frontend/mobile example assets in a separate committed change.
+- If exact text/costume/car preservation is required, use one targeted retry
+  per weak case rather than a broad new batch.
+
 ## July 10, 2026 - Change, Commit, Then Ask Before Push
 
 User established the permanent project workflow:
