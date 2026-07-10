@@ -1691,12 +1691,12 @@ function homePage() {
   const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
   const heroProof = {
-    before: lookWomenFlatlayUrl,
-    after: premiumFashionLoftAfterUrl,
-    video: premiumFashionLoftVideoUrl,
-    beforeAlt: "Original women's outfit flat lay",
-    afterAlt: "Generated women's outfit on model",
-    videoAlt: "DomStudio women's outfit video",
+    before: carBeforeUrl,
+    after: carShowroomAfterUrl,
+    video: carShowroomVideoUrl,
+    beforeAlt: "Original silver supercar photo",
+    afterAlt: "Silver supercar in a premium showroom",
+    videoAlt: "DomStudio silver supercar showroom video",
   };
   const categoryProofs = [
     ["fashion", premiumFashionLoftAfterUrl],

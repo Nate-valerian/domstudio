@@ -196,8 +196,8 @@ Start with:
 
 Homepage landing state:
 
-- The first-look hero uses the women's outfit proof, not the earlier vase/man
-  variants.
+- The homepage Mini Studio hero uses the approved car Before / After / 5-second
+  Video proof. It replaces the unnatural women's outfit proof.
 - The look showcase controls should appear immediately under the title:
   scenario chips, then `Create a look`, then descriptive paragraph/bullets.
   If a browser still shows the old order, it is likely a stale service worker

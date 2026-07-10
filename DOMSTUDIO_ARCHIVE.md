@@ -1,5 +1,19 @@
 # DomStudio Archive
 
+## July 10, 2026 - Homepage Mini Studio Replaced With Car Proof
+
+Replaced the unnatural women's outfit Before / After / Video triplet in the
+homepage Mini Studio card with the approved silver supercar proof:
+
+- Before: the original user-provided outdoor car photo.
+- After: the generated premium showroom image.
+- Video: the validated 5-second showroom animation.
+- Updated the English and Russian Mini Studio photo/prompt copy to describe the
+  car workflow.
+- The same coherent car proof now carries through the homepage workflow steps.
+- Bumped the PWA cache to `domstudio-shell-v13` so deployed browsers refresh the
+  landing assets.
+
 ## July 10, 2026 - Pastry 5s Cream Video Added
 
 Extended the approved blueberry pastry Before/After example with a real
