@@ -2,6 +2,16 @@
 
 Created: June 6, 2026
 
+## Required Change Workflow
+
+For every project change:
+
+1. Record what changed in `DOMSTUDIO_ARCHIVE.md` or the relevant handoff note.
+2. Validate the change in proportion to its risk.
+3. Commit the intended files locally with a clear commit message.
+4. Do not push automatically. Ask the user to approve/run the push after the
+   commit is ready.
+
 ## Mandatory Read First
 
 Before starting any DomStudio work, read this section and follow it.

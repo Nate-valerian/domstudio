@@ -1,5 +1,14 @@
 # DomStudio Archive
 
+## July 10, 2026 - Change, Commit, Then Ask Before Push
+
+User established the permanent project workflow:
+
+- Take notes for every change.
+- Commit every completed change locally.
+- Do not push automatically.
+- After committing, ask the user to approve or run the push.
+
 ## July 10, 2026 - Blueberry Pastry Before/After Added To Examples
 
 Added the two user-provided pastry images to the Examples gallery as one
