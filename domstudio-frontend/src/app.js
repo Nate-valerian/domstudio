@@ -26,6 +26,12 @@ import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.we
 import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
 import pastryBeforeUrl from "./assets/examples/pastry-before.jpeg";
 import pastryAfterUrl from "./assets/examples/pastry-after.jpeg";
+import soupBeforeUrl from "./assets/examples/soup-before.jpg";
+import soupLuxuryAfterUrl from "./assets/examples/soup-luxury-after.png";
+import carBeforeUrl from "./assets/examples/car-before.jpeg";
+import carShowroomAfterUrl from "./assets/examples/car-showroom-after.png";
+import soupLuxuryVideoUrl from "./assets/examples/videos/soup-luxury-5s.mp4";
+import carShowroomVideoUrl from "./assets/examples/videos/car-showroom-5s.mp4";
 import wineProductVideoUrl from "./assets/examples/videos/wine-product-5s.mp4";
 import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.mp4";
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
@@ -89,6 +95,8 @@ const MODES = [
 
 const EXAMPLE_IMAGES = [
   { mode: "До / после", product: "Выпечка с голубикой", title: "Ресторанная подача", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl },
+  { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
+  { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
   { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
   { mode: "Креатив", product: "Чайный сет", title: "Премиальный предметный кадр", src: examplePerfumeCreativeUrl },
   { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
@@ -2053,8 +2061,23 @@ function examplesPage() {
       <section class="section examples-section">
         <div class="examples-grid">
           ${EXAMPLE_IMAGES.map((item) => `
-            <article class="example-card ${item.videoSrc || item.beforeSrc ? "has-video" : ""} ${item.beforeSrc ? "before-after" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
-              ${item.beforeSrc ? `
+            <article class="example-card ${item.videoSrc || item.beforeSrc ? "has-video" : ""} ${item.beforeSrc ? "before-after" : ""} ${item.beforeSrc && item.videoSrc ? "proof-triplet" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
+              ${item.beforeSrc && item.videoSrc ? `
+                <div class="example-media-triplet">
+                  <figure class="example-media">
+                    <img src="${item.beforeSrc}" alt="${escapeHtml(`${item.title} ${t("home.before")}`)}" loading="lazy" />
+                    <span class="example-pair-label">${t("home.before")}</span>
+                  </figure>
+                  <figure class="example-media">
+                    <img src="${item.src}" alt="${escapeHtml(`${item.title} ${t("home.after")}`)}" loading="lazy" />
+                    <span class="example-pair-label">${t("home.after")}</span>
+                  </figure>
+                  <figure class="example-media">
+                    <video src="${item.videoSrc}" aria-label="${escapeHtml(`${item.title} video`)}" autoplay muted loop playsinline controls preload="metadata"></video>
+                    <span class="example-pair-label">${t("studio.videoTab")}</span>
+                  </figure>
+                </div>
+              ` : item.beforeSrc ? `
                 <div class="example-media-pair">
                   <figure class="example-media">
                     <img src="${item.beforeSrc}" alt="${escapeHtml(`${item.title} ${t("home.before")}`)}" loading="lazy" />

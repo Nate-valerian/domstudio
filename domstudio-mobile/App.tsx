@@ -211,6 +211,8 @@ const planKickers: Record<string, string> = {
 
 const exampleImages: ExampleImageItem[] = [
   { mode: "Before / After", product: "Blueberry pastry", title: "Restaurant presentation", before: require("./assets/visual/pastry-before.jpeg") as ImageSourcePropType, src: require("./assets/visual/pastry-after.jpeg") as ImageSourcePropType, wide: true },
+  { mode: "Before · After · Video", product: "Shrimp soup", title: "Premium candlelit presentation", before: require("./assets/visual/soup-before.jpg") as ImageSourcePropType, src: require("./assets/visual/soup-luxury-after.png") as ImageSourcePropType, video: require("./assets/visual/soup-luxury-5s.mp4") as number, wide: true },
+  { mode: "Before · After · Video", product: "Silver supercar", title: "Luxury showroom campaign", before: require("./assets/visual/car-before.jpeg") as ImageSourcePropType, src: require("./assets/visual/car-showroom-after.png") as ImageSourcePropType, video: require("./assets/visual/car-showroom-5s.mp4") as number, wide: true },
   { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
   { mode: "Creative", product: "Tea set", title: "Premium product frame", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
@@ -349,6 +351,8 @@ const mobileCopy = {
     examplesData: {
       images: [
         { mode: "Before / After", product: "Blueberry pastry", title: "Restaurant presentation" },
+        { mode: "Before · After · Video", product: "Shrimp soup", title: "Premium candlelit presentation" },
+        { mode: "Before · After · Video", product: "Silver supercar", title: "Luxury showroom campaign" },
         { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout" },
         { mode: "Creative", product: "Tea set", title: "Premium product frame" },
         { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context" },
@@ -678,6 +682,8 @@ const mobileCopy = {
     examplesData: {
       images: [
         { mode: "До / после", product: "Выпечка с голубикой", title: "Ресторанная подача" },
+        { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами" },
+        { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме" },
         { mode: "Каталог", product: "Флакон парфюма", title: "Чистый вырез для маркетплейса" },
         { mode: "Товар", product: "Флакон парфюма", title: "Мрамор и свеча в студийной сцене" },
         { mode: "Креатив", product: "Флакон парфюма", title: "Неоновый кампейн-визуал" },
@@ -1824,7 +1830,20 @@ function ExamplesScreen({ language, onCreate }: { language: AppLanguage; onCreat
         <View style={styles.exampleGalleryGrid}>
           {localizedExamples.map((item) => (
             <View key={`${item.product}-${item.title}`} style={[styles.exampleGalleryCard, item.wide && styles.exampleGalleryWide]}>
-              {item.before ? (
+              {item.before && item.video ? (
+                <View style={styles.exampleVideoPair}>
+                  <View style={styles.exampleVideoHalf}>
+                    <Image source={item.before} style={[styles.exampleImage, styles.exampleImageContain]} />
+                  </View>
+                  <View style={styles.exampleVideoHalf}>
+                    <Image source={item.src} style={[styles.exampleImage, styles.exampleImageContain]} />
+                  </View>
+                  <View style={styles.exampleVideoHalf}>
+                    <AutoplayVideo source={item.video} style={styles.exampleVideo} />
+                  </View>
+                  <View style={styles.modeTag}><Text style={styles.modeTagText}>{item.mode}</Text></View>
+                </View>
+              ) : item.before ? (
                 <View style={styles.exampleVideoPair}>
                   <View style={styles.exampleVideoHalf}>
                     <Image source={item.before} style={[styles.exampleImage, styles.exampleImageContain]} />

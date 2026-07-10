@@ -1,5 +1,47 @@
 # DomStudio Archive
 
+## July 10, 2026 - Soup And Car Before/After/5s Video Proofs Added
+
+User approved using the soup and car source/result pairs on the site and asked
+for real 5-second video versions.
+
+Soup proof:
+
+- Before: `IMG_4148.JPG`.
+- After: `soup-luxury-candles-v3.png`.
+- Video: `soup-luxury-candles-5s.mp4`.
+- Motion prompt kept the bowl/ingredients stationary while adding subtle steam,
+  candle flicker, warm table reflections, and a slow camera push-in.
+- Video prompt id: `5d701401-4f86-41fc-930f-e4b0e859bd41`.
+
+Car proof:
+
+- Before: `IMG_4151.jpeg`.
+- After: `car-product.png`.
+- Video: `car-showroom-5s.mp4`.
+- Motion prompt kept the car and open doors stationary while adding a slow
+  push-in, controlled showroom reflections, and stable headlight glow.
+- The initial local poll timed out after submission; Comfy history confirmed
+  the original paid job completed successfully, so no duplicate was submitted.
+- Video prompt id: `1565e1aa-8e0b-4055-9b13-37c96cf75f88`.
+
+Video validation for both clips:
+
+- H.264 MP4.
+- 640x640.
+- 5.041667 seconds.
+- 24 fps.
+- 121 frames.
+- Frame contact sheets confirmed meaningful motion rather than a fake static
+  pan/zoom export, with stable primary subjects across the sequence.
+
+Site integration:
+
+- Added full Before / After / Video triplet cards to web Examples.
+- Added the same triplets to the mobile Examples gallery.
+- Copied source, after, and video assets into tracked web/mobile asset folders.
+- Bumped the PWA shell cache from `domstudio-shell-v10` to `v11`.
+
 ## July 10, 2026 - New Client Function Proofs Generated For Review
 
 Used the live DomStudio backend and current AutoDL Qwen image-edit workflow on
