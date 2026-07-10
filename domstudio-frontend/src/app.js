@@ -15,7 +15,6 @@ import modeLifestyleBeforeUrl from "./assets/mode-lifestyle-before.webp";
 import modeFittingBeforeUrl from "./assets/mode-fitting-before.webp";
 import modeStoriesBeforeUrl from "./assets/mode-stories-before.webp";
 import examplePerfumeCatalogUrl from "./assets/examples/example-perfume-catalog.webp";
-import examplePerfumeProductUrl from "./assets/examples/example-perfume-product.webp";
 import examplePerfumeCreativeUrl from "./assets/examples/example-perfume-creative.webp";
 import examplePerfumeLifestyleUrl from "./assets/examples/example-perfume-lifestyle.webp";
 import examplePerfumeFittingUrl from "./assets/examples/example-perfume-fitting.webp";
@@ -25,7 +24,6 @@ import exampleBottleProductUrl from "./assets/examples/example-bottle-product.we
 import exampleBottleLifestyleUrl from "./assets/examples/example-bottle-lifestyle.webp";
 import exampleBottleFittingUrl from "./assets/examples/example-bottle-fitting.webp";
 import exampleBottleMobileUrl from "./assets/examples/example-bottle-mobile.webp";
-import perfumeProductVideoUrl from "./assets/examples/videos/perfume-product-5s.mp4";
 import wineProductVideoUrl from "./assets/examples/videos/wine-product-5s.mp4";
 import fashionFittingVideoUrl from "./assets/examples/videos/fashion-fitting-5s.mp4";
 import landingWineBeforeUrl from "./assets/landing/wine-before-original.jpeg";
@@ -89,7 +87,6 @@ const MODES = [
 
 const EXAMPLE_IMAGES = [
   { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
-  { mode: "Предметная", product: "Чайная витрина", title: "Золотой свет и фактура", src: examplePerfumeProductUrl, videoSrc: perfumeProductVideoUrl },
   { mode: "Креатив", product: "Чайный сет", title: "Премиальный предметный кадр", src: examplePerfumeCreativeUrl },
   { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
   { mode: "Lifestyle", product: "Синий фарфор", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
@@ -209,7 +206,7 @@ const LOOK_SCENARIOS = [
     sourceA: lookHomeVaseUrl,
     sourceB: exampleBottleProductUrl,
     ghostA: exampleBottleCatalogUrl,
-    ghostB: examplePerfumeProductUrl,
+    ghostB: exampleBottleLifestyleUrl,
   },
 ];
 

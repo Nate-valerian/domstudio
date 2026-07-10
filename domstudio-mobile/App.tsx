@@ -118,7 +118,6 @@ type ModeOption = {
 const proofBefore = require("./assets/visual/wine-before-original.jpeg") as ImageSourcePropType;
 const proofAfter = require("./assets/visual/wine-after-smoke.png") as ImageSourcePropType;
 const proofVideo = require("./assets/visual/wine-after-smoke-5s.mp4") as number;
-const perfumeProductVideo = require("./assets/visual/perfume-product-5s.mp4") as number;
 const wineProductVideo = require("./assets/visual/wine-product-5s.mp4") as number;
 const fashionFittingVideo = require("./assets/visual/fashion-fitting-5s.mp4") as number;
 
@@ -201,7 +200,6 @@ const planKickers: Record<string, string> = {
 
 const exampleImages = [
   { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout", src: require("./assets/visual/example-perfume-catalog.webp") as ImageSourcePropType },
-  { mode: "Product", product: "Tea display", title: "Gold light and texture", src: require("./assets/visual/example-perfume-product.webp") as ImageSourcePropType, video: perfumeProductVideo, wide: true },
   { mode: "Creative", product: "Tea set", title: "Premium product frame", src: require("./assets/visual/example-perfume-creative.webp") as ImageSourcePropType },
   { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context", src: require("./assets/visual/example-perfume-lifestyle.webp") as ImageSourcePropType },
   { mode: "Fitting", product: "Necklace", title: "Jewelry on model", src: require("./assets/visual/example-perfume-fitting.webp") as ImageSourcePropType },
@@ -339,7 +337,6 @@ const mobileCopy = {
     examplesData: {
       images: [
         { mode: "Catalog", product: "Porcelain vase", title: "Clean marketplace cutout" },
-        { mode: "Product", product: "Tea display", title: "Gold light and texture" },
         { mode: "Creative", product: "Tea set", title: "Premium product frame" },
         { mode: "Lifestyle", product: "Blue porcelain", title: "Warm interior context" },
         { mode: "Fitting", product: "Necklace", title: "Jewelry on model" },

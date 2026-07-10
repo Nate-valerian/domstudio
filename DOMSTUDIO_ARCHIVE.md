@@ -1,5 +1,18 @@
 # DomStudio Archive
 
+## July 10, 2026 - Gold Perfume Display Removed From Examples
+
+Removed the user-identified gold perfume/display image from DomStudio
+entirely.
+
+- Removed its Examples card from the web app and mobile app.
+- Removed its remaining supporting-image reference from the homepage Home
+  scenario and replaced that slot with an existing porcelain lifestyle image.
+- Deleted `example-perfume-product.webp` from web and mobile assets.
+- Deleted the paired `perfume-product-5s.mp4` files because the removed card
+  was their only consumer.
+- Bumped the frontend service-worker cache from `domstudio-shell-v8` to `v9`.
+
 ## July 10, 2026 - iPhone Studio Layout And Food Presentation Fix
 
 Fixed the three issues visible in the user's iPhone Studio screenshots.
