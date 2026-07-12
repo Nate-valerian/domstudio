@@ -95,11 +95,11 @@ const EXAMPLE_IMAGES = [
   { mode: "До · После · Видео", product: "Выпечка с голубикой", title: "Ресторанная подача со сливками", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl, videoSrc: pastryCreamVideoUrl },
   { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
   { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
-  { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl, shape: "portrait" },
+  { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl },
   { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
   { mode: "Lifestyle", product: "Синий фарфор", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
   { mode: "Примерка", product: "Колье", title: "Украшение на модели", src: examplePerfumeFittingUrl },
-  { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl, shape: "portrait" },
+  { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl },
   { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
 ];
 
@@ -2106,14 +2106,10 @@ function examplesPage() {
                   </figure>
                 </div>
               ` : item.videoSrc ? `
-                <div class="example-media-pair">
-                  <figure class="example-media">
-                    <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />
-                  </figure>
-                  <figure class="example-media">
-                    <video src="${item.videoSrc}" aria-label="${escapeHtml(`${item.title} video`)}" autoplay muted loop playsinline controls preload="metadata"></video>
-                  </figure>
-                </div>
+                <figure class="example-media">
+                  <video src="${item.videoSrc}" aria-label="${escapeHtml(`${item.title} video`)}" autoplay muted loop playsinline controls preload="metadata" poster="${item.src}"></video>
+                  <span class="example-pair-label">${t("studio.videoTab")}</span>
+                </figure>
               ` : `
                 <figure class="example-media">
                   <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />

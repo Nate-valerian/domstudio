@@ -7054,3 +7054,16 @@ home.category.beauty
 ```
 
 None should exist in the latest built app.
+
+---
+
+## July 12, 2026 - Examples Feature Grid Polish
+
+- Normalized the six smaller Examples cards to a consistent full-width 4:3
+  media stage.
+- Video examples now lead with the actual autoplay video instead of squeezing a
+  still and video into a narrow two-column pair.
+- Removed portrait containment from the fitting and Stories cards, eliminating
+  the large empty side bands visible in the previous grid.
+- Softened shadows, increased corner radius, and aligned copy block heights so
+  the two rows read as one curated collection.
