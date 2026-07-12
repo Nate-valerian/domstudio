@@ -317,6 +317,9 @@ h1 em { color: var(--gold); font-style: normal; }
 .example-media-triplet { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px 8px 0; }
 .example-media-pair .example-media { aspect-ratio: 2 / 3; border-radius: 6px; }
 .example-media-triplet .example-media { aspect-ratio: 4 / 5; border-radius: 6px; }
+.example-card.compact-proof .example-media-triplet { gap: 4px; padding: 6px 6px 0; }
+.example-card.compact-proof .example-media-triplet .example-media { aspect-ratio: 3 / 4; border-radius: 9px; }
+.example-card.compact-proof .example-pair-label { left: 6px; top: 6px; padding: 3px 6px; font-size: 8px; }
 .example-card.portrait .example-media-pair .example-media { aspect-ratio: 2 / 3; }
 .example-media img,
 .example-media video { display: block; width: 100%; height: 100%; object-fit: cover; }

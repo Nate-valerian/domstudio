@@ -95,12 +95,12 @@ const EXAMPLE_IMAGES = [
   { mode: "До · После · Видео", product: "Выпечка с голубикой", title: "Ресторанная подача со сливками", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl, videoSrc: pastryCreamVideoUrl },
   { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
   { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
-  { mode: "Примерка", product: "Бежевый костюм", title: "Виртуальная примерка", src: modeFittingUrl, videoSrc: fashionFittingVideoUrl },
-  { mode: "Каталог", product: "Фарфоровая ваза", title: "Чистая карточка для маркетплейса", src: examplePerfumeCatalogUrl },
-  { mode: "Lifestyle", product: "Синий фарфор", title: "Тёплый интерьерный контекст", src: examplePerfumeLifestyleUrl },
-  { mode: "Примерка", product: "Колье", title: "Украшение на модели", src: examplePerfumeFittingUrl },
-  { mode: "Stories", product: "Авторский чай", title: "Вертикальный формат сторис", src: examplePerfumeMobileUrl },
-  { mode: "Предметная", product: "Фарфоровая ваза", title: "AI-видео с мягким движением", src: exampleBottleProductUrl, videoSrc: wineProductVideoUrl },
+  { mode: "Примерка", product: "Женский образ", title: "Образ на модели", beforeSrc: formalOutfitBeforeUrl, src: premiumFormalOutfitAfterUrl, videoSrc: premiumFormalOutfitVideoUrl, compact: true },
+  { mode: "Украшения", product: "Золотое колье", title: "Украшение в рекламном кадре", beforeSrc: jewelryCloseBeforeUrl, src: premiumJewelryCloseAfterUrl, videoSrc: premiumJewelryCloseVideoUrl, compact: true },
+  { mode: "Lifestyle", product: "Электроника", title: "Товар в реальной сцене", beforeSrc: lookElectronicsUrl, src: premiumElectronicsAfterUrl, videoSrc: premiumElectronicsVideoUrl, compact: true },
+  { mode: "Каталог", product: "Рюкзак", title: "Карточка товара с моделью", beforeSrc: lookBackpackUrl, src: premiumBagsAfterUrl, videoSrc: premiumBagsVideoUrl, compact: true },
+  { mode: "Интерьер", product: "Декор для дома", title: "Интерьерная композиция", beforeSrc: lookHomeVaseUrl, src: premiumHomeAfterUrl, videoSrc: premiumHomeVideoUrl, compact: true },
+  { mode: "Stories", product: "Продукты", title: "Вертикальный рекламный сюжет", beforeSrc: lookFoodStorageUrl, src: premiumFoodAfterUrl, videoSrc: premiumFoodVideoUrl, compact: true },
 ];
 
 const LOOK_SCENARIOS = [
@@ -2078,7 +2078,7 @@ function examplesPage() {
       <section class="section examples-section">
         <div class="examples-grid">
           ${EXAMPLE_IMAGES.map((item) => `
-            <article class="example-card ${item.videoSrc || item.beforeSrc ? "has-video" : ""} ${item.beforeSrc ? "before-after" : ""} ${item.beforeSrc && item.videoSrc ? "proof-triplet" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
+            <article class="example-card ${item.videoSrc || item.beforeSrc ? "has-video" : ""} ${item.beforeSrc ? "before-after" : ""} ${item.beforeSrc && item.videoSrc && !item.compact ? "proof-triplet" : ""} ${item.compact ? "compact-proof" : ""} ${item.shape === "portrait" ? "portrait" : ""} ${item.shape === "wide" ? "wide" : ""}">
               ${item.beforeSrc && item.videoSrc ? `
                 <div class="example-media-triplet">
                   <figure class="example-media">

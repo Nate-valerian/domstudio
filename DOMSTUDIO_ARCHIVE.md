@@ -7067,3 +7067,6 @@ None should exist in the latest built app.
   the large empty side bands visible in the previous grid.
 - Softened shadows, increased corner radius, and aligned copy block heights so
   the two rows read as one curated collection.
+- Replaced the six mismatched single-output cards with six compact proof cards.
+  Every card now keeps one subject across labeled Before, After, and real Video
+  media, using distinct fashion, jewelry, electronics, bag, home, and food sets.
