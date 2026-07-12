@@ -7070,3 +7070,57 @@ None should exist in the latest built app.
 - Replaced the six mismatched single-output cards with six compact proof cards.
   Every card now keeps one subject across labeled Before, After, and real Video
   media, using distinct fashion, jewelry, electronics, bag, home, and food sets.
+
+---
+
+## July 12, 2026 - Pixlr-Inspired UI Plan For Tomorrow (Planning Only)
+
+Decision:
+
+- Borrow useful interaction patterns from Pixlr without copying its branding or
+  turning DomStudio into a generic Photoshop-style editor.
+- Keep DomStudio warm, premium, marketplace-first, and guided for Russian
+  sellers.
+- Build and review the redesign locally first. Prepare desktop and mobile
+  screenshots for user approval before any GitHub push.
+- Do not push this UI work until the user explicitly approves the preview.
+
+Planned scope: 8 UI changes in 3 steps.
+
+### Step 1 - Upload-first landing
+
+1. Add a large product drag-and-drop upload box near the top of the landing
+   experience.
+2. Add clear `Photo / Video / Create` entry tabs.
+3. Add marketplace shortcuts for Wildberries, Ozon, Avito, and social content.
+
+### Step 2 - Studio workspace
+
+4. Add a compact left workflow sidebar for marketplace, catalog, product photo,
+   lifestyle, Stories, and video modes.
+5. Make the product canvas larger and visually central.
+6. Add a contextual settings panel on the right that changes with the selected
+   workflow.
+7. Show the exact token cost beside one clear Generate button.
+
+### Step 3 - Results
+
+8. Add a single canvas switcher for `Before / After / Video` and keep a visible,
+   persistent Download button.
+
+Suggested desktop structure:
+
+```text
+Left workflow sidebar | Large product canvas | Contextual settings
+                      | Before/After/Video    | Marketplace and style
+                      | Generate              | Exact token cost
+```
+
+Important boundaries:
+
+- Do not copy Pixlr's crowded homepage, branding, or broad tool catalog.
+- Do not expose model/provider selection as the primary experience.
+- Do not add Photoshop-style complexity for ordinary sellers.
+- Keep marketplace presets and seller outcomes more prominent than individual
+  editing tools.
+- First deliverable is a local visual preview, not a deployment.
