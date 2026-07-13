@@ -7205,3 +7205,11 @@ https://race-copying-con-edges.trycloudflare.com
 - The current form draft is synchronized before switching.
 - Returning to Photo selects the saved After image; returning to Video selects
   the saved video when one exists.
+
+### Mobile Studio token header cleanup
+
+- Removed the oversized token balance block from the mobile Studio header.
+- Token cost and balance guidance remain available beside the Generate action,
+  so generation affordability is still clear without consuming the first
+  mobile screen.
+- Desktop keeps the compact token balance pill.

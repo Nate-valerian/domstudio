@@ -1478,6 +1478,7 @@ h1 em { color: var(--gold); font-style: normal; }
   .studio-workbench .result { min-height: 480px; }
 }
 @media (max-width: 640px) {
+  .workspace-head .balance { display: none; }
   .studio-grid.studio-workbench { display: flex; flex-direction: column; gap: 10px; }
   .studio-workbench .studio-form { display: contents; }
   .studio-workflow-panel { order: 1; width: 100%; display: block; padding: 10px; }
