@@ -7248,3 +7248,10 @@ https://race-copying-con-edges.trycloudflare.com
 - Kept the rail compact and horizontally scrollable, so Catalog, Product,
   Creative, Lifestyle, Try-on, and Stories remain easy to identify without
   making the upload card much taller.
+
+### Studio simplification 3 - decorative step pills removed
+
+- Removed the mobile `Upload / Settings / Result` status pills from the Studio
+  upload card.
+- They duplicated the visible page order, looked interactive despite not being
+  controls, and used vertical space before the actual upload action.

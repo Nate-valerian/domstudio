@@ -2257,11 +2257,6 @@ function studioPage() {
             <button type="button" class="${state.generationKind === "photo" ? "active" : ""}" data-generation-kind="photo">${t("studio.photoTab")}</button>
             <button type="button" class="${state.generationKind === "video" ? "active" : ""}" data-generation-kind="video">${t("studio.videoTab")}</button>
           </div>
-          <div class="mobile-flow-steps" aria-label="Mobile creation flow">
-            <span class="active"><b>1</b>Upload</span>
-            <span class="${state.selectedImage ? "active" : ""}"><b>2</b>Settings</span>
-            <span class="${state.generatedImage || state.generatedVideo ? "active" : ""}"><b>3</b>Result</span>
-          </div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
             <div class="studio-mode-rail">
               ${MODES.map(mode => `<button type="button" class="studio-mode-rail-button ${state.formDraft.mode === mode[0] ? "active" : ""}" data-studio-mode="${mode[0]}"><b>${mode[0] === "catalog" ? "▣" : mode[0] === "product" ? "✦" : mode[0] === "creative" ? "◆" : mode[0] === "image" ? "⌂" : mode[0] === "fitting" ? "♙" : "▯"}</b><span>${t("mode." + mode[0] + ".name")}</span></button>`).join("")}
