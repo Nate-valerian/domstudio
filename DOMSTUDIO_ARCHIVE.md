@@ -7152,3 +7152,47 @@ Important boundaries:
 - Added tablet and mobile layouts based on the approved prototype.
 - Bumped the PWA shell cache from `domstudio-shell-v17` to `v18`.
 - Frontend production build passed locally. No GitHub push was performed.
+
+---
+
+## July 13, 2026 - New AutoDL Instance Reconnected
+
+New instance:
+
+```text
+ssh -p 30462 root@connect.westc.seetacloud.com
+hostname: autodl-container-ac454eaade-bfc51635
+GPU: NVIDIA GeForce RTX 4080 SUPER, 32760 MiB VRAM
+ComfyUI: 0.3.75 on port 6006
+```
+
+Persistent west-B storage is mounted at `/root/autodl-fs` and still contains
+the production Qwen Image Edit and Wan model files plus persistent ComfyUI
+input/output/temp directories.
+
+Connection restoration:
+
+- AutoDL initialization placed ComfyUI at `/root/autodl-tmp/ComfyUI`.
+- Connected `/root/autodl-tmp/ComfyUI/input`, `output`, and `temp` to their
+  persistent counterparts under `/root/autodl-fs/ComfyUI`.
+- Confirmed `extra_model_paths.yaml` reads persistent models from
+  `/root/autodl-fs/models`.
+- Confirmed ComfyUI sees the Qwen CLIP, Qwen VAE, Nunchaku Qwen Image Edit,
+  Wan 2.1 I2V, UMT5, Wan VAE, and CLIP Vision files.
+- Local `/system_stats` returned HTTP 200.
+- AutoDL mapped 6006 service returned HTTP 200:
+
+```text
+https://u1038699-aade-bfc51635.westc.seetacloud.com:8443
+```
+
+- A fallback Cloudflare Quick Tunnel was also started:
+
+```text
+https://race-copying-con-edges.trycloudflare.com
+```
+
+- Updated `domstudio-backend/comfy_url.txt` to the stable AutoDL mapped 6006
+  URL instead of the old dead Cloudflare URL.
+- No generation was run and no GPU credits were spent beyond service startup.
+- No GitHub push was performed.
