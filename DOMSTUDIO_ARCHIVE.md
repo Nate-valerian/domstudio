@@ -7136,3 +7136,19 @@ Important boundaries:
   assets and contains no backend or API calls.
 - Review and revise this HTML concept before translating anything into the Vite
   application. Do not push a production UI redesign without explicit approval.
+
+### Approved prototype implemented in Studio on July 13, 2026
+
+- Translated the standalone concept into the authenticated Vite Studio route.
+- Reorganized the existing generation form into a responsive three-column
+  workbench: workflow/upload rail, central result canvas, and settings panel.
+- Preserved existing upload, generation, video provider, prompt helper, brand,
+  export, variation, history, content-pack, and token behavior.
+- Added compact workflow and marketplace shortcut buttons connected to the
+  existing form draft.
+- Added central Before, After, and Video result tabs. Uploading a source opens
+  the Before view; completed images open After; completed videos open Video.
+- Added a persistent direct result download action above the canvas.
+- Added tablet and mobile layouts based on the approved prototype.
+- Bumped the PWA shell cache from `domstudio-shell-v17` to `v18`.
+- Frontend production build passed locally. No GitHub push was performed.

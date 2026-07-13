@@ -735,6 +735,7 @@ const state = {
   selectedImage: null,
   selectedImageName: null,
   generationKind: "photo",
+  studioResultView: "after",
   generatedImage: null,
   generatedVideo: null,
   videoJob: null,
@@ -2247,8 +2248,10 @@ function studioPage() {
     ${state.user ? appSidebar("studio") : ""}
     <section class="${state.user ? "workspace" : "section pricing-public"}">
       <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div>${state.user ? `<div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>` : `<button class="button" type="button" data-auth-open>${t("nav.signup")}</button>`}</header>
-      <div class="studio-grid">
-        <form class="panel studio-form" id="generate-form">
+      <div class="studio-grid studio-workbench">
+        <form class="studio-form" id="generate-form">
+          <aside class="panel studio-workflow-panel">
+            <div class="studio-panel-label">${t("studio.mode")}</div>
           ${appModeSwitch("studio-mode-card", true)}
           <div class="media-toggle" role="group" aria-label="${t("studio.outputType")}">
             <button type="button" class="${state.generationKind === "photo" ? "active" : ""}" data-generation-kind="photo">${t("studio.photoTab")}</button>
@@ -2260,6 +2263,15 @@ function studioPage() {
             <span class="${state.generatedImage || state.generatedVideo ? "active" : ""}"><b>3</b>Result</span>
           </div>
           <label class="upload" id="upload-label"><input type="file" id="image" accept="image/*" multiple /><span><strong>${state.batchQueue.length > 1 ? t("studio.uploadBatch", { n: state.batchQueue.length }) : state.selectedImageName ? escapeHtml(state.selectedImageName) : t("studio.uploadAdd")}</strong><br />${state.batchQueue.length > 1 ? t("studio.uploadTokens", { n: state.batchQueue.length * 100 }) : state.selectedImageName ? t("studio.uploadReady") : t("studio.uploadDesc")}</span></label>
+            <div class="studio-mode-rail">
+              ${MODES.map(mode => `<button type="button" class="studio-mode-rail-button ${state.formDraft.mode === mode[0] ? "active" : ""}" data-studio-mode="${mode[0]}"><b>${mode[0] === "catalog" ? "▣" : mode[0] === "product" ? "✦" : mode[0] === "creative" ? "◆" : mode[0] === "image" ? "⌂" : mode[0] === "fitting" ? "♙" : "▯"}</b><span>${t("mode." + mode[0] + ".name")}</span></button>`).join("")}
+            </div>
+            <div class="studio-market-rail">
+              ${MARKETPLACE_PRESETS.slice(0, 4).map(preset => `<button type="button" class="studio-market-button ${state.formDraft.marketplace === preset.id ? "active" : ""}" data-studio-marketplace="${preset.id}">${escapeHtml(preset.label)}</button>`).join("")}
+            </div>
+          </aside>
+          <aside class="panel studio-settings-panel">
+            <div class="studio-panel-label">${t("studio.styleLabel")}</div>
           <div class="form-section">
             <div class="field marketplace-field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select><small>${t("studio.marketplaceHint")}</small></div>
             <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${t(`studio.style.${template.id}`) || template.label}</option>`).join("")}</select></div>
@@ -2335,10 +2347,21 @@ function studioPage() {
             : state.user.tokens < cost
             ? `<p class="token-hint warn">${t("studio.tokenLow")}</p>`
             : `<p class="token-hint">${tokenHint}</p>`}
+          </aside>
         </form>
         <div class="panel result-panel">
+          <div class="studio-canvas-head">
+            <div class="studio-result-tabs" role="group" aria-label="Result preview">
+              <button type="button" class="${state.studioResultView === "before" ? "active" : ""}" data-studio-result-view="before" ${!state.selectedImage ? "disabled" : ""}>${t("home.before")}</button>
+              <button type="button" class="${state.studioResultView === "after" ? "active" : ""}" data-studio-result-view="after">${t("home.after")}</button>
+              <button type="button" class="${state.studioResultView === "video" ? "active" : ""}" data-studio-result-view="video" ${!state.generatedVideo ? "disabled" : ""}>${t("studio.videoTab")}</button>
+            </div>
+            ${(state.generatedImage || state.generatedVideo) ? `<a class="button secondary studio-download-button" href="${state.generatedVideo || state.generatedImage}" download="domstudio-result.${state.generatedVideo ? "mp4" : "png"}">${t("video.download")}</a>` : ""}
+          </div>
           <div class="result ${state.generatedImage && !state.generatedVideo ? "has-image" : ""} ${state.generating && !state.generatedImage && !state.generatedVideo ? "loading" : ""} ${state.generationKind === "video" || state.generatedVideo ? "video-result" : ""}">
-            ${state.generatedVideo
+            ${state.studioResultView === "before" && state.selectedImage
+              ? `<img src="data:image/jpeg;base64,${state.selectedImage}" alt="${t("home.before")}" />`
+              : state.studioResultView === "video" && state.generatedVideo
               ? `<video src="${state.generatedVideo}" controls playsinline loop></video>${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("video.submitGenerating"))}</div>` : ""}`
               : state.generatedImage
               ? `<img src="${state.overlayImage || state.generatedImage}" alt="AI result" />${state.generating ? `<div class="result-status">${escapeHtml(state.generationLabel || t("studio.generatingNew"))}</div>` : ""}`
@@ -3730,6 +3753,20 @@ function bind() {
   document.querySelectorAll("[data-approve-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.approveAction, "approve")));
   document.querySelectorAll("[data-publish-action]").forEach(el => el.addEventListener("click", () => marketplaceActionCommand(el.dataset.publishAction, "publish")));
   document.querySelectorAll("[data-generation-kind]").forEach(el => el.addEventListener("click", () => setGenerationKind(el.dataset.generationKind)));
+  document.querySelectorAll("[data-studio-result-view]").forEach(el => el.addEventListener("click", () => {
+    state.studioResultView = el.dataset.studioResultView || "after";
+    render({ motion: false });
+  }));
+  document.querySelectorAll("[data-studio-mode]").forEach(el => el.addEventListener("click", () => {
+    state.formDraft.mode = el.dataset.studioMode || "catalog";
+    render({ motion: false });
+  }));
+  document.querySelectorAll("[data-studio-marketplace]").forEach(el => el.addEventListener("click", () => {
+    const preset = MARKETPLACE_PRESETS.find(item => item.id === el.dataset.studioMarketplace);
+    state.formDraft.marketplace = preset?.id || "wildberries";
+    if (preset?.mode) state.formDraft.mode = preset.mode;
+    render({ motion: false });
+  }));
   document.querySelectorAll("[data-app-mode]").forEach(el => el.addEventListener("click", () => setAppMode(el.dataset.appMode)));
   document.querySelectorAll("[data-look-scenario]").forEach(el => el.addEventListener("click", () => selectLookScenario(el.dataset.lookScenario)));
   document.querySelector("[data-look-scenario-next]")?.addEventListener("click", () => advanceLookScenario());
@@ -5286,8 +5323,8 @@ function selectImage(event) {
       state.selectedImage = String(reader.result).split(",")[1];
       state.selectedImageName = files[0].name;
       state.batchQueue = [];
-      const label = document.querySelector("#upload-label span");
-      if (label) label.innerHTML = `<strong>${escapeHtml(files[0].name)}</strong><br />${t("studio.uploadReady")}`;
+      state.studioResultView = "before";
+      render({ motion: false });
     };
     reader.readAsDataURL(files[0]);
     return;
@@ -5683,6 +5720,7 @@ async function pollVideoJob(jobId, attempt = 0) {
     const source = videoSourceFromJob(job);
     if (source) {
       state.generatedVideo = source;
+      state.studioResultView = "video";
       state.generatedMeta = { ...job, mode: job.mode };
     }
     if (job.status === "done") {
@@ -5748,6 +5786,7 @@ async function generateWithPayload(payload, options = {}) {
       state.previousGeneratedMeta = previousMeta;
     }
     state.generatedImage = dataUrl;
+    state.studioResultView = "after";
     state.overlayImage = null;
     state.overlayMode = null;
     state.overlayBenefits = ["", "", ""];

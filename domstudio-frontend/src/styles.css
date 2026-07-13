@@ -1398,6 +1398,101 @@ h1 em { color: var(--gold); font-style: normal; }
   display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 18px; padding: 4px;
   border: 1px solid var(--line); border-radius: 999px; background: #f4f0e8;
 }
+.studio-grid.studio-workbench {
+  grid-template-columns: minmax(190px, 230px) minmax(420px, 1fr) minmax(260px, 330px);
+  max-width: 1420px;
+  margin: 0 auto;
+  gap: 12px;
+}
+.studio-workbench .studio-form { display: contents; }
+.studio-workflow-panel { grid-column: 1; grid-row: 1; padding: 14px; border-radius: 18px; }
+.studio-settings-panel { grid-column: 3; grid-row: 1; padding: 18px; border-radius: 18px; }
+.studio-workbench .result-panel {
+  grid-column: 2; grid-row: 1; align-self: start; padding: 12px; border-radius: 18px;
+  background: #20231f; border-color: #30342e;
+}
+.studio-panel-label {
+  margin: 2px 4px 12px; color: var(--muted); font-size: 10px; font-weight: 900;
+  letter-spacing: .1em; text-transform: uppercase;
+}
+.studio-workflow-panel .studio-mode-card { margin-bottom: 10px; }
+.studio-workflow-panel .media-toggle { margin-bottom: 12px; }
+.studio-workflow-panel .upload { min-height: 112px; margin-bottom: 12px; padding: 14px; border-radius: 14px; }
+.studio-mode-rail { display: grid; gap: 4px; }
+.studio-mode-rail-button {
+  display: flex; align-items: center; gap: 9px; width: 100%; min-height: 42px; padding: 7px 9px;
+  border: 0; border-radius: 11px; background: transparent; color: var(--ink); text-align: left;
+  font-size: 12px; font-weight: 850; cursor: pointer;
+}
+.studio-mode-rail-button b { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: #f1ece2; }
+.studio-mode-rail-button:hover { background: #f4f0e8; }
+.studio-mode-rail-button.active { background: var(--ink); color: white; }
+.studio-mode-rail-button.active b { background: rgba(255,255,255,.14); }
+.studio-market-rail { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.studio-market-button {
+  min-height: 34px; padding: 5px; border: 1px solid var(--line); border-radius: 9px;
+  background: white; color: var(--muted); font-size: 9px; font-weight: 900; cursor: pointer;
+}
+.studio-market-button.active { border-color: var(--gold); background: #fff4d8; color: #805500; }
+.studio-settings-panel .form-section { grid-template-columns: 1fr; gap: 0; }
+.studio-settings-panel .form-section .field:last-child { grid-column: auto; }
+.studio-settings-panel .field { margin-bottom: 13px; }
+.studio-settings-panel .field label { font-size: 10px; }
+.studio-settings-panel .marketplace-field small,
+.studio-settings-panel .offer-field small { display: none; }
+.studio-settings-panel .desktop-submit { min-height: 48px; margin-top: 5px; }
+.studio-canvas-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.studio-result-tabs { display: flex; gap: 4px; }
+.studio-result-tabs button {
+  min-height: 36px; padding: 0 12px; border: 0; border-radius: 9px; background: rgba(255,255,255,.06);
+  color: #c5c8bf; font-size: 12px; font-weight: 850; cursor: pointer;
+}
+.studio-result-tabs button.active { background: #f4f0e8; color: var(--ink); }
+.studio-result-tabs button:disabled { opacity: .35; cursor: default; }
+.studio-download-button { min-height: 36px; padding: 0 12px; color: white; border-color: rgba(255,255,255,.18); background: transparent; }
+.studio-workbench .result { min-height: 590px; border: 0; border-radius: 14px; background: #11130f; }
+.studio-workbench .result img,
+.studio-workbench .result video { width: 100%; height: 100%; max-height: 720px; object-fit: contain; background: #11130f; }
+.studio-workbench .result-empty { color: #d8d8d1; }
+.studio-workbench .result-panel > :not(.studio-canvas-head):not(.result):not(.result-meta) { background: var(--card); border-radius: 14px; }
+.studio-workbench .result-meta { color: #c5c8bf; }
+@media (max-width: 1180px) {
+  .studio-grid.studio-workbench { grid-template-columns: 86px minmax(380px, 1fr) minmax(250px, 300px); }
+  .studio-workflow-panel { padding: 10px; }
+  .studio-mode-rail-button { justify-content: center; }
+  .studio-mode-rail-button span { display: none; }
+  .studio-market-rail { grid-template-columns: 1fr; }
+  .studio-workflow-panel .studio-mode-card p,
+  .studio-workflow-panel .app-mode-buttons,
+  .studio-workflow-panel > .studio-panel-label { display: none; }
+  .studio-workflow-panel .studio-mode-card { padding: 0; border: 0; background: transparent; }
+  .studio-workflow-panel .upload { min-height: 72px; padding: 8px; font-size: 0; }
+  .studio-workflow-panel .upload strong { font-size: 10px; }
+  .studio-workflow-panel .media-toggle button { font-size: 10px; }
+}
+@media (max-width: 860px) {
+  .studio-grid.studio-workbench { display: grid; grid-template-columns: 76px minmax(0, 1fr); }
+  .studio-workflow-panel { grid-column: 1; grid-row: 1; }
+  .studio-workbench .result-panel { grid-column: 2; grid-row: 1; }
+  .studio-settings-panel { grid-column: 1 / -1; grid-row: 2; }
+  .studio-workbench .result { min-height: 480px; }
+}
+@media (max-width: 640px) {
+  .studio-grid.studio-workbench { display: flex; flex-direction: column; gap: 10px; }
+  .studio-workbench .studio-form { display: contents; }
+  .studio-workflow-panel { order: 1; width: 100%; display: block; padding: 10px; }
+  .studio-workbench .result-panel { order: 2; width: 100%; padding: 8px; }
+  .studio-settings-panel { order: 3; width: 100%; }
+  .studio-mode-rail { display: flex; overflow-x: auto; padding-bottom: 3px; }
+  .studio-mode-rail-button { flex: 0 0 46px; width: 46px; padding: 5px; }
+  .studio-market-rail { display: flex; overflow-x: auto; padding-top: 8px; margin-top: 8px; }
+  .studio-market-button { flex: 0 0 auto; min-width: 62px; }
+  .studio-workflow-panel .upload { min-height: 82px; }
+  .studio-workbench .result { min-height: 430px; }
+  .studio-canvas-head { align-items: flex-start; }
+  .studio-result-tabs button { padding: 0 9px; }
+  .studio-download-button { font-size: 10px; }
+}
 .media-toggle button {
   min-height: 42px; border: 0; border-radius: 999px; background: transparent; color: var(--muted);
   font-weight: 900; cursor: pointer;
