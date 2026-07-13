@@ -1491,8 +1491,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .studio-grid.studio-workbench { display: flex; flex-direction: column; gap: 10px; }
   .studio-workbench .studio-form { display: contents; }
   .studio-workflow-panel { order: 1; width: 100%; display: block; padding: 10px; }
-  .studio-workbench .result-panel { order: 2; width: 100%; padding: 8px; }
-  .studio-settings-panel { order: 3; width: 100%; }
+  .studio-settings-panel { order: 2; width: 100%; }
+  .studio-workbench .result-panel { order: 3; width: 100%; padding: 8px; }
   .studio-mobile-primary-action {
     display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
     margin: 0 0 16px; padding: 10px; border: 1px solid rgba(255,157,46,.3);

@@ -7255,3 +7255,11 @@ https://race-copying-con-edges.trycloudflare.com
   upload card.
 - They duplicated the visible page order, looked interactive despite not being
   controls, and used vertical space before the actual upload action.
+
+### Studio simplification 4 - mobile creation order corrected
+
+- Reordered the mobile Studio sections to `Upload -> Settings/Create -> Result`.
+- The large result canvas no longer blocks access to the settings and Generate
+  action before a user has created anything.
+- Existing completed-generation behavior still scrolls the result canvas into
+  view automatically.
