@@ -7240,3 +7240,11 @@ https://race-copying-con-edges.trycloudflare.com
   behavior.
 - The right panel keeps a compact read-only summary of the selected content mode
   and its description.
+
+### Studio simplification 2 - readable mobile workflow controls
+
+- Restored the content-mode names beside their icons in the mobile workflow
+  rail instead of showing unexplained symbols.
+- Kept the rail compact and horizontally scrollable, so Catalog, Product,
+  Creative, Lifestyle, Try-on, and Stories remain easy to identify without
+  making the upload card much taller.

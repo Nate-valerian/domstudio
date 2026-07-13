@@ -1504,7 +1504,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .studio-mobile-primary-action .button { min-height: 42px; padding-inline: 14px; white-space: nowrap; }
   .studio-settings-panel .desktop-submit { display: none; }
   .studio-mode-rail { display: flex; overflow-x: auto; padding-bottom: 3px; }
-  .studio-mode-rail-button { flex: 0 0 46px; width: 46px; padding: 5px; }
+  .studio-mode-rail-button { flex: 0 0 auto; width: auto; min-width: 94px; padding: 6px 9px; justify-content: flex-start; }
+  .studio-mode-rail-button span { display: inline; white-space: nowrap; font-size: 11px; }
   .studio-market-rail { display: flex; overflow-x: auto; padding-top: 8px; margin-top: 8px; }
   .studio-market-button { flex: 0 0 auto; min-width: 62px; }
   .studio-workflow-panel .upload { min-height: 82px; }
