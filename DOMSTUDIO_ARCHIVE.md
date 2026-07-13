@@ -7196,3 +7196,12 @@ https://race-copying-con-edges.trycloudflare.com
   URL instead of the old dead Cloudflare URL.
 - No generation was run and no GPU credits were spent beyond service startup.
 - No GitHub push was performed.
+
+### Studio Photo/Video result preservation fix
+
+- Fixed the Studio Photo/Video tab switch erasing generated work.
+- `setGenerationKind()` no longer clears the generated image, generated video,
+  metadata, or completed video job merely because the user changes tabs.
+- The current form draft is synchronized before switching.
+- Returning to Photo selects the saved After image; returning to Video selects
+  the saved video when one exists.

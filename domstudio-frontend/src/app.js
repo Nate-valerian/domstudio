@@ -4619,13 +4619,11 @@ function toggleLang() {
 
 function setGenerationKind(kind) {
   if (!["photo", "video"].includes(kind) || state.generationKind === kind) return;
+  syncDraftFromForm(document.querySelector("#generate-form"));
   state.generationKind = kind;
   state.batchTotal = 0;
   state.batchIndex = 0;
-  state.generatedImage = null;
-  state.generatedVideo = null;
-  state.generatedMeta = null;
-  state.videoJob = null;
+  state.studioResultView = kind === "video" && state.generatedVideo ? "video" : "after";
   render({ motion: false });
 }
 
