@@ -2280,7 +2280,9 @@ function studioPage() {
               ${VIDEO_DURATIONS.map((seconds) => `<option value="${seconds}" ${selectedAttr(String(state.formDraft.duration_s || "3"), String(seconds))}>${seconds}s</option>`).join("")}
             </select></div>` : ""}
           </div>
-          <div class="field offer-field"><label for="offer_text">${t("studio.offerTextLabel")}</label><input class="input" id="offer_text" name="offer_text" value="${draftValue("offer_text")}" placeholder="${t("studio.offerTextPlaceholder")}" /><small>${t("studio.offerTextHint")}</small></div>
+          ${isAdvancedStudio
+            ? `<div class="field offer-field"><label for="offer_text">${t("studio.offerTextLabel")}</label><input class="input" id="offer_text" name="offer_text" value="${draftValue("offer_text")}" placeholder="${t("studio.offerTextPlaceholder")}" /><small>${t("studio.offerTextHint")}</small></div>`
+            : `<input type="hidden" name="offer_text" value="${draftValue("offer_text")}" />`}
           ${state.generationKind === "video" ? `
             <div class="video-provider-section">
               <div class="mini-head"><h3>${t("video.providerTitle")}</h3><span>${t("video.providerHint")}</span></div>
@@ -2339,8 +2341,14 @@ function studioPage() {
           </div>` : ""}
           <div class="field"><label for="subject">${t("studio.subjectLabel")}</label><textarea class="textarea" id="subject" name="subject" required placeholder="${t("studio.subjectPlaceholder")}">${draftValue("subject")}</textarea></div>
           ${sceneModeNotice ? `<div class="mode-notice">${t("studio.sceneModeNotice")}</div>` : ""}
-          <div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>
-          ${state.generationKind === "photo" ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>` : `<p class="video-note">${t("video.note")}</p>`}
+          ${isAdvancedStudio
+            ? `<div class="field"><label for="style_hint">${t("studio.styleLabel")}</label><input class="input" id="style_hint" name="style_hint" value="${draftValue("style_hint")}" placeholder="${t("studio.stylePlaceholder")}" /></div>`
+            : `<input type="hidden" name="style_hint" value="${draftValue("style_hint")}" />`}
+          ${state.generationKind === "photo"
+            ? isAdvancedStudio
+              ? `<label class="check"><input type="checkbox" name="upscale_4k" ${checkedAttr(state.formDraft.upscale_4k)} /> ${t("studio.upscale")}</label>`
+              : state.formDraft.upscale_4k ? `<input type="hidden" name="upscale_4k" value="on" />` : ""
+            : `<p class="video-note">${t("video.note")}</p>`}
           <button class="button gold block desktop-submit" type="submit" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
           ${!state.user
             ? `<p class="token-hint"><a href="#" data-auth-open>${t("nav.signup")}</a> ${t("nav.or")} <a href="#" data-auth-open>${t("nav.login")}</a> ${t("studio.tokenOk", { n: "500", m: "5" })}</p>`

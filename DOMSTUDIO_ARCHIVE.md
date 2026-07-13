@@ -7263,3 +7263,11 @@ https://race-copying-con-edges.trycloudflare.com
   action before a user has created anything.
 - Existing completed-generation behavior still scrolls the result canvas into
   view automatically.
+
+### Studio simplification 5 - Fast mode now stays focused
+
+- Hid optional offer-text, freeform style-hint, and 4K controls while Studio is
+  in Fast mode.
+- Advanced mode continues to expose every control.
+- Hidden fields preserve existing offer, style, and upscale draft values when a
+  user switches between Fast and Advanced, so no settings are lost.
