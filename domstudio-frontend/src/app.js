@@ -2246,7 +2246,7 @@ function studioPage() {
     : t("studio.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / 100) });
   return `<main class="${state.user ? "app-layout" : "page"}">
     ${state.user ? appSidebar("studio") : ""}
-    <section class="${state.user ? "workspace" : "section pricing-public"}">
+    <section class="${state.user ? "workspace studio-workspace" : "section pricing-public"}">
       <header class="workspace-head"><div><div class="eyebrow">${t("studio.eyebrow")}</div><h1>${t("studio.h1")}</h1></div>${state.user ? `<div class="balance"><span>${state.user.tokens}</span> ${t("studio.tokens", { n: "" }).trim()}</div>` : `<button class="button" type="button" data-auth-open>${t("nav.signup")}</button>`}</header>
       <div class="studio-grid studio-workbench">
         <form class="studio-form" id="generate-form">

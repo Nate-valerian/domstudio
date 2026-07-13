@@ -1478,6 +1478,10 @@ h1 em { color: var(--gold); font-style: normal; }
   .studio-workbench .result { min-height: 480px; }
 }
 @media (max-width: 640px) {
+  .workspace.studio-workspace { padding-top: 6px; }
+  .studio-workspace .workspace-head { gap: 5px; margin-bottom: 12px; }
+  .studio-workspace .workspace-head .eyebrow { margin-bottom: 5px; font-size: 9px; }
+  .studio-workspace .workspace-head h1 { font-size: 26px; line-height: 1; }
   .workspace-head .balance { display: none; }
   .studio-grid.studio-workbench { display: flex; flex-direction: column; gap: 10px; }
   .studio-workbench .studio-form { display: contents; }

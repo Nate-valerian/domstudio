@@ -7213,3 +7213,11 @@ https://race-copying-con-edges.trycloudflare.com
   so generation affordability is still clear without consuming the first
   mobile screen.
 - Desktop keeps the compact token balance pill.
+
+### Mobile Studio header compression
+
+- Added a Studio-specific workspace class so mobile header adjustments do not
+  affect Account, Pricing, AdPilot, or other authenticated pages.
+- Reduced mobile Studio top padding, eyebrow spacing, header margin, and the
+  `AI Studio` title to 26px.
+- The upload workflow now begins higher on the first mobile screen.
