@@ -7124,3 +7124,15 @@ Important boundaries:
 - Keep marketplace presets and seller outcomes more prominent than individual
   editing tools.
 - First deliverable is a local visual preview, not a deployment.
+
+### Prototype created July 13, 2026
+
+- Created `temp-preview/domstudio-pixlr-ui-concept.html` as a standalone,
+  responsive UI prototype; no production frontend files were changed.
+- It demonstrates the upload-first entry, Photo/Video/Create tabs, workflow and
+  marketplace navigation, large central canvas, contextual settings, exact
+  token cost, and Before/After/Video switching.
+- The prototype uses existing DomStudio vase Before, After, and matching video
+  assets and contains no backend or API calls.
+- Review and revise this HTML concept before translating anything into the Vite
+  application. Do not push a production UI redesign without explicit approval.

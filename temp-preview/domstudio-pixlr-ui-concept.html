@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DomStudio — UI concept</title>
+  <style>
+    :root{--ink:#191915;--muted:#777064;--paper:#f4f0e7;--card:#fffdf8;--line:#ddd6c8;--gold:#c88b16;--green:#234c3b;--night:#20231f}
+    *{box-sizing:border-box} body{margin:0;color:var(--ink);background:var(--paper);font:14px/1.45 Inter,Arial,sans-serif} button{font:inherit}
+    .topbar{height:64px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;background:#fffdf9;border-bottom:1px solid var(--line)}
+    .brand{font-size:21px;font-weight:900;letter-spacing:-.04em}.brand i{color:var(--gold);font-style:normal}.top-actions{display:flex;gap:10px;align-items:center}.credits{font-weight:800;color:var(--green)}
+    .ghost,.primary{border:0;border-radius:12px;padding:11px 15px;font-weight:800;cursor:pointer}.ghost{background:#eee9df}.primary{color:white;background:var(--green)}
+    .intro{max-width:1240px;margin:0 auto;padding:28px 22px 18px;display:flex;align-items:end;justify-content:space-between;gap:24px}.intro h1{margin:0 0 5px;font-size:clamp(27px,3vw,42px);letter-spacing:-.045em}.intro p{margin:0;color:var(--muted);font-size:15px}
+    .entry-tabs{display:flex;padding:4px;background:#e8e2d6;border-radius:14px}.entry-tabs button{padding:9px 15px;border:0;border-radius:10px;background:transparent;font-weight:800;cursor:pointer}.entry-tabs button.active{background:white;box-shadow:0 3px 12px #342a1712}
+    .upload{max-width:1240px;margin:0 auto 20px;padding:0 22px}.dropzone{min-height:118px;border:1.5px dashed #baaa8d;border-radius:20px;background:#fffcf6;display:flex;align-items:center;justify-content:center;gap:16px;text-align:left;cursor:pointer;transition:.2s}.dropzone:hover{border-color:var(--gold);transform:translateY(-1px)}.upload-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:#f3e3bd;font-size:23px}.dropzone strong{display:block;font-size:16px}.dropzone span{color:var(--muted)}
+    .shell{max-width:1240px;min-height:660px;margin:0 auto 40px;padding:0 22px;display:grid;grid-template-columns:190px minmax(0,1fr) 260px;gap:12px}
+    .panel{border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 14px 40px #3226110b}.left,.right{padding:12px}.panel-title{margin:7px 7px 12px;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .tool{width:100%;margin:2px 0;padding:11px;border:0;border-radius:12px;display:flex;align-items:center;gap:10px;text-align:left;background:transparent;font-weight:750;cursor:pointer}.tool:hover{background:#f3eee4}.tool.active{color:white;background:var(--green)}.tool b{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:#ffffff22;font-size:14px}
+    .marketplaces{display:grid;grid-template-columns:1fr 1fr;gap:6px}.market{padding:9px 6px;border:1px solid var(--line);border-radius:10px;background:white;font-size:11px;font-weight:850;cursor:pointer}.market.active{border-color:var(--gold);background:#fff5dc;color:#8b5a00}
+    .canvas-panel{padding:12px;background:var(--night);border-color:#30342e;display:flex;flex-direction:column}.canvas-head{padding:3px 3px 12px;display:flex;align-items:center;justify-content:space-between}.result-tabs{display:flex;gap:4px}.result-tabs button{border:0;border-radius:9px;padding:8px 12px;color:#c8cabf;background:#ffffff0b;font-weight:800;cursor:pointer}.result-tabs button.active{color:#171913;background:#f4efe4}.download{border:1px solid #ffffff25;border-radius:10px;padding:8px 12px;color:white;background:transparent;font-weight:800;cursor:pointer}
+    .canvas{position:relative;min-height:500px;flex:1;border-radius:14px;overflow:hidden;background:#0f110f;display:grid;place-items:center}.canvas img,.canvas video{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}.canvas video{display:none}.canvas-before{display:none!important}.canvas.show-before .canvas-before{display:block!important}.canvas.show-before .canvas-after{display:none}.canvas.show-video video{display:block}.canvas.show-video .canvas-after{display:none}.canvas-badge{position:absolute;left:14px;bottom:14px;z-index:2;padding:8px 10px;border-radius:10px;color:white;background:#111b;font-size:11px;font-weight:900;text-transform:uppercase}.zoom{position:absolute;right:14px;bottom:14px;z-index:2;padding:8px 10px;border-radius:10px;color:white;background:#111b}
+    .field{margin:0 0 14px}.field label{display:block;margin:0 0 7px;font-size:12px;font-weight:850}.select,.prompt{width:100%;border:1px solid var(--line);border-radius:11px;background:white;padding:11px;color:var(--ink)}.prompt{height:78px;resize:none}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid var(--line);border-radius:999px;padding:7px 9px;background:white;font-size:11px;font-weight:800;cursor:pointer}.chip.active{border-color:var(--green);color:white;background:var(--green)}
+    .ratio{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.ratio button{border:1px solid var(--line);border-radius:9px;padding:8px 3px;background:white;font-size:11px;font-weight:800}.ratio button.active{border-color:var(--gold);background:#fff4d8}
+    .generate{margin-top:auto;border-top:1px solid var(--line);padding-top:13px}.cost{margin-bottom:9px;display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.generate .primary{width:100%;padding:13px}.fine{margin:8px 0 0;text-align:center;color:var(--muted);font-size:10px}
+    .mobile-note{display:none}
+    @media(max-width:900px){.intro{align-items:start;flex-direction:column}.shell{grid-template-columns:78px minmax(0,1fr)}.right{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.tool{justify-content:center}.tool span{display:none}.marketplaces{grid-template-columns:1fr}.market{font-size:9px}.canvas{min-height:460px}.generate{margin:0}}
+    @media(max-width:620px){.topbar{height:56px;padding:0 14px}.credits,.topbar .ghost{display:none}.intro{padding:20px 14px 14px}.entry-tabs{width:100%}.entry-tabs button{flex:1}.upload{padding:0 14px}.dropzone{padding:18px}.shell{padding:0 10px;grid-template-columns:1fr}.left{display:flex;overflow:auto}.left .panel-title,.marketplaces{display:none}.tool{min-width:48px;width:48px}.canvas-panel{min-height:590px}.canvas{min-height:500px}.right{grid-column:auto;display:block}.mobile-note{display:block;margin:0 14px 12px;color:var(--muted);font-size:12px}.canvas-head{align-items:flex-start;gap:8px}.result-tabs button{padding:8px 9px}}
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="brand">DOM<i>STUDIO</i></div><div class="top-actions"><span class="credits">1 240 токенов</span><button class="ghost">Мои проекты</button><button class="primary">Профиль</button></div></header>
+  <section class="intro"><div><h1>Контент для маркетплейса за минуты</h1><p>Загрузите товар — DomStudio подготовит карточку, lifestyle и короткое видео.</p></div><div class="entry-tabs"><button class="active">Фото</button><button>Видео</button><button>Создать</button></div></section>
+  <section class="upload"><div class="dropzone"><div class="upload-icon">↑</div><div><strong>Перетащите фото товара</strong><span>или нажмите, чтобы выбрать файл · JPG, PNG, WEBP</span></div></div></section>
+  <p class="mobile-note">Интерактивный мобильный прототип: выберите режим, результат и настройки.</p>
+  <main class="shell">
+    <aside class="panel left">
+      <div class="panel-title">Сценарий</div>
+      <button class="tool active" data-mode="Каталог"><b>▣</b><span>Маркетплейс</span></button>
+      <button class="tool" data-mode="Каталог"><b>□</b><span>Каталог</span></button>
+      <button class="tool" data-mode="Предметная"><b>✦</b><span>Предметная</span></button>
+      <button class="tool" data-mode="Lifestyle"><b>⌂</b><span>Lifestyle</span></button>
+      <button class="tool" data-mode="Stories"><b>▯</b><span>Stories</span></button>
+      <button class="tool" data-mode="Видео"><b>▶</b><span>Видео</span></button>
+      <div class="panel-title">Площадка</div>
+      <div class="marketplaces"><button class="market active">WB</button><button class="market">Ozon</button><button class="market">Avito</button><button class="market">Social</button></div>
+    </aside>
+    <section class="panel canvas-panel">
+      <div class="canvas-head"><div class="result-tabs"><button data-view="before">До</button><button class="active" data-view="after">После</button><button data-view="video">Видео</button></div><button class="download">↓ Скачать</button></div>
+      <div class="canvas">
+        <img class="canvas-before" src="../domstudio-frontend/src/assets/landing/look-home-vase.webp" alt="До">
+        <img class="canvas-after" src="../domstudio-frontend/src/assets/landing/generated-premium/premium-home-after.png" alt="После">
+        <video src="../domstudio-frontend/src/assets/landing/generated-premium/premium-home-after-5s.mp4" muted loop autoplay playsinline></video>
+        <span class="canvas-badge">После · Интерьер</span><span class="zoom">100%</span>
+      </div>
+    </section>
+    <aside class="panel right">
+      <div><div class="panel-title">Настройки</div>
+      <div class="field"><label>Режим</label><select class="select"><option>Карточка для маркетплейса</option><option>Премиальная предметная</option><option>Lifestyle-сцена</option></select></div>
+      <div class="field"><label>Стиль</label><div class="chips"><button class="chip active">Чистый</button><button class="chip">Премиум</button><button class="chip">Тёплый</button></div></div>
+      <div class="field"><label>Формат</label><div class="ratio"><button class="active">4:5</button><button>1:1</button><button>9:16</button></div></div>
+      <div class="field"><label>Пожелания</label><textarea class="prompt">Сохранить точную форму и рисунок товара. Мягкий студийный свет.</textarea></div></div>
+      <div class="generate"><div class="cost"><span>Стоимость</span><strong>100 токенов</strong></div><button class="primary">✦ Создать результат</button><p class="fine">Точная стоимость известна до запуска</p></div>
+    </aside>
+  </main>
+  <script>
+    const canvas=document.querySelector('.canvas'),badge=document.querySelector('.canvas-badge');
+    document.querySelectorAll('.result-tabs button').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.result-tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');canvas.className='canvas show-'+btn.dataset.view;badge.textContent=btn.textContent+' · Интерьер'});
+    document.querySelectorAll('.tool').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.tool').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelector('.select').selectedIndex=Math.min([...document.querySelectorAll('.tool')].indexOf(btn),2)});
+    document.querySelectorAll('.market').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.market').forEach(x=>x.classList.remove('active'));btn.classList.add('active')});
+    document.querySelectorAll('.chip,.ratio button,.entry-tabs button').forEach(btn=>btn.onclick=()=>{[...btn.parentElement.children].forEach(x=>x.classList.remove('active'));btn.classList.add('active')});
+    document.querySelector('.dropzone').onclick=()=>alert('Прототип: здесь откроется выбор фотографии.');
+    document.querySelector('.generate .primary').onclick=()=>{const b=document.querySelector('.generate .primary');b.textContent='✓ Прототип готов';setTimeout(()=>b.textContent='✦ Создать результат',1400)};
+  </script>
+</body>
+</html>
