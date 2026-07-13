@@ -2272,14 +2272,15 @@ function studioPage() {
           </aside>
           <aside class="panel studio-settings-panel">
             <div class="studio-panel-label">${t("studio.styleLabel")}</div>
+            <input type="hidden" id="marketplace" name="marketplace" value="${escapeHtml(state.formDraft.marketplace || "wildberries")}" />
+            <input type="hidden" id="mode" name="mode" value="${escapeHtml(state.formDraft.mode || "catalog")}" />
             <div class="studio-mobile-primary-action">
               <div><span>${state.generationKind === "video" ? t("studio.videoTab") : t("studio.photoTab")}</span><b>${cost ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : "Free"}</b></div>
               <button class="button gold" type="submit" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
             </div>
           <div class="form-section">
-            <div class="field marketplace-field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select><small>${t("studio.marketplaceHint")}</small></div>
             <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${t(`studio.style.${template.id}`) || template.label}</option>`).join("")}</select></div>
-            <div class="field"><label for="mode">${t("studio.mode")}</label><select class="select" id="mode" name="mode">${MODES.map(mode => `<option value="${mode[0]}" ${selectedAttr(state.formDraft.mode, mode[0])}>${t("mode." + mode[0] + ".name")}</option>`).join("")}</select><small class="mode-desc-hint">${t("mode." + (state.formDraft.mode || "catalog") + ".desc")}</small></div>
+            <p class="studio-selected-mode"><span>${t("studio.mode")}</span><b>${t("mode." + (state.formDraft.mode || "catalog") + ".name")}</b><small>${t("mode." + (state.formDraft.mode || "catalog") + ".desc")}</small></p>
             ${state.generationKind === "video" ? `<div class="field"><label for="duration_s">${t("video.duration")}</label><select class="select" id="duration_s" name="duration_s">
               ${VIDEO_DURATIONS.map((seconds) => `<option value="${seconds}" ${selectedAttr(String(state.formDraft.duration_s || "3"), String(seconds))}>${seconds}s</option>`).join("")}
             </select></div>` : ""}

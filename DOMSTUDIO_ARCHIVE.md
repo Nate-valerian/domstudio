@@ -7229,3 +7229,14 @@ https://race-copying-con-edges.trycloudflare.com
   user scrolls through the long settings form.
 - Hid the duplicate bottom Generate button on mobile; desktop placement is
   unchanged.
+
+### Studio simplification 1 - duplicate selectors removed
+
+- Removed the duplicate Marketplace and Content Mode dropdowns from the right
+  settings panel.
+- Marketplace and mode are now selected only through the visual controls in the
+  left workflow rail (horizontal controls on mobile).
+- Hidden form fields preserve the existing generation payload and backend
+  behavior.
+- The right panel keeps a compact read-only summary of the selected content mode
+  and its description.

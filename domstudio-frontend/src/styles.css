@@ -1442,6 +1442,10 @@ h1 em { color: var(--gold); font-style: normal; }
 .studio-settings-panel .offer-field small { display: none; }
 .studio-settings-panel .desktop-submit { min-height: 48px; margin-top: 5px; }
 .studio-mobile-primary-action { display: none; }
+.studio-selected-mode { display: grid; gap: 3px; margin: 0 0 14px; padding: 11px 12px; border-radius: 11px; background: #f5f1e9; }
+.studio-selected-mode span { color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.studio-selected-mode b { font-size: 13px; }
+.studio-selected-mode small { color: var(--muted); font-size: 11px; font-weight: 700; line-height: 1.4; }
 .studio-canvas-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .studio-result-tabs { display: flex; gap: 4px; }
 .studio-result-tabs button {
