@@ -1441,6 +1441,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .studio-settings-panel .marketplace-field small,
 .studio-settings-panel .offer-field small { display: none; }
 .studio-settings-panel .desktop-submit { min-height: 48px; margin-top: 5px; }
+.studio-mobile-primary-action { display: none; }
 .studio-canvas-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .studio-result-tabs { display: flex; gap: 4px; }
 .studio-result-tabs button {
@@ -1488,6 +1489,16 @@ h1 em { color: var(--gold); font-style: normal; }
   .studio-workflow-panel { order: 1; width: 100%; display: block; padding: 10px; }
   .studio-workbench .result-panel { order: 2; width: 100%; padding: 8px; }
   .studio-settings-panel { order: 3; width: 100%; }
+  .studio-mobile-primary-action {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+    margin: 0 0 16px; padding: 10px; border: 1px solid rgba(255,157,46,.3);
+    border-radius: 14px; background: #fff7df;
+  }
+  .studio-mobile-primary-action div { display: grid; gap: 2px; }
+  .studio-mobile-primary-action span { color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+  .studio-mobile-primary-action b { font-size: 13px; }
+  .studio-mobile-primary-action .button { min-height: 42px; padding-inline: 14px; white-space: nowrap; }
+  .studio-settings-panel .desktop-submit { display: none; }
   .studio-mode-rail { display: flex; overflow-x: auto; padding-bottom: 3px; }
   .studio-mode-rail-button { flex: 0 0 46px; width: 46px; padding: 5px; }
   .studio-market-rail { display: flex; overflow-x: auto; padding-top: 8px; margin-top: 8px; }

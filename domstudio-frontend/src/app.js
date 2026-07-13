@@ -2272,6 +2272,10 @@ function studioPage() {
           </aside>
           <aside class="panel studio-settings-panel">
             <div class="studio-panel-label">${t("studio.styleLabel")}</div>
+            <div class="studio-mobile-primary-action">
+              <div><span>${state.generationKind === "video" ? t("studio.videoTab") : t("studio.photoTab")}</span><b>${cost ? `${cost} ${t("studio.tokens", { n: "" }).trim()}` : "Free"}</b></div>
+              <button class="button gold" type="submit" ${state.generating || !state.online ? "disabled" : ""}>${submitLabel}</button>
+            </div>
           <div class="form-section">
             <div class="field marketplace-field"><label for="marketplace">${t("studio.marketplace")}</label><select class="select" id="marketplace" name="marketplace">${MARKETPLACE_PRESETS.map(preset => `<option value="${preset.id}" ${selectedAttr(state.formDraft.marketplace, preset.id)}>${preset.label}</option>`).join("")}</select><small>${t("studio.marketplaceHint")}</small></div>
             <div class="field"><label for="style_template">${t("studio.styleTemplate")}</label><select class="select" id="style_template" name="style_template">${STYLE_TEMPLATES.map(template => `<option value="${template.id}" ${selectedAttr(state.formDraft.style_template, template.id)}>${t(`studio.style.${template.id}`) || template.label}</option>`).join("")}</select></div>

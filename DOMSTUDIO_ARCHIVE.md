@@ -7221,3 +7221,11 @@ https://race-copying-con-edges.trycloudflare.com
 - Reduced mobile Studio top padding, eyebrow spacing, header margin, and the
   `AI Studio` title to 26px.
 - The upload workflow now begins higher on the first mobile screen.
+
+### Mobile Generate action moved above settings
+
+- Added a mobile-only primary Generate action at the top of the settings panel.
+- The action shows the current Photo/Video type and exact token cost before the
+  user scrolls through the long settings form.
+- Hid the duplicate bottom Generate button on mobile; desktop placement is
+  unchanged.
