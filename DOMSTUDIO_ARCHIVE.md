@@ -7271,3 +7271,341 @@ https://race-copying-con-edges.trycloudflare.com
 - Advanced mode continues to expose every control.
 - Hidden fields preserve existing offer, style, and upscale draft values when a
   user switches between Fast and Advanced, so no settings are lost.
+
+---
+
+## July 16, 2026 - Full Project Audit And Tomorrow Implementation Plan
+
+Scope:
+
+- Read the handoff notes and full project archive, then checked the repository
+  as it exists now rather than relying only on older handoff state.
+- Reviewed Git state, frontend/backend/mobile/Telegram structure, deployment
+  configuration, generation architecture, marketplace adapters, auth paths,
+  production endpoints, rendered desktop/mobile layouts, build output, tests,
+  and dependency audit results.
+- This was a read-only audit. No product code, production configuration, remote
+  data, or paid generation job was changed during the audit.
+
+### Current repository state
+
+- `main` and `origin/main` are aligned at `8cec3fe`.
+- Tracked files are clean.
+- Existing untracked preview media, temporary output, the SpaceWeb ZIP, and
+  unrelated CV helper scripts remain intentionally untouched.
+- The current code includes the July 13 Studio workbench and the five mobile
+  Studio simplification commits. It is newer than the July 10 handoff state.
+
+### Current product standing
+
+DomStudio is a strong beta-quality vertical slice, but it is not yet dependable
+paid production. The product direction and UI are convincing; deployment,
+generation availability, billing/usage consistency, and operational hardening
+are the immediate blockers.
+
+What is already strong:
+
+- The orange/cream web design is current, clear, and much stronger than the
+  rejected dark redesign.
+- The desktop and mobile hero explain the marketplace-seller value quickly.
+- The car Before / After / real Video proof works well as the primary example.
+- The authenticated Studio has a real marketplace-first workbench, six content
+  modes, Photo/Video result preservation, Fast/Advanced behavior, export tools,
+  variations, browser history, and direct download.
+- Backend scope is substantial: JWT/OTP auth, subscriptions, tokens, Tinkoff and
+  Yandex payments, affiliate promo/commission accounting, AdPilot content/chat,
+  encrypted marketplace credentials, marketplace imports/drafts, and ComfyUI
+  image/video workflows.
+- Payment, marketplace, content, contact, runtime-info, atomic token, and Comfy
+  prompt/workflow tests are green.
+
+Important product boundary:
+
+- Marketplace product imports and draft/approval workflows exist.
+- Live publishing to Wildberries, Ozon, and Avito is intentionally disabled in
+  `services/marketplace_integrations.py`; all provider capability entries have
+  `supports_live_publish=False`, and publish requests return dry-run results.
+- Do not market AdPilot marketplace actions as live autonomous publishing until
+  official payload mapping has been verified with seller accounts.
+
+### Validation results
+
+- Frontend `npm.cmd run build`: passed.
+- Mobile `npm.cmd run typecheck`: passed.
+- Telegram `python -m py_compile bot.py`: passed.
+- Backend `python -m unittest discover -s tests -v`: 69 tests run, 64 passed,
+  5 failed.
+- Frontend production dependency audit: 0 reported vulnerabilities.
+- Mobile production dependency audit: 12 moderate transitive findings in the
+  Expo toolchain. The available automatic fix requires a major Expo upgrade and
+  should not be applied blindly while native mobile is not the product focus.
+- Python `pip check`: no broken requirements.
+
+The five backend failures are concentrated in `tests/test_generation.py`:
+
+- `test_charges_tokens_and_returns_worker_result`
+- `test_can_use_comfy_provider`
+- `test_refunds_tokens_when_worker_fails`
+- `test_rejects_generation_when_balance_is_insufficient`
+- `test_rejects_generation_when_photo_quota_is_exhausted`
+
+Cause:
+
+- Commit `6dfe028` intentionally removed the photo-quota gate so token balance
+  became the only image-generation limit.
+- The tests still expect the previous quota reservation/release query order and
+  `quota_used` / `quota_limit` response fields.
+- The production image route also no longer increments `photos_used`, while web
+  Account and native Account still display `photos_used / photos_limit`.
+- Result: the pricing math still maps tokens to the advertised photo counts,
+  but the displayed photo usage counter can remain `0 / limit` after successful
+  image generations.
+
+Decision needed tomorrow:
+
+1. Token-only contract: remove the redundant photo quota helpers/counters from
+   the product UI and update tests to assert token behavior.
+2. Photos-plus-tokens contract: increment photo usage on success and restore a
+   consistent reservation/refund policy.
+
+Recommended direction: keep tokens as the spend/limit mechanism, but preserve
+an accurate successful-photo usage counter for Account reporting. Do not create
+two competing hard limits when every plan's token allowance already equals its
+advertised photo count at 100 tokens per image.
+
+### Critical deployment split
+
+The real customer domain and the current Vercel deployment are not serving the
+same frontend.
+
+`https://domstudio.site` and `https://www.domstudio.site`:
+
+- Resolve to SpaceWeb IP `77.222.40.84`.
+- Return a server file last modified June 28, 2026.
+- Serve service-worker cache `domstudio-shell-v5`.
+- Show the older wine proof and older pre-workbench experience.
+
+`https://domstudio.vercel.app`:
+
+- Serves service-worker cache `domstudio-shell-v18`.
+- Contains the approved Studio workbench, global app mode, July landing proof
+  changes, and all July 13 mobile Studio simplifications.
+
+Conclusion:
+
+- Customers on the real domain are not seeing several weeks of completed work.
+- Tomorrow, deploy the latest Vite `dist` to SpaceWeb or deliberately change the
+  domain deployment target.
+- Because DomStudio targets Russian sellers, keeping the public static site on
+  SpaceWeb may be preferable; the important improvement is to automate and
+  verify that deployment instead of maintaining an old manual ZIP silently.
+- Verify the real domain in an incognito/fresh context and confirm `sw.js`
+  reports `domstudio-shell-v18` or newer after deployment.
+
+### Critical generation availability problem
+
+The live API is deployed at commit `8cec3fe` and these public endpoints respond:
+
+- `/health`
+- `/version`
+- `/subscriptions/plans`
+- `/payments/packs`
+- `/content/tools`
+- `/marketplaces/providers`
+
+However, AI generation is not currently healthy:
+
+- Production `/version` reports Comfy source `env_override` and host
+  `race-copying-con-edges.trycloudflare.com`.
+- That temporary Cloudflare host no longer resolves in DNS.
+- The tracked fallback in `domstudio-backend/comfy_url.txt` points to the AutoDL
+  mapped west-C URL, but `/system_stats` currently returns HTTP 404 there.
+- No paid image/video generation was submitted during the audit because basic
+  connectivity had already failed.
+
+The current `/health` response is shallow and always reports `ok`; it did not
+detect the dead Comfy dependency. `/version` exposes configuration state but
+does not verify reachability.
+
+Required improvement:
+
+- Restore one working stable Comfy endpoint.
+- Remove/update stale `COMFYUI_URL_OVERRIDE` in Amvera so it cannot override a
+  correct tracked/discovered URL.
+- Add a dependency-aware generation health endpoint that checks Comfy
+  `/system_stats`, database connectivity, and active workflow files with a
+  short timeout.
+- Keep basic liveness separate so Amvera does not restart the whole API merely
+  because the GPU worker is temporarily offline.
+- After connectivity is restored, run one narrow Catalog preservation request,
+  inspect it, and stop if wrong. Do not begin broad GPU experiments.
+
+Text AI health note:
+
+- `/content/text-ai/health` reports configured but `ok=false` with HTTP 404.
+- It probes `/health`, which the configured DeepSeek OpenAI-compatible endpoint
+  does not expose, so this is likely an invalid/false-negative health probe.
+- Actual paid chat completion was not invoked during the audit.
+- Replace this probe with a provider-appropriate check or a tightly budgeted
+  canary; do not report a false outage merely because `/health` is absent.
+
+### Desktop/tablet navigation bug
+
+Rendered checks found clipped navigation controls:
+
+- At 1440px, the right-side `Create photo` button is partially clipped and the
+  language control is beyond the visible viewport.
+- At 1024px, much of the action group is outside the viewport.
+- Horizontal overflow is hidden, so the user cannot scroll to the missing
+  controls.
+- The compact hamburger/mobile navigation breakpoint begins only at 980px.
+
+Recommended fix:
+
+- Move the collapsed navigation breakpoint higher, or progressively remove the
+  duplicated Login/Register/Create/mode controls before they overflow.
+- Test at 1024, 1180, 1280, 1366, 1440, and a wide desktop after the change.
+
+### Landing performance and conversion density
+
+The current visual direction is approved, but the page is heavy and long.
+
+Audit measurements on the current Vercel home page:
+
+- Approximately 9,300px document height at 1440px desktop.
+- Approximately 11,700px document height at 390px mobile.
+- 50 image elements and 12 video elements in the rendered home DOM.
+- Desktop transferred about 8.4 MB in the first six seconds and attempted 26
+  video resource requests; many duplicate/off-screen video requests aborted.
+- Local build output was about 116.6 MB, including landing media and local
+  background-removal runtime/model artifacts.
+- `src/app.js` is about 6,024 lines, `src/styles.css` about 2,980 lines, and
+  `src/i18n.js` about 1,989 lines.
+
+Recommended improvements:
+
+- Mount only the currently active scenario/showcase video.
+- Use poster images and `preload="none"` or intersection-based loading for
+  off-screen videos.
+- Convert large PNG result images to WebP/AVIF where visual quality allows.
+- Keep the hero, three strongest proofs, one seller workflow, pricing, and one
+  strong CTA on Home; move the full collection to Examples.
+- Split the monolithic frontend into route/feature modules before further major
+  UI growth.
+
+### Backend reliability and storage risks
+
+- Image generation is synchronous and may wait through long proxy/provider
+  timeouts.
+- Video jobs use FastAPI `BackgroundTasks`, not a durable Redis queue.
+- An API restart can lose an in-flight background task.
+- Video base64/media can be stored in the PostgreSQL `GenerationJob.output_data`
+  text column, which conflicts with the low-storage/bandwidth product constraint.
+- Redis is listed in dependencies and README tech stack but is not used by the
+  application.
+- There is no CI workflow, central error tracking, operational metrics, or
+  seller-funnel analytics in the repository.
+
+Recommended architecture:
+
+1. Redis-backed durable queue and separate generation worker.
+2. Idempotent job creation, retry limits, cancellation, and refund handling.
+3. Temporary object storage for image/video results with automatic deletion.
+4. Store only metadata/temporary object URLs in PostgreSQL.
+5. Dependency health, structured error logging, and provider latency/failure
+   metrics.
+
+### Security hardening before public growth
+
+- Email/phone registration, login, OTP verification, phone login, and password
+  reset have no persistent abuse/rate controls.
+- OTP codes are stored as plain six-digit values with no attempt counter.
+- AdPilot guest rate limiting is process-memory only, so it resets on deploy and
+  is not shared across instances.
+- Browser access and refresh tokens are stored in `localStorage`; an XSS bug
+  could expose long-lived credentials.
+- Public `/version` exposes commit/branch, infrastructure hosts, CORS origins,
+  workflow names, provider model, and whether integration keys exist. It does
+  not expose the secret values, but the production response is unnecessarily
+  detailed.
+- Production CORS still includes HTTP versions of the public domain.
+
+Recommended improvements:
+
+- Redis-backed rate limits by IP and normalized email/phone for auth, OTP,
+  reset, contact, and guest AI routes.
+- OTP resend cooldown, attempt limit, invalidation of earlier codes, and hashed
+  OTP storage.
+- Move refresh tokens to Secure, HttpOnly, SameSite cookies when the API/domain
+  deployment permits; keep access tokens short-lived and preferably in memory.
+- Restrict/sanitize `/version` in production and expose only safe release and
+  dependency status.
+- Prefer HTTPS-only production CORS origins.
+
+### Native mobile and peripheral products
+
+- Expo mobile TypeScript passes and the app has auth, camera/gallery upload,
+  generation, video jobs, history, sharing, and settings.
+- It remains a 5,338-line parallel implementation with duplicated landing/example
+  assets and is not store-ready: paid plans, final store assets/compliance, and
+  real device quality testing remain unfinished.
+- The mobile dependency audit currently has 12 moderate transitive Expo findings.
+- Telegram compiles and is a useful future channel, but it is peripheral to
+  proving the main seller workflow.
+
+Decision remains unchanged:
+
+- Freeze native feature expansion.
+- Prove the website/PWA seller funnel first.
+- Resume native work only after upload -> generation -> download -> payment is
+  reliable and converting.
+
+### Tomorrow implementation order
+
+Follow this order and record/commit each completed chunk. Do not push without
+explicit user approval.
+
+1. **Restore the public product surface**
+   - Build the latest frontend.
+   - Deploy it to SpaceWeb/custom domain.
+   - Verify asset hashes and `domstudio-shell-v18` or newer on `domstudio.site`.
+
+2. **Restore generation connectivity without broad GPU spend**
+   - Check AutoDL instance/service state.
+   - Restore one reachable Comfy `/system_stats` endpoint.
+   - Correct Amvera `COMFYUI_URL_OVERRIDE` precedence/configuration.
+   - Add/verify dependency-aware generation health.
+   - Run one Catalog preservation test only after connectivity is proven.
+
+3. **Resolve billing/usage contract and make backend tests green**
+   - Keep token charging atomic.
+   - Track successful photo usage accurately for Account or remove the counter.
+   - Update stale generation tests to the chosen contract.
+   - Run the full backend suite.
+
+4. **Fix navigation responsiveness**
+   - Prevent clipped controls from 1024 through 1440 widths.
+   - Validate logged-out and logged-in headers.
+
+5. **Reduce landing media cost**
+   - Lazy-mount videos and stop duplicate off-screen requests.
+   - Optimize the largest result images.
+   - Shorten Home while preserving the approved visual direction.
+
+6. **Add release safety**
+   - CI for backend tests, frontend build, mobile typecheck, and a focused
+     Playwright smoke suite.
+   - Add seller-funnel analytics and dependency/error monitoring.
+
+7. **Harden auth and async generation before scaling traffic**
+   - Auth/OTP rate limits and safer token storage.
+   - Redis job queue and temporary object storage.
+
+Tomorrow's definition of success:
+
+- The real domain serves the current UI.
+- Generation health reflects reality.
+- One narrow real Catalog request succeeds through the live backend.
+- Full backend tests pass under the chosen token/photo usage contract.
+- Header actions are accessible at desktop/tablet widths.
+- No automatic GitHub push is performed.
