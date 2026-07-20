@@ -110,28 +110,15 @@ async def release_video_quota(db: AsyncSession, user_id, provider: str) -> None:
     )
 
 
-async def reserve_photo_quota(db: AsyncSession, user_id):
+async def record_photo_usage(db: AsyncSession, user_id):
+    """Increment the successful-photo counter without creating a second limit."""
     result = await db.execute(
         update(Subscription)
-        .where(
-            Subscription.user_id == user_id,
-            Subscription.photos_used < Subscription.photos_limit,
-        )
+        .where(Subscription.user_id == user_id)
         .values(photos_used=Subscription.photos_used + 1)
         .returning(Subscription.photos_used, Subscription.photos_limit)
     )
     return result.first()
-
-
-async def release_photo_quota(db: AsyncSession, user_id) -> None:
-    await db.execute(
-        update(Subscription)
-        .where(
-            Subscription.user_id == user_id,
-            Subscription.photos_used > 0,
-        )
-        .values(photos_used=Subscription.photos_used - 1)
-    )
 
 
 def _image_dimensions(b64: str) -> tuple[int, int]:
@@ -175,6 +162,7 @@ async def generate(
         await change_balance(db, current_user.id, IMAGE_TOKEN_COST)
         raise HTTPException(502, f"Generation failed: {exc}") from exc
 
+    usage = await record_photo_usage(db, current_user.id)
     w, h = _image_dimensions(result.get("image", ""))
 
     return {
@@ -183,6 +171,8 @@ async def generate(
         "height":         h or None,
         "tokens_charged": IMAGE_TOKEN_COST,
         "token_balance":  balance,
+        "quota_used":     usage[0] if usage else None,
+        "quota_limit":    usage[1] if usage else None,
     }
 
 

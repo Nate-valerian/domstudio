@@ -72,7 +72,7 @@ class FakeClient:
 
 class GenerationTests(unittest.IsolatedAsyncioTestCase):
     async def test_charges_tokens_and_returns_worker_result(self):
-        db = FakeDb([(1, 5), 900])
+        db = FakeDb([900, (1, 5)])
         user = SimpleNamespace(id=uuid.uuid4())
 
         with patch.object(generation, "GENERATION_PROVIDER", "worker"):
@@ -91,7 +91,7 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(db.statements), 2)
 
     async def test_can_use_comfy_provider(self):
-        db = FakeDb([(1, 5), 900])
+        db = FakeDb([900, (1, 5)])
         user = SimpleNamespace(id=uuid.uuid4())
 
         async def fake_comfy(req):
@@ -110,7 +110,7 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(db.statements), 2)
 
     async def test_refunds_tokens_when_worker_fails(self):
-        db = FakeDb([(1, 5), 900, 1000, None])
+        db = FakeDb([900, 1000])
         user = SimpleNamespace(id=uuid.uuid4())
         failing_client = type("FailingClient", (FakeClient,), {
             "payload": {"status": "error", "error": "worker unavailable"},
@@ -126,24 +126,9 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
                     )
 
         self.assertEqual(raised.exception.status_code, 502)
-        self.assertEqual(len(db.statements), 4)
+        self.assertEqual(len(db.statements), 2)
 
     async def test_rejects_generation_when_balance_is_insufficient(self):
-        db = FakeDb([(1, 5), None, None])
-        user = SimpleNamespace(id=uuid.uuid4())
-
-        with self.assertRaises(HTTPException) as raised:
-            await generation.generate(
-                generation.GenerateRequest(subject="gold earrings"),
-                db,
-                user,
-            )
-
-        self.assertEqual(raised.exception.status_code, 402)
-        self.assertEqual(raised.exception.detail, "Insufficient tokens")
-        self.assertEqual(len(db.statements), 3)
-
-    async def test_rejects_generation_when_photo_quota_is_exhausted(self):
         db = FakeDb([None])
         user = SimpleNamespace(id=uuid.uuid4())
 
@@ -155,8 +140,26 @@ class GenerationTests(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertEqual(raised.exception.status_code, 402)
-        self.assertEqual(raised.exception.detail, "Photo quota exceeded")
+        self.assertEqual(raised.exception.detail, "Insufficient tokens")
         self.assertEqual(len(db.statements), 1)
+
+    async def test_allows_generation_beyond_photo_limit_when_tokens_are_available(self):
+        db = FakeDb([900, (6, 5)])
+        user = SimpleNamespace(id=uuid.uuid4())
+
+        with patch.object(generation, "GENERATION_PROVIDER", "worker"):
+            with patch.object(generation.httpx, "AsyncClient", FakeClient):
+                result = await generation.generate(
+                    generation.GenerateRequest(subject="gold earrings"),
+                    db,
+                    user,
+                )
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["quota_used"], 6)
+        self.assertEqual(result["quota_limit"], 5)
+        self.assertEqual(result["token_balance"], 900)
+        self.assertEqual(len(db.statements), 2)
 
     async def test_video_token_cost_is_free_for_local_and_paid_for_premium(self):
         self.assertEqual(

@@ -7609,3 +7609,53 @@ Tomorrow's definition of success:
 - Full backend tests pass under the chosen token/photo usage contract.
 - Header actions are accessible at desktop/tablet widths.
 - No automatic GitHub push is performed.
+
+---
+
+## July 20, 2026 - Successful Photo Usage Accounting Restored
+
+Resolved the image-generation accounting decision from the July 16 audit.
+
+Contract:
+
+- Tokens remain the only hard limit for image generation.
+- `photos_used` is an informational counter of successful image generations,
+  not a second quota gate.
+- Users with top-up tokens may generate beyond the plan's advertised photo
+  count; the counter may therefore exceed `photos_limit` and should report that
+  usage honestly.
+- Failed generations refund their token charge and do not increment
+  `photos_used`.
+- Requests with insufficient tokens stop before either generation or photo
+  accounting occurs.
+
+Backend changes:
+
+- Replaced the unused photo quota reservation/release helpers with
+  `record_photo_usage()`.
+- The successful `/generation/generate` path now atomically increments
+  `Subscription.photos_used` after the worker or Comfy result is confirmed.
+- The response again includes `quota_used` and `quota_limit` so existing web
+  and mobile account surfaces receive consistent usage information.
+- Updated the stale generation tests to match the token-only hard-limit
+  contract, including explicit coverage for usage beyond `photos_limit`.
+
+Files changed:
+
+- `domstudio-backend/routers/generation.py`
+- `domstudio-backend/tests/test_generation.py`
+- `DOMSTUDIO_ARCHIVE.md`
+
+Validation:
+
+```text
+python -m unittest tests.test_generation -v
+Ran 10 tests
+OK
+
+python -m unittest discover -s tests -v
+Ran 69 tests
+OK
+```
+
+No production deployment or GitHub push was performed.
