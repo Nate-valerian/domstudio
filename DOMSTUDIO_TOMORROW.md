@@ -290,3 +290,81 @@ After navigation:
 
 Do not restart a broad redesign. Keep the approved orange/cream,
 marketplace-first direction.
+
+## July 22, 2026 Continuation Note
+
+Completed:
+
+- Fixed the desktop/tablet header overflow in
+  `domstudio-frontend/src/styles.css`.
+- Raised only the navigation collapsed-menu breakpoint from 980px to 1620px.
+- Kept the rest of the tablet/page layout on its existing 980px breakpoint, so
+  the change does not trigger a broad layout redesign.
+- Removed the inherited intermediate `max-width` restriction from the open
+  navigation panel so its controls remain inside the viewport.
+- The approved full desktop header remains active from 1621px upward.
+- Login, Register, Create photo, Fast/Advanced mode, language, token/profile,
+  and navigation destinations remain accessible through the header or open
+  menu in the relevant authenticated/logged-out state.
+- Added the full implementation and validation record to
+  `DOMSTUDIO_ARCHIVE.md`.
+- Implementation/archive commit: `5cc73de Fix responsive header overflow`.
+- The production build passed with `VITE_IMGLY_PUBLIC_PATH=cdn`.
+- Rechecked the production bundle after the connection interruption across 20
+  Russian-language state/viewport combinations:
+  - logged out and authenticated;
+  - 390, 640, 1024, 1180, 1280, 1366, 1440, 1620, 1621, and 1920px;
+  - zero clipped header controls;
+  - zero clipped open-menu controls;
+  - zero horizontal document overflow.
+- Representative 1024px logged-out, 1440px authenticated, and 1920px desktop
+  screenshots were inspected.
+- `main` and `origin/main` are currently aligned at `5cc73de`.
+- Existing untracked preview media, temporary output, ZIP artifacts, and helper
+  scripts remain intentionally untouched.
+- No production deployment was performed as part of the navigation task.
+
+Tomorrow's primary task: reduce homepage media cost and page length without
+changing the approved orange/cream marketplace-first direction.
+
+Implementation order:
+
+1. Establish a fresh production baseline on desktop and mobile:
+   - document height;
+   - image/video element counts;
+   - initial transferred bytes;
+   - duplicate, aborted, and off-screen video requests.
+2. Fix video loading first:
+   - mount only the currently active scenario/showcase video;
+   - avoid duplicate video elements for the same active proof;
+   - use posters and `preload="none"` for inactive/off-screen media;
+   - confirm changing a scenario starts the correct video without retaining the
+     previous request.
+3. Reduce image weight:
+   - identify the largest landing PNG assets from the production build;
+   - convert suitable assets to WebP/AVIF while visually checking product and
+     text quality;
+   - keep originals where conversion causes visible degradation.
+4. Shorten Home surgically:
+   - retain the hero and strongest marketplace proof;
+   - retain three strongest proof/workflow sections, pricing, and a clear final
+     CTA;
+   - move redundant or deep example collections to Examples instead of
+     deleting useful proof;
+   - preserve the approved comparison, video-honesty, FAQ, support, and free
+     tools decisions unless the new section inventory shows genuine
+     duplication.
+5. Validate the complete frontend:
+   - run the production build with the IMG.LY CDN path;
+   - compare before/after page weight and request counts;
+   - check desktop and mobile layout, active video switching, and the fixed
+     navigation states;
+   - archive the measurements and commit the intended files locally.
+6. Prepare one intentional custom-domain release:
+   - verify the built asset hashes and service-worker cache version;
+   - request explicit approval before any push or production deployment;
+   - after approval, deploy the completed frontend to `domstudio.site` and
+     verify it in a fresh/incognito context.
+
+Do not work on native mobile expansion, a broad visual redesign, permanent
+media storage, or paid GPU experiments during this pass.
