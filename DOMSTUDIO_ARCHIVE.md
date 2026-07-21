@@ -7699,3 +7699,46 @@ Order after navigation:
    surface in one intentional release.
 
 Native mobile expansion and broad visual redesign remain out of scope.
+
+---
+
+## July 22, 2026 - Desktop And Tablet Navigation Overflow Fixed
+
+Resolved the header clipping identified in the July 16 audit and July 21
+handoff.
+
+Cause:
+
+- The full desktop navigation remained active down to 981px even though the
+  combined brand, navigation links, Fast/Advanced switch, authentication
+  actions, Create action, and language control were wider than the viewport.
+- Hidden horizontal overflow made the rightmost controls inaccessible.
+
+Frontend change:
+
+- Raised the navigation-only collapsed-menu breakpoint from 980px to 1620px.
+- Kept the rest of the tablet/page layout on its existing 980px breakpoint, so
+  this is a surgical header fix rather than a broad responsive redesign.
+- Removed the inherited intermediate `max-width` constraint from the collapsed
+  link panel so its menu remains inside the available viewport.
+- The approved full desktop navigation remains active from 1621px upward.
+
+Validation:
+
+- Production build passed with `VITE_IMGLY_PUBLIC_PATH=cdn`.
+- Checked Russian logged-out and authenticated headers at 1024, 1180, 1280,
+  1366, and 1440px, plus the 1620/1621 breakpoint boundary.
+- Added mobile regression checks at 390 and 640px and a wide-desktop check at
+  1920px.
+- Rechecked the production build across 20 state/viewport combinations: zero
+  clipped header controls, zero clipped open-menu controls, and zero horizontal
+  document overflow.
+- Representative screenshots were inspected for the 1024px logged-out menu,
+  1440px authenticated menu, and unchanged 1920px full navigation.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `DOMSTUDIO_ARCHIVE.md`
+
+No production deployment or GitHub push was performed.
