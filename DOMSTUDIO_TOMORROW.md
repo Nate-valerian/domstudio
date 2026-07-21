@@ -249,3 +249,44 @@ Start tomorrow by checking the deployed Vercel build:
 3. If the old gold flacon card still appears, inspect the deployed JS for
    `Cosmetics and displays` or `example-bottle-creative`; latest build should
    not include either string.
+
+## July 21, 2026 Continuation Note
+
+Completed today:
+
+- Resolved the image usage-accounting decision.
+- Tokens remain the only hard image-generation limit.
+- Successful image generations now increment `Subscription.photos_used`.
+- Failed generations refund tokens without incrementing photo usage.
+- Users with top-up tokens may honestly show usage above `photos_limit`.
+- Focused generation tests passed: 10 tests.
+- Full backend suite passed: 69 tests.
+- Implementation and archive commit: `46b9125 Track successful photo usage`.
+- `main` and `origin/main` are aligned at `46b9125`.
+- Existing untracked preview media, temporary output, ZIP artifacts, and helper
+  scripts remain intentionally untouched.
+
+Start tomorrow with the desktop/tablet navigation fix:
+
+1. Reproduce the header at 1024, 1180, 1280, 1366, and 1440px.
+2. Check both logged-out and logged-in navigation states.
+3. Prevent Login/Register/Create/mode/language controls from being clipped or
+   hidden beyond the viewport.
+4. Prefer a higher collapsed-navigation breakpoint or progressive action
+   simplification; keep the approved wide-desktop design intact.
+5. Run the frontend production build and browser viewport checks.
+6. Record the result in `DOMSTUDIO_ARCHIVE.md`, commit locally, and do not push
+   without explicit approval.
+
+After navigation:
+
+1. Optimize and shorten the homepage:
+   - mount only active videos;
+   - stop duplicate and off-screen video requests;
+   - optimize large images to WebP/AVIF where quality permits;
+   - keep the strongest proof on Home and move excess proof to Examples.
+2. Build the complete improved frontend and deploy it to `domstudio.site`, so
+   the real domain receives the fixes in one intentional release.
+
+Do not restart a broad redesign. Keep the approved orange/cream,
+marketplace-first direction.

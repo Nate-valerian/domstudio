@@ -7659,3 +7659,43 @@ OK
 ```
 
 No production deployment or GitHub push was performed.
+
+---
+
+## July 21, 2026 - Tomorrow Handoff After Usage Accounting
+
+User asked to pause and continue tomorrow after completing the first site
+improvement item.
+
+Current committed state:
+
+- `main` and `origin/main` are aligned at commit `46b9125`.
+- `46b9125 Track successful photo usage` implements the token-only hard-limit
+  contract and accurate successful-photo accounting.
+- Focused generation suite: 10 tests passed.
+- Full backend suite: 69 tests passed.
+- No tracked implementation changes are pending before this handoff note.
+- Existing untracked previews, generated media, ZIP output, temporary folders,
+  and unrelated helper scripts remain intentionally untouched.
+
+Tomorrow's first task:
+
+- Fix the desktop/tablet navigation overflow identified in the July 16 audit.
+- Reproduce and validate both authenticated and logged-out headers at 1024,
+  1180, 1280, 1366, and 1440px.
+- Keep every important action accessible; no control may be clipped behind
+  hidden horizontal overflow.
+- Prefer raising the collapsed-menu breakpoint or progressively simplifying
+  actions before changing the approved wide-desktop design.
+- Validate with a frontend production build and browser viewport screenshots.
+- Archive and commit the navigation change locally; do not push without
+  explicit approval.
+
+Order after navigation:
+
+1. Reduce homepage media cost and page length without changing the approved
+   visual direction.
+2. Build and deploy the resulting frontend to the real `domstudio.site`
+   surface in one intentional release.
+
+Native mobile expansion and broad visual redesign remain out of scope.
