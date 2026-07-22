@@ -1124,6 +1124,47 @@ h1 em { color: var(--gold); font-style: normal; }
   font-weight: 900;
   text-transform: uppercase;
 }
+.video-active-pair { cursor: pointer; }
+.video-active-pair .video-sequence-card {
+  opacity: 1;
+  animation: none;
+}
+.video-active-pair .video-still-card {
+  left: 43%;
+  top: 54px;
+  bottom: 28px;
+  width: min(58%, 360px);
+  z-index: 1;
+  transform: translateX(-68%) rotate(-5deg) scale(.94);
+}
+.video-active-pair .video-motion-card {
+  left: 56%;
+  top: 10px;
+  bottom: 0;
+  width: min(62%, 390px);
+  z-index: 2;
+  transform: translateX(-25%) rotate(3deg);
+}
+.video-active-pair:focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; border-radius: 24px; }
+.video-showcase-controls {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 360px);
+}
+.video-showcase-controls button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255,157,46,.42);
+  border-radius: 50%;
+  background: #fffaf0;
+  color: var(--ink);
+  font-size: 18px;
+  cursor: pointer;
+}
+.video-showcase-controls button:hover { border-color: var(--gold); transform: translateY(-1px); }
+.video-showcase-controls b { overflow: hidden; font-size: 12px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 @keyframes video-card-sequence {
   0%, 8% {
     opacity: 0;
@@ -2435,6 +2476,8 @@ h1 em { color: var(--gold); font-style: normal; }
   }
   .video-sequence-card:nth-child(1) { transform: translateX(-72%) rotate(-4deg) scale(.94); }
   .video-sequence-card:nth-child(2) { transform: translateX(-34%) rotate(2deg) scale(1); }
+  .video-active-pair .video-still-card { transform: translateX(-68%) rotate(-5deg) scale(.94); }
+  .video-active-pair .video-motion-card { transform: translateX(-25%) rotate(3deg); }
 }
 
 @media (max-width: 640px) {

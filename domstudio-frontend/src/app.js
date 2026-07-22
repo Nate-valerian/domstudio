@@ -728,6 +728,7 @@ const state = {
   navMenuOpen: false,
   presetsOpen: false,
   selectedLookScenario: "suit",
+  selectedVideoShowcaseIndex: 0,
   navCompact: window.scrollY > 24,
   verificationContact: null,
   verificationKind: "email",
@@ -870,6 +871,7 @@ const state = {
 const app = document.querySelector("#app");
 let lastMotionKey = "";
 let videoPollTimer = null;
+let demoVideoObserver = null;
 
 function routeFromHash() {
   return (location.hash.slice(1).split("?")[0] || "home").trim() || "home";
@@ -1707,6 +1709,10 @@ function footer() {
 function homePage() {
   const activeLookIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   const activeLook = LOOK_SCENARIOS[activeLookIndex] || LOOK_SCENARIOS[0];
+  const activeVideoShowcaseIndex = Math.max(0, Math.min(state.selectedVideoShowcaseIndex, VIDEO_SHOWCASE_ITEMS.length - 1));
+  const activeVideoShowcase = VIDEO_SHOWCASE_ITEMS[activeVideoShowcaseIndex] || VIDEO_SHOWCASE_ITEMS[0];
+  const previousVideoShowcaseIndex = (activeVideoShowcaseIndex - 1 + VIDEO_SHOWCASE_ITEMS.length) % VIDEO_SHOWCASE_ITEMS.length;
+  const nextVideoShowcaseIndex = (activeVideoShowcaseIndex + 1) % VIDEO_SHOWCASE_ITEMS.length;
   const heroProof = {
     before: carBeforeUrl,
     after: carShowroomAfterUrl,
@@ -1757,7 +1763,7 @@ function homePage() {
               </figure>
               <figure class="landing-media video-media">
                 <span class="media-tag">${t("home.video")}</span>
-                <video src="${heroProof.video}" poster="${heroProof.after}" aria-label="${heroProof.videoAlt}" autoplay muted loop playsinline controls preload="auto"></video>
+                <video src="${heroProof.video}" poster="${heroProof.after}" aria-label="${heroProof.videoAlt}" autoplay muted loop playsinline controls preload="metadata" data-video-eager></video>
               </figure>
             </div>
             <div class="mini-studio-controls">
@@ -1806,7 +1812,7 @@ function homePage() {
                 <span>${t("home.after")}</span>
               </figure>
               <figure class="result-video-card">
-                <video src="${heroProof.video}" poster="${heroProof.after}" aria-label="${t("home.video")}" autoplay muted loop playsinline preload="metadata"></video>
+                <img src="${heroProof.after}" alt="${t("home.video")}" loading="lazy" />
                 <span>${t("home.video")}</span>
               </figure>
             </div>
@@ -1836,7 +1842,7 @@ function homePage() {
             </div>
             <figure class="triplet-card triplet-video">
               <span><b>02</b>${t("home.lookFlowVideo")}</span>
-              <video src="${activeLook.video}" poster="${activeLook.result}" aria-label="${t(activeLook.titleKey)} ${t("home.lookFlowVideo")}" autoplay muted loop playsinline preload="metadata"></video>
+              <video data-video-src="${activeLook.video}" poster="${activeLook.result}" aria-label="${t(activeLook.titleKey)} ${t("home.lookFlowVideo")}" autoplay muted loop playsinline preload="none"></video>
             </figure>
             <figure class="triplet-card triplet-after">
               <span><b>03</b>${t("home.lookFlowAfter")}</span>
@@ -1861,21 +1867,24 @@ function homePage() {
           </div>
         </article>
         <article class="showcase-block video-showcase">
-          <div class="showcase-video-stack video-sequence-stack" aria-label="${t("home.videoShowSequenceLabel")}">
-            ${VIDEO_SHOWCASE_ITEMS.map((item, index) => `
-              <figure class="video-sequence-card video-still-card" style="--step: ${index * 2};">
-                <img src="${item.image}" alt="${t(item.labelKey)}" loading="lazy" />
-                <span>${t("home.videoShowStill")}</span>
-              </figure>
-              <figure class="video-sequence-card video-motion-card" style="--step: ${index * 2 + 1};">
-                <video src="${item.video}" poster="${item.image}" aria-label="${t(item.labelKey)}" autoplay muted loop playsinline preload="metadata"></video>
-                <span>${t("home.video")}</span>
-              </figure>
-            `).join("")}
+          <div class="showcase-video-stack video-sequence-stack video-active-pair" data-video-showcase-next role="button" tabindex="0" aria-live="polite" aria-label="${t("home.videoShowSequenceLabel")}">
+            <figure class="video-sequence-card video-still-card">
+              <img src="${activeVideoShowcase.image}" alt="${t(activeVideoShowcase.labelKey)}" loading="lazy" />
+              <span>${t("home.videoShowStill")}</span>
+            </figure>
+            <figure class="video-sequence-card video-motion-card">
+              <video data-video-src="${activeVideoShowcase.video}" poster="${activeVideoShowcase.image}" aria-label="${t(activeVideoShowcase.labelKey)}" autoplay muted loop playsinline preload="none"></video>
+              <span>${t("home.video")}</span>
+            </figure>
           </div>
           <div class="showcase-copy">
             <span>${t("home.videoShowLabel")}</span>
             <h3>${t("home.videoShowH3")}</h3>
+            <div class="video-showcase-controls" aria-label="${t("home.videoShowSequenceLabel")}">
+              <button type="button" data-video-showcase="${previousVideoShowcaseIndex}" aria-label="${t(VIDEO_SHOWCASE_ITEMS[previousVideoShowcaseIndex].labelKey)}">←</button>
+              <b>${t(activeVideoShowcase.labelKey)}</b>
+              <button type="button" data-video-showcase="${nextVideoShowcaseIndex}" aria-label="${t(VIDEO_SHOWCASE_ITEMS[nextVideoShowcaseIndex].labelKey)}">→</button>
+            </div>
             <p>${t("home.videoShowP")}</p>
             <ul>
               <li>${t("home.videoShowBullet1")}</li>
@@ -1927,7 +1936,7 @@ function homePage() {
             </figure>
             <figure class="landing-media video-media">
               <span class="media-tag">${t("home.video")}</span>
-              <video src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="auto"></video>
+              <video data-video-src="${landingWineVideoUrl}" poster="${landingWineAfterUrl}" aria-label="DomStudio porcelain product video" autoplay muted loop playsinline controls preload="none"></video>
             </figure>
           </article>
           <div class="proof-copy">
@@ -3596,31 +3605,55 @@ function render(options = {}) {
 
 function prepareDemoVideos() {
   const videos = [...document.querySelectorAll(".landing-media video, .example-media video, .seller-step-media video, .showcase-video-card video, .video-sequence-card video, .triplet-card video")];
+  demoVideoObserver?.disconnect();
+  demoVideoObserver = null;
+
+  const play = (video) => {
+    const deferredSource = video.dataset.videoSrc;
+    if (deferredSource && !video.getAttribute("src")) {
+      video.src = deferredSource;
+      video.removeAttribute("data-video-src");
+      video.load();
+    }
+    const attempt = video.play();
+    if (attempt && typeof attempt.catch === "function") attempt.catch(() => {});
+  };
+
+  if ("IntersectionObserver" in window) {
+    demoVideoObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        play(entry.target);
+        demoVideoObserver?.unobserve(entry.target);
+      });
+    }, { rootMargin: "160px 0px", threshold: 0.05 });
+  }
+
   videos.forEach((video) => {
     video.muted = true;
     video.defaultMuted = true;
     video.autoplay = true;
     video.loop = true;
     video.playsInline = true;
-    video.preload = "auto";
     video.setAttribute("muted", "");
     video.setAttribute("autoplay", "");
     video.setAttribute("loop", "");
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
 
-    const play = () => {
-      const attempt = video.play();
-      if (attempt && typeof attempt.catch === "function") attempt.catch(() => {});
-    };
-
-    if (video.readyState >= 2) {
-      requestAnimationFrame(play);
+    if (video.hasAttribute("data-video-eager")) {
+      requestAnimationFrame(() => play(video));
+    } else if (video.dataset.videoSrc) {
+      video.preload = "none";
+      if (demoVideoObserver) demoVideoObserver.observe(video);
+      else play(video);
+    } else if (video.readyState >= 2) {
+      requestAnimationFrame(() => play(video));
     } else {
-      video.addEventListener("loadeddata", play, { once: true });
-      video.addEventListener("canplay", play, { once: true });
+      video.addEventListener("loadeddata", () => play(video), { once: true });
+      video.addEventListener("canplay", () => play(video), { once: true });
     }
-    video.addEventListener("click", play, { passive: true });
+    video.addEventListener("click", () => play(video), { passive: true });
   });
 }
 
@@ -3782,6 +3815,14 @@ function bind() {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       advanceLookScenario();
+    }
+  });
+  document.querySelectorAll("[data-video-showcase]").forEach(el => el.addEventListener("click", () => selectVideoShowcase(Number(el.dataset.videoShowcase))));
+  document.querySelector("[data-video-showcase-next]")?.addEventListener("click", () => advanceVideoShowcase());
+  document.querySelector("[data-video-showcase-next]")?.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      advanceVideoShowcase();
     }
   });
   document.querySelector("#generate-form")?.addEventListener("input", event => {
@@ -4660,6 +4701,17 @@ function selectLookScenario(id) {
 function advanceLookScenario() {
   const currentIndex = Math.max(0, LOOK_SCENARIOS.findIndex((item) => item.id === state.selectedLookScenario));
   state.selectedLookScenario = LOOK_SCENARIOS[(currentIndex + 1) % LOOK_SCENARIOS.length].id;
+  render({ motion: false });
+}
+
+function selectVideoShowcase(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= VIDEO_SHOWCASE_ITEMS.length) return;
+  state.selectedVideoShowcaseIndex = index;
+  render({ motion: false });
+}
+
+function advanceVideoShowcase() {
+  state.selectedVideoShowcaseIndex = (state.selectedVideoShowcaseIndex + 1) % VIDEO_SHOWCASE_ITEMS.length;
   render({ motion: false });
 }
 

@@ -7742,3 +7742,65 @@ Files changed:
 - `DOMSTUDIO_ARCHIVE.md`
 
 No production deployment or GitHub push was performed.
+
+---
+
+## July 22, 2026 - Homepage Video Loading Cost Reduced
+
+Completed the first homepage-performance item as a separate implementation
+chunk: stop every landing video from loading and playing on initial render.
+
+Baseline from fresh local production contexts with service workers blocked:
+
+- Desktop 1440x900: 12 video elements, all 12 loaded and playing, approximately
+  42.5 MB transferred in the first six seconds.
+- Mobile 390x844: 12 video elements, all 12 loaded and playing, approximately
+  30.5 MB transferred in the first six seconds.
+- The initial page produced duplicate requests for the same proof and many
+  aborted/off-screen MP4 requests.
+
+Frontend changes:
+
+- Kept only the above-the-fold hero proof eager, with metadata preloading.
+- Replaced the duplicate workflow car video with its poster image.
+- Deferred the active look, video-showcase, and lower proof videos with
+  `preload="none"` and an `IntersectionObserver`; their MP4 source is assigned
+  only when the section approaches the viewport.
+- Reworked the eight-video animated showcase into one active Before/Video pair
+  with compact previous/next controls. Only the selected showcase video is
+  mounted.
+- Scenario and showcase changes replace the active video node, so the previous
+  source is not retained in the DOM.
+- Removed the old runtime behavior that forced every demo video to
+  `preload="auto"` and immediately called `play()`.
+
+Measured result using the same fresh-context check:
+
+- Desktop 1440x900: 4 video elements in the DOM, only 1 loaded/playing, one
+  initial MP4 request, approximately 12.3 MB total transferred.
+- Mobile 390x844: 4 video elements in the DOM, only 1 loaded/playing, one
+  initial MP4 request, approximately 5.9 MB total transferred.
+- This reduced the measured initial transfer by about 71% on desktop and 81%
+  on mobile. Initial loaded/playing videos fell from 12 to 1.
+
+Validation:
+
+- Production build passed with `VITE_IMGLY_PUBLIC_PATH=cdn`.
+- Look scenario switching was checked from Fashion to Pastry; the active source
+  changed to `pastry-cream-5s` and played with one look video node.
+- Video-showcase switching was checked from Fashion to Formal; the active
+  source changed to `premium-formal-outfit-after-5s` and played with one
+  showcase video node.
+- Desktop and mobile showcase screenshots were inspected.
+- Regression checks at 390, 1024, 1440, and 1920px found no broken images, no
+  horizontal document overflow, and no JavaScript page errors.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `DOMSTUDIO_ARCHIVE.md`
+
+No production deployment or GitHub push was performed. The next separate
+homepage-performance item is to optimize the largest landing PNG assets while
+preserving visual quality.
