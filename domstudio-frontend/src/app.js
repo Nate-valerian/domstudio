@@ -809,6 +809,7 @@ const state = {
   contentTokenUnit: 10,
   contentToolSlug: null,
   adpilotView: "tools",
+  adpilotPreviewSlug: "ozon-wb-card",
   adpilotContextImage: null,
   contentDraft: Object.fromEntries(Object.keys(initialContentDefaults.draft).map((k) => [k, ""])),
   contentProfile: { ...Object.fromEntries(Object.keys(initialContentDefaults.profile).map((k) => [k, ""])), phone: "+7" },
@@ -2690,39 +2691,126 @@ function copyStudioPage() {
   };
 
   if (!state.contentToolSlug) {
+    const previewOptions = [
+      { slug: "ozon-wb-card", label: "WB / Ozon", sampleKey: "marketplace", ctaKey: "adpilot.desk.createCard" },
+      { slug: "avito-ad", label: "Avito", sampleKey: "avito", ctaKey: "adpilot.desk.createListing" },
+      { slug: "vk-post", label: "VK", sampleKey: "social", ctaKey: "adpilot.desk.createPost" },
+      { slug: "yandex-ads", label: getLang() === "ru" ? "Яндекс" : "Yandex", sampleKey: "ads", ctaKey: "adpilot.desk.createAd" },
+    ];
+    const activePreview = previewOptions.find((item) => item.slug === state.adpilotPreviewSlug) || previewOptions[0];
+    const activePreviewTool = state.contentTools.find((item) => item.slug === activePreview.slug) || CONTENT_TOOLS_FALLBACK.find((item) => item.slug === activePreview.slug);
+    const previewBody = t(`adpilot.desk.preview.${activePreview.sampleKey}.body`);
+    const workflows = [
+      {
+        className: "featured",
+        icon: "▦",
+        titleKey: "adpilot.desk.workflow.marketplace.title",
+        descKey: "adpilot.desk.workflow.marketplace.desc",
+        slugs: ["ozon-wb-card", "product-description"],
+      },
+      {
+        className: "",
+        icon: "✦",
+        titleKey: "adpilot.desk.workflow.promotion.title",
+        descKey: "adpilot.desk.workflow.promotion.desc",
+        slugs: ["yandex-ads", "vk-post", "avito-ad", "landing-page", "beauty-promo-post", "food-promo-post"],
+      },
+      {
+        className: "",
+        icon: "◌",
+        titleKey: "adpilot.desk.workflow.reputation.title",
+        descKey: "adpilot.desk.workflow.reputation.desc",
+        slugs: ["avito-reply", "review-reply", "price-objection", "auto-buyer-reply"],
+      },
+    ];
+    const categoryOrder = ["Marketplace", "Avito", "Ads", "Social", "Retention", "Beauty", "Food", "Auto", "Pages"];
+    const categoryGroups = categoryOrder
+      .map((category) => ({ category, tools: state.contentTools.filter((item) => item.category === category) }))
+      .filter((group) => group.tools.length);
+    const productPreviewImage = state.adpilotContextImage || premiumBagsAfterUrl;
+    const productPreviewName = state.contentDraft.product || t("adpilot.desk.sampleProduct");
+
     return `<main class="page adpilot-page">
       <section class="workspace copy-workspace adpilot-landing">
-        ${state.adpilotContextImage ? `<div class="copy-context-banner">
-          <div class="copy-context-left">
-            <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
-            <div class="copy-context-info">
-              <span class="eyebrow">${t("adpilotContext.label")}</span>
-              ${state.contentDraft.product ? `<p>${escapeHtml(truncate(state.contentDraft.product, 48))}</p>` : ""}
-            </div>
-          </div>
-          <button class="button secondary copy-context-back" type="button" data-route="tools">${t("nav.tools")}</button>
-        </div>` : ""}
         <div class="adpilot-landing-head">
-          <div class="eyebrow">${t("copy.eyebrow")}</div>
-          <h1>${t("adpilot.landing.h1")}</h1>
-          <p>${t("adpilot.landing.p")}</p>
+          <div class="eyebrow">${t("adpilot.desk.eyebrow")}</div>
+          <h1>${t("adpilot.desk.h1Start")} <em>${t("adpilot.desk.h1Accent")}</em></h1>
+          <p>${t("adpilot.desk.p")}</p>
           ${!state.user ? `<span class="adpilot-free-note">${t("adpilot.anonRemaining", { n: Math.max(0, ANON_ADPILOT_LIMIT - getAnonAdpilotCount()) })}</span>` : ""}
         </div>
-        <div class="adpilot-quick-start">
-          <label class="adpilot-quick-label" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
-          <input id="adpilot-quick-product" class="input adpilot-quick-input" type="text"
-            placeholder="${t("adpilot.quickProductPlaceholder")}"
-            value="${escapeHtml(state.contentDraft.product || "")}" />
-          <div class="adpilot-quick-btns">
-            <button class="button adpilot-quick-btn adpilot-quick-chat" type="button" data-adpilot-chat>${t("adpilot.quickChat")}</button>
-            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="ozon-wb-card">${t("adpilot.quickCard")}</button>
-            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-ad">${t("adpilot.quickAvito")}</button>
-            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="vk-post">${t("adpilot.quickSocial")}</button>
-            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="avito-reply">${t("adpilot.quickReply")}</button>
-            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="yandex-ads">${t("adpilot.quickYandex")}</button>
-            <button class="button adpilot-quick-btn" type="button" data-quick-adpilot="product-description">${t("adpilot.quickDesc")}</button>
+        <div class="adpilot-desk">
+          <div class="adpilot-brief">
+            <div class="adpilot-step"><b>1</b><span>${t("adpilot.desk.briefStep")}</span></div>
+            <div class="adpilot-product-source">
+              <img src="${productPreviewImage}" alt="" />
+              <div>
+                <small>${state.adpilotContextImage ? t("adpilotContext.label") : t("adpilot.desk.sampleLabel")}</small>
+                <strong>${escapeHtml(truncate(productPreviewName, 52))}</strong>
+              </div>
+              ${state.adpilotContextImage ? `<button type="button" data-route="tools">${t("nav.tools")}</button>` : ""}
+            </div>
+            <label class="sr-only" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
+            <textarea id="adpilot-quick-product" class="textarea adpilot-quick-input" rows="3"
+              placeholder="${t("adpilot.quickProductPlaceholder")}">${escapeHtml(state.contentDraft.product || "")}</textarea>
+            <div class="adpilot-channel-label">${t("adpilot.desk.channelLabel")}</div>
+            <div class="adpilot-preview-tabs" role="tablist" aria-label="${t("adpilot.desk.channelLabel")}">
+              ${previewOptions.map((item) => `<button class="${item.slug === activePreview.slug ? "active" : ""}" type="button" role="tab" aria-selected="${item.slug === activePreview.slug}" data-adpilot-preview="${item.slug}">${item.label}</button>`).join("")}
+            </div>
+            <div class="adpilot-desk-actions">
+              <button class="button adpilot-desk-primary" type="button" data-quick-adpilot="${activePreview.slug}">${t(activePreview.ctaKey)} <span aria-hidden="true">→</span></button>
+              <button class="button secondary" type="button" data-adpilot-chat>${t("adpilot.quickChat")}</button>
+            </div>
+          </div>
+          <div class="adpilot-preview">
+            <div class="adpilot-preview-head">
+              <span>${t("adpilot.desk.example")}</span>
+              <small>${t("adpilot.desk.ready")}</small>
+            </div>
+            <div class="adpilot-preview-tabs adpilot-preview-tabs-dark" role="tablist" aria-label="${t("adpilot.desk.example")}">
+              ${previewOptions.map((item) => `<button class="${item.slug === activePreview.slug ? "active" : ""}" type="button" role="tab" aria-selected="${item.slug === activePreview.slug}" data-adpilot-preview="${item.slug}">${item.label}</button>`).join("")}
+            </div>
+            <article class="adpilot-preview-output">
+              <span>${escapeHtml(activePreviewTool ? contentToolName(activePreviewTool) : activePreview.label)}</span>
+              <h2>${t(`adpilot.desk.preview.${activePreview.sampleKey}.title`)}</h2>
+              <p>${previewBody}</p>
+              <footer><span>${t("adpilot.desk.characters", { n: previewBody.length })}</span><span>${t("adpilot.desk.channelReady")}</span></footer>
+            </article>
           </div>
         </div>
+        <div class="adpilot-section-head">
+          <h2>${t("adpilot.desk.workflowsTitle")}</h2>
+          <p>${t("adpilot.desk.workflowsSub")}</p>
+        </div>
+        <div class="adpilot-workflows">
+          ${workflows.map((workflow) => {
+            const firstTool = workflow.slugs.find((slug) => state.contentTools.some((toolItem) => toolItem.slug === slug));
+            const toolCount = workflow.slugs.filter((slug) => state.contentTools.some((toolItem) => toolItem.slug === slug)).length;
+            return `<button class="adpilot-workflow ${workflow.className}" type="button" data-content-tool="${firstTool}">
+              <span class="adpilot-workflow-icon">${workflow.icon}</span>
+              <strong>${t(workflow.titleKey)}</strong>
+              <small>${t(workflow.descKey)}</small>
+              <b>${t("adpilot.desk.toolCount", { n: toolCount })} <span aria-hidden="true">→</span></b>
+            </button>`;
+          }).join("")}
+        </div>
+        <details class="adpilot-tool-index">
+          <summary>
+            <strong>${t("adpilot.desk.allTools", { n: state.contentTools.length })}</strong>
+            <span>${categoryGroups.map((group) => `${escapeHtml(contentToolCategory(group.category))} ${group.tools.length}`).join(" · ")}</span>
+          </summary>
+          <div class="adpilot-tool-groups">
+            ${categoryGroups.map((group) => `<section>
+              <div class="adpilot-tool-group-head">
+                <span>${CATEGORY_META[group.category]?.icon || "✦"}</span>
+                <div><strong>${escapeHtml(contentToolCategory(group.category))}</strong><small>${escapeHtml(CATEGORY_META[group.category]?.desc || "")}</small></div>
+              </div>
+              <div class="adpilot-tool-buttons">
+                ${group.tools.map((groupTool) => `<button type="button" data-content-tool="${groupTool.slug}">${escapeHtml(contentToolName(groupTool))}<span>→</span></button>`).join("")}
+              </div>
+            </section>`).join("")}
+          </div>
+        </details>
+        ${state.user ? `<button class="adpilot-marketplace-link" type="button" data-marketplace-tab="drafts"><span>▤</span><strong>${t("adpilot.desk.marketplaceDrafts")}</strong><small>${t("adpilot.desk.marketplaceDraftsSub")}</small><b>→</b></button>` : ""}
       </section>
     </main>`;
   }
@@ -3891,6 +3979,15 @@ function bind() {
   document.querySelectorAll("[data-quick-adpilot]").forEach(el => el.addEventListener("click", () => {
     const product = document.querySelector("#adpilot-quick-product")?.value || "";
     quickGenerateAdPilot(el.dataset.quickAdpilot, product);
+  }));
+  document.querySelector("#adpilot-quick-product")?.addEventListener("input", (event) => {
+    state.contentDraft = { ...state.contentDraft, product: event.target.value };
+  });
+  document.querySelectorAll("[data-adpilot-preview]").forEach(el => el.addEventListener("click", () => {
+    const product = document.querySelector("#adpilot-quick-product")?.value || "";
+    state.contentDraft = { ...state.contentDraft, product };
+    state.adpilotPreviewSlug = el.dataset.adpilotPreview || "ozon-wb-card";
+    render({ motion: false });
   }));
   document.querySelector("[data-adpilot-chat]")?.addEventListener("click", () => {
     openAdPilotChat(document.querySelector("#adpilot-quick-product")?.value || "");

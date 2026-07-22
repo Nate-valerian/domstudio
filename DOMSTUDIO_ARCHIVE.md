@@ -8112,3 +8112,69 @@ The production redirect is not active until this small ZIP is extracted into
 `domstudio_site/public_html`, replacing only the existing `.htaccess`. After
 upload, verify all four canonical cases plus the v19 index, service worker, SPA
 fallback, and API connectivity before marking the hosting hardening complete.
+
+---
+
+## July 23, 2026 - AdPilot AI Campaign Desk Redesign
+
+Replaced the sparse AdPilot landing strip with a complete, responsive campaign
+desk while preserving the existing generators and backend contracts.
+
+Design and product changes:
+
+- Rendered the proposed desktop and mobile direction as code-native HTML/CSS
+  before implementation so the reviewed concept mapped directly to the app.
+- Added a strong product-first hero and a two-column campaign desk with one
+  product brief, channel selection, and a live result example.
+- Connected the WB/Ozon, Avito, VK, and Yandex tabs to channel-specific preview
+  copy and to the existing quick-generation endpoints.
+- Preserved typed product copy while switching preview channels; an empty
+  generation attempt focuses the product field instead of making a request.
+- Added three high-signal workflow cards for marketplace listings, promotion,
+  and reputation. Each opens an existing real AdPilot tool.
+- Added a collapsible category index containing all 19 available tools rather
+  than displaying seven visually identical quick buttons.
+- Reused incoming photo-tool context inside the new product brief and retained
+  the existing AdPilot AI chat route.
+- Added a signed-in shortcut to marketplace drafts.
+- Added complete Russian and English copy for the new experience.
+- Bumped the PWA shell cache from `domstudio-shell-v19` to
+  `domstudio-shell-v20` so a future frontend deployment replaces the currently
+  cached release.
+
+Validation:
+
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` passed with Vite 7.3.5.
+- `git diff --check` passed.
+- Browser-tested the landing at 390, 640, 1024, 1440, and 1920px with zero
+  horizontal overflow and no page exceptions.
+- Verified channel preview switching, product-input persistence, empty-submit
+  focus, all 19 indexed tools, workflow-to-tool navigation, AI chat navigation,
+  and RU/EN switching.
+- Verified the authenticated variant with a mocked valid session: marketplace
+  drafts is present and the anonymous free-attempt note is absent.
+- Final anonymous browser checks used a deterministic response for
+  `/content/tools`; they completed with no console or page errors.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `AA37684A86C1B753A4F37E6B1CEEFCC9B06A1B4D3E635175E0E54CC1386BB020`.
+- Main application asset: `assets/index-9Ui5J9Ck.js`, 414,778 bytes, SHA-256
+  `F690FF0DBF5973DC36A12C832558C7EB0B8706EDD8964BEBE6FAE0CF23B74438`.
+- Stylesheet: `assets/index-ZP2HOLHR.css`, 122,710 bytes, SHA-256
+  `89C5B1DBD13F1F7E25A7AFEA4C6AA17D240C763C6A7FCDB4446BCE43C6CF0874`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `5B9AFA0E49B01685B46024C5491B75241C9332EC961AF44556B5A3CF92ECB8B6`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+The code is implemented and validated locally. No push, frontend package, or
+production deployment was performed; the live site remains on frontend v19.

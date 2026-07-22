@@ -449,3 +449,32 @@ Next action:
 2. Do not upload or rebuild the full frontend package.
 3. Verify HTTP apex, HTTP `www`, and HTTPS `www` each redirect in one hop to
    HTTPS apex, then recheck the v19 PWA and SPA fallback.
+
+## July 23, 2026 AdPilot Redesign Continuation Note
+
+The AdPilot AI landing experience is redesigned and implemented locally.
+
+- The new campaign desk replaces the centered input and seven identical
+  buttons with a product brief, live channel preview, three workflow cards, and
+  a collapsible index of all 19 tools.
+- WB/Ozon, Avito, VK, and Yandex preview tabs retain the typed product and drive
+  the matching existing quick generator.
+- Existing detailed tool forms, AI chat, photo-to-AdPilot context, and
+  marketplace drafts remain connected.
+- Russian and English states are complete.
+- Browser checks passed at 390, 640, 1024, 1440, and 1920px with no horizontal
+  overflow; anonymous and authenticated behavior was checked.
+- The production build passes and is marked with PWA cache
+  `domstudio-shell-v20`.
+
+Next actions remain intentionally separate:
+
+1. Push the completed local commits when approved.
+2. If the canonical redirect package has not yet been uploaded, deploy and
+   verify that one-file `.htaccess` change independently of frontend assets.
+3. When ready to release the redesign, prepare a new versioned SpaceWeb package
+   from the verified v20 build, upload it as a separate frontend release, and
+   repeat the production route/PWA verification matrix.
+
+Do not overwrite the verified v19 production assets until the v20 frontend
+release package has been intentionally prepared and approved.
