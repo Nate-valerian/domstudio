@@ -103,6 +103,19 @@ const EXAMPLE_IMAGES = [
   { mode: "Stories", product: "Продукты", title: "Вертикальный рекламный сюжет", beforeSrc: lookFoodStorageUrl, src: premiumFoodAfterUrl, videoSrc: premiumFoodVideoUrl, compact: true },
 ];
 
+const CATEGORY_PROOFS = [
+  ["fashion", premiumFashionLoftAfterUrl],
+  ["formal", premiumFormalOutfitAfterUrl],
+  ["mens", premiumMensAccessoriesAfterUrl],
+  ["jewelry", premiumJewelryAfterUrl],
+  ["jewelryClose", premiumJewelryCloseAfterUrl],
+  ["electronics", premiumElectronicsAfterUrl],
+  ["food", premiumFoodAfterUrl],
+  ["bags", premiumBagsAfterUrl],
+  ["home", premiumHomeAfterUrl],
+  ["marketplace", landingWineAfterUrl],
+];
+
 const LOOK_SCENARIOS = [
   {
     id: "suit",
@@ -1721,18 +1734,6 @@ function homePage() {
     afterAlt: "Silver supercar in a premium showroom",
     videoAlt: "DomStudio silver supercar showroom video",
   };
-  const categoryProofs = [
-    ["fashion", premiumFashionLoftAfterUrl],
-    ["formal", premiumFormalOutfitAfterUrl],
-    ["mens", premiumMensAccessoriesAfterUrl],
-    ["jewelry", premiumJewelryAfterUrl],
-    ["jewelryClose", premiumJewelryCloseAfterUrl],
-    ["electronics", premiumElectronicsAfterUrl],
-    ["food", premiumFoodAfterUrl],
-    ["bags", premiumBagsAfterUrl],
-    ["home", premiumHomeAfterUrl],
-    ["marketplace", landingWineAfterUrl],
-  ];
   return `
     <main class="page">
       <section class="hero">
@@ -1896,29 +1897,6 @@ function homePage() {
         </article>
       </section>
 
-      <section class="section category-proof-section">
-        <div class="section-head">
-          <h2>${t("home.categoryH2")}</h2>
-          <p>${t("home.categoryP")}</p>
-        </div>
-        <div class="category-proof-window">
-          <div class="category-proof-grid">
-            ${[...categoryProofs, ...categoryProofs].map(([key, src], index) => `
-              <article class="category-proof-card" aria-hidden="${index >= categoryProofs.length}">
-                <figure>
-                  <img src="${src}" alt="${t(`home.category.${key}.title`)}" loading="lazy" />
-                </figure>
-                <div>
-                  <span>${t(`home.category.${key}.tag`)}</span>
-                  <h3>${t(`home.category.${key}.title`)}</h3>
-                  <p>${t(`home.category.${key}.desc`)}</p>
-                </div>
-              </article>
-            `).join("")}
-          </div>
-        </div>
-      </section>
-
       <section class="section proof-section">
         <div class="section-head">
           <h2>${t("home.proofH2")}</h2>
@@ -1944,29 +1922,6 @@ function homePage() {
             <div class="proof-stat"><b>270 ₽</b><span>${t("home.stat2s")}</span></div>
             <div class="proof-stat"><b>${t("home.stat3b")}</b><span>${t("home.stat3s")}</span></div>
           </div>
-        </div>
-      </section>
-
-      <section class="section modes-section">
-        <div class="section-head">
-          <h2>${t("home.modesH2")}</h2>
-          <p>${t("home.modesP")}</p>
-        </div>
-        <div class="mode-grid">
-          ${MODES.map((mode, index) => `
-            <article class="mode-card">
-              <figure class="mode-visual proof-compare">
-                <img class="proof-after" src="${mode[3]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
-                <div class="proof-before">
-                  <img src="${mode[5]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
-                  <span>${t("home.before")}</span>
-                </div>
-                <span class="proof-after-label">${t("home.after")}</span>
-              </figure>
-              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${t("mode." + mode[0] + ".tag")}</span></div>
-              <h3>${t("mode." + mode[0] + ".name")}</h3>
-              <p>${t("mode." + mode[0] + ".desc")}</p>
-            </article>`).join("")}
         </div>
       </section>
 
@@ -2130,6 +2085,50 @@ function examplesPage() {
                 <h3>${escapeHtml(item.title)}</h3>
                 <p>${escapeHtml(item.product)}</p>
               </div>
+            </article>`).join("")}
+        </div>
+      </section>
+      <section class="section category-proof-section examples-category-proof-section">
+        <div class="section-head">
+          <h2>${t("home.categoryH2")}</h2>
+          <p>${t("home.categoryP")}</p>
+        </div>
+        <div class="category-proof-window">
+          <div class="category-proof-grid">
+            ${[...CATEGORY_PROOFS, ...CATEGORY_PROOFS].map(([key, src], index) => `
+              <article class="category-proof-card" aria-hidden="${index >= CATEGORY_PROOFS.length}">
+                <figure>
+                  <img src="${src}" alt="${t(`home.category.${key}.title`)}" loading="lazy" />
+                </figure>
+                <div>
+                  <span>${t(`home.category.${key}.tag`)}</span>
+                  <h3>${t(`home.category.${key}.title`)}</h3>
+                  <p>${t(`home.category.${key}.desc`)}</p>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        </div>
+      </section>
+      <section class="section modes-section examples-modes-section">
+        <div class="section-head">
+          <h2>${t("home.modesH2")}</h2>
+          <p>${t("home.modesP")}</p>
+        </div>
+        <div class="mode-grid">
+          ${MODES.map((mode, index) => `
+            <article class="mode-card">
+              <figure class="mode-visual proof-compare">
+                <img class="proof-after" src="${mode[3]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
+                <div class="proof-before">
+                  <img src="${mode[5]}" alt="${t("mode." + mode[0] + ".name")}" loading="lazy" />
+                  <span>${t("home.before")}</span>
+                </div>
+                <span class="proof-after-label">${t("home.after")}</span>
+              </figure>
+              <div class="mode-card-topline"><span class="number">0${index + 1}</span><span>${t("mode." + mode[0] + ".tag")}</span></div>
+              <h3>${t("mode." + mode[0] + ".name")}</h3>
+              <p>${t("mode." + mode[0] + ".desc")}</p>
             </article>`).join("")}
         </div>
         <div class="examples-cta">

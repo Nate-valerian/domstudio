@@ -7862,3 +7862,55 @@ Files changed:
 No production deployment or GitHub push was performed. The next separate
 homepage-performance item is to shorten Home surgically and move redundant
 proof collections to Examples without changing the approved visual direction.
+
+---
+
+## July 22, 2026 - Homepage Proof Collections Moved To Examples
+
+Completed the third homepage-performance item as a separate implementation
+chunk: shorten Home without deleting useful proof or changing the approved
+orange/cream marketplace-first direction.
+
+Content decision:
+
+- Kept the hero car proof, three-step seller workflow, interactive look
+  showcase, selectable video showcase, wine Before/After/Video proof,
+  photographer comparison, video-honesty block, FAQ/support, and free tools on
+  Home.
+- Moved the ten-category result carousel and six large mode cards from Home to
+  Examples because they repeat/deepen proof already established earlier on the
+  landing page.
+- Kept the category carousel's full ten-item set and duplicated animation row,
+  all six Before/After mode cards, and the Examples Studio CTA. No proof asset
+  or product capability was deleted.
+- Moved the Examples CTA to the end of the expanded proof collection so the
+  page finishes with the next action.
+
+Measured layout result in fresh production-browser contexts:
+
+- Desktop 1440x900 Home height: 8,633px to 7,079px, an 18.0% reduction.
+- Mobile 390x844 Home height: 11,185px to 8,258px, a 26.2% reduction.
+- Home top-level sections fell from nine to seven and image elements fell from
+  43 to 11.
+- Examples now owns nine curated proof cards, ten unique category cards (20 DOM
+  cards for the seamless carousel), and all six mode cards.
+
+Validation:
+
+- Production build passed with `VITE_IMGLY_PUBLIC_PATH=cdn`.
+- Verified Home retains every approved high-value section on desktop and
+  mobile, with the category and mode collections absent there.
+- Verified Examples contains the curated cards, moved category carousel, moved
+  mode grid, and one final Studio CTA on desktop and mobile.
+- Full-page Home plus moved Examples-section screenshots were inspected.
+- Browser checks found zero horizontal document overflow, zero broken images,
+  and zero JavaScript page errors.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `DOMSTUDIO_ARCHIVE.md`
+
+No production deployment or GitHub push was performed. The next separate item
+is a final complete-frontend regression and custom-domain release preparation;
+any push or production deployment still requires explicit user approval.
