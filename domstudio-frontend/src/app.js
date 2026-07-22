@@ -3133,7 +3133,7 @@ function authModal() {
 
 function toolsPage() {
   const hasResult = Boolean(state.removeBgResult);
-  return `<div class="page tools-page">
+  return `<main class="page tools-page">
     <div class="page-inner tools-inner">
       <div class="mini-head"><h1>${t("tools.h1")}</h1><span>${t("tools.sub")}</span></div>
       <div class="tools-grid">
@@ -3537,7 +3537,7 @@ function toolsPage() {
 
       </div>
     </div>
-  </div>`;
+  </main>`;
 }
 
 function contactPage() {

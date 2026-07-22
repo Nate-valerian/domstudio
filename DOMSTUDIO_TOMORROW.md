@@ -368,3 +368,34 @@ Implementation order:
 
 Do not work on native mobile expansion, a broad visual redesign, permanent
 media storage, or paid GPU experiments during this pass.
+
+## July 22, 2026 Release-Preparation Continuation Note
+
+Completed after the homepage optimization sequence:
+
+- Ran the final production build and complete frontend regression.
+- Fixed the Tools page's missing `main` landmark without changing its layout.
+- Tested nine routes at 390, 640, 1024, 1440, and 1920px in anonymous and
+  authenticated states: 90 combinations and 688 passing assertions.
+- Confirmed zero horizontal overflow, zero broken images, zero browser/API
+  errors, and correct navigation and showcase interactions.
+- Bumped and verified the PWA shell cache as `domstudio-shell-v19`; the cached
+  application shell also passed an offline reload.
+- Confirmed the live SpaceWeb custom domain is still on cache `v5`, while the
+  Vercel preview is on cache `v18`; neither currently serves this release.
+- Prepared `tmp/domstudio-spaceweb-dist-2026-07-22-v19.zip` as a portable,
+  root-level SpaceWeb package.
+- Package SHA-256:
+  `8D18A31A4C8D8C5BD91E48337BD45B11361543B4B810D80DC7188E7311BC55AB`.
+- Preserved all earlier untracked preview/temp artifacts and the old untracked
+  deployment ZIP.
+
+Next action only after explicit approval:
+
+1. Push the release-preparation commit.
+2. Upload the versioned `v19` ZIP contents to the SpaceWeb document root.
+3. Verify `https://domstudio.site`, `https://www.domstudio.site`, their served
+   index asset hashes, and service-worker cache `domstudio-shell-v19` in a fresh
+   browser context.
+4. If the old build remains visible, clear only the site's service-worker/cache
+   data and verify again; do not make unrelated frontend changes during release.

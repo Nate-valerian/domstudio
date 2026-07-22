@@ -7914,3 +7914,75 @@ Files changed:
 No production deployment or GitHub push was performed. The next separate item
 is a final complete-frontend regression and custom-domain release preparation;
 any push or production deployment still requires explicit user approval.
+
+---
+
+## July 22, 2026 - Complete Frontend Regression And Release Prepared
+
+Completed the final pre-release item as one local implementation chunk: run a
+complete frontend regression, fix the defect found by that regression, rotate
+the PWA shell cache, inspect the public deployments, and prepare an exact
+SpaceWeb upload package without publishing it.
+
+Frontend changes:
+
+- Changed the Tools page root from a generic `div` to the same `main` landmark
+  used by the other full pages. Its visual layout is unchanged, while keyboard
+  and screen-reader landmark navigation now receives the correct page
+  structure.
+- Bumped the production service-worker cache from `domstudio-shell-v18` to
+  `domstudio-shell-v19`, ensuring the eventual release replaces previously
+  cached HTML and assets.
+
+Complete regression result:
+
+- Production build passed with `VITE_IMGLY_PUBLIC_PATH=cdn`.
+- Checked Home, Examples, Pricing, Tools, Contact, Studio, AdPilot, Account, and
+  History at 390, 640, 1024, 1440, and 1920px in both anonymous and mocked
+  authenticated states: 90 route/state combinations.
+- The final automated matrix passed 688 assertions with zero failures,
+  including route state, page landmarks/content, navigation state, header
+  bounds, footer presence, broken images, and document overflow.
+- The matrix observed 488 successfully loaded images, zero broken images, zero
+  horizontal overflow, and no JavaScript, local-asset, or mocked-API errors.
+- Verified one initial sourced homepage video, look-scenario switching,
+  video-showcase switching, RU/EN language switching, responsive-menu opening,
+  and the Examples-to-Studio CTA across the tested states and widths.
+- Verified an active, controlling service worker with only
+  `domstudio-shell-v19` present, then reloaded the complete Home shell offline
+  successfully.
+
+Public deployment state observed before release:
+
+- `domstudio.site` and `www.domstudio.site` both return HTTP 200 from SpaceWeb
+  nginx at `77.222.40.84`, serve the same older index assets
+  `index-C1vLDdNw.js` / `index-Dgd6-ORX.css`, and still expose service-worker
+  cache `domstudio-shell-v5`.
+- `domstudio.vercel.app` returns HTTP 200 with index assets
+  `index-BVkNa15Z.js` / `index-CgR_Hj4z.css` and cache
+  `domstudio-shell-v18`; it is newer than the custom domain but does not contain
+  this final release build.
+- The tested release index references `index-J9mEVJnV.js` and
+  `index-CgR_Hj4z.css`; the release directory contains 90 files totaling
+  110,168,044 bytes.
+
+Prepared release artifact:
+
+- `tmp/domstudio-spaceweb-dist-2026-07-22-v19.zip`
+- Portable ZIP with forward-slash paths and root-level `index.html`, `sw.js`,
+  `manifest.json`, icons, `assets/`, and `imgly/` content.
+- 80,665,307 bytes; SHA-256
+  `8D18A31A4C8D8C5BD91E48337BD45B11361543B4B810D80DC7188E7311BC55AB`.
+- The versioned package is intentionally untracked. The older untracked
+  `domstudio-spaceweb-dist.zip` was not overwritten or modified.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+No GitHub push or production deployment was performed. The next action requires
+explicit approval: push the release-preparation commit, upload the versioned ZIP
+to SpaceWeb, and verify both custom-domain hosts in a fresh browser context.
