@@ -426,3 +426,26 @@ Next separate item:
    v19 application.
 
 Do not rebuild or redeploy the v19 frontend assets for that redirect-only task.
+
+## July 23, 2026 Canonical-Redirect Preparation Note
+
+The redirect-only SpaceWeb update is prepared and locally validated.
+
+- Updated `domstudio-frontend/hosting/.htaccess` to canonicalize HTTP and `www`
+  traffic to `https://domstudio.site`.
+- Preserved request paths and query strings.
+- Preserved the existing IMG.LY proxy and Vite SPA fallback rules.
+- Passed a real Apache 2.4 four-case redirect matrix with no syntax error,
+  redirect loop, or SPA fallback regression.
+- Prepared `tmp/domstudio-spaceweb-https-canonical-2026-07-23.zip`, containing
+  exactly the one replacement `.htaccess` file.
+- Package SHA-256:
+  `6BE542894D6DA9E00E32D8713DB67692350D8C1216392CE1C87CE28205E940FB`.
+
+Next action:
+
+1. Upload that ZIP into `domstudio_site/public_html` and extract it there,
+   replacing only `.htaccess`.
+2. Do not upload or rebuild the full frontend package.
+3. Verify HTTP apex, HTTP `www`, and HTTPS `www` each redirect in one hop to
+   HTTPS apex, then recheck the v19 PWA and SPA fallback.

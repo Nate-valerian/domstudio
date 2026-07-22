@@ -1,4 +1,17 @@
 RewriteEngine On
+
+# SpaceWeb terminates TLS in front of Apache, so restore the original scheme
+# before applying the canonical-host redirect.
+SetEnvIf X-Forwarded-Proto https SERVER_PORT=443
+SetEnvIf X-Forwarded-Proto https HTTPS=on
+
+# Keep one secure origin for authentication, PWA storage, and search indexing.
+RewriteCond %{HTTP_HOST} ^www\.domstudio\.site$ [NC]
+RewriteRule ^ https://domstudio.site%{REQUEST_URI} [R=301,L,NE]
+
+RewriteCond %{HTTP:HTTPS} !=on [NC]
+RewriteRule ^ https://domstudio.site%{REQUEST_URI} [R=301,L,NE]
+
 RewriteBase /
 
 # Route /imgly/* to PHP proxy (fetches from staticimgly.com CDN with CORS headers)

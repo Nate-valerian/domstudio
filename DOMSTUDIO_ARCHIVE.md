@@ -8054,3 +8054,61 @@ Files changed for this completion record:
 
 The v19 frontend release is live and verified. No application source or built
 asset changed during this deployment-record step.
+
+---
+
+## July 23, 2026 - Canonical HTTPS Redirect Prepared
+
+Prepared the next isolated SpaceWeb configuration item without rebuilding or
+changing the verified v19 frontend assets.
+
+Configuration change:
+
+- Added proxy-aware HTTPS detection to
+  `domstudio-frontend/hosting/.htaccess` using SpaceWeb's documented
+  `X-Forwarded-Proto` / `HTTPS` environment handling.
+- Added a permanent redirect from `www.domstudio.site` to the apex HTTPS host.
+- Added a permanent redirect from plain HTTP to the apex HTTPS host.
+- Preserved the full request path and query string.
+- Placed both canonical redirects before the existing IMG.LY proxy and SPA
+  fallback rules, which remain unchanged.
+
+Expected canonical matrix:
+
+- `http://domstudio.site/path?query` ->
+  `https://domstudio.site/path?query` (301).
+- `http://www.domstudio.site/path?query` ->
+  `https://domstudio.site/path?query` (301, one hop).
+- `https://www.domstudio.site/path` ->
+  `https://domstudio.site/path` (301).
+- `https://domstudio.site/path` remains on the apex secure origin and continues
+  into the existing file/proxy/SPA rules.
+
+Validation:
+
+- Ran the actual `.htaccess` under Apache 2.4 in an isolated local container
+  with `mod_rewrite`, `mod_setenvif`, and `AllowOverride` enabled.
+- Apache reported no syntax or invalid-directive error.
+- The four-case HTTP/HTTPS and apex/`www` matrix passed with the expected 301 or
+  200 status and exact `Location` header.
+- A secure apex request for a non-file path still returned the Vite index via
+  the existing SPA fallback, confirming no redirect loop or fallback breakage.
+- `git diff --check` passed.
+
+Prepared upload artifact:
+
+- `tmp/domstudio-spaceweb-https-canonical-2026-07-23.zip`
+- Contains exactly one root entry: `.htaccess`.
+- 667 bytes; SHA-256
+  `6BE542894D6DA9E00E32D8713DB67692350D8C1216392CE1C87CE28205E940FB`.
+
+Files changed:
+
+- `domstudio-frontend/hosting/.htaccess`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+The production redirect is not active until this small ZIP is extracted into
+`domstudio_site/public_html`, replacing only the existing `.htaccess`. After
+upload, verify all four canonical cases plus the v19 index, service worker, SPA
+fallback, and API connectivity before marking the hosting hardening complete.
