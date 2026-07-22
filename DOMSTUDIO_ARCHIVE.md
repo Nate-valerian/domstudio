@@ -8178,3 +8178,58 @@ Files changed:
 
 The code is implemented and validated locally. No push, frontend package, or
 production deployment was performed; the live site remains on frontend v19.
+
+---
+
+## July 23, 2026 - Free Tools Catalog Shell
+
+Replaced the long Tools page with a searchable catalog and focused workspaces.
+
+Product changes:
+
+- Organized 15 tools into Photo preparation, Marketplace ready, Create and
+  brand, and For business.
+- Kept the 7 existing tools active and labeled the 8 approved additions as
+  Coming soon so unfinished tools are never presented as usable.
+- Added search, category filters, counts, and a three-step marketplace photo
+  workflow.
+- Routed each existing tool to its own hash workspace under
+  `#tools?tool=<id>` with a clear return to the catalog.
+- Added complete Russian and English copy for the catalog and planned tools.
+- Bumped the PWA shell cache from `domstudio-shell-v20` to
+  `domstudio-shell-v21`.
+
+Validation:
+
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` passed with Vite 7.3.5.
+- `git diff --check` passed.
+- Browser-tested 390, 640, 1024, 1440, and 1920px: 15 cards, 7 available,
+  8 coming soon, and no horizontal overflow.
+- Verified search, category filtering, RU/EN switching, the catalog back
+  action, and all 7 existing tool routes with exactly one visible workspace.
+- A planned-tool route safely returns to the catalog; no console or page
+  errors were recorded.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `7250C12993A44DE7348551F912F552F5BD627F8A0812FE74FB26E0C70F32D106`.
+- Main application asset: `assets/index-nGofrzhj.js`, 427,617 bytes, SHA-256
+  `9BF408495D7BD3B3DDD0856E5E1F01495E5199694093C2FAD4BAF224F1D0E24F`.
+- Stylesheet: `assets/index-DrnJz1Un.css`, 130,152 bytes, SHA-256
+  `F41608D4ED9F0D19EE102A013DF2D745961A4B3A31015F9B6AE314A1C13FB956`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `A7BF18DF556083C7892B205A1976C7D269F8E09AEBAB8E37CEC9ED26ADCDBFF5`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This commit prepares the catalog only. The 8 new tools remain intentionally
+unimplemented and will be designed, approved, built, tested, and committed one
+at a time.

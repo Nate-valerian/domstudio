@@ -901,7 +901,8 @@ function contactReasonFromHash() {
 function navigate(route) {
   state.navMenuOpen = false;
   state.presetsOpen = false;
-  document.title = t(`title.${route}`) || t("title.home");
+  const routeName = String(route || "home").split("?")[0];
+  document.title = t(`title.${routeName}`) || t("title.home");
   location.hash = route;
 }
 
@@ -3220,12 +3221,100 @@ function authModal() {
 }
 
 function toolsPage() {
+  const rawHash = location.hash.slice(1);
+  const query = rawHash.includes("?") ? rawHash.slice(rawHash.indexOf("?") + 1) : "";
+  const requestedTool = new URLSearchParams(query).get("tool");
+  const catalogTools = [
+    { id: "removebg", category: "prep", icon: "✂", titleKey: "tools.removeBg.h2", descKey: "tools.removeBg.desc", available: true, featured: true },
+    { id: "crop", category: "prep", icon: "⌗", titleKey: "tools.crop.h2", descKey: "tools.crop.desc", available: false },
+    { id: "resizer", category: "prep", icon: "↔", titleKey: "tools.resizer.h2", descKey: "tools.resizer.desc", available: true },
+    { id: "compressor", category: "prep", icon: "⇣", titleKey: "tools.compressor.h2", descKey: "tools.compressor.desc", available: true },
+    { id: "converter", category: "prep", icon: "◫", titleKey: "tools.converter.h2", descKey: "tools.converter.desc", available: false },
+    { id: "redact", category: "prep", icon: "▒", titleKey: "tools.redact.h2", descKey: "tools.redact.desc", available: false },
+    { id: "checker", category: "market", icon: "✓", titleKey: "tools.checker.h2", descKey: "tools.checker.desc", available: true },
+    { id: "safe-zone", category: "market", icon: "▣", titleKey: "tools.safeZone.h2", descKey: "tools.safeZone.desc", available: false },
+    { id: "promo", category: "market", icon: "%", titleKey: "tools.promo.h2", descKey: "tools.promo.desc", available: true },
+    { id: "watermark", category: "brand", icon: "©", titleKey: "tools.watermark.h2", descKey: "tools.watermark.desc", available: true },
+    { id: "collage", category: "brand", icon: "▦", titleKey: "tools.collage.h2", descKey: "tools.collage.desc", available: true },
+    { id: "before-after", category: "brand", icon: "◐", titleKey: "tools.beforeAfter.h2", descKey: "tools.beforeAfter.desc", available: false },
+    { id: "palette", category: "brand", icon: "●", titleKey: "tools.palette.h2", descKey: "tools.palette.desc", available: false },
+    { id: "qr", category: "business", icon: "▩", titleKey: "tools.qr.h2", descKey: "tools.qr.desc", available: false },
+    { id: "batch", category: "business", icon: "≡", titleKey: "tools.batch.h2", descKey: "tools.batch.desc", available: false },
+  ];
+  const categories = [
+    { id: "prep", titleKey: "tools.catalog.category.prep", descKey: "tools.catalog.category.prepSub" },
+    { id: "market", titleKey: "tools.catalog.category.market", descKey: "tools.catalog.category.marketSub" },
+    { id: "brand", titleKey: "tools.catalog.category.brand", descKey: "tools.catalog.category.brandSub" },
+    { id: "business", titleKey: "tools.catalog.category.business", descKey: "tools.catalog.category.businessSub" },
+  ];
+  const selectedTool = catalogTools.find((item) => item.id === requestedTool && item.available) || null;
+
+  if (!selectedTool) {
+    const availableCount = catalogTools.filter((item) => item.available).length;
+    const comingCount = catalogTools.length - availableCount;
+    const catalogCard = (tool) => `<article class="free-tool-card ${tool.featured ? "featured" : ""} ${tool.available ? "available" : "coming"}" data-free-tool-card data-tool-category="${tool.category}">
+      <div class="free-tool-card-top">
+        <span class="free-tool-icon" aria-hidden="true">${tool.icon}</span>
+        <span class="free-tool-status ${tool.available ? "" : "coming"}">${t(tool.available ? "tools.catalog.free" : "tools.catalog.soon")}</span>
+      </div>
+      <h3>${t(tool.titleKey)}</h3>
+      <p>${t(tool.descKey)}</p>
+      ${tool.available
+        ? `<button class="free-tool-open" type="button" data-free-tool="${tool.id}">${t("tools.catalog.open")} <span aria-hidden="true">→</span></button>`
+        : `<span class="free-tool-open pending">${t("tools.catalog.planned")}</span>`}
+    </article>`;
+
+    return `<main class="page tools-page free-tools-catalog-page">
+      <div class="free-tools-catalog">
+        <section class="free-tools-hero">
+          <div>
+            <div class="eyebrow">${t("tools.catalog.eyebrow")}</div>
+            <h1>${t("tools.catalog.h1Start")} <em>${t("tools.catalog.h1Accent")}</em></h1>
+            <p>${t("tools.catalog.p")}</p>
+          </div>
+          <div class="free-tools-stats">
+            <div><b>${catalogTools.length}</b><span>${t("tools.catalog.total")}</span></div>
+            <div><b>${comingCount}</b><span>${t("tools.catalog.coming")}</span></div>
+          </div>
+        </section>
+        <div class="free-tools-discovery">
+          <label class="free-tools-search" for="free-tools-search"><span aria-hidden="true">⌕</span><input id="free-tools-search" type="search" placeholder="${t("tools.catalog.search")}" /></label>
+          <div class="free-tools-filters" role="group" aria-label="${t("tools.catalog.filters")}">
+            <button class="active" type="button" data-free-tool-filter="all" aria-pressed="true">${t("tools.catalog.all", { n: catalogTools.length })}</button>
+            ${categories.map((category) => `<button type="button" data-free-tool-filter="${category.id}" aria-pressed="false">${t(category.titleKey)}</button>`).join("")}
+          </div>
+        </div>
+        <section class="free-tools-route" aria-label="${t("tools.catalog.quickTitle")}">
+          <div><span>${t("tools.catalog.quickEyebrow")}</span><strong>${t("tools.catalog.quickTitle")}</strong></div>
+          ${[
+            ["removebg", "1", "tools.removeBg.h2", "tools.catalog.quickRemove"],
+            ["resizer", "2", "tools.resizer.h2", "tools.catalog.quickResize"],
+            ["checker", "3", "tools.checker.h2", "tools.catalog.quickCheck"],
+          ].map(([id, number, titleKey, subKey], index) => `<button type="button" data-free-tool="${id}"><b>${number}</b><span><strong>${t(titleKey)}</strong><small>${t(subKey)}</small></span><i>${index === 2 ? "✓" : "→"}</i></button>`).join("")}
+        </section>
+        <div class="free-tools-sections">
+          ${categories.map((category) => {
+            const categoryTools = catalogTools.filter((tool) => tool.category === category.id);
+            return `<section class="free-tools-section" data-free-tool-section="${category.id}">
+              <header><div><h2>${t(category.titleKey)}</h2><p>${t(category.descKey)}</p></div><span>${t("tools.catalog.count", { n: categoryTools.length })}</span></header>
+              <div class="free-tools-grid">${categoryTools.map(catalogCard).join("")}</div>
+            </section>`;
+          }).join("")}
+        </div>
+        <div class="free-tools-footnote"><strong>${t("tools.catalog.noTokens")}</strong><span>${t("tools.catalog.local")}</span></div>
+      </div>
+    </main>`;
+  }
+
   const hasResult = Boolean(state.removeBgResult);
   return `<main class="page tools-page">
-    <div class="page-inner tools-inner">
-      <div class="mini-head"><h1>${t("tools.h1")}</h1><span>${t("tools.sub")}</span></div>
-      <div class="tools-grid">
-      <div class="tool-card tool-card-wide">
+    <div class="page-inner tools-inner tools-detail-inner">
+      <header class="free-tool-detail-head">
+        <button type="button" data-tools-home>← ${t("tools.catalog.back")}</button>
+        <div><span>${t("tools.catalog.free")}</span><strong>${t(selectedTool.titleKey)}</strong></div>
+      </header>
+      <div class="tools-grid tools-workspace-grid" data-active-tool="${selectedTool.id}">
+      <div class="tool-card tool-card-wide" id="tool-removebg">
         <div class="tool-card-head">
           <h2>${t("tools.removeBg.h2")}</h2>
           <span class="tool-card-badge">${t("tools.removeBg.free")}</span>
@@ -3752,6 +3841,32 @@ function bind() {
   document.querySelectorAll("[data-route]").forEach(el => el.addEventListener("click", () => {
     if (el.dataset.route === "adpilot") { state.adpilotView = "tools"; state.marketplaceTab = "drafts"; }
     navigate(el.dataset.route);
+  }));
+  document.querySelectorAll("[data-free-tool]").forEach(el => el.addEventListener("click", () => navigate(`tools?tool=${encodeURIComponent(el.dataset.freeTool)}`)));
+  document.querySelector("[data-tools-home]")?.addEventListener("click", () => navigate("tools"));
+  const freeToolsSearch = document.querySelector("#free-tools-search");
+  const freeToolsFilters = [...document.querySelectorAll("[data-free-tool-filter]")];
+  let freeToolsFilter = "all";
+  const applyFreeToolsDiscovery = () => {
+    const searchValue = (freeToolsSearch?.value || "").trim().toLocaleLowerCase();
+    document.querySelectorAll("[data-free-tool-card]").forEach(card => {
+      const matchesFilter = freeToolsFilter === "all" || card.dataset.toolCategory === freeToolsFilter;
+      const matchesSearch = !searchValue || card.textContent.toLocaleLowerCase().includes(searchValue);
+      card.hidden = !(matchesFilter && matchesSearch);
+    });
+    document.querySelectorAll("[data-free-tool-section]").forEach(section => {
+      section.hidden = ![...section.querySelectorAll("[data-free-tool-card]")].some(card => !card.hidden);
+    });
+  };
+  freeToolsSearch?.addEventListener("input", applyFreeToolsDiscovery);
+  freeToolsFilters.forEach(button => button.addEventListener("click", () => {
+    freeToolsFilter = button.dataset.freeToolFilter || "all";
+    freeToolsFilters.forEach(item => {
+      const active = item === button;
+      item.classList.toggle("active", active);
+      item.setAttribute("aria-pressed", String(active));
+    });
+    applyFreeToolsDiscovery();
   }));
   document.querySelectorAll("[data-contact-reason]").forEach(el => el.addEventListener("click", () => openContact(el.dataset.contactReason)));
   document.querySelectorAll("[data-toggle-presets]").forEach(el => el.addEventListener("click", togglePresetsMenu));

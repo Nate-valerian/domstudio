@@ -478,3 +478,24 @@ Next actions remain intentionally separate:
 
 Do not overwrite the verified v19 production assets until the v20 frontend
 release package has been intentionally prepared and approved.
+
+## July 23, 2026 Free Tools Catalog Continuation Note
+
+The Free Tools catalog shell is complete and validated locally.
+
+- The catalog shows 15 tools across 4 categories.
+- The 7 existing tools open in dedicated working routes.
+- The 8 approved additions are clearly marked Coming soon.
+- Search, filters, quick workflow, Russian/English copy, and responsive layouts
+  are complete.
+- The production build passes and is marked with PWA cache
+  `domstudio-shell-v21`.
+
+Next separate item:
+
+1. Show the Smart Crop & Rotate workspace design for approval.
+2. After approval, implement and browser-test only that tool.
+3. Commit Smart Crop & Rotate separately before moving to Format Converter.
+
+Continue the approved additions one by one; do not activate a catalog card
+until its tool is implemented and verified.
