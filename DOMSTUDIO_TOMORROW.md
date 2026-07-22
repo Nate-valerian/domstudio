@@ -499,3 +499,27 @@ Next separate item:
 
 Continue the approved additions one by one; do not activate a catalog card
 until its tool is implemented and verified.
+
+## July 23, 2026 AdPilot Image Upload Continuation Note
+
+The missing AdPilot product-image input is now implemented and validated.
+
+- The empty brief shows an obvious optional upload area instead of a stock
+  sample image.
+- A selected photo shows its real thumbnail and filename with Replace and
+  Remove controls.
+- Product text and the image survive channel changes and continue into the
+  detailed AdPilot generator workspace.
+- JPG, PNG, and WebP files up to 10 MB are accepted; unsupported formats are
+  rejected.
+- The frontend is marked with PWA cache `domstudio-shell-v22`.
+
+Technical boundary:
+
+- The current copy API is text-only. The photo stays in browser context and is
+  not uploaded to or analyzed by `/content/generate`.
+- Multimodal product recognition would require a separate backend/model task
+  and must not be implied by the uploader copy.
+
+Next product task remains Smart Crop & Rotate: show its workspace design first,
+then implement and commit it separately after approval.

@@ -811,6 +811,7 @@ const state = {
   adpilotView: "tools",
   adpilotPreviewSlug: "ozon-wb-card",
   adpilotContextImage: null,
+  adpilotContextImageName: "",
   contentDraft: Object.fromEntries(Object.keys(initialContentDefaults.draft).map((k) => [k, ""])),
   contentProfile: { ...Object.fromEntries(Object.keys(initialContentDefaults.profile).map((k) => [k, ""])), phone: "+7" },
   contentOutputLanguage: "russian",
@@ -2728,9 +2729,6 @@ function copyStudioPage() {
     const categoryGroups = categoryOrder
       .map((category) => ({ category, tools: state.contentTools.filter((item) => item.category === category) }))
       .filter((group) => group.tools.length);
-    const productPreviewImage = state.adpilotContextImage || premiumBagsAfterUrl;
-    const productPreviewName = state.contentDraft.product || t("adpilot.desk.sampleProduct");
-
     return `<main class="page adpilot-page">
       <section class="workspace copy-workspace adpilot-landing">
         <div class="adpilot-landing-head">
@@ -2742,13 +2740,27 @@ function copyStudioPage() {
         <div class="adpilot-desk">
           <div class="adpilot-brief">
             <div class="adpilot-step"><b>1</b><span>${t("adpilot.desk.briefStep")}</span></div>
-            <div class="adpilot-product-source">
-              <img src="${productPreviewImage}" alt="" />
-              <div>
-                <small>${state.adpilotContextImage ? t("adpilotContext.label") : t("adpilot.desk.sampleLabel")}</small>
-                <strong>${escapeHtml(truncate(productPreviewName, 52))}</strong>
-              </div>
-              ${state.adpilotContextImage ? `<button type="button" data-route="tools">${t("nav.tools")}</button>` : ""}
+            <div class="adpilot-photo-field">
+              <span class="adpilot-photo-label">${t("adpilot.desk.photoLabel")}</span>
+              ${state.adpilotContextImage
+                ? `<div class="adpilot-photo-attached">
+                    <img src="${state.adpilotContextImage}" alt="${t("adpilot.desk.photoAttached")}" />
+                    <div class="adpilot-photo-copy">
+                      <small>${t("adpilot.desk.photoAttached")}</small>
+                      <strong>${escapeHtml(truncate(state.adpilotContextImageName || t("adpilotContext.label"), 42))}</strong>
+                      <span>${t("adpilot.desk.photoNote")}</span>
+                    </div>
+                    <div class="adpilot-photo-actions">
+                      <label for="adpilot-product-image">${t("adpilot.desk.photoReplace")}</label>
+                      <button type="button" data-adpilot-image-clear>${t("adpilot.desk.photoRemove")}</button>
+                    </div>
+                  </div>`
+                : `<label class="adpilot-photo-upload" for="adpilot-product-image">
+                    <span class="adpilot-photo-plus" aria-hidden="true">+</span>
+                    <span><strong>${t("adpilot.desk.photoTitle")}</strong><small>${t("adpilot.desk.photoHint")}</small></span>
+                    <b>${t("adpilot.desk.photoChoose")}</b>
+                  </label>`}
+              <input class="sr-only" id="adpilot-product-image" type="file" accept="image/jpeg,image/png,image/webp" data-adpilot-image-input />
             </div>
             <label class="sr-only" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
             <textarea id="adpilot-quick-product" class="textarea adpilot-quick-input" rows="3"
@@ -4084,6 +4096,7 @@ function bind() {
     if (!src) return;
     if (el.dataset.sendTo === "adpilot") {
       state.adpilotContextImage = src;
+      state.adpilotContextImageName = "";
       state.contentToolSlug = null;
       navigate("adpilot");
       toast(t("adpilotLink.toast"));
@@ -4098,6 +4111,8 @@ function bind() {
   document.querySelector("#adpilot-quick-product")?.addEventListener("input", (event) => {
     state.contentDraft = { ...state.contentDraft, product: event.target.value };
   });
+  document.querySelector("[data-adpilot-image-input]")?.addEventListener("change", onAdPilotImageSelect);
+  document.querySelector("[data-adpilot-image-clear]")?.addEventListener("click", clearAdPilotImage);
   document.querySelectorAll("[data-adpilot-preview]").forEach(el => el.addEventListener("click", () => {
     const product = document.querySelector("#adpilot-quick-product")?.value || "";
     state.contentDraft = { ...state.contentDraft, product };
@@ -5186,6 +5201,36 @@ function openAdPilotChat(product = "") {
   setTimeout(() => document.querySelector("#ad-chat-input")?.focus(), 50);
 }
 
+function onAdPilotImageSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    toast(t("toast.fileTooBig", { name: escapeHtml(file.name) }));
+    event.target.value = "";
+    return;
+  }
+  if (file.type && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    toast(t("adpilot.desk.photoInvalid"));
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.adpilotContextImage = String(reader.result || "");
+    state.adpilotContextImageName = file.name;
+    toast(t("adpilot.desk.photoAdded"));
+    render({ motion: false });
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAdPilotImage() {
+  state.adpilotContextImage = null;
+  state.adpilotContextImageName = "";
+  toast(t("adpilot.desk.photoRemoved"));
+  render({ motion: false });
+}
+
 async function submitAdPilotChat(event) {
   event.preventDefault();
   if (state.adChatSending) return;
@@ -5240,6 +5285,7 @@ function goToAdPilotWithContext() {
   state.contentDraft = { ...state.contentDraft, product: subject };
   state.contentToolSlug = toolMap[marketplace] || "ozon-wb-card";
   state.adpilotContextImage = state.generatedImage || null;
+  state.adpilotContextImageName = state.generatedImage ? (state.selectedImageName || "") : "";
   state.adpilotView = "tools";
   state.route = "adpilot";
   toast(t("adpilotLink.toast"));

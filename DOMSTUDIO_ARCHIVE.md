@@ -8233,3 +8233,59 @@ Files changed:
 This commit prepares the catalog only. The 8 new tools remain intentionally
 unimplemented and will be designed, approved, built, tested, and committed one
 at a time.
+
+---
+
+## July 23, 2026 - AdPilot Product Image Upload Fix
+
+Added the missing product-image input to the redesigned AdPilot campaign desk.
+
+Changes:
+
+- Removed the misleading pre-filled stock product image from the brief.
+- Added a visible optional upload area for JPG, PNG, and WebP images up to
+  10 MB.
+- Added an attached state with the real thumbnail, filename, Replace, and
+  Remove controls.
+- Kept the image in browser state and carried it into the existing detailed
+  AdPilot generator context banner.
+- Preserved the typed product description and attached image while switching
+  channels.
+- Explained in the interface that the current copy generator is text-based,
+  so the product must still be described below the photo.
+- Added complete Russian and English labels, validation, and toast messages.
+- Bumped the PWA shell cache from `domstudio-shell-v21` to
+  `domstudio-shell-v22`.
+
+Validation:
+
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` passed with Vite 7.3.5.
+- `git diff --check` passed.
+- Browser-tested the empty uploader at 390, 640, 1024, 1440, and 1920px with
+  no stock image, page errors, console errors, or horizontal overflow.
+- Verified add, thumbnail and filename preview, text persistence, channel
+  switching, remove, replacement input, invalid-format rejection, RU/EN copy,
+  and photo continuity into a generated-copy workspace.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `19351F4065FC5D91ABBD2509826548B146A06DCC9E7B1A1B6A59E13199F53C87`.
+- Main application asset: `assets/index-COos-RBw.js`, 430,835 bytes, SHA-256
+  `221AEDC7E7B7E1E647475A170DDA5A4D47AB1B17AE10EBDB2B1D556A717198C1`.
+- Stylesheet: `assets/index-DdjavOGi.css`, 132,139 bytes, SHA-256
+  `A408A13DB73548BDE458EF483288717C1E8BB2F2E48EF1641D965E5091225BC7`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `F6CDCD7C110D5673BF2797B919E45E1CA8766F16B9B5391F4B0A8834D3454B28`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This is a frontend attachment and context fix. The current `/content/generate`
+contract remains text-only; no image data is sent to the text-generation API.
