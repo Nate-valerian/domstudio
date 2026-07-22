@@ -7804,3 +7804,61 @@ Files changed:
 No production deployment or GitHub push was performed. The next separate
 homepage-performance item is to optimize the largest landing PNG assets while
 preserving visual quality.
+
+---
+
+## July 22, 2026 - Largest Landing PNG Assets Converted To WebP
+
+Completed the second homepage-performance item as a separate implementation
+chunk: reduce the largest photographic image assets without changing their
+dimensions, composition, or product details.
+
+Asset changes:
+
+- Converted 12 referenced after/result images from RGB PNG to quality-90 WebP.
+- Preserved every original pixel dimension, including the 896x1152 portrait,
+  1024x1024 square, and 1200x900 landscape assets.
+- Updated the frontend imports to use the new WebP files.
+- Removed only the 12 superseded tracked PNG versions after the WebP build and
+  visual checks passed; they remain recoverable from Git history.
+- The converted set includes the car and wine homepage proofs, generated
+  fashion, accessories, jewelry, electronics, food, bags, and home results,
+  plus the soup proof used in Examples.
+
+Measured size result:
+
+- The 12 source assets fell from 13,172,415 bytes (12.56 MiB) to 1,025,472
+  bytes (0.98 MiB), a 92.2% reduction.
+- The production `dist` fell from an equivalent 116.65 MiB before conversion
+  to 105.06 MiB after conversion.
+- Using the same fresh-context six-second load check as the video-loading pass,
+  desktop transfer measured approximately 4.0 MB instead of 12.3 MB and mobile
+  measured approximately 3.7 MB instead of 5.9 MB.
+- The Tech Dolphin logo remains PNG; it is not one of the large photographic
+  result assets and was intentionally left unchanged.
+
+Quality and regression validation:
+
+- Inspected full-resolution original/WebP pairs for the detailed vase pattern,
+  fine jewelry, electronics/accessories, skin, clothing, and brick texture; no
+  visible product-detail loss was found at the rendered sizes.
+- Inspected the converted car hero and electronics scenario on desktop and
+  mobile in the production build.
+- Scrolled the full Home and Examples pages in fresh desktop and mobile browser
+  contexts; all converted images loaded, and the car/soup examples used WebP.
+- Found zero broken images, zero remaining optimized-PNG references, zero
+  horizontal document overflow, and zero JavaScript page errors.
+- Production build passed with `VITE_IMGLY_PUBLIC_PATH=cdn` after the old PNG
+  files were removed.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- 12 `.webp` assets replacing their `.png` versions under
+  `domstudio-frontend/src/assets/examples/` and
+  `domstudio-frontend/src/assets/landing/`
+- `DOMSTUDIO_ARCHIVE.md`
+
+No production deployment or GitHub push was performed. The next separate
+homepage-performance item is to shorten Home surgically and move redundant
+proof collections to Examples without changing the approved visual direction.
