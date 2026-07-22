@@ -7986,3 +7986,71 @@ Files changed:
 No GitHub push or production deployment was performed. The next action requires
 explicit approval: push the release-preparation commit, upload the versioned ZIP
 to SpaceWeb, and verify both custom-domain hosts in a fresh browser context.
+
+---
+
+## July 23, 2026 - Frontend v19 Deployed To SpaceWeb And Verified
+
+Completed the intentional custom-domain release prepared on July 22.
+
+Deployment:
+
+- Release-preparation commit `3537231` is present on `origin/main`.
+- The user uploaded and extracted
+  `tmp/domstudio-spaceweb-dist-2026-07-22-v19.zip` into
+  `domstudio_site/public_html` in the SpaceWeb file manager.
+- The existing `.htaccess`, `cgi-bin`, and `yandex.html` files were preserved.
+- No older local deployment ZIP or unrelated preview/temp artifact was changed.
+
+Exact production fingerprints:
+
+- `https://domstudio.site` and `https://www.domstudio.site` both return HTTP 200
+  with the tested 1,892-byte release index.
+- The live index SHA-256 is
+  `4AA168315B9E4C4AD084694E649F8494E20CD29A2CBCBAC0E829412960D6F2B1`,
+  exactly matching the prepared build.
+- Both hosts reference `assets/index-J9mEVJnV.js` and
+  `assets/index-CgR_Hj4z.css`.
+- The live JavaScript SHA-256 is
+  `ACD32F72D3CCF723F5A0D0EFDEA83BBF505CD4197536E0B170144F81827C2A17`;
+  the live CSS SHA-256 is
+  `3470ED37F859C03BC2A0AC0A34B8DD9C260F37046B428C50EAE55F5366F2CF98`.
+- Both live service workers report `domstudio-shell-v19` and match the prepared
+  SHA-256
+  `DDDF271DC6F7B9500F31B95E9DD4DA6F400F90D2C3AE5BAC5AFF79420D59086C`.
+- The manifest, icons, IMG.LY resources, and a synthetic SPA fallback path all
+  return HTTP 200. The fallback path returns the exact release index.
+- The live Amvera `/content/tools` endpoint returns HTTP 200 and permits the
+  `https://domstudio.site` origin.
+
+Fresh production-browser verification:
+
+- Checked all nine routes on both HTTPS hosts at 390px mobile and 1440px
+  desktop: 36 route/host/viewport combinations.
+- Passed 250 production assertions with zero failures: 216 route/layout checks,
+  24 interaction checks, and 10 PWA checks.
+- Observed 65 successfully loaded images, zero broken images, zero horizontal
+  overflow, and no page, same-origin asset, or live API failures.
+- Verified one initially sourced video, look-scenario switching,
+  video-showcase switching, RU/EN switching, responsive menu behavior, and the
+  Examples-to-Studio CTA.
+- On both HTTPS origins, the service worker is active and controlling, the only
+  DomStudio cache is `domstudio-shell-v19`, and the complete Home shell reloads
+  successfully while offline.
+
+Remaining separate hosting hardening item:
+
+- `http://domstudio.site` currently returns HTTP 200 instead of redirecting to
+  HTTPS. The HTTPS site and PWA are healthy, but visitors entering the HTTP URL
+  are not automatically moved to the secure origin.
+- Add and verify an HTTP-to-HTTPS redirect in the SpaceWeb `.htaccess` as the
+  next isolated server configuration change. Do not mix it into the already
+  verified v19 asset deployment.
+
+Files changed for this completion record:
+
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+The v19 frontend release is live and verified. No application source or built
+asset changed during this deployment-record step.

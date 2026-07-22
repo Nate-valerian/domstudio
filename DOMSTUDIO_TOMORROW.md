@@ -399,3 +399,30 @@ Next action only after explicit approval:
    browser context.
 4. If the old build remains visible, clear only the site's service-worker/cache
    data and verify again; do not make unrelated frontend changes during release.
+
+## July 23, 2026 Live-Release Continuation Note
+
+The prepared frontend release is now live on SpaceWeb.
+
+- Commit `3537231` is on `origin/main`.
+- The versioned `v19` ZIP was extracted into
+  `domstudio_site/public_html` without removing `.htaccess`, `cgi-bin`, or
+  `yandex.html`.
+- Both `https://domstudio.site` and `https://www.domstudio.site` serve the exact
+  prepared index, JS, CSS, and service worker hashes.
+- Both HTTPS origins run only `domstudio-shell-v19` and pass an offline Home
+  reload.
+- The production smoke covered all nine routes on mobile and desktop for both
+  hosts: 250 assertions, zero failures, zero broken images, and zero horizontal
+  overflow.
+- The live API permits the custom-domain origin.
+
+Next separate item:
+
+1. Add an HTTP-to-HTTPS redirect to the preserved SpaceWeb `.htaccess`.
+2. Upload only the reviewed `.htaccess` change.
+3. Confirm `http://domstudio.site` and `http://www.domstudio.site` redirect to
+   HTTPS while both secure hosts and SPA fallback routes continue returning the
+   v19 application.
+
+Do not rebuild or redeploy the v19 frontend assets for that redirect-only task.
