@@ -1969,16 +1969,17 @@ h1 em { color: var(--gold); font-style: normal; }
   .adpilot-preview-output p { font-size: 12px; line-height: 1.48; }
   .adpilot-preview-product-frame { height: 170px; margin-top: 11px; }
   .adpilot-preview-output footer { padding-top: 16px; }
-  .adpilot-section-head { margin: 28px 0 10px; }
-  .adpilot-section-head h2 { font-size: 28px; }
+  .adpilot-section-head { margin: 16px 0 8px; }
+  .adpilot-section-head h2 { font-size: 26px; }
+  .adpilot-section-head p { font-size: 12px; }
   .adpilot-workflow {
     display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; grid-template-areas: "icon title count" "icon desc count";
-    column-gap: 12px; row-gap: 4px; min-height: 118px; padding: 14px 16px; border-radius: 15px;
+    column-gap: 10px; row-gap: 3px; min-height: 96px; padding: 11px 14px; border-radius: 14px;
   }
-  .adpilot-workflow-icon { grid-area: icon; align-self: start; font-size: 24px; }
-  .adpilot-workflow > strong { grid-area: title; margin: 0; font-size: 16px; }
+  .adpilot-workflow-icon { grid-area: icon; align-self: start; font-size: 22px; }
+  .adpilot-workflow > strong { grid-area: title; margin: 0; font-size: 15px; }
   .adpilot-workflow > small {
-    grid-area: desc; display: -webkit-box; overflow: hidden; margin: 0; font-size: 11px; line-height: 1.35;
+    grid-area: desc; display: -webkit-box; overflow: hidden; margin: 0; font-size: 10px; line-height: 1.3;
     -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   }
   .adpilot-workflow > b { grid-area: count; align-self: center; margin: 0; padding: 0; white-space: nowrap; }

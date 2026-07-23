@@ -9443,3 +9443,67 @@ Files changed:
 This navigation correction is committed locally but not pushed. The verified
 live SpaceWeb frontend remains v19 until a v45 package is intentionally
 deployed and visually verified.
+
+---
+
+## July 23, 2026 - AdPilot Workflow Cards Given Fold Safety
+
+The follow-up 2048 x 1152 screenshot showed that the previous 118 px workflow
+cards landed exactly on the viewport edge: their content was present, but the
+bottom borders remained clipped. Added deliberate clearance instead of
+targeting the fold boundary.
+
+Changes:
+
+- Reduced the desktop workflow-section top gap from 28 px to 16 px and its
+  heading-to-card gap from 10 px to 8 px.
+- Reduced the workflow cards from 118 px to 96 px and tightened their padding,
+  icon, title, and description sizes while retaining the full horizontal
+  content layout and click targets.
+- Reduced the workflow heading from 28 px to 26 px and supporting copy to
+  12 px.
+- These changes recover roughly 35 px relative to the supplied screenshot, so
+  the three complete card borders sit above the 1152 px fold rather than on it.
+- Bumped the PWA cache from `domstudio-shell-v45` to
+  `domstudio-shell-v46`.
+
+Coverage and validation:
+
+- Updated the desktop AdPilot contract to require the 16 px section gap and
+  96 px workflow-card height.
+- `npm test` passed: 20 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 503,404 bytes; its gzip size is 136.35 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser bootstrap remains unavailable. The fold allowance is
+  calculated against the user's new screenshot and protected by source layout
+  tests; no live browser screenshot is claimed.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `56C7B15B34CB1F2D430B64890344A884FC75C35CBAEC9DD4A3EA0762F08D00FB`.
+- Route application asset: `assets/index-Cb-pqkWT.js`, 82,031 bytes,
+  SHA-256
+  `CF9F5DC459E1B9BA4327E49E462DA31C8E124C55AFE27D8DD94E074E2E1B847B`.
+- Main application asset: `assets/index-D3KWG3Zl.js`, 503,404 bytes,
+  SHA-256
+  `988F8104BA9769A63A746D8B3525FA973038C1C3FD4599D79D171C4250640091`.
+- Stylesheet: `assets/index-DfLaWwjf.css`, 164,010 bytes, SHA-256
+  `EFD965A47889B110999240D8E35009606E7F0F5031B8FFA2FB236380129D4647`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `FF9D95835CFEDB242CC85650B28CB459208F5A586E3F800B4663FF9F0684F61D`.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/desktop-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This fold-safety correction is committed locally but not pushed. The verified
+live SpaceWeb frontend remains v19 until a v46 package is intentionally
+deployed and visually verified.
