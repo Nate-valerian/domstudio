@@ -40,10 +40,9 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `bf81321` (`Add DeepSeek fallback for AdPilot AI`),
-  including the complete AdPilot/Tools rollout and the backend provider chain.
-  The latest compact mobile Tools catalog remains local until the user approves
-  a push.
+- `origin/main` is at `2f4c6f8` (`Compact mobile Tools catalog`), including the
+  complete AdPilot/Tools rollout, backend provider chain, and compact Tools
+  catalog.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
 - AdPilot has the product-first campaign desk, optional product photo, Groq
   Qwen 3.6 Vision analysis, all 19 detailed copy generators, and the unified
@@ -55,8 +54,10 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v39`; its
-  production build and 12 focused frontend tests pass.
+- The latest frontend source uses PWA cache `domstudio-shell-v40`; its
+  production build and 15 focused frontend tests pass. Compact mobile layouts
+  now cover Studio, the AdPilot landing/generators/chat, the Tools catalog, and
+  every opened Tool workspace. Home and Examples remain unchanged.
 - The backend suite passed with 78 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
@@ -84,7 +85,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v39 frontend and backend v10 AI provider chain
+### 2. Release the v40 frontend and backend v10 AI provider chain
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -94,10 +95,12 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v39`;
+   - service worker cache `domstudio-shell-v40`;
    - all 16 Tools workspaces;
    - compact mobile Tools catalog rows, filters, and quick workflow at common
      360 px, 390 px, and 430 px viewport widths;
+   - compact mobile Studio controls/canvas, AdPilot landing/generators/chat,
+     and opened Tool editor/result stages at the same viewport widths;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
    - `/content/text-ai/health` reports provider order `groq`, `deepseek`, then
@@ -107,7 +110,7 @@ must be verified.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The compact mobile Tools catalog is implemented and validated locally but not
-pushed. Packaging, hosting changes, remote environment configuration, and
-production deployment still require the user's explicit approval or direct
-participation.
+The compact mobile Studio, AdPilot, and opened Tool workspaces are implemented
+and validated locally but not pushed. Packaging, hosting changes, remote
+environment configuration, and production deployment still require the user's
+explicit approval or direct participation.

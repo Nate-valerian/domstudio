@@ -9014,3 +9014,88 @@ Files changed:
 This mobile redesign is committed locally but not pushed. The verified live
 SpaceWeb frontend remains v19 until a v39 package is intentionally deployed and
 visually verified.
+
+---
+
+## July 23, 2026 - Mobile Studio, AdPilot, And Tool Workspaces Compacted
+
+Extended the compact mobile treatment from the Tools catalog to the remaining
+product workspaces below 640 px. Home and Examples were intentionally left
+unchanged.
+
+Studio changes:
+
+- Reduced the Studio page heading, panel spacing, mode rail, marketplace rail,
+  upload area, selected-mode summary, settings controls, and primary action.
+- Reduced the empty/result canvas minimum from 430 px to 300 px while retaining
+  contained media rendering and the existing dark result surface.
+- Kept the generation controls touch-friendly and horizontally scrollable
+  where the number of modes exceeds the viewport.
+
+AdPilot changes:
+
+- Compacted the landing headline, product-photo uploader, attached-photo
+  actions, vision result, description field, channel tabs, and create actions.
+- Reduced the mobile preview minimum from 365 px to 245 px and kept contextual
+  product photos inside a 150 px contained frame.
+- Rebuilt the three workflow cards as 84 px horizontal rows with a compact
+  icon, title, two-line description, and tool count.
+- Reduced the all-tools index and marketplace-draft link spacing.
+- Compacted every detailed generator form and reduced empty/generated output
+  minimums to 220 px.
+- Compacted AI Chat's page heading, product controls, prompt suggestions,
+  message panel, and composer; suggestions now scroll horizontally instead of
+  stacking into three large rows.
+
+Opened Tool workspace changes:
+
+- Reduced the detail header, joined editor shell, headings, descriptions,
+  uploads, and before/after slots.
+- Reduced the dark stage from 470 px to 300 px and its preview from 210 px to
+  140 px while preserving `object-fit: contain` for result images.
+- Kept the three usage steps in a compact three-column strip instead of
+  stacking them vertically.
+- Preserved all existing tool interactions and the full-card behavior in the
+  Tools catalog.
+
+Release and coverage:
+
+- All new rules are scoped to Studio, AdPilot, or opened Tool selectors inside
+  the existing 640 px mobile breakpoint; Home and Examples selectors were not
+  changed.
+- Added focused CSS contract coverage for all three product surfaces.
+- `npm test` passed: 15 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  remains 502,377 bytes; its gzip size remains 136.06 kB. No build failure or
+  runtime error was reported.
+- `git diff --check` passed.
+- The in-app browser connection still fails during its required bootstrap, so
+  no live responsive screenshot verification is claimed. Visual checks at
+  360 px, 390 px, and 430 px remain on the release checklist.
+- Bumped the PWA cache from `domstudio-shell-v39` to
+  `domstudio-shell-v40`.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `958FACABDA766EC833D54405357F68433C70ADE6D2F8912501467A7C64DA7A47`.
+- Main application asset: `assets/index-BQJPUWCS.js`, 502,377 bytes,
+  SHA-256
+  `3944DD02869B2C4CF852195B0D8114261A0D4CBC7486ABDACCFA8A85FAABEB0C`.
+- Stylesheet: `assets/index-4SaB0zT5.css`, 157,187 bytes, SHA-256
+  `A7D72B6AC4A2C7FE283A6E375F447AA81A589CD2D050CDA9CE202DA5B9628A6E`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `BF04AD2FBA64CA8EB0AD14E6481C4A22585E94947D040675B9C55C9E0EE8FAF2`.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/mobile-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This mobile redesign is committed locally but not pushed. The verified live
+SpaceWeb frontend remains v19 until a v40 package is intentionally deployed and
+visually verified.
