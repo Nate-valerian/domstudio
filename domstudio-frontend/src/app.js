@@ -786,6 +786,13 @@ const state = {
   cropZoom: 100,
   cropOffsetX: 0,
   cropOffsetY: 0,
+  converterFile: null,
+  converterPreview: null,
+  converterResult: null,
+  converterFormat: "webp",
+  converterQuality: 88,
+  converterOriginalSize: 0,
+  converterResultSize: 0,
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3254,6 +3261,7 @@ const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["removebg", "tools.removeBg.h2"],
   ["vision", "tools.vision.h2"],
   ["crop", "tools.crop.h2"],
+  ["converter", "tools.converter.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3285,7 +3293,7 @@ function toolsPage() {
     { id: "crop", category: "prep", icon: "⌗", titleKey: "tools.crop.h2", descKey: "tools.crop.desc", available: true },
     { id: "resizer", category: "prep", icon: "↔", titleKey: "tools.resizer.h2", descKey: "tools.resizer.desc", available: true },
     { id: "compressor", category: "prep", icon: "⇣", titleKey: "tools.compressor.h2", descKey: "tools.compressor.desc", available: true },
-    { id: "converter", category: "prep", icon: "◫", titleKey: "tools.converter.h2", descKey: "tools.converter.desc", available: false },
+    { id: "converter", category: "prep", icon: "◫", titleKey: "tools.converter.h2", descKey: "tools.converter.desc", available: true },
     { id: "redact", category: "prep", icon: "▒", titleKey: "tools.redact.h2", descKey: "tools.redact.desc", available: false },
     { id: "checker", category: "market", icon: "✓", titleKey: "tools.checker.h2", descKey: "tools.checker.desc", available: true },
     { id: "vision", category: "market", icon: "✦", titleKey: "tools.vision.h2", descKey: "tools.vision.desc", available: true },
@@ -3720,6 +3728,34 @@ function toolsPage() {
                 </span>`}
           </label>
           <input id="checker-file" type="file" accept="image/*" style="display:none" data-checker-input />
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-converter">
+        <div class="tool-card-head">
+          <h2>${t("tools.converter.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.converter.desc")}</p>
+        ${state.converterPreview ? `
+          <img class="tool-result-img converter-preview" src="${state.converterResult || state.converterPreview}" alt="${t("tools.converter.previewAlt")}" />
+          <div class="tool-option-grid converter-formats">
+            ${[["jpeg","JPG"],["png","PNG"],["webp","WebP"]].map(([id,label]) => `<button class="resizer-fmt-chip ${state.converterFormat === id ? "active" : ""}" type="button" data-converter-format="${id}"><b>${label}</b></button>`).join("")}
+          </div>
+          ${state.converterFormat !== "png" ? `<label class="tool-range-label"><span>${t("tools.converter.quality")}</span><b>${state.converterQuality}%</b><input type="range" min="45" max="100" step="1" value="${state.converterQuality}" data-converter-quality /></label>` : `<p class="tool-hint">${t("tools.converter.pngHint")}</p>`}
+          ${state.converterResult ? `
+            <div class="converter-size-row"><span>${t("tools.converter.before")}: <b>${formatToolBytes(state.converterOriginalSize)}</b></span><span>→</span><span>${t("tools.converter.after")}: <b>${formatToolBytes(state.converterResultSize)}</b></span></div>
+            <div class="tool-actions">
+              <a class="button" href="${state.converterResult}" download="converted.${state.converterFormat === "jpeg" ? "jpg" : state.converterFormat}">${t("tools.converter.download")}</a>
+              <button class="button secondary" type="button" data-converter-reset>${t("tools.converter.again")}</button>
+            </div>
+            ${toolTransferMarkup("converter")}
+          ` : `<div class="tool-actions converter-actions"><button class="button gold" type="button" data-converter-apply>${t("tools.converter.convert")}</button><button class="button secondary" type="button" data-converter-reset>${t("tools.converter.again")}</button></div>`}
+        ` : `
+          <label class="removebg-upload" for="converter-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">◫</span><b>${t("tools.converter.upload")}</b><small>${t("tools.converter.uploadHint")}</small></span>
+          </label>
+          <input id="converter-file" type="file" accept="image/*" style="display:none" data-converter-input />
         `}
       </div>
 
@@ -4239,6 +4275,23 @@ function bind() {
   document.querySelector("[data-crop-y]")?.addEventListener("change", event => { state.cropOffsetY = Number(event.target.value); applyCropTool(); });
   document.querySelector("[data-crop-reset]")?.addEventListener("click", resetCropTool);
 
+  // Format converter
+  document.querySelector("[data-converter-input]")?.addEventListener("change", onConverterFileSelect);
+  document.querySelectorAll("[data-converter-format]").forEach(el => el.addEventListener("click", () => {
+    state.converterFormat = el.dataset.converterFormat;
+    state.converterResult = null;
+    state.converterResultSize = 0;
+    render({ motion: false });
+  }));
+  document.querySelector("[data-converter-quality]")?.addEventListener("change", event => {
+    state.converterQuality = Number(event.target.value);
+    state.converterResult = null;
+    state.converterResultSize = 0;
+    render({ motion: false });
+  });
+  document.querySelector("[data-converter-apply]")?.addEventListener("click", applyConverterTool);
+  document.querySelector("[data-converter-reset]")?.addEventListener("click", resetConverterTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -4737,6 +4790,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "checker") return state.checkerPreview;
   if (sourceId === "vision") return state.visionPreview;
   if (sourceId === "crop") return state.cropResult || state.cropPreview;
+  if (sourceId === "converter") return state.converterResult || state.converterPreview;
   return null;
 }
 
@@ -4809,6 +4863,13 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.cropOffsetX = 0;
     state.cropOffsetY = 0;
     afterNavigate = () => applyCropTool();
+  } else if (toolId === "converter") {
+    const file = await transferImageFile(sourceId, dataUrl);
+    state.converterFile = file;
+    state.converterPreview = dataUrl;
+    state.converterResult = null;
+    state.converterOriginalSize = file.size;
+    state.converterResultSize = 0;
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -5017,6 +5078,56 @@ function resetCropTool() {
   state.cropZoom = 100;
   state.cropOffsetX = 0;
   state.cropOffsetY = 0;
+  render({ motion: false });
+}
+
+function formatToolBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 KB";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function onConverterFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.converterFile = file;
+    state.converterPreview = String(reader.result || "");
+    state.converterResult = null;
+    state.converterOriginalSize = file.size;
+    state.converterResultSize = 0;
+    render({ motion: false });
+  };
+  reader.readAsDataURL(file);
+}
+
+async function applyConverterTool() {
+  if (!state.converterPreview) return;
+  const image = new Image();
+  image.src = state.converterPreview;
+  await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; });
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d");
+  if (state.converterFormat === "jpeg") {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  context.drawImage(image, 0, 0);
+  const mime = `image/${state.converterFormat}`;
+  state.converterResult = canvas.toDataURL(mime, state.converterQuality / 100);
+  state.converterResultSize = Math.round((state.converterResult.split(",")[1]?.length || 0) * 0.75);
+  render({ motion: false });
+}
+
+function resetConverterTool() {
+  state.converterFile = null;
+  state.converterPreview = null;
+  state.converterResult = null;
+  state.converterOriginalSize = 0;
+  state.converterResultSize = 0;
   render({ motion: false });
 }
 

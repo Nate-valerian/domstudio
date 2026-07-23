@@ -2438,6 +2438,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .tools-workspace-grid[data-active-tool="removebg"] #tool-removebg,
 .tools-workspace-grid[data-active-tool="vision"] #tool-vision,
 .tools-workspace-grid[data-active-tool="crop"] #tool-crop,
+.tools-workspace-grid[data-active-tool="converter"] #tool-converter,
 .tools-workspace-grid[data-active-tool="collage"] #tool-collage,
 .tools-workspace-grid[data-active-tool="watermark"] #tool-watermark,
 .tools-workspace-grid[data-active-tool="promo"] #tool-promo,
@@ -2459,6 +2460,11 @@ h1 em { color: var(--gold); font-style: normal; }
 .crop-tool-row strong { min-width: 42px; text-align: center; }
 .tool-range-label { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .tool-range-label input { grid-column: 1 / -1; width: 100%; accent-color: var(--gold); }
+.converter-preview { max-height: 360px; object-fit: contain; background: var(--surface); }
+.converter-formats { margin-bottom: 14px; }
+.converter-size-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0; padding: 12px; border-radius: 12px; background: var(--surface); color: var(--muted); font-size: 12px; }
+.converter-size-row b { color: var(--ink); }
+.converter-actions { margin-top: 16px; }
 
 @media (max-width: 960px) {
   .free-tools-hero { grid-template-columns: 1fr; }
