@@ -95,15 +95,15 @@ const MODES = [
 ];
 
 const EXAMPLE_IMAGES = [
-  { mode: "До · После · Видео", product: "Выпечка с голубикой", title: "Ресторанная подача со сливками", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl, videoSrc: pastryCreamVideoUrl },
-  { mode: "До · После · Видео", product: "Суп с креветками", title: "Премиальная подача со свечами", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
-  { mode: "До · После · Видео", product: "Серебристый суперкар", title: "Автомобильный кадр в шоуруме", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
-  { mode: "Примерка", product: "Женский образ", title: "Образ на модели", beforeSrc: formalOutfitBeforeUrl, src: premiumFormalOutfitAfterUrl, videoSrc: premiumFormalOutfitVideoUrl, compact: true },
-  { mode: "Украшения", product: "Золотое колье", title: "Украшение в рекламном кадре", beforeSrc: jewelryCloseBeforeUrl, src: premiumJewelryCloseAfterUrl, videoSrc: premiumJewelryCloseVideoUrl, compact: true },
-  { mode: "Lifestyle", product: "Электроника", title: "Товар в реальной сцене", beforeSrc: lookElectronicsUrl, src: premiumElectronicsAfterUrl, videoSrc: premiumElectronicsVideoUrl, compact: true },
-  { mode: "Каталог", product: "Рюкзак", title: "Карточка товара с моделью", beforeSrc: lookBackpackUrl, src: premiumBagsAfterUrl, videoSrc: premiumBagsVideoUrl, compact: true },
-  { mode: "Интерьер", product: "Декор для дома", title: "Интерьерная композиция", beforeSrc: lookHomeVaseUrl, src: premiumHomeAfterUrl, videoSrc: premiumHomeVideoUrl, compact: true },
-  { mode: "Stories", product: "Продукты", title: "Вертикальный рекламный сюжет", beforeSrc: lookFoodStorageUrl, src: premiumFoodAfterUrl, videoSrc: premiumFoodVideoUrl, compact: true },
+  { mode: "До · После · Видео", modeEn: "Before · After · Video", product: "Выпечка с голубикой", productEn: "Blueberry pastry", title: "Ресторанная подача со сливками", titleEn: "Restaurant presentation with cream", beforeSrc: pastryBeforeUrl, src: pastryAfterUrl, videoSrc: pastryCreamVideoUrl },
+  { mode: "До · После · Видео", modeEn: "Before · After · Video", product: "Суп с креветками", productEn: "Shrimp soup", title: "Премиальная подача со свечами", titleEn: "Premium candlelit presentation", beforeSrc: soupBeforeUrl, src: soupLuxuryAfterUrl, videoSrc: soupLuxuryVideoUrl },
+  { mode: "До · После · Видео", modeEn: "Before · After · Video", product: "Серебристый суперкар", productEn: "Silver supercar", title: "Автомобильный кадр в шоуруме", titleEn: "Showroom automotive scene", beforeSrc: carBeforeUrl, src: carShowroomAfterUrl, videoSrc: carShowroomVideoUrl },
+  { mode: "Примерка", modeEn: "Virtual fitting", product: "Женский образ", productEn: "Women's outfit", title: "Образ на модели", titleEn: "Styled on a model", beforeSrc: formalOutfitBeforeUrl, src: premiumFormalOutfitAfterUrl, videoSrc: premiumFormalOutfitVideoUrl, compact: true },
+  { mode: "Украшения", modeEn: "Jewelry", product: "Золотое колье", productEn: "Gold necklace", title: "Украшение в рекламном кадре", titleEn: "Jewelry advertising scene", beforeSrc: jewelryCloseBeforeUrl, src: premiumJewelryCloseAfterUrl, videoSrc: premiumJewelryCloseVideoUrl, compact: true },
+  { mode: "Lifestyle", modeEn: "Lifestyle", product: "Электроника", productEn: "Electronics", title: "Товар в реальной сцене", titleEn: "Product in a real-life scene", beforeSrc: lookElectronicsUrl, src: premiumElectronicsAfterUrl, videoSrc: premiumElectronicsVideoUrl, compact: true },
+  { mode: "Каталог", modeEn: "Catalog", product: "Рюкзак", productEn: "Backpack", title: "Карточка товара с моделью", titleEn: "Marketplace card with a model", beforeSrc: lookBackpackUrl, src: premiumBagsAfterUrl, videoSrc: premiumBagsVideoUrl, compact: true },
+  { mode: "Интерьер", modeEn: "Interior", product: "Декор для дома", productEn: "Home decor", title: "Интерьерная композиция", titleEn: "Interior composition", beforeSrc: lookHomeVaseUrl, src: premiumHomeAfterUrl, videoSrc: premiumHomeVideoUrl, compact: true },
+  { mode: "Stories", modeEn: "Stories", product: "Продукты", productEn: "Food products", title: "Вертикальный рекламный сюжет", titleEn: "Vertical advertising story", beforeSrc: lookFoodStorageUrl, src: premiumFoodAfterUrl, videoSrc: premiumFoodVideoUrl, compact: true },
 ];
 
 const CATEGORY_PROOFS = [
@@ -2092,6 +2092,10 @@ function homePage() {
     </main>`;
 }
 
+function exampleCopy(item, field) {
+  return state.lang === "en" ? item[`${field}En`] || item[field] : item[field];
+}
+
 function examplesPage() {
   return `
     <main class="page examples-page">
@@ -2113,43 +2117,43 @@ function examplesPage() {
               ${item.beforeSrc && item.videoSrc ? `
                 <div class="example-media-triplet">
                   <figure class="example-media">
-                    <img src="${item.beforeSrc}" alt="${escapeHtml(`${item.title} ${t("home.before")}`)}" loading="lazy" />
+                    <img src="${item.beforeSrc}" alt="${escapeHtml(`${exampleCopy(item, "title")} ${t("home.before")}`)}" loading="lazy" />
                     <span class="example-pair-label">${t("home.before")}</span>
                   </figure>
                   <figure class="example-media">
-                    <img src="${item.src}" alt="${escapeHtml(`${item.title} ${t("home.after")}`)}" loading="lazy" />
+                    <img src="${item.src}" alt="${escapeHtml(`${exampleCopy(item, "title")} ${t("home.after")}`)}" loading="lazy" />
                     <span class="example-pair-label">${t("home.after")}</span>
                   </figure>
                   <figure class="example-media">
-                    <video src="${item.videoSrc}" aria-label="${escapeHtml(`${item.title} video`)}" autoplay muted loop playsinline controls preload="metadata"></video>
+                    <video src="${item.videoSrc}" aria-label="${escapeHtml(`${exampleCopy(item, "title")} video`)}" autoplay muted loop playsinline controls preload="metadata"></video>
                     <span class="example-pair-label">${t("studio.videoTab")}</span>
                   </figure>
                 </div>
               ` : item.beforeSrc ? `
                 <div class="example-media-pair">
                   <figure class="example-media">
-                    <img src="${item.beforeSrc}" alt="${escapeHtml(`${item.title} ${t("home.before")}`)}" loading="lazy" />
+                    <img src="${item.beforeSrc}" alt="${escapeHtml(`${exampleCopy(item, "title")} ${t("home.before")}`)}" loading="lazy" />
                     <span class="example-pair-label">${t("home.before")}</span>
                   </figure>
                   <figure class="example-media">
-                    <img src="${item.src}" alt="${escapeHtml(`${item.title} ${t("home.after")}`)}" loading="lazy" />
+                    <img src="${item.src}" alt="${escapeHtml(`${exampleCopy(item, "title")} ${t("home.after")}`)}" loading="lazy" />
                     <span class="example-pair-label">${t("home.after")}</span>
                   </figure>
                 </div>
               ` : item.videoSrc ? `
                 <figure class="example-media">
-                  <video src="${item.videoSrc}" aria-label="${escapeHtml(`${item.title} video`)}" autoplay muted loop playsinline controls preload="metadata" poster="${item.src}"></video>
+                  <video src="${item.videoSrc}" aria-label="${escapeHtml(`${exampleCopy(item, "title")} video`)}" autoplay muted loop playsinline controls preload="metadata" poster="${item.src}"></video>
                   <span class="example-pair-label">${t("studio.videoTab")}</span>
                 </figure>
               ` : `
                 <figure class="example-media">
-                  <img src="${item.src}" alt="${escapeHtml(item.title)}" loading="lazy" />
+                  <img src="${item.src}" alt="${escapeHtml(exampleCopy(item, "title"))}" loading="lazy" />
                 </figure>
               `}
               <div class="example-card-copy">
-                <span>${escapeHtml(item.mode)}</span>
-                <h3>${escapeHtml(item.title)}</h3>
-                <p>${escapeHtml(item.product)}</p>
+                <span>${escapeHtml(exampleCopy(item, "mode"))}</span>
+                <h3>${escapeHtml(exampleCopy(item, "title"))}</h3>
+                <p>${escapeHtml(exampleCopy(item, "product"))}</p>
               </div>
             </article>`).join("")}
         </div>

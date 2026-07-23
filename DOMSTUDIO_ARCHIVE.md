@@ -9165,3 +9165,83 @@ Files changed:
 This cleanup is committed locally but not pushed. The verified live SpaceWeb
 frontend remains v19 until a v41 package is intentionally deployed and
 visually verified.
+
+---
+
+## July 23, 2026 - Desktop AdPilot, Tools, And Examples Density Restored
+
+Corrected the oversized desktop layouts shown at the 2048 x 1024 screenshot
+size without weakening the existing mobile improvements.
+
+AdPilot desktop changes:
+
+- Added a desktop-only density layer beginning above the existing stacked
+  tablet breakpoint.
+- Reduced page-top padding and capped the main heading at 56 px instead of
+  78 px.
+- At widths of 1100 px and above, placed the product promise on the left and
+  supporting description/free allowance on the right, using the previously
+  empty half of the hero.
+- Reduced the gap before the campaign desk so the seller's functional workspace
+  appears substantially higher in the initial viewport.
+
+Tools desktop changes:
+
+- Reduced hero padding, heading size, description size, stat-card padding,
+  discovery spacing, and filter/search height.
+- Reduced the Quick Workflow strip to a 78 px minimum and tightened the gap
+  before the first category.
+- Reduced catalog cards from a 184 px to a 154 px minimum with tighter internal
+  spacing while preserving full-card click behavior.
+- Kept the existing 960 px tablet transition and 640 px compact mobile rows
+  unchanged.
+
+Examples desktop changes:
+
+- Reduced the Examples heading, badges, and card-copy spacing.
+- Capped the full-width three-panel Before/After/Video proof at a 350 px media
+  height so one example no longer consumes almost the entire desktop viewport.
+- Added English mode, product, and title captions for all nine examples and
+  selects them when the interface is English; Russian copy remains unchanged.
+- Kept the existing tablet and mobile column transitions unchanged.
+
+Release and coverage:
+
+- Added three desktop source-contract tests for AdPilot above-fold density,
+  Tools discovery/card density, Examples media caps, and localized captions.
+- `npm test` passed: 19 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 503,387 bytes; its gzip size is 136.35 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser connection still fails during its required bootstrap, so
+  no new live responsive screenshot verification is claimed. Desktop checks at
+  common laptop, 1920 px, and 2048 px sizes remain on the release checklist.
+- Bumped the PWA cache from `domstudio-shell-v41` to
+  `domstudio-shell-v42`.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `AF0C61C20B4310E0448ED1DF282490C8DD8F203F03DA6204BAE652EA2E3D7495`.
+- Main application asset: `assets/index-kyPX3C8W.js`, 503,387 bytes,
+  SHA-256
+  `AB3EB956BF7C5E25464A9EEF9BDCF2BB8F032B49B9C0D8E15F66A70FACCC2A77`.
+- Stylesheet: `assets/index-uI6Qzlo3.css`, 160,847 bytes, SHA-256
+  `7010CD81C447B21B615018979835E3619EC3028A17CE4EE9C458FF93239768FF`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `1F669322C9FF5764A1D1098A7DAA140E47A8E19443DE55AC2F21BEA28A936043`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/desktop-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This desktop correction is committed locally but not pushed. The verified live
+SpaceWeb frontend remains v19 until a v42 package is intentionally deployed and
+visually verified.
