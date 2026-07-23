@@ -812,6 +812,9 @@ const state = {
   adpilotPreviewSlug: "ozon-wb-card",
   adpilotContextImage: null,
   adpilotContextImageName: "",
+  adpilotImageAnalysis: "",
+  adpilotImageAnalyzing: false,
+  adpilotImageAnalysisError: "",
   contentDraft: Object.fromEntries(Object.keys(initialContentDefaults.draft).map((k) => [k, ""])),
   contentProfile: { ...Object.fromEntries(Object.keys(initialContentDefaults.profile).map((k) => [k, ""])), phone: "+7" },
   contentOutputLanguage: "russian",
@@ -2748,9 +2751,10 @@ function copyStudioPage() {
                     <div class="adpilot-photo-copy">
                       <small>${t("adpilot.desk.photoAttached")}</small>
                       <strong>${escapeHtml(truncate(state.adpilotContextImageName || t("adpilotContext.label"), 42))}</strong>
-                      <span>${t("adpilot.desk.photoNote")}</span>
+                      <span>${t(state.adpilotImageAnalyzing ? "adpilot.vision.analyzing" : state.adpilotImageAnalysis ? "adpilot.vision.ready" : "adpilot.desk.photoNote")}</span>
                     </div>
                     <div class="adpilot-photo-actions">
+                      <button class="adpilot-photo-analyze" type="button" data-adpilot-image-analyze ${state.adpilotImageAnalyzing ? "disabled" : ""}>${state.adpilotImageAnalyzing ? t("adpilot.vision.analyzingShort") : t("adpilot.vision.analyze")}</button>
                       <label for="adpilot-product-image">${t("adpilot.desk.photoReplace")}</label>
                       <button type="button" data-adpilot-image-clear>${t("adpilot.desk.photoRemove")}</button>
                     </div>
@@ -2761,6 +2765,8 @@ function copyStudioPage() {
                     <b>${t("adpilot.desk.photoChoose")}</b>
                   </label>`}
               <input class="sr-only" id="adpilot-product-image" type="file" accept="image/jpeg,image/png,image/webp" data-adpilot-image-input />
+              ${state.adpilotImageAnalysis ? `<div class="adpilot-vision-result"><span>${t("adpilot.vision.resultLabel")}</span><p>${escapeHtml(state.adpilotImageAnalysis)}</p></div>` : ""}
+              ${state.adpilotImageAnalysisError ? `<div class="adpilot-vision-error">${escapeHtml(state.adpilotImageAnalysisError)}</div>` : ""}
             </div>
             <label class="sr-only" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
             <textarea id="adpilot-quick-product" class="textarea adpilot-quick-input" rows="3"
@@ -4083,6 +4089,7 @@ function bind() {
     state.contentDraft = { ...state.contentDraft, product: event.target.value };
   });
   document.querySelector("[data-adpilot-image-input]")?.addEventListener("change", onAdPilotImageSelect);
+  document.querySelector("[data-adpilot-image-analyze]")?.addEventListener("click", analyzeAdPilotImage);
   document.querySelector("[data-adpilot-image-clear]")?.addEventListener("click", clearAdPilotImage);
   document.querySelectorAll("[data-adpilot-preview]").forEach(el => el.addEventListener("click", () => {
     const product = document.querySelector("#adpilot-quick-product")?.value || "";
@@ -4650,6 +4657,9 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
   if (toolId === "adpilot") {
     state.adpilotContextImage = dataUrl;
     state.adpilotContextImageName = imageName;
+    state.adpilotImageAnalysis = "";
+    state.adpilotImageAnalysisError = "";
+    state.adpilotImageAnalyzing = false;
     state.contentToolSlug = null;
     state.adpilotView = "tools";
     navigate("adpilot");
@@ -5164,13 +5174,23 @@ function incAnonAdpilotCount() {
   try { localStorage.setItem(ANON_ADPILOT_KEY, String(getAnonAdpilotCount() + 1)); } catch {}
 }
 
+function adPilotGenerationContext(product) {
+  const manualContext = String(product || "").trim();
+  const visionContext = String(state.adpilotImageAnalysis || "").trim();
+  if (!visionContext) return manualContext;
+  if (!manualContext) return `${t("adpilot.vision.contextLabel")}: ${visionContext}`;
+  return `${manualContext}\n\n${t("adpilot.vision.contextLabel")}: ${visionContext}`;
+}
+
 async function quickGenerateAdPilot(toolSlug, product) {
-  if (!product.trim()) {
+  const productContext = adPilotGenerationContext(product);
+  if (!productContext) {
+    toast(t(state.adpilotContextImage ? "adpilot.vision.needAnalysis" : "adpilot.vision.needContext"));
     document.querySelector("#adpilot-quick-product")?.focus();
     return;
   }
   const isAnon = !state.user;
-  state.contentDraft = { ...state.contentDraft, product: product.trim() };
+  state.contentDraft = { ...state.contentDraft, product: productContext };
   state.contentToolSlug = toolSlug;
   state.contentOutput = "";
   state.contentNotice = "";
@@ -5183,7 +5203,7 @@ async function quickGenerateAdPilot(toolSlug, product) {
         method: "POST",
         body: JSON.stringify({
           tool_slug: toolSlug,
-          input: { product: product.trim() },
+          input: { product: productContext },
           profile: {},
           output_language: state.contentOutputLanguage,
         }),
@@ -5196,7 +5216,7 @@ async function quickGenerateAdPilot(toolSlug, product) {
         method: "POST",
         body: JSON.stringify({
           tool_slug: toolSlug,
-          input: { product: product.trim() },
+          input: { product: productContext },
           profile: state.contentProfile,
           output_language: state.contentOutputLanguage,
         }),
@@ -5229,6 +5249,62 @@ function openAdPilotChat(product = "") {
   setTimeout(() => document.querySelector("#ad-chat-input")?.focus(), 50);
 }
 
+async function prepareVisionImage(dataUrl) {
+  const image = new Image();
+  image.src = dataUrl;
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = () => reject(new Error(t("adpilot.vision.imageError")));
+  });
+
+  const maxSide = 1600;
+  const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.86);
+}
+
+async function analyzeAdPilotImage() {
+  if (!state.adpilotContextImage || state.adpilotImageAnalyzing) return;
+  const sourceImage = state.adpilotContextImage;
+  const productContext = (document.querySelector("#adpilot-quick-product")?.value || state.contentDraft.product || "").trim();
+  state.contentDraft = { ...state.contentDraft, product: productContext };
+  state.adpilotImageAnalyzing = true;
+  state.adpilotImageAnalysisError = "";
+  render({ motion: false });
+
+  try {
+    const imageData = await prepareVisionImage(sourceImage);
+    const result = await api("/vision/analyze", {
+      method: "POST",
+      body: JSON.stringify({
+        image_data: imageData,
+        language: getLang() === "ru" ? "ru" : "en",
+        product_context: productContext,
+      }),
+    });
+    if (state.adpilotContextImage !== sourceImage) return;
+    state.adpilotImageAnalysis = result.analysis || "";
+    if (!state.adpilotImageAnalysis) throw new Error(t("adpilot.vision.empty"));
+    toast(t("adpilot.vision.done"));
+  } catch (error) {
+    if (state.adpilotContextImage === sourceImage) {
+      state.adpilotImageAnalysisError = error.message;
+      toast(error.message);
+    }
+  } finally {
+    if (state.adpilotContextImage === sourceImage) {
+      state.adpilotImageAnalyzing = false;
+      render({ motion: false });
+    }
+  }
+}
+
 function onAdPilotImageSelect(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -5246,6 +5322,9 @@ function onAdPilotImageSelect(event) {
   reader.onload = () => {
     state.adpilotContextImage = String(reader.result || "");
     state.adpilotContextImageName = file.name;
+    state.adpilotImageAnalysis = "";
+    state.adpilotImageAnalysisError = "";
+    state.adpilotImageAnalyzing = false;
     toast(t("adpilot.desk.photoAdded"));
     render({ motion: false });
   };
@@ -5255,6 +5334,9 @@ function onAdPilotImageSelect(event) {
 function clearAdPilotImage() {
   state.adpilotContextImage = null;
   state.adpilotContextImageName = "";
+  state.adpilotImageAnalysis = "";
+  state.adpilotImageAnalysisError = "";
+  state.adpilotImageAnalyzing = false;
   toast(t("adpilot.desk.photoRemoved"));
   render({ motion: false });
 }
@@ -5314,6 +5396,9 @@ function goToAdPilotWithContext() {
   state.contentToolSlug = toolMap[marketplace] || "ozon-wb-card";
   state.adpilotContextImage = state.generatedImage || null;
   state.adpilotContextImageName = state.generatedImage ? (state.selectedImageName || "") : "";
+  state.adpilotImageAnalysis = "";
+  state.adpilotImageAnalysisError = "";
+  state.adpilotImageAnalyzing = false;
   state.adpilotView = "tools";
   state.route = "adpilot";
   toast(t("adpilotLink.toast"));

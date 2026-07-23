@@ -18,7 +18,7 @@ import logging
 import os
 
 from database import engine, Base
-from routers import ad_chat, auth, contact, content, generation, marketplaces, users, payments, subscriptions, tokens, tools
+from routers import ad_chat, auth, contact, content, generation, marketplaces, users, payments, subscriptions, tokens, tools, vision
 from runtime_info import runtime_version_payload
 from cors_config import effective_cors_origins
 
@@ -72,6 +72,7 @@ app.include_router(tokens.router,        prefix="/tokens",        tags=["Tokens"
 app.include_router(generation.router,    prefix="/generation",    tags=["Generation"])
 app.include_router(content.router,       prefix="/content",       tags=["Content"])
 app.include_router(ad_chat.router,       prefix="/ad-chat",       tags=["AdPilot AI"])
+app.include_router(vision.router,        prefix="/vision",        tags=["Vision AI"])
 app.include_router(contact.router,       prefix="/contact",       tags=["Contact"])
 app.include_router(marketplaces.router,  prefix="/marketplaces",  tags=["Marketplaces"])
 app.include_router(tools.router,         prefix="/tools",         tags=["Tools"])
@@ -81,8 +82,8 @@ def health():
     return {
         "status": "ok",
         "service": "domstudio-api",
-        "v": 8,
-        "prompt_version": "preserve-label-image-edit-2026-06-17",
+        "v": 9,
+        "prompt_version": "groq-product-vision-2026-07-23",
     }
 
 

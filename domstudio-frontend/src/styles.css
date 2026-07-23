@@ -1834,7 +1834,14 @@ h1 em { color: var(--gold); font-style: normal; }
 .adpilot-photo-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
 .adpilot-photo-actions label, .adpilot-photo-actions button { border: 0; background: transparent; color: var(--ink); font-size: 11px; font-weight: 900; cursor: pointer; }
 .adpilot-photo-actions button { color: var(--muted); }
+.adpilot-photo-actions .adpilot-photo-analyze { padding: 8px 11px; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; white-space: nowrap; }
+.adpilot-photo-actions .adpilot-photo-analyze:disabled { opacity: .58; cursor: wait; }
 .adpilot-photo-actions label:hover, .adpilot-photo-actions button:hover { text-decoration: underline; }
+.adpilot-photo-actions .adpilot-photo-analyze:hover { text-decoration: none; }
+.adpilot-vision-result { margin-top: 10px; padding: 13px 14px; border: 1px solid #b8d986; border-radius: 13px; background: #f3f9e9; }
+.adpilot-vision-result span { color: #467325; font-size: 9px; font-weight: 950; letter-spacing: .08em; text-transform: uppercase; }
+.adpilot-vision-result p { max-height: 170px; overflow: auto; margin: 7px 0 0; color: #2f3928; font-size: 11px; line-height: 1.52; white-space: pre-line; }
+.adpilot-vision-error { margin-top: 10px; padding: 10px 12px; border-radius: 11px; background: #f6e6e3; color: var(--danger); font-size: 11px; font-weight: 700; line-height: 1.45; }
 .adpilot-quick-input { width: 100%; min-height: 88px; margin: 0; border: 1.5px solid var(--ink); border-radius: 15px; background: white; font-size: 15px; resize: vertical; }
 .adpilot-channel-label { margin: 19px 0 10px; font-size: 11px; font-weight: 950; letter-spacing: .08em; text-transform: uppercase; }
 .adpilot-preview-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1931,8 +1938,9 @@ h1 em { color: var(--gold); font-style: normal; }
   .adpilot-photo-upload > b { width: 100%; margin: 0; text-align: center; }
   .adpilot-photo-attached { grid-template-columns: 62px minmax(0, 1fr); }
   .adpilot-photo-attached > img { width: 62px; height: 62px; }
-  .adpilot-photo-actions { grid-column: 1 / -1; align-items: stretch; flex-direction: row; }
+  .adpilot-photo-actions { grid-column: 1 / -1; align-items: stretch; flex-flow: row wrap; }
   .adpilot-photo-actions label, .adpilot-photo-actions button { flex: 1; padding: 9px; border: 1px solid var(--line); border-radius: 999px; background: white; text-align: center; }
+  .adpilot-photo-actions .adpilot-photo-analyze { flex-basis: 100%; border-color: var(--ink); background: var(--ink); }
   .adpilot-preview-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .adpilot-preview-tabs::-webkit-scrollbar { display: none; }
   .adpilot-preview-tabs button { flex: 0 0 auto; }
