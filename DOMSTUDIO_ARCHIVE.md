@@ -8659,3 +8659,61 @@ Files changed:
 
 This fix changes the local source only. The verified live SpaceWeb frontend
 remains v19 until a new v35 package is intentionally deployed and checked.
+
+---
+
+## July 23, 2026 - Entire Free Tool Card Made Interactive
+
+Fixed the Free Tools catalog interaction where only the small `Open` button
+opened a workspace. Clicking the icon, title, description, or empty card area
+previously did nothing, which was especially difficult when the action sat
+below the visible portion of a card.
+
+Changes:
+
+- Replaced each available tool card's non-interactive `<article>` plus nested
+  button with one native `<button>` covering the entire card.
+- The icon, title, description, whitespace, and visible `Open` label now share
+  the existing `data-free-tool` navigation action.
+- Kept unavailable/future cards as non-interactive articles so they cannot be
+  opened accidentally.
+- Preserved the existing card design while resetting native button typography,
+  width, alignment, and appearance.
+- Added pointer, hover, pressed, and visible keyboard-focus states.
+- Kept `Open` as a visual cue, but navigation no longer depends on that small
+  label being visible.
+- Bumped the PWA cache from `domstudio-shell-v35` to
+  `domstudio-shell-v36`.
+
+Regression coverage:
+
+- Added focused markup tests confirming that an available card is exactly one
+  navigation button with the tool route on the outer element.
+- Confirmed unavailable cards contain no button and no tool-navigation data.
+- `npm test` passed: 6 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` passed with Vite 7.3.5.
+- `git diff --check` passed.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `6E066C035E4644B2454B4FC3F2A1CF0F0DCC827CD6ABFDAC0E85BCBF72893022`.
+- Main application asset: `assets/index-CixYwIyV.js`, 496,504 bytes, SHA-256
+  `67561467898799A806C36C116BDB38CB76C7F13E4B17D9E264AD905ED80C0A62`.
+- Stylesheet: `assets/index-CIuflnks.css`, 145,599 bytes, SHA-256
+  `ED589417D8EE134FA0A0429E70EF120F4AD99FB4E5A847200E3D04F3004D37EB`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `D2CAD28CD7507CA1B5FBAAECCAD19BA9091EB8970647D8B21E7D013E6D407589`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/free-tool-card.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/free-tool-card.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This fix changes the local source only. The verified live SpaceWeb frontend
+remains v19 until a new v36 package is intentionally deployed and checked.

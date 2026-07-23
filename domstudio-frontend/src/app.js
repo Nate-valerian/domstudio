@@ -2,6 +2,7 @@ import "./styles.css";
 import { gsap } from "gsap";
 import { t, getLang, setLang, isRussianMarket } from "./i18n.js";
 import { buildAdPilotPreviewContext } from "./adpilot-preview.js";
+import { renderFreeToolCatalogCard } from "./free-tool-card.js";
 import productProofUrl from "./assets/product-proof.webp";
 import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
 import modeProductUrl from "./assets/mode-product-real-v3.webp";
@@ -3385,17 +3386,14 @@ function toolsPage() {
 
   if (!selectedTool) {
     const availableCount = catalogTools.filter((item) => item.available).length;
-    const catalogCard = (tool) => `<article class="free-tool-card ${tool.featured ? "featured" : ""} ${tool.available ? "available" : "coming"}" data-free-tool-card data-tool-category="${tool.category}">
-      <div class="free-tool-card-top">
-        <span class="free-tool-icon" aria-hidden="true">${tool.icon}</span>
-        <span class="free-tool-status ${tool.available ? "" : "coming"}">${t(tool.available ? "tools.catalog.free" : "tools.catalog.soon")}</span>
-      </div>
-      <h3>${t(tool.titleKey)}</h3>
-      <p>${t(tool.descKey)}</p>
-      ${tool.available
-        ? `<button class="free-tool-open" type="button" data-free-tool="${tool.id}">${t("tools.catalog.open")} <span aria-hidden="true">→</span></button>`
-        : `<span class="free-tool-open pending">${t("tools.catalog.planned")}</span>`}
-    </article>`;
+    const catalogCard = (tool) => renderFreeToolCatalogCard({
+      tool,
+      title: t(tool.titleKey),
+      description: t(tool.descKey),
+      status: t(tool.available ? "tools.catalog.free" : "tools.catalog.soon"),
+      openLabel: t("tools.catalog.open"),
+      plannedLabel: t("tools.catalog.planned"),
+    });
 
     return `<main class="page tools-page free-tools-catalog-page">
       <div class="free-tools-catalog">

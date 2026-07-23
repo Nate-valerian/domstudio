@@ -2411,8 +2411,11 @@ h1 em { color: var(--gold); font-style: normal; }
 .free-tools-section > header p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
 .free-tools-section > header > span { color: var(--muted); font-size: 11px; font-weight: 800; }
 .free-tools-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.free-tool-card { display: flex; min-height: 184px; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); transition: transform .18s, border-color .18s, box-shadow .18s; }
+.free-tool-card { display: flex; width: 100%; min-height: 184px; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 18px; appearance: none; background: var(--card); color: var(--ink); font: inherit; text-align: left; transition: transform .18s, border-color .18s, box-shadow .18s; }
+.free-tool-card.available { cursor: pointer; }
 .free-tool-card.available:hover { transform: translateY(-2px); border-color: rgba(17,17,15,.34); box-shadow: 0 13px 34px rgba(32,25,14,.07); }
+.free-tool-card.available:focus-visible { outline: 3px solid #ff633e; outline-offset: 3px; }
+.free-tool-card.available:active { transform: translateY(0); }
 .free-tool-card.featured { border-color: var(--ink); background: #171614; color: white; }
 .free-tool-card.coming { background: rgba(255,253,248,.58); }
 .free-tool-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }

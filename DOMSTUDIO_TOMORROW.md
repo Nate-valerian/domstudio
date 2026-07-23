@@ -50,8 +50,8 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v35` and passed its
-  production build and focused AdPilot preview-state tests.
+- The latest frontend source uses PWA cache `domstudio-shell-v36` and passed its
+  production build and focused frontend interaction tests.
 - The backend suite passed with 74 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
@@ -79,7 +79,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v35 frontend and Groq vision backend
+### 2. Release the v36 frontend and Groq vision backend
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -89,7 +89,7 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v35`;
+   - service worker cache `domstudio-shell-v36`;
    - all 16 Tools workspaces;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
