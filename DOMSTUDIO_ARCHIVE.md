@@ -8789,3 +8789,73 @@ Files changed:
 This redesign changes the local source only. The verified live SpaceWeb
 frontend remains v19 until a v37 package is intentionally deployed and visually
 verified.
+
+---
+
+## July 23, 2026 - AdPilot Analyzed Product Context And Image Presentation Fixed
+
+Corrected the analyzed-photo state in the AdPilot landing desk so it no longer
+looks like a generated marketplace card before the seller has actually clicked
+Create.
+
+Changes:
+
+- Kept the complete Groq Vision fact report in the left-side analysis panel and
+  removed the duplicate raw facts from the dark preview panel.
+- Relabeled the inner dark panel as `Product context` / `Контекст товара`
+  instead of showing a channel-specific generator name such as `OZON/WB CARD`.
+- Replaced the duplicated report with a concise message explaining that the
+  analysis is ready and real channel content appears after Create.
+- Wrapped the product image in a dedicated dark frame and changed it from
+  `object-fit: cover` to `object-fit: contain`, preserving the full source image
+  without cutting off the vehicle or other wide/tall products.
+- Changed the completed analysis action to `Analyze again` and corrected the
+  attached-photo note so it no longer claims the brief is already included in
+  an empty seller description.
+- After analysis, the optional description placeholder now asks for facts the
+  image cannot show, such as condition, price, delivery, or offer details.
+- Preserved the existing generation path: actual WB/Ozon, Avito, VK, or Yandex
+  output still appears only after the corresponding Create action runs.
+- Added matching Russian and English interface copy.
+- Bumped the PWA cache from `domstudio-shell-v37` to
+  `domstudio-shell-v38`.
+
+Coverage and validation:
+
+- Updated preview-context tests to confirm analyzed facts are not repeated as
+  fake output, manual context receives the same honest ready state, and the
+  recognized product title remains correct.
+- `npm test` passed: 10 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the standard Vite chunk-size advisory because the main
+  bundle is 502,377 bytes; its gzip size is 136.06 kB. No build failure or
+  runtime error was reported.
+- `git diff --check` passed.
+- The in-app browser connection remains unavailable, so no new responsive
+  browser screenshot verification is claimed; this stays in the release check.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `4E2D41C561BE84129310F3E92E6E04E447A94E1021349CE085DB650E8D8F9D54`.
+- Main application asset: `assets/index-C3d5MvyU.js`, 502,377 bytes, SHA-256
+  `D555EE6F33E24CC27DFA559EC00F20AC4A3CC08907E202F2A7905C3792DBC1B1`.
+- Stylesheet: `assets/index-B6LEwFDy.css`, 149,993 bytes, SHA-256
+  `A393011055154791D2D4033E6E2A843B1E123323A62D13C08F08854B4B04226B`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `57F25B66FE3967534B64548DAF57EE0D449BFA9F3FC36E21BBFCB2ED84D18D3E`.
+
+Files changed:
+
+- `domstudio-frontend/src/adpilot-preview.js`
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/adpilot-preview.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This fix changes the local source only. The verified live SpaceWeb frontend
+remains v19 until a v38 package is intentionally deployed and visually
+verified.

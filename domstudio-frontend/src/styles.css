@@ -1872,7 +1872,11 @@ h1 em { color: var(--gold); font-style: normal; }
 .adpilot-preview-output p { margin: 0; color: #d0cbc1; font-size: 13px; line-height: 1.58; white-space: pre-line; }
 .adpilot-preview-output footer { display: flex; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 24px; border-top: 1px solid #3d3a35; color: #938e85; font-size: 11px; }
 .adpilot-preview-output.is-contextual h2 { margin-top: 16px; }
-.adpilot-preview-product-image { width: 100%; max-height: 158px; margin-top: 16px; border-radius: 12px; background: #171614; object-fit: cover; object-position: center; }
+.adpilot-preview-product-frame {
+  display: grid; place-items: center; width: 100%; height: clamp(190px, 22vw, 260px); overflow: hidden; margin-top: 16px;
+  border: 1px solid #403d37; border-radius: 12px; background: #171614;
+}
+.adpilot-preview-product-image { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .adpilot-section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin: 50px 0 18px; }
 .adpilot-section-head h2 { margin: 0; font-size: clamp(26px, 3vw, 32px); letter-spacing: -.035em; }
 .adpilot-section-head p { margin: 0; color: var(--muted); font-size: 13px; }

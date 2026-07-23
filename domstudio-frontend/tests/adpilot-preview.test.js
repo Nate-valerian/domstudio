@@ -13,6 +13,8 @@ const copy = {
   photoFacts: "Photo facts applied",
   descriptionReady: "Product description applied",
   photoPending: "Photo not analyzed yet",
+  analysisReadyBody: "Photo analysis is ready. Click Create to generate real content for the selected channel.",
+  manualReadyBody: "Product details are ready. Click Create to generate real content for the selected channel.",
 };
 
 test("keeps the sample preview only when no user context exists", () => {
@@ -28,7 +30,7 @@ test("replaces the sample as soon as a product photo is attached", () => {
   });
 });
 
-test("uses analyzed golf-cart facts instead of the leather-bag sample", () => {
+test("uses the recognized product without duplicating raw photo facts", () => {
   const preview = buildAdPilotPreviewContext({
     hasPhoto: true,
     analysis: [
@@ -41,8 +43,8 @@ test("uses analyzed golf-cart facts instead of the leather-bag sample", () => {
   });
 
   assert.equal(preview.title, "Utility vehicle (UTV) / golf cart-style work vehicle");
-  assert.match(preview.body, /Gray body/);
-  assert.match(preview.body, /rear cargo bed/);
+  assert.equal(preview.body, copy.analysisReadyBody);
+  assert.doesNotMatch(preview.body, /Gray body|rear cargo bed/);
   assert.doesNotMatch(`${preview.title} ${preview.body}`, /leather bag/i);
   assert.equal(preview.status, "Ready to create");
   assert.equal(preview.footer, "Photo facts applied");
@@ -57,5 +59,16 @@ test("lets the seller's description override the recognized title", () => {
   });
 
   assert.equal(preview.title, "Refurbished Carryall 1700 utility vehicle");
-  assert.equal(preview.body, "Color: Gray");
+  assert.equal(preview.body, copy.analysisReadyBody);
+});
+
+test("summarizes manual context as ready instead of pretending it is generated output", () => {
+  const preview = buildAdPilotPreviewContext({
+    manualContext: "Handmade oak dining table",
+    copy,
+  });
+
+  assert.equal(preview.title, "Handmade oak dining table");
+  assert.equal(preview.body, copy.manualReadyBody);
+  assert.equal(preview.footer, "Product description applied");
 });

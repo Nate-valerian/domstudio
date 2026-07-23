@@ -2727,6 +2727,8 @@ function adPilotLandingPreviewContext() {
       photoFacts: t("adpilot.desk.context.photoFacts"),
       descriptionReady: t("adpilot.desk.context.descriptionReady"),
       photoPending: t("adpilot.desk.context.photoPending"),
+      analysisReadyBody: t("adpilot.desk.context.analysisReadyBody"),
+      manualReadyBody: t("adpilot.desk.context.manualReadyBody"),
     },
   });
 }
@@ -2837,7 +2839,7 @@ function copyStudioPage() {
                       <span>${t(state.adpilotImageAnalyzing ? "adpilot.vision.analyzing" : state.adpilotImageAnalysis ? "adpilot.vision.ready" : "adpilot.desk.photoNote")}</span>
                     </div>
                     <div class="adpilot-photo-actions">
-                      <button class="adpilot-photo-analyze" type="button" data-adpilot-image-analyze ${state.adpilotImageAnalyzing ? "disabled" : ""}>${state.adpilotImageAnalyzing ? t("adpilot.vision.analyzingShort") : t("adpilot.vision.analyze")}</button>
+                      <button class="adpilot-photo-analyze" type="button" data-adpilot-image-analyze ${state.adpilotImageAnalyzing ? "disabled" : ""}>${state.adpilotImageAnalyzing ? t("adpilot.vision.analyzingShort") : state.adpilotImageAnalysis ? t("adpilot.vision.analyzeAgain") : t("adpilot.vision.analyze")}</button>
                       <label for="adpilot-product-image">${t("adpilot.desk.photoReplace")}</label>
                       <button type="button" data-adpilot-image-clear>${t("adpilot.desk.photoRemove")}</button>
                     </div>
@@ -2853,7 +2855,7 @@ function copyStudioPage() {
             </div>
             <label class="sr-only" for="adpilot-quick-product">${t("adpilot.quickProduct")}</label>
             <textarea id="adpilot-quick-product" class="textarea adpilot-quick-input" rows="3"
-              placeholder="${t("adpilot.quickProductPlaceholder")}">${escapeHtml(state.contentDraft.product || "")}</textarea>
+              placeholder="${t(state.adpilotImageAnalysis ? "adpilot.quickProductContextPlaceholder" : "adpilot.quickProductPlaceholder")}">${escapeHtml(state.contentDraft.product || "")}</textarea>
             <div class="adpilot-channel-label">${t("adpilot.desk.channelLabel")}</div>
             <div class="adpilot-preview-tabs" role="tablist" aria-label="${t("adpilot.desk.channelLabel")}">
               ${previewOptions.map((item) => `<button class="${item.slug === activePreview.slug ? "active" : ""}" type="button" role="tab" aria-selected="${item.slug === activePreview.slug}" data-adpilot-preview="${item.slug}">${item.label}</button>`).join("")}
@@ -2872,8 +2874,8 @@ function copyStudioPage() {
               ${previewOptions.map((item) => `<button class="${item.slug === activePreview.slug ? "active" : ""}" type="button" role="tab" aria-selected="${item.slug === activePreview.slug}" data-adpilot-preview="${item.slug}">${item.label}</button>`).join("")}
             </div>
             <article class="adpilot-preview-output ${previewContext ? "is-contextual" : ""}">
-              <span>${escapeHtml(activePreviewTool ? contentToolName(activePreviewTool) : activePreview.label)}</span>
-              ${previewContext && state.adpilotContextImage ? `<img class="adpilot-preview-product-image" src="${state.adpilotContextImage}" alt="${t("adpilot.desk.photoAttached")}" />` : ""}
+              <span>${previewContext ? t("adpilot.desk.contextBrief") : escapeHtml(activePreviewTool ? contentToolName(activePreviewTool) : activePreview.label)}</span>
+              ${previewContext && state.adpilotContextImage ? `<div class="adpilot-preview-product-frame"><img class="adpilot-preview-product-image" src="${state.adpilotContextImage}" alt="${t("adpilot.desk.photoAttached")}" /></div>` : ""}
               <h2>${escapeHtml(previewTitle)}</h2>
               <p>${escapeHtml(previewBody)}</p>
               <footer>

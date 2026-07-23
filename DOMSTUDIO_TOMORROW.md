@@ -40,10 +40,10 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `80343e4` (`Make free tool cards fully clickable`),
-  including the complete AdPilot/Tools rollout and the two focused follow-up
-  fixes. Later workspace changes may remain local until the user approves a
-  push.
+- `origin/main` is at `eeedc94` (`Redesign free tool workspaces`), including
+  the complete AdPilot/Tools rollout and its focused UI follow-ups. The latest
+  AdPilot analyzed-product presentation fix is committed locally only until
+  the user approves a push.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
 - AdPilot has the product-first campaign desk, optional product photo, Groq
   Qwen 3.6 Vision analysis, all 19 detailed copy generators, and the unified
@@ -51,12 +51,12 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v37` and passed its
+- The latest frontend source uses PWA cache `domstudio-shell-v38` and passed its
   production build and focused frontend interaction tests.
 - The backend suite passed with 74 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
-  describe the v34 AdPilot/Tools source as live until it is packaged, uploaded,
+  describe the v38 AdPilot/Tools source as live until it is packaged, uploaded,
   and checked on the custom domain.
 - The canonical HTTPS/`www` `.htaccess` change is committed and locally
   validated, but its production upload and redirect matrix have not been
@@ -80,7 +80,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v37 frontend and Groq vision backend
+### 2. Release the v38 frontend and Groq vision backend
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -90,7 +90,7 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v37`;
+   - service worker cache `domstudio-shell-v38`;
    - all 16 Tools workspaces;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
@@ -99,6 +99,6 @@ must be verified.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The source is already pushed. Packaging, hosting changes, remote environment
-configuration, and production deployment still require the user's explicit
-approval or direct participation.
+The latest AdPilot presentation fix is committed locally but not pushed.
+Packaging, hosting changes, remote environment configuration, and production
+deployment still require the user's explicit approval or direct participation.

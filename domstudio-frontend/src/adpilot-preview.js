@@ -28,10 +28,9 @@ export function buildAdPilotPreviewContext({
     const lines = facts.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     const firstLine = lines[0] || facts;
     const recognizedProduct = firstLine.replace(/^[^:\n]{1,48}:\s*/, "").trim() || firstLine;
-    const detailLines = lines.slice(1, 6);
     return {
       title: clip(manual || recognizedProduct, 96),
-      body: clip(detailLines.length ? detailLines.join("\n") : facts, 560),
+      body: copy.analysisReadyBody,
       status: copy.readyStatus,
       footer: copy.photoFacts,
     };
@@ -40,7 +39,7 @@ export function buildAdPilotPreviewContext({
   if (manual) {
     return {
       title: clip(manual, 96),
-      body: manual,
+      body: copy.manualReadyBody,
       status: copy.readyStatus,
       footer: copy.descriptionReady,
     };
