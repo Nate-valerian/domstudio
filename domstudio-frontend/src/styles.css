@@ -2444,6 +2444,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .tools-workspace-grid[data-active-tool="before-after"] #tool-before-after,
 .tools-workspace-grid[data-active-tool="palette"] #tool-palette,
 .tools-workspace-grid[data-active-tool="qr"] #tool-qr,
+.tools-workspace-grid[data-active-tool="batch"] #tool-batch,
 .tools-workspace-grid[data-active-tool="collage"] #tool-collage,
 .tools-workspace-grid[data-active-tool="watermark"] #tool-watermark,
 .tools-workspace-grid[data-active-tool="promo"] #tool-promo,
@@ -2512,6 +2513,20 @@ h1 em { color: var(--gold); font-style: normal; }
 .qr-color-grid b { color: var(--ink); font-size: 11px; }
 .qr-result-wrap { display: grid; place-items: center; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
 .qr-result-wrap img { width: min(100%, 380px); aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; }
+.batch-file-list, .batch-result-list { display: grid; gap: 8px; margin-bottom: 12px; }
+.batch-file-list > div, .batch-result-list > div { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.batch-file-list img, .batch-result-list img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: white; }
+.batch-file-list span, .batch-result-list span { min-width: 0; }
+.batch-file-list b, .batch-file-list small, .batch-result-list b, .batch-result-list small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.batch-file-list b, .batch-result-list b { font-size: 12px; }
+.batch-file-list small, .batch-result-list small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.batch-file-list button, .batch-result-list button, .batch-result-list a { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 50%; background: white; color: var(--ink); text-decoration: none; cursor: pointer; }
+.batch-add-more { display: block; margin: 0 0 14px; padding: 10px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 12px; font-weight: 800; text-align: center; cursor: pointer; }
+.batch-controls { display: grid; gap: 12px; margin-bottom: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; }
+.batch-result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.batch-result-head .button { width: auto; min-height: 40px; padding: 0 14px; }
+.batch-result-list > div { grid-template-columns: 52px minmax(0, 1fr) auto auto; }
+.batch-result-list > div.selected { border-color: var(--gold); background: #fffaf0; }
 
 @media (max-width: 960px) {
   .free-tools-hero { grid-template-columns: 1fr; }

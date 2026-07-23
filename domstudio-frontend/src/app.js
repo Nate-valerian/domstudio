@@ -819,6 +819,16 @@ const state = {
   qrResult: null,
   qrGenerating: false,
   qrError: "",
+  batchFiles: [],
+  batchPreviews: [],
+  batchResults: [],
+  batchFormat: "webp",
+  batchQuality: 82,
+  batchMaxSide: "1600",
+  batchPrefix: "product",
+  batchProcessing: false,
+  batchZipUrl: null,
+  batchTransferIndex: 0,
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3292,6 +3302,7 @@ const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["safe-zone", "tools.safeZone.h2"],
   ["before-after", "tools.beforeAfter.h2"],
   ["palette", "tools.palette.h2"],
+  ["batch", "tools.batch.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3334,7 +3345,7 @@ function toolsPage() {
     { id: "before-after", category: "brand", icon: "◐", titleKey: "tools.beforeAfter.h2", descKey: "tools.beforeAfter.desc", available: true },
     { id: "palette", category: "brand", icon: "●", titleKey: "tools.palette.h2", descKey: "tools.palette.desc", available: true },
     { id: "qr", category: "business", icon: "▩", titleKey: "tools.qr.h2", descKey: "tools.qr.desc", available: true },
-    { id: "batch", category: "business", icon: "≡", titleKey: "tools.batch.h2", descKey: "tools.batch.desc", available: false },
+    { id: "batch", category: "business", icon: "≡", titleKey: "tools.batch.h2", descKey: "tools.batch.desc", available: true },
   ];
   const categories = [
     { id: "prep", titleKey: "tools.catalog.category.prep", descKey: "tools.catalog.category.prepSub" },
@@ -3346,7 +3357,6 @@ function toolsPage() {
 
   if (!selectedTool) {
     const availableCount = catalogTools.filter((item) => item.available).length;
-    const comingCount = catalogTools.length - availableCount;
     const catalogCard = (tool) => `<article class="free-tool-card ${tool.featured ? "featured" : ""} ${tool.available ? "available" : "coming"}" data-free-tool-card data-tool-category="${tool.category}">
       <div class="free-tool-card-top">
         <span class="free-tool-icon" aria-hidden="true">${tool.icon}</span>
@@ -3369,7 +3379,7 @@ function toolsPage() {
           </div>
           <div class="free-tools-stats">
             <div><b>${catalogTools.length}</b><span>${t("tools.catalog.total")}</span></div>
-            <div><b>${comingCount}</b><span>${t("tools.catalog.coming")}</span></div>
+            <div><b>${availableCount}</b><span>${t("tools.catalog.ready")}</span></div>
           </div>
         </section>
         <div class="free-tools-discovery">
@@ -3967,6 +3977,42 @@ function toolsPage() {
         <p class="tool-privacy-note">${t("tools.qr.privacy")}</p>
       </div>
 
+      <div class="tool-card" id="tool-batch">
+        <div class="tool-card-head">
+          <h2>${t("tools.batch.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.batch.desc")}</p>
+        ${state.batchPreviews.length ? `
+          <div class="batch-file-list">
+            ${state.batchPreviews.map((preview, index) => `<div><img src="${preview}" alt="" /><span><b>${escapeHtml(state.batchFiles[index]?.name || `${t("tools.batch.photo")} ${index + 1}`)}</b><small>${formatToolBytes(state.batchFiles[index]?.size || 0)}</small></span><button type="button" data-batch-remove="${index}" aria-label="${t("tools.batch.remove")}">×</button></div>`).join("")}
+          </div>
+          ${state.batchPreviews.length < 20 ? `<label class="batch-add-more" for="batch-file">+ ${t("tools.batch.addMore")}</label>` : ""}
+          <input id="batch-file" type="file" accept="image/*" multiple style="display:none" data-batch-input />
+          <div class="batch-controls">
+            <div class="field"><label>${t("tools.batch.format")}</label><div class="tool-option-grid">${[["jpeg","JPG"],["webp","WebP"],["png","PNG"]].map(([id,label]) => `<button class="chip ${state.batchFormat === id ? "active" : ""}" type="button" data-batch-format="${id}">${label}</button>`).join("")}</div></div>
+            <div class="field"><label>${t("tools.batch.maxSide")}</label><select class="select" data-batch-max-side><option value="1080" ${state.batchMaxSide === "1080" ? "selected" : ""}>1080 px</option><option value="1600" ${state.batchMaxSide === "1600" ? "selected" : ""}>1600 px</option><option value="2000" ${state.batchMaxSide === "2000" ? "selected" : ""}>2000 px</option><option value="original" ${state.batchMaxSide === "original" ? "selected" : ""}>${t("tools.batch.original")}</option></select></div>
+            ${state.batchFormat !== "png" ? `<label class="tool-range-label"><span>${t("tools.batch.quality")}</span><b>${state.batchQuality}%</b><input type="range" min="45" max="95" step="5" value="${state.batchQuality}" data-batch-quality /></label>` : ""}
+            <div class="field"><label>${t("tools.batch.prefix")}</label><input class="input" type="text" maxlength="40" value="${escapeHtml(state.batchPrefix)}" data-batch-prefix placeholder="product" /></div>
+          </div>
+          ${state.batchResults.length ? `
+            <div class="batch-result-head"><b>${t("tools.batch.ready", { n: state.batchResults.length })}</b><a class="button gold" href="${state.batchZipUrl}" download="domstudio-batch.zip">${t("tools.batch.downloadZip")}</a></div>
+            <div class="batch-result-list">
+              ${state.batchResults.map((result, index) => `<div class="${state.batchTransferIndex === index ? "selected" : ""}"><img src="${result.dataUrl}" alt="" /><span><b>${escapeHtml(result.name)}</b><small>${result.width}×${result.height} · ${formatToolBytes(result.size)}</small></span><a href="${result.dataUrl}" download="${escapeHtml(result.name)}">↓</a><button type="button" data-batch-transfer-index="${index}">${state.batchTransferIndex === index ? "✓" : "→"}</button></div>`).join("")}
+            </div>
+            <p class="tool-hint">${t("tools.batch.transferHint")}</p>
+            ${toolTransferMarkup("batch")}
+          ` : `<button class="button gold block" type="button" data-batch-process ${state.batchProcessing ? "disabled" : ""}>${state.batchProcessing ? t("tools.batch.processing") : t("tools.batch.process", { n: state.batchPreviews.length })}</button>`}
+          <button class="button secondary block" type="button" data-batch-reset>${t("tools.batch.reset")}</button>
+        ` : `
+          <label class="removebg-upload" for="batch-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">≡</span><b>${t("tools.batch.upload")}</b><small>${t("tools.batch.uploadHint")}</small></span>
+          </label>
+          <input id="batch-file" type="file" accept="image/*" multiple style="display:none" data-batch-input />
+          <p class="tool-privacy-note">${t("tools.batch.privacy")}</p>
+        `}
+      </div>
+
       <div class="tool-card" id="tool-compressor">
         <div class="tool-card-head">
           <h2>${t("tools.compressor.h2")}</h2>
@@ -4541,6 +4587,23 @@ function bind() {
   document.querySelector("[data-qr-light]")?.addEventListener("input", event => { state.qrLight = event.target.value.toUpperCase(); });
   document.querySelector("[data-qr-generate]")?.addEventListener("click", generateQrTool);
 
+  // Batch image processor
+  const invalidateBatchResults = () => {
+    const hadResults = state.batchResults.length > 0;
+    clearBatchResults();
+    if (hadResults) setTimeout(() => render({ motion: false }), 0);
+  };
+  document.querySelector("[data-batch-input]")?.addEventListener("change", onBatchFilesSelect);
+  document.querySelectorAll("[data-batch-remove]").forEach(el => el.addEventListener("click", () => removeBatchFile(Number(el.dataset.batchRemove))));
+  document.querySelectorAll("[data-batch-format]").forEach(el => el.addEventListener("click", () => { state.batchFormat = el.dataset.batchFormat; clearBatchResults(); render({ motion: false }); }));
+  document.querySelector("[data-batch-max-side]")?.addEventListener("change", event => { state.batchMaxSide = event.target.value; invalidateBatchResults(); });
+  document.querySelector("[data-batch-quality]")?.addEventListener("change", event => { state.batchQuality = Number(event.target.value); invalidateBatchResults(); });
+  document.querySelector("[data-batch-prefix]")?.addEventListener("input", event => { state.batchPrefix = event.target.value; });
+  document.querySelector("[data-batch-prefix]")?.addEventListener("change", invalidateBatchResults);
+  document.querySelector("[data-batch-process]")?.addEventListener("click", processBatchTool);
+  document.querySelectorAll("[data-batch-transfer-index]").forEach(el => el.addEventListener("click", () => { state.batchTransferIndex = Number(el.dataset.batchTransferIndex); render({ motion: false }); }));
+  document.querySelector("[data-batch-reset]")?.addEventListener("click", resetBatchTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -5045,6 +5108,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "before-after") return state.beforeAfterResult;
   if (sourceId === "palette") return state.paletteResult || state.palettePreview;
   if (sourceId === "qr") return state.qrResult;
+  if (sourceId === "batch") return state.batchResults[state.batchTransferIndex]?.dataUrl || null;
   return null;
 }
 
@@ -5146,6 +5210,15 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.beforeAfterPreviews[emptyIndex] = dataUrl;
     state.beforeAfterResult = null;
     if (state.beforeAfterPreviews.every(Boolean)) afterNavigate = () => applyBeforeAfterTool();
+  } else if (toolId === "batch") {
+    const file = await transferImageFile(sourceId, dataUrl);
+    if (state.batchPreviews.length >= 20) {
+      state.batchFiles = [];
+      state.batchPreviews = [];
+    }
+    state.batchFiles.push(file);
+    state.batchPreviews.push(dataUrl);
+    clearBatchResults();
   } else if (toolId === "palette") {
     state.paletteFile = await transferImageFile(sourceId, dataUrl);
     state.palettePreview = dataUrl;
@@ -5774,6 +5847,107 @@ async function generateQrTool() {
     state.qrGenerating = false;
     render({ motion: false });
   }
+}
+
+function clearBatchResults() {
+  if (state.batchZipUrl) URL.revokeObjectURL(state.batchZipUrl);
+  state.batchResults = [];
+  state.batchZipUrl = null;
+  state.batchTransferIndex = 0;
+}
+
+async function onBatchFilesSelect(event) {
+  const remaining = Math.max(0, 20 - state.batchFiles.length);
+  const files = [...(event.target.files || [])].filter(file => file.type.startsWith("image/")).slice(0, remaining);
+  if (!files.length) return;
+  const previews = await Promise.all(files.map(file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  })));
+  state.batchFiles.push(...files);
+  state.batchPreviews.push(...previews);
+  clearBatchResults();
+  render({ motion: false });
+}
+
+function removeBatchFile(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= state.batchFiles.length) return;
+  state.batchFiles.splice(index, 1);
+  state.batchPreviews.splice(index, 1);
+  clearBatchResults();
+  render({ motion: false });
+}
+
+function safeBatchPrefix(value) {
+  return String(value || "product").trim().replace(/[^a-zA-Z0-9а-яА-ЯёЁ_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "product";
+}
+
+async function processBatchTool() {
+  if (!state.batchPreviews.length || state.batchProcessing) return;
+  state.batchMaxSide = document.querySelector("[data-batch-max-side]")?.value || state.batchMaxSide;
+  state.batchQuality = Number(document.querySelector("[data-batch-quality]")?.value || state.batchQuality);
+  state.batchPrefix = document.querySelector("[data-batch-prefix]")?.value || state.batchPrefix;
+  state.batchProcessing = true;
+  clearBatchResults();
+  render({ motion: false });
+  try {
+    const mime = `image/${state.batchFormat}`;
+    const extension = state.batchFormat === "jpeg" ? "jpg" : state.batchFormat;
+    const maxSide = state.batchMaxSide === "original" ? Infinity : Number(state.batchMaxSide);
+    const prefix = safeBatchPrefix(state.batchPrefix);
+    const results = [];
+    for (let index = 0; index < state.batchPreviews.length; index += 1) {
+      const image = new Image();
+      image.src = state.batchPreviews[index];
+      await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; });
+      const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext("2d");
+      if (state.batchFormat === "jpeg") {
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL(mime, state.batchQuality / 100);
+      results.push({
+        name: `${prefix}-${String(index + 1).padStart(2, "0")}.${extension}`,
+        dataUrl,
+        size: Math.round((dataUrl.split(",")[1]?.length || 0) * 0.75),
+        width: canvas.width,
+        height: canvas.height,
+      });
+    }
+    const { zipSync } = await import("fflate");
+    const zipFiles = {};
+    results.forEach(result => {
+      const binary = atob(result.dataUrl.split(",")[1]);
+      const bytes = new Uint8Array(binary.length);
+      for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+      zipFiles[result.name] = bytes;
+    });
+    const archive = zipSync(zipFiles, { level: 6 });
+    state.batchResults = results;
+    state.batchZipUrl = URL.createObjectURL(new Blob([archive], { type: "application/zip" }));
+    state.batchTransferIndex = 0;
+    toast(t("tools.batch.done", { n: results.length }));
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    state.batchProcessing = false;
+    render({ motion: false });
+  }
+}
+
+function resetBatchTool() {
+  clearBatchResults();
+  state.batchFiles = [];
+  state.batchPreviews = [];
+  state.batchProcessing = false;
+  render({ motion: false });
 }
 
 function resetChecker() {
