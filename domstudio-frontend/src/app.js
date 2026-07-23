@@ -778,6 +778,14 @@ const state = {
   visionAnalysis: "",
   visionAnalyzing: false,
   visionError: "",
+  cropFile: null,
+  cropPreview: null,
+  cropResult: null,
+  cropRatio: "1:1",
+  cropRotation: 0,
+  cropZoom: 100,
+  cropOffsetX: 0,
+  cropOffsetY: 0,
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3245,6 +3253,7 @@ function authModal() {
 const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["removebg", "tools.removeBg.h2"],
   ["vision", "tools.vision.h2"],
+  ["crop", "tools.crop.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3273,7 +3282,7 @@ function toolsPage() {
   const requestedTool = new URLSearchParams(query).get("tool");
   const catalogTools = [
     { id: "removebg", category: "prep", icon: "✂", titleKey: "tools.removeBg.h2", descKey: "tools.removeBg.desc", available: true, featured: true },
-    { id: "crop", category: "prep", icon: "⌗", titleKey: "tools.crop.h2", descKey: "tools.crop.desc", available: false },
+    { id: "crop", category: "prep", icon: "⌗", titleKey: "tools.crop.h2", descKey: "tools.crop.desc", available: true },
     { id: "resizer", category: "prep", icon: "↔", titleKey: "tools.resizer.h2", descKey: "tools.resizer.desc", available: true },
     { id: "compressor", category: "prep", icon: "⇣", titleKey: "tools.compressor.h2", descKey: "tools.compressor.desc", available: true },
     { id: "converter", category: "prep", icon: "◫", titleKey: "tools.converter.h2", descKey: "tools.converter.desc", available: false },
@@ -3419,6 +3428,45 @@ function toolsPage() {
             ${!state.removeBgFile || state.removeBgLoading ? "disabled" : ""}>
             ${state.removeBgLoading ? t("tools.removeBg.processing") : t("tools.removeBg.cta")}
           </button>
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-crop">
+        <div class="tool-card-head">
+          <h2>${t("tools.crop.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.crop.desc")}</p>
+        ${state.cropPreview ? `
+          <img class="tool-result-img crop-tool-preview" src="${state.cropResult || state.cropPreview}" alt="${t("tools.crop.previewAlt")}" />
+          <div class="crop-tool-controls">
+            <div class="field">
+              <label>${t("tools.crop.ratio")}</label>
+              <div class="tool-option-grid">
+                ${[["original","tools.crop.original"],["1:1","1:1"],["3:4","3:4"],["4:5","4:5"],["9:16","9:16"],["16:9","16:9"]].map(([id,label]) => `<button class="chip ${state.cropRatio === id ? "active" : ""}" type="button" data-crop-ratio="${id}">${label.includes("tools.") ? t(label) : label}</button>`).join("")}
+              </div>
+            </div>
+            <div class="crop-tool-row">
+              <button class="button secondary" type="button" data-crop-rotate="-90">↶ ${t("tools.crop.rotateLeft")}</button>
+              <strong>${state.cropRotation}°</strong>
+              <button class="button secondary" type="button" data-crop-rotate="90">${t("tools.crop.rotateRight")} ↷</button>
+            </div>
+            <label class="tool-range-label"><span>${t("tools.crop.zoom")}</span><b>${state.cropZoom}%</b><input type="range" min="100" max="200" step="5" value="${state.cropZoom}" data-crop-zoom /></label>
+            ${state.cropRatio !== "original" ? `
+              <label class="tool-range-label"><span>${t("tools.crop.horizontal")}</span><input type="range" min="-100" max="100" step="5" value="${state.cropOffsetX}" data-crop-x /></label>
+              <label class="tool-range-label"><span>${t("tools.crop.vertical")}</span><input type="range" min="-100" max="100" step="5" value="${state.cropOffsetY}" data-crop-y /></label>
+            ` : ""}
+          </div>
+          <div class="tool-actions">
+            <a class="button" href="${state.cropResult || state.cropPreview}" download="cropped-photo.jpg">${t("tools.crop.download")}</a>
+            <button class="button secondary" type="button" data-crop-reset>${t("tools.crop.again")}</button>
+          </div>
+          ${toolTransferMarkup("crop")}
+        ` : `
+          <label class="removebg-upload" for="crop-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">⌗</span><b>${t("tools.crop.upload")}</b><small>${t("tools.crop.uploadHint")}</small></span>
+          </label>
+          <input id="crop-file" type="file" accept="image/*" style="display:none" data-crop-input />
         `}
       </div>
 
@@ -4174,6 +4222,23 @@ function bind() {
   document.querySelector("[data-vision-analyze]")?.addEventListener("click", analyzeToolsVisionImage);
   document.querySelector("[data-vision-reset]")?.addEventListener("click", resetVisionTool);
 
+  // Crop and rotate
+  document.querySelector("[data-crop-input]")?.addEventListener("change", onCropFileSelect);
+  document.querySelectorAll("[data-crop-ratio]").forEach(el => el.addEventListener("click", () => {
+    state.cropRatio = el.dataset.cropRatio;
+    state.cropOffsetX = 0;
+    state.cropOffsetY = 0;
+    applyCropTool();
+  }));
+  document.querySelectorAll("[data-crop-rotate]").forEach(el => el.addEventListener("click", () => {
+    state.cropRotation = (state.cropRotation + Number(el.dataset.cropRotate) + 360) % 360;
+    applyCropTool();
+  }));
+  document.querySelector("[data-crop-zoom]")?.addEventListener("change", event => { state.cropZoom = Number(event.target.value); applyCropTool(); });
+  document.querySelector("[data-crop-x]")?.addEventListener("change", event => { state.cropOffsetX = Number(event.target.value); applyCropTool(); });
+  document.querySelector("[data-crop-y]")?.addEventListener("change", event => { state.cropOffsetY = Number(event.target.value); applyCropTool(); });
+  document.querySelector("[data-crop-reset]")?.addEventListener("click", resetCropTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -4671,6 +4736,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "compressor") return state.compressorResult;
   if (sourceId === "checker") return state.checkerPreview;
   if (sourceId === "vision") return state.visionPreview;
+  if (sourceId === "crop") return state.cropResult || state.cropPreview;
   return null;
 }
 
@@ -4734,6 +4800,15 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.visionAnalysis = "";
     state.visionError = "";
     state.visionAnalyzing = false;
+  } else if (toolId === "crop") {
+    state.cropFile = await transferImageFile(sourceId, dataUrl);
+    state.cropPreview = dataUrl;
+    state.cropResult = null;
+    state.cropRotation = 0;
+    state.cropZoom = 100;
+    state.cropOffsetX = 0;
+    state.cropOffsetY = 0;
+    afterNavigate = () => applyCropTool();
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -4871,6 +4946,77 @@ function resetVisionTool() {
   state.visionAnalysis = "";
   state.visionAnalyzing = false;
   state.visionError = "";
+  render({ motion: false });
+}
+
+function onCropFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.cropFile = file;
+    state.cropPreview = String(reader.result || "");
+    state.cropResult = null;
+    state.cropRotation = 0;
+    state.cropZoom = 100;
+    state.cropOffsetX = 0;
+    state.cropOffsetY = 0;
+    applyCropTool();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function applyCropTool() {
+  if (!state.cropPreview) return;
+  const source = state.cropPreview;
+  const image = new Image();
+  image.src = source;
+  await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; });
+  if (state.cropPreview !== source) return;
+
+  const rotation = state.cropRotation % 360;
+  const swapSides = rotation === 90 || rotation === 270;
+  const rotated = document.createElement("canvas");
+  rotated.width = swapSides ? image.naturalHeight : image.naturalWidth;
+  rotated.height = swapSides ? image.naturalWidth : image.naturalHeight;
+  const rotatedContext = rotated.getContext("2d");
+  rotatedContext.translate(rotated.width / 2, rotated.height / 2);
+  rotatedContext.rotate(rotation * Math.PI / 180);
+  rotatedContext.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
+
+  const ratios = { "1:1": 1, "3:4": 3 / 4, "4:5": 4 / 5, "9:16": 9 / 16, "16:9": 16 / 9 };
+  const targetRatio = ratios[state.cropRatio];
+  let cropWidth = rotated.width;
+  let cropHeight = rotated.height;
+  if (targetRatio) {
+    if (rotated.width / rotated.height > targetRatio) cropWidth = rotated.height * targetRatio;
+    else cropHeight = rotated.width / targetRatio;
+  }
+  const zoom = Math.max(1, state.cropZoom / 100);
+  cropWidth /= zoom;
+  cropHeight /= zoom;
+  const shiftX = (rotated.width - cropWidth) / 2;
+  const shiftY = (rotated.height - cropHeight) / 2;
+  const sourceX = Math.max(0, Math.min(rotated.width - cropWidth, shiftX + shiftX * state.cropOffsetX / 100));
+  const sourceY = Math.max(0, Math.min(rotated.height - cropHeight, shiftY + shiftY * state.cropOffsetY / 100));
+  const outputScale = Math.min(1, 1600 / Math.max(cropWidth, cropHeight));
+  const output = document.createElement("canvas");
+  output.width = Math.max(1, Math.round(cropWidth * outputScale));
+  output.height = Math.max(1, Math.round(cropHeight * outputScale));
+  output.getContext("2d").drawImage(rotated, sourceX, sourceY, cropWidth, cropHeight, 0, 0, output.width, output.height);
+  state.cropResult = output.toDataURL("image/jpeg", 0.93);
+  render({ motion: false });
+}
+
+function resetCropTool() {
+  state.cropFile = null;
+  state.cropPreview = null;
+  state.cropResult = null;
+  state.cropRatio = "1:1";
+  state.cropRotation = 0;
+  state.cropZoom = 100;
+  state.cropOffsetX = 0;
+  state.cropOffsetY = 0;
   render({ motion: false });
 }
 
