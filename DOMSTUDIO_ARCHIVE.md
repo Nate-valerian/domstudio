@@ -8717,3 +8717,75 @@ Files changed:
 
 This fix changes the local source only. The verified live SpaceWeb frontend
 remains v19 until a new v36 package is intentionally deployed and checked.
+
+---
+
+## July 23, 2026 - All Free Tool Workspaces Moved To The AdPilot Visual System
+
+Replaced the isolated legacy white-card presentation used by every opened Free
+Tool with one shared workspace shell based on the approved AdPilot design.
+
+Shared design applied to all 16 tools:
+
+- A joined cream workbench and dark live-preview/status panel replaces the old
+  single white card.
+- The workbench retains every tool's existing controls, uploads, local canvas
+  behavior, downloads, and transfer actions.
+- The dark panel reflects the selected tool's current empty, editing,
+  processing, or result-ready state.
+- Image tools show the current source or finished result in the dark preview.
+  Analyzer/checker tools retain their factual output on the workbench while the
+  related product photo remains visible in the stage.
+- Added a selected-tool summary and a consistent three-step input, adjust, and
+  export workflow to the dark panel.
+- Replaced legacy card chrome with larger AdPilot-style headings, compact
+  status pills, coral primary actions, warm cream controls, a dark output
+  surface, and the existing acid-green ready signal.
+- The joined shell remains two-column on wider screens and stacks into one
+  column below 820px, with a compact mobile step layout below 640px.
+- Added complete Russian and English workspace-state copy.
+- Bumped the PWA cache from `domstudio-shell-v36` to
+  `domstudio-shell-v37`.
+
+Coverage and validation:
+
+- Added one shared state resolver covering Background Removal, Crop, Collage,
+  Watermark, Promo Badge, Resizer, Checker, Converter, Redaction, Vision,
+  Safe Zones, Before/After, Palette, QR, Batch, and Compressor.
+- Added tests confirming 16 unique workspace routes, final-result preview
+  precedence, and the shared dark-stage markup.
+- `npm test` passed: 9 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the standard Vite chunk-size advisory because the main
+  bundle is 500,828 bytes; its gzip size remains 135.74 kB. No build failure or
+  runtime error was reported.
+- `git diff --check` passed.
+- The in-app browser connection was unavailable during this pass. No visual
+  browser or responsive screenshot verification is claimed; that remains a
+  release-check requirement.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `28ACF248D87E24FBF14F530D9177FFA09183D9E018DBC18F2A7CB0827526AC00`.
+- Main application asset: `assets/index-CrE70MXo.js`, 500,828 bytes, SHA-256
+  `3BB6DA1E26A429EC78EB635C40D796CE2C3566ECE4CF9B904DB3386227BF3348`.
+- Stylesheet: `assets/index-CXTlXl8p.css`, 149,836 bytes, SHA-256
+  `4748B0449890A42B0ACBFCB46E51BF30E1E17154324740E2D8361E097D1CE88A`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `DCD8B59EC68B7B6DBCBDA18829095911A8BCD4B86BA1D923F43176388B3EFA31`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/free-tool-workspace.js`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/free-tool-workspace.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This redesign changes the local source only. The verified live SpaceWeb
+frontend remains v19 until a v37 package is intentionally deployed and visually
+verified.

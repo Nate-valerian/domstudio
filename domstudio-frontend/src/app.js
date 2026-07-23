@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import { t, getLang, setLang, isRussianMarket } from "./i18n.js";
 import { buildAdPilotPreviewContext } from "./adpilot-preview.js";
 import { renderFreeToolCatalogCard } from "./free-tool-card.js";
+import { renderFreeToolWorkspaceStage, resolveFreeToolWorkspaceState } from "./free-tool-workspace.js";
 import productProofUrl from "./assets/product-proof.webp";
 import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
 import modeProductUrl from "./assets/mode-product-real-v3.webp";
@@ -3438,12 +3439,31 @@ function toolsPage() {
   }
 
   const hasResult = Boolean(state.removeBgResult);
+  const selectedWorkspace = resolveFreeToolWorkspaceState(selectedTool.id, state);
+  const selectedWorkspaceStage = renderFreeToolWorkspaceStage({
+    tool: selectedTool,
+    title: t(selectedTool.titleKey),
+    description: t(selectedTool.descKey),
+    workspace: selectedWorkspace,
+    copy: {
+      eyebrow: t("tools.workspace.eyebrow"),
+      start: t("tools.workspace.start"),
+      editing: t("tools.workspace.editing"),
+      processing: t("tools.workspace.processing"),
+      ready: t("tools.workspace.ready"),
+      selectedTool: t("tools.workspace.selectedTool"),
+      stepInput: t("tools.workspace.stepInput"),
+      stepAdjust: t("tools.workspace.stepAdjust"),
+      stepExport: t("tools.workspace.stepExport"),
+    },
+  });
   return `<main class="page tools-page">
     <div class="page-inner tools-inner tools-detail-inner">
       <header class="free-tool-detail-head">
         <button type="button" data-tools-home>← ${t("tools.catalog.back")}</button>
         <div><span>${t("tools.catalog.free")}</span><strong>${t(selectedTool.titleKey)}</strong></div>
       </header>
+      <section class="free-tool-v2-shell">
       <div class="tools-grid tools-workspace-grid" data-active-tool="${selectedTool.id}">
       <div class="tool-card tool-card-wide" id="tool-removebg">
         <div class="tool-card-head">
@@ -4083,6 +4103,8 @@ function toolsPage() {
       </div>
 
       </div>
+      ${selectedWorkspaceStage}
+      </section>
     </div>
   </main>`;
 }
