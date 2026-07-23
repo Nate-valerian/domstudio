@@ -9507,3 +9507,76 @@ Files changed:
 This fold-safety correction is committed locally but not pushed. The verified
 live SpaceWeb frontend remains v19 until a v46 package is intentionally
 deployed and visually verified.
+
+---
+
+## July 23, 2026 - Opened Tools And AdPilot Workspaces Compacted
+
+Corrected the oversized opened-workspace layout shown for Background Removal
+and shared by all 16 Tools. The same desktop density problem was also present
+in opened AdPilot copy generators.
+
+Tools changes:
+
+- Added a shared desktop detail treatment above 820 px, covering every Tool
+  without individual per-tool patches.
+- Removed the forced 690 px minimum from selected Tool cards and stopped the
+  shared upload control from flex-growing through the available column.
+- Bounded image upload stages to 180-240 px according to viewport height.
+- Reduced the shared dark result stage from 690 px to 520 px and its empty
+  preview to 190 px, with tighter padding, headings, copy, and steps.
+- Changed the Collage empty uploader to a compact four-column desktop row so
+  its square slots do not create another tall workspace.
+- Reduced the Tool detail page top/header spacing and shell radius.
+
+AdPilot changes:
+
+- Reduced opened generator page padding and panel padding on desktop.
+- Reduced the dark output stage from 650 px to 500 px.
+- Reduced empty output/ghost previews from 480 px to 320 px and generated
+  output from a 390-590 px range to a 300-440 px range.
+- Tightened the form header, fields, intent copy, and textarea height while
+  preserving the existing mobile treatment.
+- Bumped the PWA cache from `domstudio-shell-v46` to
+  `domstudio-shell-v47`.
+
+Coverage and validation:
+
+- Added desktop contracts for the shared Tool shell, non-growing uploads,
+  compact Collage row, 520 px result stage, and compact AdPilot generator
+  output states.
+- `npm test` passed: 22 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 503,404 bytes; its gzip size is 136.35 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser bootstrap remains unavailable, so no new live responsive
+  screenshot verification is claimed.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `B4B7FDEE67A5A63A668FAC96961347D1CC46786D85966F638E522E9904AE3693`.
+- Route application asset: `assets/index-JkoV2P6H.js`, 82,031 bytes,
+  SHA-256
+  `55867100F75A929267E7EE39080CDAEAF83C3A5BF44C978FA59CE74E142E3342`.
+- Main application asset: `assets/index-RdsBPpGV.js`, 503,404 bytes,
+  SHA-256
+  `1AB485E8ED550C5C8E426E5FDEA6293BA3E2935E99D43B57FE1DEA1AE5D902B7`.
+- Stylesheet: `assets/index-C_ZGAijU.css`, 165,941 bytes, SHA-256
+  `767E75CD5E0B43F1F3AE47B0E2F019141A1038EBCE56DD7A6CB0C74CDF66DF35`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `6A1CD342959B5B58016769FFECBE0424614A7DC5356213BB11B0E2D28B027790`.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/desktop-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This shared workspace correction is committed locally but not pushed. The
+verified live SpaceWeb frontend remains v19 until a v47 package is
+intentionally deployed and visually verified.

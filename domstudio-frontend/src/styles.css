@@ -2307,6 +2307,23 @@ h1 em { color: var(--gold); font-style: normal; }
 .adpilot-tool-output .adjust-row .input { border-color: #4b4842; background: #24221f; color: white; }
 .adpilot-tool-output .adjust-row .button { border-color: #4b4842; background: transparent; color: white; }
 
+@media (min-width: 861px) {
+  .adpilot-tool-workspace { padding: 18px clamp(20px, 3vw, 40px) 48px; }
+  .adpilot-tool-breadcrumb { margin-bottom: 12px; }
+  .adpilot-tool-desk { border-radius: 20px; }
+  .adpilot-tool-form,
+  .adpilot-tool-output { padding: 22px; }
+  .adpilot-tool-form .copy-form-head { margin-bottom: 14px; padding-bottom: 12px; }
+  .adpilot-tool-form .copy-form-intent { margin-bottom: 8px; font-size: 12px; }
+  .adpilot-tool-form .field { margin-bottom: 12px; }
+  .adpilot-tool-form .textarea { min-height: 84px; }
+  .adpilot-tool-output { min-height: 500px; }
+  .adpilot-tool-output .output-panel-head { margin-bottom: 12px; padding-bottom: 12px; }
+  .adpilot-tool-output .copy-output-empty,
+  .adpilot-tool-output .copy-output-ghost { min-height: 320px; }
+  .adpilot-tool-output .copy-output-rendered { min-height: 300px; max-height: 440px; }
+}
+
 @media (max-width: 860px) {
   .adpilot-tool-desk { grid-template-columns: 1fr; }
   .adpilot-tool-output { min-height: 560px; }
@@ -2679,6 +2696,32 @@ h1 em { color: var(--gold); font-style: normal; }
 .batch-result-head .button { width: auto; min-height: 40px; padding: 0 14px; }
 .batch-result-list > div { grid-template-columns: 52px minmax(0, 1fr) auto auto; }
 .batch-result-list > div.selected { border-color: var(--gold); background: #fffaf0; }
+
+@media (min-width: 821px) {
+  .tools-detail-inner { padding-top: 18px; }
+  .free-tool-detail-head { margin-bottom: 12px; }
+  .free-tool-detail-head > button { min-height: 38px; }
+  .free-tool-v2-shell { border-radius: 20px; }
+  .free-tool-v2-shell .tools-workspace-grid,
+  .free-tool-stage { padding: 22px; }
+  .free-tool-v2-shell .tools-workspace-grid > .tool-card { min-height: 0; }
+  .free-tool-v2-shell .tool-card-head h2 { font-size: clamp(22px, 2vw, 28px); }
+  .free-tool-v2-shell .tool-card-desc { margin: 7px 0 14px; font-size: 12px; line-height: 1.45; }
+  .free-tool-v2-shell .tool-card-studio-hint { margin-bottom: 14px; padding: 8px 11px; }
+  .free-tool-v2-shell .tool-card .removebg-upload {
+    height: clamp(180px, 24vh, 240px); min-height: 180px; flex: 0 0 auto;
+  }
+  .free-tool-v2-shell .tool-card .collage-upload-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)); flex: 0 0 auto;
+  }
+  .free-tool-stage { min-height: 520px; }
+  .free-tool-stage-preview { min-height: 190px; margin: 18px 0 14px; border-radius: 15px; }
+  .free-tool-stage-preview img { max-height: 240px; }
+  .free-tool-stage-preview.is-empty > span { font-size: clamp(58px, 7vw, 84px); }
+  .free-tool-stage-copy h2 { margin: 7px 0 6px; font-size: clamp(20px, 2vw, 26px); }
+  .free-tool-stage-copy p { font-size: 11px; line-height: 1.45; }
+  .free-tool-stage-steps { padding-top: 18px; }
+}
 
 @media (min-width: 961px) {
   .free-tools-catalog { padding: 18px clamp(20px, 3vw, 36px) 48px; }

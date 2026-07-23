@@ -36,3 +36,19 @@ test("uses compact route navigation on dense desktop pages", () => {
   assert.match(app, /class="shell route-\$\{state\.route\}"/);
   assert.match(styles, /\.route-adpilot \.nav-inner, \.route-tools \.nav-inner, \.route-examples \.nav-inner \{ padding-top: 8px; padding-bottom: 8px; \}/);
 });
+
+
+test("keeps every opened Tool workspace compact on desktop", () => {
+  assert.match(styles, /@media \(min-width: 821px\) \{[\s\S]*?\.free-tool-v2-shell \.tools-workspace-grid > \.tool-card \{ min-height: 0; \}/);
+  assert.match(styles, /\.free-tool-v2-shell \.tool-card \.removebg-upload \{[\s\S]*?height: clamp\(180px, 24vh, 240px\); min-height: 180px; flex: 0 0 auto;/);
+  assert.match(styles, /\.free-tool-v2-shell \.tool-card \.collage-upload-grid \{[\s\S]*?grid-template-columns: repeat\(4, minmax\(0, 1fr\)\); flex: 0 0 auto;/);
+  assert.match(styles, /\.free-tool-stage \{ min-height: 520px; \}/);
+});
+
+
+test("keeps opened AdPilot generators compact on desktop", () => {
+  assert.match(styles, /@media \(min-width: 861px\) \{[\s\S]*?\.adpilot-tool-workspace \{ padding: 18px/);
+  assert.match(styles, /\.adpilot-tool-output \{ min-height: 500px; \}/);
+  assert.match(styles, /\.adpilot-tool-output \.copy-output-empty,[\s\S]*?\.adpilot-tool-output \.copy-output-ghost \{ min-height: 320px; \}/);
+  assert.match(styles, /\.adpilot-tool-output \.copy-output-rendered \{ min-height: 300px; max-height: 440px; \}/);
+});

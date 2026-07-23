@@ -40,7 +40,7 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `438f1a5` (`Restore AdPilot mobile navigation`), including the
+- `origin/main` is at `12b6aff` (`Add AdPilot workflow fold clearance`), including the
   complete AdPilot/Tools rollout, backend provider chain, compact mobile
   product pages, and cleaned-up Tool result actions.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
@@ -54,8 +54,8 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v46`; its
-  production build and 20 focused frontend tests pass. Compact mobile layouts
+- The latest frontend source uses PWA cache `domstudio-shell-v47`; its
+  production build and 22 focused frontend tests pass. Compact mobile layouts
   now cover Studio, the AdPilot landing/generators/chat, the Tools catalog, and
   every opened Tool workspace. Mobile Tool results use one horizontal transfer
   row and hide the obstructive bottom tab bar. Desktop AdPilot, Tools, and
@@ -68,8 +68,11 @@ For every project change:
   supplied 2048 x 1148 primary viewport. The mobile PWA navigation remains
   visible on AdPilot with a compact 52 px route treatment and reserved content
   clearance. A follow-up screenshot showed the card borders still landed on
-  the exact bottom edge, so the local v46 source uses 96 px cards and a 16 px
-  section gap to provide roughly 35 px of fold safety.
+  the exact bottom edge, so the current source uses 96 px cards and a 16 px
+  section gap to provide roughly 35 px of fold safety. Opened desktop
+  workspaces are now compact too: all 16 Tools share a 520 px stage with
+  bounded upload areas, and AdPilot generators use a 500 px output stage with
+  a 320 px empty preview.
 - The backend suite passed with 78 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
@@ -97,7 +100,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v46 frontend and backend v10 AI provider chain
+### 2. Release the v47 frontend and backend v10 AI provider chain
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -107,7 +110,7 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v46`;
+   - service worker cache `domstudio-shell-v47`;
    - all 16 Tools workspaces;
    - compact mobile Tools catalog rows, filters, and quick workflow at common
      360 px, 390 px, and 430 px viewport widths;
@@ -127,7 +130,7 @@ must be verified.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The final AdPilot desktop fold-safety correction is implemented and validated
-locally but not pushed. Packaging, hosting changes, remote environment
-configuration, and production deployment still require the user's explicit
-approval or direct participation.
+The compact opened Tools and AdPilot desktop workspaces are implemented and
+validated locally but not pushed. Packaging, hosting changes, remote
+environment configuration, and production deployment still require the user's
+explicit approval or direct participation.
