@@ -1,6 +1,7 @@
 import "./styles.css";
 import { gsap } from "gsap";
 import { t, getLang, setLang, isRussianMarket } from "./i18n.js";
+import { buildAdPilotPreviewContext } from "./adpilot-preview.js";
 import productProofUrl from "./assets/product-proof.webp";
 import modeCatalogUrl from "./assets/mode-catalog-real-v3.webp";
 import modeProductUrl from "./assets/mode-product-real-v3.webp";
@@ -2707,6 +2708,27 @@ const TOOL_EXAMPLE_OUTPUT = {
   Pages:       `Заголовок: Создайте сайт за 3 дня — без программистов\n\nПодзаголовок: Готовый лендинг под ваш бизнес с конверсией от 8%\n\nБлок 1 — Проблема:\nВы теряете клиентов, потому что у вас нет нормального сайта. Люди ищут вас в интернете — и уходят к конкурентам.\n\nБлок 2 — Решение:\nМы создаём лендинги, которые продают. Не просто красивые страницы — а инструмент привлечения клиентов.`,
 };
 
+function adPilotLandingPreviewContext() {
+  return buildAdPilotPreviewContext({
+    manualContext: state.contentDraft.product,
+    analysis: state.adpilotImageAnalysis,
+    hasPhoto: Boolean(state.adpilotContextImage),
+    analyzing: state.adpilotImageAnalyzing,
+    copy: {
+      analyzingTitle: t("adpilot.desk.context.analyzingTitle"),
+      analyzingBody: t("adpilot.desk.context.analyzingBody"),
+      analyzingStatus: t("adpilot.desk.context.analyzingStatus"),
+      readyStatus: t("adpilot.desk.context.readyStatus"),
+      needsDetailsStatus: t("adpilot.desk.context.needsDetailsStatus"),
+      photoPendingTitle: t("adpilot.desk.context.photoPendingTitle"),
+      photoPendingBody: t("adpilot.desk.context.photoPendingBody"),
+      photoFacts: t("adpilot.desk.context.photoFacts"),
+      descriptionReady: t("adpilot.desk.context.descriptionReady"),
+      photoPending: t("adpilot.desk.context.photoPending"),
+    },
+  });
+}
+
 function copyStudioPage() {
   if (!state.user && state.authInitializing) return `<main class="page"></main>`;
   const tool = currentContentTool();
@@ -2761,7 +2783,9 @@ function copyStudioPage() {
     ];
     const activePreview = previewOptions.find((item) => item.slug === state.adpilotPreviewSlug) || previewOptions[0];
     const activePreviewTool = state.contentTools.find((item) => item.slug === activePreview.slug) || CONTENT_TOOLS_FALLBACK.find((item) => item.slug === activePreview.slug);
-    const previewBody = t(`adpilot.desk.preview.${activePreview.sampleKey}.body`);
+    const previewContext = adPilotLandingPreviewContext();
+    const previewTitle = previewContext?.title || t(`adpilot.desk.preview.${activePreview.sampleKey}.title`);
+    const previewBody = previewContext?.body || t(`adpilot.desk.preview.${activePreview.sampleKey}.body`);
     const workflows = [
       {
         className: "featured",
@@ -2839,17 +2863,21 @@ function copyStudioPage() {
           </div>
           <div class="adpilot-preview">
             <div class="adpilot-preview-head">
-              <span>${t("adpilot.desk.example")}</span>
-              <small>${t("adpilot.desk.ready")}</small>
+              <span>${t(previewContext ? "adpilot.desk.contextTitle" : "adpilot.desk.example")}</span>
+              <small>${previewContext ? escapeHtml(previewContext.status) : t("adpilot.desk.ready")}</small>
             </div>
-            <div class="adpilot-preview-tabs adpilot-preview-tabs-dark" role="tablist" aria-label="${t("adpilot.desk.example")}">
+            <div class="adpilot-preview-tabs adpilot-preview-tabs-dark" role="tablist" aria-label="${t(previewContext ? "adpilot.desk.contextTitle" : "adpilot.desk.example")}">
               ${previewOptions.map((item) => `<button class="${item.slug === activePreview.slug ? "active" : ""}" type="button" role="tab" aria-selected="${item.slug === activePreview.slug}" data-adpilot-preview="${item.slug}">${item.label}</button>`).join("")}
             </div>
-            <article class="adpilot-preview-output">
+            <article class="adpilot-preview-output ${previewContext ? "is-contextual" : ""}">
               <span>${escapeHtml(activePreviewTool ? contentToolName(activePreviewTool) : activePreview.label)}</span>
-              <h2>${t(`adpilot.desk.preview.${activePreview.sampleKey}.title`)}</h2>
-              <p>${previewBody}</p>
-              <footer><span>${t("adpilot.desk.characters", { n: previewBody.length })}</span><span>${t("adpilot.desk.channelReady")}</span></footer>
+              ${previewContext && state.adpilotContextImage ? `<img class="adpilot-preview-product-image" src="${state.adpilotContextImage}" alt="${t("adpilot.desk.photoAttached")}" />` : ""}
+              <h2>${escapeHtml(previewTitle)}</h2>
+              <p>${escapeHtml(previewBody)}</p>
+              <footer>
+                <span>${previewContext ? escapeHtml(previewContext.footer) : t("adpilot.desk.characters", { n: previewBody.length })}</span>
+                <span>${previewContext ? t("adpilot.desk.context.channelSelected", { channel: activePreview.label }) : t("adpilot.desk.channelReady")}</span>
+              </footer>
             </article>
           </div>
         </div>

@@ -8594,3 +8594,68 @@ consolidated in the permanent archive.
   not be inferred from local validation.
 - Left all existing untracked preview media, temporary output, deployment ZIPs,
   and unrelated helper scripts untouched.
+
+---
+
+## July 23, 2026 - AdPilot Photo Preview Product Mismatch Fixed
+
+Fixed the AdPilot landing state where Groq Vision correctly identified an
+uploaded product but the right panel continued to show the hard-coded Nomad
+leather-bag example with a misleading `Ready to publish` status.
+
+Behavior changes:
+
+- The Nomad example remains only when the seller has supplied no product photo,
+  description, or vision facts.
+- Attaching a photo immediately replaces the unrelated example with the actual
+  image and a clear request to analyze it or add a description.
+- While Groq analysis is running, the panel reports that it is identifying the
+  product instead of claiming that sample copy is publish-ready.
+- After analysis, the first recognized product fact becomes the preview title
+  and the remaining facts become the preview body. The panel reads `Your
+  product` and `Ready to create`, accurately describing a prepared generation
+  context rather than finished channel copy.
+- The selected WB/Ozon, Avito, VK, or Yandex destination remains visible, but
+  the interface does not claim that channel formatting has already been
+  generated.
+- A seller-written description overrides the recognized title while retaining
+  the factual photo details.
+- Added complete Russian and English copy for pending, analyzing, and ready
+  context states.
+- Bumped the PWA cache from `domstudio-shell-v34` to
+  `domstudio-shell-v35`.
+
+Regression coverage:
+
+- Added a pure preview-state helper and four Node tests covering the empty
+  sample, attached-photo pending state, the exact utility-vehicle/golf-cart
+  analysis mismatch, and the manual-description override.
+- `npm test` passed: 4 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` passed with Vite 7.3.5.
+- `git diff --check` passed.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `326312026615CC1F6AC4013F3A8DA7BF46E54E379BB2FC8C1B0799C6D3431D63`.
+- Main application asset: `assets/index-C12LXhUl.js`, 495,992 bytes, SHA-256
+  `6564179BE927CCBCB41D3D503844342B83C69F63102457FE06992BE0B6D52865`.
+- Stylesheet: `assets/index-Cm6pWp5u.css`, 145,343 bytes, SHA-256
+  `4B21EAFB364B221B0AA5166F5A5D72C4EEBB42326E824BDD5DAE27BA01FE6233`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `F6B474C0447F8E00EE77A7A0DFFE54CBDD04200816470D7CC4DF1E97067B9AA6`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/adpilot-preview.js`
+- `domstudio-frontend/src/i18n.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/adpilot-preview.test.js`
+- `domstudio-frontend/package.json`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This fix changes the local source only. The verified live SpaceWeb frontend
+remains v19 until a new v35 package is intentionally deployed and checked.

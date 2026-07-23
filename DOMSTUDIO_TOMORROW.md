@@ -40,9 +40,9 @@ For every project change:
 
 ## Current Verified State
 
-- The last pushed product state is `origin/main` at `b14b2e6` (`Archive
-  AdPilot and Tools rollout`). This handoff cleanup is documentation-only and
-  may remain as a local commit until the user approves a push.
+- `origin/main` is at `3fb2df6` (`Compact completed project handoff notes`),
+  including the complete AdPilot/Tools product rollout and the compacted
+  handoff. Follow-up fixes may remain local until the user approves a push.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
 - AdPilot has the product-first campaign desk, optional product photo, Groq
   Qwen 3.6 Vision analysis, all 19 detailed copy generators, and the unified
@@ -50,8 +50,8 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v34` and passed its
-  production build and focused browser verification.
+- The latest frontend source uses PWA cache `domstudio-shell-v35` and passed its
+  production build and focused AdPilot preview-state tests.
 - The backend suite passed with 74 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
@@ -79,7 +79,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v34 frontend and Groq vision backend
+### 2. Release the v35 frontend and Groq vision backend
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -89,7 +89,7 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v34`;
+   - service worker cache `domstudio-shell-v35`;
    - all 16 Tools workspaces;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
