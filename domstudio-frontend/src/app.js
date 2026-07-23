@@ -809,6 +809,10 @@ const state = {
   beforeAfterFormat: "square",
   beforeAfterDirection: "vertical",
   beforeAfterLabels: ["", ""],
+  paletteFile: null,
+  palettePreview: null,
+  paletteColors: [],
+  paletteResult: null,
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3281,6 +3285,7 @@ const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["redact", "tools.redact.h2"],
   ["safe-zone", "tools.safeZone.h2"],
   ["before-after", "tools.beforeAfter.h2"],
+  ["palette", "tools.palette.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3321,7 +3326,7 @@ function toolsPage() {
     { id: "watermark", category: "brand", icon: "©", titleKey: "tools.watermark.h2", descKey: "tools.watermark.desc", available: true },
     { id: "collage", category: "brand", icon: "▦", titleKey: "tools.collage.h2", descKey: "tools.collage.desc", available: true },
     { id: "before-after", category: "brand", icon: "◐", titleKey: "tools.beforeAfter.h2", descKey: "tools.beforeAfter.desc", available: true },
-    { id: "palette", category: "brand", icon: "●", titleKey: "tools.palette.h2", descKey: "tools.palette.desc", available: false },
+    { id: "palette", category: "brand", icon: "●", titleKey: "tools.palette.h2", descKey: "tools.palette.desc", available: true },
     { id: "qr", category: "business", icon: "▩", titleKey: "tools.qr.h2", descKey: "tools.qr.desc", available: false },
     { id: "batch", category: "business", icon: "≡", titleKey: "tools.batch.h2", descKey: "tools.batch.desc", available: false },
   ];
@@ -3899,6 +3904,35 @@ function toolsPage() {
         ` : `<p class="tool-hint">${t("tools.beforeAfter.hint")}</p>`}
       </div>
 
+      <div class="tool-card" id="tool-palette">
+        <div class="tool-card-head">
+          <h2>${t("tools.palette.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.palette.desc")}</p>
+        ${state.palettePreview ? `
+          <img class="tool-result-img palette-source-preview" src="${state.palettePreview}" alt="${t("tools.palette.previewAlt")}" />
+          ${state.paletteColors.length ? `
+            <div class="palette-swatches">
+              ${state.paletteColors.map((color, index) => `<button type="button" data-palette-copy="${color}" style="--swatch:${color}" title="${t("tools.palette.copyOne", { color })}"><i></i><span>${color}</span><small>${index + 1}</small></button>`).join("")}
+            </div>
+            <p class="tool-hint">${t("tools.palette.clickHint")}</p>
+            <div class="tool-actions">
+              <a class="button" href="${state.paletteResult}" download="brand-palette.jpg">${t("tools.palette.download")}</a>
+              <button class="button secondary" type="button" data-palette-copy-all>${t("tools.palette.copyCss")}</button>
+            </div>
+            ${toolTransferMarkup("palette")}
+            <button class="button secondary block" type="button" data-palette-reset>${t("tools.palette.again")}</button>
+          ` : `<p class="tool-hint loading">${t("tools.palette.extracting")}</p>`}
+        ` : `
+          <label class="removebg-upload" for="palette-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">●</span><b>${t("tools.palette.upload")}</b><small>${t("tools.palette.uploadHint")}</small></span>
+          </label>
+          <input id="palette-file" type="file" accept="image/*" style="display:none" data-palette-input />
+          <p class="tool-privacy-note">${t("tools.palette.privacy")}</p>
+        `}
+      </div>
+
       <div class="tool-card" id="tool-compressor">
         <div class="tool-card-head">
           <h2>${t("tools.compressor.h2")}</h2>
@@ -4461,6 +4495,12 @@ function bind() {
   document.querySelector("[data-before-after-build]")?.addEventListener("click", applyBeforeAfterTool);
   document.querySelector("[data-before-after-reset]")?.addEventListener("click", resetBeforeAfterTool);
 
+  // Brand palette extractor
+  document.querySelector("[data-palette-input]")?.addEventListener("change", onPaletteFileSelect);
+  document.querySelectorAll("[data-palette-copy]").forEach(el => el.addEventListener("click", () => copyPaletteText(el.dataset.paletteCopy)));
+  document.querySelector("[data-palette-copy-all]")?.addEventListener("click", () => copyPaletteText(state.paletteColors.map((color, index) => `--brand-color-${index + 1}: ${color};`).join("\n")));
+  document.querySelector("[data-palette-reset]")?.addEventListener("click", resetPaletteTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -4963,6 +5003,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "redact") return state.redactResult;
   if (sourceId === "safe-zone") return state.safeZoneResult || state.safeZonePreview;
   if (sourceId === "before-after") return state.beforeAfterResult;
+  if (sourceId === "palette") return state.paletteResult || state.palettePreview;
   return null;
 }
 
@@ -5064,6 +5105,12 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.beforeAfterPreviews[emptyIndex] = dataUrl;
     state.beforeAfterResult = null;
     if (state.beforeAfterPreviews.every(Boolean)) afterNavigate = () => applyBeforeAfterTool();
+  } else if (toolId === "palette") {
+    state.paletteFile = await transferImageFile(sourceId, dataUrl);
+    state.palettePreview = dataUrl;
+    state.paletteColors = [];
+    state.paletteResult = null;
+    afterNavigate = () => extractPaletteTool();
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -5556,6 +5603,103 @@ function resetBeforeAfterTool() {
   state.beforeAfterPreviews = [null, null];
   state.beforeAfterResult = null;
   state.beforeAfterLabels = ["", ""];
+  render({ motion: false });
+}
+
+function onPaletteFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.paletteFile = file;
+    state.palettePreview = String(reader.result || "");
+    state.paletteColors = [];
+    state.paletteResult = null;
+    render({ motion: false });
+    extractPaletteTool();
+  };
+  reader.readAsDataURL(file);
+}
+
+function rgbToHex(r, g, b) {
+  return `#${[r, g, b].map(value => Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0")).join("")}`.toUpperCase();
+}
+
+async function extractPaletteTool() {
+  if (!state.palettePreview) return;
+  const image = new Image();
+  image.src = state.palettePreview;
+  await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; });
+  const sample = document.createElement("canvas");
+  sample.width = 96;
+  sample.height = 96;
+  const sampleContext = sample.getContext("2d", { willReadFrequently: true });
+  sampleContext.drawImage(image, 0, 0, sample.width, sample.height);
+  const pixels = sampleContext.getImageData(0, 0, sample.width, sample.height).data;
+  const buckets = new Map();
+  for (let index = 0; index < pixels.length; index += 16) {
+    if (pixels[index + 3] < 180) continue;
+    const r = Math.min(255, Math.round(pixels[index] / 32) * 32);
+    const g = Math.min(255, Math.round(pixels[index + 1] / 32) * 32);
+    const b = Math.min(255, Math.round(pixels[index + 2] / 32) * 32);
+    const key = `${r},${g},${b}`;
+    buckets.set(key, (buckets.get(key) || 0) + 1);
+  }
+  const colors = [];
+  const distance = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  [...buckets.entries()].sort((a, b) => b[1] - a[1]).forEach(([key]) => {
+    const rgb = key.split(",").map(Number);
+    if (colors.length < 6 && colors.every(existing => distance(existing, rgb) > 58)) colors.push(rgb);
+  });
+  while (colors.length < 6) colors.push(colors[colors.length - 1] || [32, 32, 32]);
+  state.paletteColors = colors.slice(0, 6).map(color => rgbToHex(...color));
+
+  const board = document.createElement("canvas");
+  board.width = 1200;
+  board.height = 800;
+  const context = board.getContext("2d");
+  context.fillStyle = "#f7f2e8";
+  context.fillRect(0, 0, board.width, board.height);
+  const imageAreaHeight = 590;
+  const scale = Math.max(board.width / image.naturalWidth, imageAreaHeight / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  context.save();
+  context.beginPath();
+  context.rect(0, 0, board.width, imageAreaHeight);
+  context.clip();
+  context.drawImage(image, (board.width - width) / 2, (imageAreaHeight - height) / 2, width, height);
+  context.restore();
+  const swatchWidth = board.width / state.paletteColors.length;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  state.paletteColors.forEach((color, index) => {
+    context.fillStyle = color;
+    context.fillRect(index * swatchWidth, imageAreaHeight, swatchWidth, board.height - imageAreaHeight);
+    const rgb = colors[index];
+    const luminance = rgb[0] * .299 + rgb[1] * .587 + rgb[2] * .114;
+    context.fillStyle = luminance > 150 ? "#111111" : "#ffffff";
+    context.font = "bold 24px Arial, sans-serif";
+    context.fillText(color, index * swatchWidth + swatchWidth / 2, imageAreaHeight + (board.height - imageAreaHeight) / 2);
+  });
+  state.paletteResult = board.toDataURL("image/jpeg", 0.93);
+  render({ motion: false });
+}
+
+async function copyPaletteText(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast(t("tools.palette.copied"));
+  } catch {
+    toast(value);
+  }
+}
+
+function resetPaletteTool() {
+  state.paletteFile = null;
+  state.palettePreview = null;
+  state.paletteColors = [];
+  state.paletteResult = null;
   render({ motion: false });
 }
 

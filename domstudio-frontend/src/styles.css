@@ -2442,6 +2442,7 @@ h1 em { color: var(--gold); font-style: normal; }
 .tools-workspace-grid[data-active-tool="redact"] #tool-redact,
 .tools-workspace-grid[data-active-tool="safe-zone"] #tool-safe-zone,
 .tools-workspace-grid[data-active-tool="before-after"] #tool-before-after,
+.tools-workspace-grid[data-active-tool="palette"] #tool-palette,
 .tools-workspace-grid[data-active-tool="collage"] #tool-collage,
 .tools-workspace-grid[data-active-tool="watermark"] #tool-watermark,
 .tools-workspace-grid[data-active-tool="promo"] #tool-promo,
@@ -2493,6 +2494,16 @@ h1 em { color: var(--gold); font-style: normal; }
 .before-after-options { margin-bottom: 12px; }
 .before-after-labels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 .before-after-result { max-height: 540px; object-fit: contain; background: var(--surface); }
+.palette-source-preview { max-height: 320px; object-fit: contain; background: var(--surface); }
+.palette-swatches { display: grid; grid-template-columns: repeat(6, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: 14px; }
+.palette-swatches button { display: grid; min-width: 0; padding: 0 0 9px; border: 0; border-right: 1px solid rgba(255,255,255,.5); background: white; color: var(--ink); cursor: pointer; }
+.palette-swatches button:last-child { border-right: 0; }
+.palette-swatches i { display: block; height: 78px; background: var(--swatch); }
+.palette-swatches span { margin-top: 8px; font-size: 10px; font-weight: 900; }
+.palette-swatches small { color: var(--muted); font-size: 9px; }
+@media (max-width: 520px) {
+  .palette-swatches { grid-template-columns: repeat(3, 1fr); }
+}
 
 @media (max-width: 960px) {
   .free-tools-hero { grid-template-columns: 1fr; }
