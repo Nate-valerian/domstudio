@@ -15,11 +15,13 @@ test("keeps Studio controls and result compact on mobile", () => {
 
 
 test("uses compact AdPilot cards, previews, generators, and chat on mobile", () => {
-  assert.match(styles, /\.workspace\.adpilot-landing \{ padding: 16px 12px 108px; \}/);
-  assert.match(styles, /\.adpilot-preview-output \{ min-height: 245px;/);
+  assert.match(styles, /\.workspace\.adpilot-landing \{ padding: 10px 10px 24px; \}/);
+  assert.match(styles, /\.adpilot-preview-output \{ min-height: 190px;/);
   assert.match(styles, /\.adpilot-workflow \{[\s\S]*?min-height: 84px;/);
   assert.match(styles, /\.adpilot-tool-output \.copy-output-empty, \.adpilot-tool-output \.copy-output-ghost \{ min-height: 220px; \}/);
-  assert.match(styles, /\.adpilot-brief \.adpilot-quick-input \{ min-height: 66px;/);
+  assert.match(styles, /\.adpilot-brief \.adpilot-quick-input \{ min-height: 56px;/);
+  assert.match(styles, /\.adpilot-page ~ \.mobile-tabbar \{ display: none; \}/);
+  assert.match(styles, /\.route-adpilot \.nav-inner \{ min-height: 54px;/);
   assert.match(styles, /\.adpilot-chat-form \.textarea \{ min-height: 68px;/);
 });
 

@@ -9245,3 +9245,77 @@ Files changed:
 This desktop correction is committed locally but not pushed. The verified live
 SpaceWeb frontend remains v19 until a v42 package is intentionally deployed and
 visually verified.
+
+---
+
+## July 23, 2026 - Primary Desktop And Mobile Viewports Tightened
+
+Applied a second, stronger density correction after the 2048 x 1024 desktop
+and narrow mobile screenshots still showed the important product areas below
+the fold.
+
+Changes:
+
+- Added route names to the shared shell so dense product pages can use scoped
+  navigation sizing without changing the approved Home layout.
+- Reduced desktop AdPilot headline, introduction, desk padding, upload field,
+  input, tabs, actions, example output, and product image frame. The wide hero
+  now gives more space to the headline so it wraps less, while the complete
+  product desk begins higher and occupies less vertical space.
+- Reduced desktop Tools hero, statistics, search/filter row, Quick Workflow,
+  section spacing, and six catalog-card heights. Descriptions are capped at two
+  lines so the full first six-tool category fits much more naturally in the
+  primary viewport.
+- Reduced desktop Examples introduction and proof-card media to a 190-230 px
+  responsive cap, with smaller copy areas. Complete proof cards are visible
+  instead of showing oversized media and a cut-off following row.
+- Added compact route navigation for AdPilot, Tools, and Examples on desktop.
+- On narrow AdPilot screens, reduced the header, hero, product brief, upload,
+  input, channel controls, preview card, and image frame; removed the fixed
+  bottom tab bar from the AdPilot route so it no longer covers the preview.
+- Bumped the PWA cache from `domstudio-shell-v42` to
+  `domstudio-shell-v43`.
+
+Coverage and validation:
+
+- Expanded the desktop and mobile source contracts to cover the route shell,
+  compact navigation, viewport-scale cards, shortened AdPilot fields, and
+  hidden mobile AdPilot tab bar.
+- `npm test` passed: 20 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 503,404 bytes; its gzip size is 136.35 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser bootstrap still fails with a missing sandbox policy, so
+  no live responsive screenshot verification is claimed. Common mobile,
+  laptop, 1920 px, and 2048 px checks remain on the release checklist.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `049A62991674B1CD21100CD3EF903939D833FD610B38CB0F9B9D6F00ABB3E98C`.
+- Route application asset: `assets/index-BnTnBQEW.js`, 82,031 bytes,
+  SHA-256
+  `F3D1FFE5C49DD5153697FBA3D2AA4A52DC80EA40F34BFB90975D4E4CEDA8FFF8`.
+- Main application asset: `assets/index-DhqZ061c.js`, 503,404 bytes,
+  SHA-256
+  `996CDA8349E1A0983F13212AEBB4057054D17C060604DA8A4DFE150C3DBF2626`.
+- Stylesheet: `assets/index-_imdvvma.css`, 163,042 bytes, SHA-256
+  `196BF8248E81578D080CED6A88E7F858029DCFE45BC48B54B12D3CE66FC9EBDC`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `B3E8F6980AD40BDF66AFF2826D5AA004B4C97C1F215CFA580EDF9A9E1B94B21B`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/desktop-product-pages.test.js`
+- `domstudio-frontend/tests/mobile-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This viewport correction is committed locally but not pushed. The verified
+live SpaceWeb frontend remains v19 until a v43 package is intentionally
+deployed and visually verified.

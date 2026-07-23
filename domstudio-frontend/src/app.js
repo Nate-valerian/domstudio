@@ -4172,7 +4172,7 @@ function render(options = {}) {
   document.title = t(`title.${state.route}`) || t("title.home");
   const motionKey = `${state.route}:${state.authMode || "none"}`;
   const shouldAnimateEntrance = options.motion ?? motionKey !== lastMotionKey;
-  app.innerHTML = `<div class="shell">${nav()}${offlineBanner()}${pwaInstallBanner()}${page}${footer()}${mobileTabBar()}${authModal()}</div>`;
+  app.innerHTML = `<div class="shell route-${state.route}">${nav()}${offlineBanner()}${pwaInstallBanner()}${page}${footer()}${mobileTabBar()}${authModal()}</div>`;
   bind();
   runMotion({ entrance: shouldAnimateEntrance });
   prepareDemoVideos();
