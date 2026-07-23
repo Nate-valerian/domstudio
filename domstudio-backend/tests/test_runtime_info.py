@@ -36,6 +36,9 @@ class RuntimeInfoTests(unittest.TestCase):
         self.assertFalse(payload["comfy"]["api_key_present"])
         self.assertTrue(payload["integrations"]["database_url_present"])
         self.assertTrue(payload["integrations"]["deepseek_api_key_present"])
+        self.assertTrue(payload["text_ai"]["deepseek_fallback_configured"])
+        self.assertEqual(payload["text_ai"]["deepseek_model"], "deepseek-v4-flash")
+        self.assertEqual(payload["text_ai"]["deepseek_base_url_host"], "api.deepseek.com")
         self.assertIn("http://domstudio.site", payload["cors"]["effective_origins"])
         self.assertIn("https://domstudio.site", payload["cors"]["effective_origins"])
 

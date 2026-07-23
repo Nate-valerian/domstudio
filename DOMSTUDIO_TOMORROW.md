@@ -40,20 +40,24 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `eeedc94` (`Redesign free tool workspaces`), including
-  the complete AdPilot/Tools rollout and its focused UI follow-ups. The latest
-  AdPilot analyzed-product presentation fix is committed locally only until
-  the user approves a push.
+- `origin/main` is at `4ad718b` (`Fix AdPilot analyzed product state`),
+  including the complete AdPilot/Tools rollout and its focused UI follow-ups.
+  The latest Groq-to-DeepSeek backend fallback remains local until the user
+  approves a push.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
 - AdPilot has the product-first campaign desk, optional product photo, Groq
   Qwen 3.6 Vision analysis, all 19 detailed copy generators, and the unified
   cream-input/dark-result workspace.
+- AdPilot text generation, AI Chat, and marketplace action drafts now share a
+  backend provider chain: Groq first, DeepSeek V4 Flash second, optional custom
+  OpenAI-compatible backend third. Generated-copy endpoints retain the local
+  template as their final no-charge fallback.
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
 - The latest frontend source uses PWA cache `domstudio-shell-v38` and passed its
   production build and focused frontend interaction tests.
-- The backend suite passed with 74 tests, 11 subtests, and one existing
+- The backend suite passed with 78 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
   describe the v38 AdPilot/Tools source as live until it is packaged, uploaded,
@@ -80,13 +84,13 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v38 frontend and Groq vision backend
+### 2. Release the v38 frontend and backend v10 AI provider chain
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
-3. Confirm the production backend has `GROQ_API_KEY` and the documented vision
-   environment values. The ignored local `.env` does not configure the remote
-   host.
+3. Confirm the production backend has both `GROQ_API_KEY` and
+   `DEEPSEEK_API_KEY`, plus the documented vision/text environment values. The
+   ignored local `.env` does not configure the remote host.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
@@ -94,11 +98,14 @@ must be verified.
    - all 16 Tools workspaces;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
+   - `/content/text-ai/health` reports provider order `groq`, `deepseek`, then
+     `text-ai`, with both Groq and DeepSeek reachable;
    - Tools-to-Tools, Tools-to-Studio, and Tools-to-AdPilot transfers;
    - mobile/desktop layout, SPA fallback, and PWA offline shell.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The latest AdPilot presentation fix is committed locally but not pushed.
-Packaging, hosting changes, remote environment configuration, and production
-deployment still require the user's explicit approval or direct participation.
+The Groq-to-DeepSeek backend fallback is implemented and validated locally but
+not pushed. Packaging, hosting changes, remote environment configuration, and
+production deployment still require the user's explicit approval or direct
+participation.

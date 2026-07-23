@@ -82,8 +82,8 @@ def health():
     return {
         "status": "ok",
         "service": "domstudio-api",
-        "v": 9,
-        "prompt_version": "groq-product-vision-2026-07-23",
+        "v": 10,
+        "prompt_version": "groq-deepseek-fallback-2026-07-23",
     }
 
 

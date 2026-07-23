@@ -72,6 +72,31 @@ class FakePromptClient:
         return httpx.Response(200, json={"prompt_id": "prompt-123"})
 
 
+class FakeDeepSeekClient:
+    last_url = None
+    last_json = None
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        return None
+
+    async def post(self, url, **kwargs):
+        FakeDeepSeekClient.last_url = url
+        FakeDeepSeekClient.last_json = kwargs.get("json")
+        return FakeResponse({
+            "choices": [{
+                "message": {
+                    "content": "Change only the background to a marble table. Keep the uploaded product exactly as it appears."
+                }
+            }]
+        })
+
+
 class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
     async def test_discovers_running_autodl_service_url(self):
         with patch.object(comfy_client.httpx, "AsyncClient", FakeAutoDlClient):
@@ -267,6 +292,20 @@ class ComfyClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("food presentation edit", prompt)
         self.assertIn("white plate", prompt)
         self.assertNotIn("Preserve the uploaded product exactly", prompt)
+
+    async def test_prompt_expander_uses_supported_deepseek_v4_endpoint(self):
+        env = {
+            "DEEPSEEK_API_KEY": "test-key",
+            "DEEPSEEK_BASE_URL": "https://api.deepseek.com/v1",
+        }
+        with patch.dict("os.environ", env, clear=True):
+            with patch.object(comfy_client.httpx, "AsyncClient", FakeDeepSeekClient):
+                prompt = await comfy_client.expand_prompt_for_qwen("marble table", "warm light", "product")
+
+        self.assertTrue(prompt.startswith("Change"))
+        self.assertEqual(FakeDeepSeekClient.last_url, "https://api.deepseek.com/chat/completions")
+        self.assertEqual(FakeDeepSeekClient.last_json["model"], "deepseek-v4-flash")
+        self.assertEqual(FakeDeepSeekClient.last_json["thinking"], {"type": "disabled"})
 
     async def test_fitting_dimensions_are_portrait(self):
         self.assertEqual(comfy_client.generation_dimensions("fitting"), (896, 1152))

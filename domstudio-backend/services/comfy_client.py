@@ -470,14 +470,19 @@ async def expand_prompt_for_qwen(subject: str, style_hint: str = "", mode: str |
         logger.warning("DEEPSEEK_API_KEY not set — using fallback prompt")
         return compose_img2img_prompt(subject, style_hint, mode)
     try:
+        base_url = (os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com").rstrip("/")
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3]
+        model = os.getenv("DEEPSEEK_MODEL") or "deepseek-v4-flash"
         user_text = prompt_expander_user_text(subject, style_hint, mode)
         async with httpx.AsyncClient(timeout=15) as client:
             response = await client.post(
-                "https://api.deepseek.com/v1/chat/completions",
+                f"{base_url}/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}"},
                 json={
-                    "model": "deepseek-chat",
+                    "model": model,
                     "max_tokens": 200,
+                    **({"thinking": {"type": "disabled"}} if model.startswith("deepseek-v4") else {}),
                     "messages": [
                         {
                             "role": "system",

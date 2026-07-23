@@ -16,7 +16,7 @@ class AdChatRouterTests(unittest.TestCase):
         app = FastAPI()
         app.include_router(ad_chat.router, prefix="/ad-chat")
 
-        with patch.object(ad_chat, "ask_text_ai", new=AsyncMock(return_value=("Try this listing title.", None))) as ask_mock:
+        with patch.object(ad_chat, "ask_text_ai", new=AsyncMock(return_value=("Try this listing title.", "deepseek", "groq unavailable"))) as ask_mock:
             response = TestClient(app).post(
                 "/ad-chat",
                 json={
@@ -28,7 +28,8 @@ class AdChatRouterTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["reply"], "Try this listing title.")
-        self.assertEqual(response.json()["provider"], "text-ai")
+        self.assertEqual(response.json()["provider"], "deepseek")
+        self.assertEqual(response.json()["warning"], "groq unavailable")
         ask_mock.assert_awaited_once()
 
     def test_chat_endpoint_rejects_empty_messages(self):

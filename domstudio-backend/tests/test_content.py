@@ -50,7 +50,7 @@ class ContentGenerationTests(unittest.IsolatedAsyncioTestCase):
 
         async def no_backend(prompt):
             self.assertIn("Language: English", prompt)
-            return "", "not configured"
+            return "", None, "not configured"
 
         with patch.object(content, "generate_with_text_backend", no_backend):
             result = await content.generate_content(
@@ -87,7 +87,7 @@ class ContentGenerationTests(unittest.IsolatedAsyncioTestCase):
         async def fake_backend(prompt):
             self.assertIn("Yandex Ads", prompt)
             self.assertIn("Language: English", prompt)
-            return "AI output", None
+            return "AI output", "groq", None
 
         with patch.object(content, "generate_with_text_backend", fake_backend):
             result = await content.generate_content(
@@ -101,7 +101,7 @@ class ContentGenerationTests(unittest.IsolatedAsyncioTestCase):
                 user,
             )
 
-        self.assertEqual(result["provider"], "text-ai")
+        self.assertEqual(result["provider"], "groq")
         self.assertEqual(result["output"], "AI output")
         self.assertEqual(result["tokens_charged"], 20)
         self.assertEqual(result["output_language"], "English")
@@ -112,7 +112,7 @@ class ContentGenerationTests(unittest.IsolatedAsyncioTestCase):
 
         async def no_backend(prompt):
             self.assertIn("Language: Russian", prompt)
-            return "", "not configured"
+            return "", None, "not configured"
 
         with patch.object(content, "generate_with_text_backend", no_backend):
             result = await content.generate_content(

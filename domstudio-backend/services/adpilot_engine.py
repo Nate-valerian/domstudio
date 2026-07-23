@@ -92,8 +92,8 @@ async def build_action_draft(
         ]
     )
 
-    text, warning = await generate_ai(prompt)
-    provider_name = "text-ai"
+    text, provider_name, warning = await generate_ai(prompt)
+    provider_name = provider_name or "text-ai"
     if not text:
         text = fallback_action_output(provider, action_type, action_input, profile, language)
         provider_name = "local-template"

@@ -8859,3 +8859,90 @@ Files changed:
 This fix changes the local source only. The verified live SpaceWeb frontend
 remains v19 until a v38 package is intentionally deployed and visually
 verified.
+
+---
+
+## July 23, 2026 - AdPilot Groq To DeepSeek Text Fallback Added
+
+Added a shared resilient text-provider chain so AdPilot can continue producing
+copy when Groq is rate-limited, blocked, unavailable, or returns an empty
+response.
+
+Provider behavior:
+
+- Added one backend text service used by AdPilot product-card generation,
+  public generators, authenticated generators, AI Chat, and marketplace action
+  drafts.
+- The default provider order is now Groq, DeepSeek, then an optional custom
+  OpenAI-compatible `TEXT_AI_*` backend.
+- When no dedicated Groq text variables are present, the existing secure
+  backend `GROQ_API_KEY`, vision base URL, and Qwen 3.6 model are reused for
+  text-only requests.
+- Any provider HTTP failure, timeout, malformed/empty response, or request
+  error advances to the next configured provider.
+- Each provider attempt has a 20-second default timeout so one blocked service
+  cannot hold the whole chain for the former 60-second request timeout.
+- Generator endpoints retain the built-in local template as the final fallback
+  and refund charged tokens when no AI provider answers.
+- AdPilot Chat retries through the same provider chain and returns a controlled
+  503 only if every configured provider fails.
+- API responses and marketplace drafts now report the provider that actually
+  answered (`groq`, `deepseek`, `text-ai`, or `local-template`).
+- `/content/text-ai/health` now reports safe per-provider status and provider
+  order without exposing credentials. `/version` reports the fallback setup,
+  model names, timeout, and key-presence booleans only.
+
+DeepSeek compatibility:
+
+- Updated the default DeepSeek text model from the retiring `deepseek-chat`
+  alias to `deepseek-v4-flash`.
+- Updated the base URL to the current `https://api.deepseek.com` Chat
+  Completions path and normalizes legacy `/v1` configuration.
+- Explicitly disables thinking mode for concise sales-copy and prompt-expander
+  requests.
+- Updated the existing Studio image-edit prompt expander to use the same
+  supported DeepSeek base URL and model instead of the retiring alias.
+- Added `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`,
+  `TEXT_AI_PROVIDER_ORDER`, `TEXT_AI_PROVIDER_TIMEOUT_MS`, and optional Groq
+  text overrides to `.env.example`.
+- Bumped backend health version from 9 to 10 with provider version
+  `groq-deepseek-fallback-2026-07-23`.
+
+Coverage and validation:
+
+- Added provider-chain tests covering a Groq HTTP 429 followed by successful
+  DeepSeek output, automatic reuse of Groq vision configuration, and complete
+  multi-provider failure.
+- Added coverage confirming AdPilot Chat and product generators return the
+  actual provider, marketplace drafts preserve local fallback, runtime
+  diagnostics remain secret-safe, and the Studio prompt expander uses
+  DeepSeek V4 Flash at the current endpoint.
+- Full backend suite passed: 78 tests, 11 subtests, 0 failures.
+- Frontend suite passed: 10 tests, 0 failures.
+- The one existing Starlette/httpx test-client deprecation warning remains.
+- `git diff --check` passed.
+- Tests used mocked provider responses. No paid Groq or DeepSeek request and no
+  production deployment verification is claimed.
+
+Files changed:
+
+- `domstudio-backend/services/text_ai.py`
+- `domstudio-backend/routers/content.py`
+- `domstudio-backend/routers/ad_chat.py`
+- `domstudio-backend/services/adpilot_engine.py`
+- `domstudio-backend/services/comfy_client.py`
+- `domstudio-backend/runtime_info.py`
+- `domstudio-backend/main.py`
+- `domstudio-backend/.env.example`
+- `domstudio-backend/tests/test_text_ai.py`
+- `domstudio-backend/tests/test_content.py`
+- `domstudio-backend/tests/test_ad_chat.py`
+- `domstudio-backend/tests/test_marketplaces.py`
+- `domstudio-backend/tests/test_comfy_client.py`
+- `domstudio-backend/tests/test_runtime_info.py`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This backend change is committed locally but not pushed. Production must
+receive both provider keys and be checked through the health endpoint before
+the fallback is described as live.

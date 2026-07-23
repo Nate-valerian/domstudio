@@ -163,10 +163,16 @@ def runtime_version_payload() -> dict[str, object]:
             "poll_timeout": os.getenv("COMFYUI_POLL_TIMEOUT", "600"),
         },
         "text_ai": {
+            "provider_order": os.getenv("TEXT_AI_PROVIDER_ORDER", "groq,deepseek,text-ai"),
             "base_url_host": _safe_url_host(os.getenv("TEXT_AI_BASE_URL")),
             "model": os.getenv("TEXT_AI_MODEL") or None,
             "api_key_present": _env_present("TEXT_AI_API_KEY"),
+            "groq_text_model": os.getenv("GROQ_TEXT_MODEL") or os.getenv("GROQ_VISION_MODEL") or None,
+            "deepseek_base_url_host": _safe_url_host(os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"),
+            "deepseek_model": os.getenv("DEEPSEEK_MODEL") or "deepseek-v4-flash",
+            "deepseek_fallback_configured": _env_present("DEEPSEEK_API_KEY"),
             "timeout_ms": os.getenv("TEXT_AI_TIMEOUT_MS", "60000"),
+            "provider_timeout_ms": os.getenv("TEXT_AI_PROVIDER_TIMEOUT_MS", "20000"),
             "content_token_unit": os.getenv("CONTENT_TOKEN_UNIT", "10"),
         },
         "workflows": {

@@ -7,7 +7,6 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
-import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
@@ -16,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth_utils import decode_token
 from database import PlanName, Subscription, User, get_db
+from services.text_ai import complete_with_fallback
 
 
 router = APIRouter()
@@ -90,15 +90,6 @@ async def _chat_identity(
     return f"user:{user.id}", tier, _chat_limit_for_tier(tier)
 
 
-def _text_ai_settings() -> tuple[str, str, str, int, int]:
-    base_url = os.getenv("TEXT_AI_BASE_URL", "").rstrip("/")
-    api_key = os.getenv("TEXT_AI_API_KEY", "")
-    model = os.getenv("TEXT_AI_MODEL", "")
-    timeout_ms = int(os.getenv("TEXT_AI_TIMEOUT_MS", str(CHAT_TIMEOUT_MS)))
-    max_tokens = int(os.getenv("ADPILOT_CHAT_MAX_TOKENS", str(CHAT_MAX_TOKENS)))
-    return base_url, api_key, model, timeout_ms, max_tokens
-
-
 def _system_prompt(language: str, product: str) -> str:
     lang_line = (
         "Answer in Russian unless the user asks for another language."
@@ -130,38 +121,20 @@ def _system_prompt(language: str, product: str) -> str:
     )
 
 
-async def ask_text_ai(req: AdChatRequest) -> tuple[str, str | None]:
-    base_url, api_key, model, timeout_ms, max_tokens = _text_ai_settings()
-    if not base_url or not model:
-        raise HTTPException(503, "AdPilot AI is not configured.")
-
-    headers = {"Content-Type": "application/json"}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-
+async def ask_text_ai(req: AdChatRequest) -> tuple[str, str, str | None]:
+    timeout_ms = int(os.getenv("TEXT_AI_TIMEOUT_MS", str(CHAT_TIMEOUT_MS)))
+    max_tokens = int(os.getenv("ADPILOT_CHAT_MAX_TOKENS", str(CHAT_MAX_TOKENS)))
     messages = [{"role": "system", "content": _system_prompt(req.language, req.product or "")}]
     messages.extend({"role": item.role, "content": item.content.strip()} for item in req.messages[-CHAT_MAX_MESSAGES:])
-
-    async with httpx.AsyncClient(timeout=max(timeout_ms / 1000, 20)) as client:
-        response = await client.post(
-            f"{base_url}/chat/completions",
-            headers=headers,
-            json={
-                "model": model,
-                "temperature": 0.65,
-                "max_tokens": max(128, min(max_tokens, 1500)),
-                "messages": messages,
-            },
-        )
-
-    if not response.is_success:
-        raise HTTPException(502, f"AdPilot AI failed with {response.status_code}: {response.text[:300]}")
-
-    data = response.json()
-    reply = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+    reply, provider, warning = await complete_with_fallback(
+        messages,
+        temperature=0.65,
+        max_tokens=max(128, min(max_tokens, 1500)),
+        timeout_ms=timeout_ms,
+    )
     if not reply:
-        raise HTTPException(502, "AdPilot AI returned an empty reply.")
-    return reply, None
+        raise HTTPException(503, warning or "AdPilot AI is not configured.")
+    return reply, provider or "text-ai", warning
 
 
 @router.post("")
@@ -176,10 +149,10 @@ async def adpilot_chat(
     if remaining < 0:
         raise HTTPException(429, "Daily AdPilot AI chat limit reached.")
 
-    reply, warning = await ask_text_ai(req)
+    reply, provider, warning = await ask_text_ai(req)
     return {
         "reply": reply,
-        "provider": "text-ai",
+        "provider": provider,
         "warning": warning,
         "remaining_free": remaining,
         "limit": limit,

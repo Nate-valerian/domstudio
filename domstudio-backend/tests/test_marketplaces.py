@@ -65,7 +65,7 @@ class MarketplaceServiceTests(unittest.IsolatedAsyncioTestCase):
 
         async def no_ai(prompt):
             self.assertIn("Provider: avito", prompt)
-            return "", "offline"
+            return "", None, "offline"
 
         draft, provider = await build_action_draft(
             MarketplaceProvider.avito,
