@@ -8289,3 +8289,66 @@ Files changed:
 
 This is a frontend attachment and context fix. The current `/content/generate`
 contract remains text-only; no image data is sent to the text-generation API.
+
+---
+
+## July 23, 2026 - Unified AdPilot Generator Workspaces
+
+Extended the reviewed AdPilot cream-and-dark campaign desk format to every
+detailed copy generator.
+
+Changes:
+
+- Replaced the legacy giant tool title and two disconnected white panels with
+  one joined workspace: cream input side and dark output side.
+- Applied the same structure to all 19 tools across Marketplace, Avito, Ads,
+  Social, Retention, Beauty, Food, Auto, and Pages.
+- Kept each tool's own questions, channel guidance, output labels, wizard, and
+  advanced fields while making the visual shell consistent.
+- Replaced the orange full-width legacy back bar with a compact AdPilot
+  breadcrumb.
+- Restyled empty, generating, completed, variation, adjustment, and action
+  states for the dark result panel.
+- Corrected the language selector to use two equal columns.
+- Clear the previous tool's output, variations, metadata, and adjustment when
+  opening another tool so content cannot appear under the wrong generator.
+- Preserve product-image context when continuing from the AdPilot landing desk.
+- Display a real zero token charge as `0` instead of falling back to the tool's
+  nominal cost.
+- Bumped the PWA shell cache from `domstudio-shell-v22` to
+  `domstudio-shell-v23`.
+
+Validation:
+
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` passed with Vite 7.3.5.
+- `git diff --check` passed.
+- Browser-rendered all 19 tools in the joined cream/dark shell with no legacy
+  giant title, no page or console errors, and no horizontal overflow.
+- Verified Yandex Ads through its wizard and generated-result states, including
+  enabled draft/copy actions and the dark result treatment.
+- Verified switching from a generated Yandex result to Avito clears the old
+  output.
+- Verified photo continuity, the 5-field advanced form, and responsive layouts
+  at 390, 640, 1024, 1440, and 1920px.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `944A6113C78833505207DBD790B9D34B5A0C1314D09C55158EE8AE50C2BB25F3`.
+- Main application asset: `assets/index-C294TAfj.js`, 431,009 bytes, SHA-256
+  `604C00481D190CE976CA6051E63896CE6E71083E1A28E1364EAE9DBF0188B63D`.
+- Stylesheet: `assets/index-BmJ8MhkV.css`, 136,678 bytes, SHA-256
+  `A05593D9A709C8993F90C51E1FADFC4CB22577A3D721CB15546AB392437A88F0`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `B264401114ADE360A543C76B43BFABB6453B83AE583273A750495A5E58E9ED5A`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This is a visual-consistency and state-isolation change. Existing content API
+contracts and tool-specific prompts are unchanged.

@@ -2829,15 +2829,13 @@ function copyStudioPage() {
   }
 
   return `<main class="page adpilot-page">
-    <section class="workspace copy-workspace">
-      <header class="workspace-head">
-        <div>
-          <button class="copy-back-btn" type="button" data-adpilot-home>← AdPilot</button>
-          <h1>${escapeHtml(contentToolName(tool))}</h1>
-        </div>
+    <section class="workspace copy-workspace adpilot-tool-workspace">
+      <header class="adpilot-tool-breadcrumb">
+        <button class="copy-back-btn" type="button" data-adpilot-home>${t("adpilot.backToHome")}</button>
+        <span>${escapeHtml(contentToolCategory(tool.category))}</span>
       </header>
-      <div class="copy-grid copy-grid-no-sidebar">
-        <form class="panel copy-form-panel" id="copy-form">
+      <div class="copy-grid copy-grid-no-sidebar adpilot-tool-desk">
+        <form class="panel copy-form-panel adpilot-tool-form" id="copy-form">
           ${state.adpilotContextImage ? `<div class="copy-context-banner">
             <div class="copy-context-left">
               <img class="copy-context-thumb" src="${state.adpilotContextImage}" alt="${t("adpilotContext.label")}" />
@@ -2920,7 +2918,7 @@ function copyStudioPage() {
               : `<p class="token-hint">${t("copy.tokenOk", { n: state.user.tokens, m: Math.floor(state.user.tokens / Math.max(cost, 1)) })}</p>`)
             : ""}
         </form>
-        <section class="panel copy-output-panel" aria-label="${outputTitle}">
+        <section class="panel copy-output-panel adpilot-tool-output" aria-label="${outputTitle}">
           <div class="output-panel-head">
             <div class="output-panel-title">
               <span class="copy-form-cat-icon">${(CATEGORY_META[tool.category] || { icon: "✦" }).icon}</span>
@@ -2967,7 +2965,7 @@ function copyStudioPage() {
             </div>
           ` : ""}
           ${state.contentNotice ? `<p class="generation-notice">${escapeHtml(state.contentNotice)}</p>` : ""}
-          ${state.contentMeta ? `<p class="result-meta">${escapeHtml(contentToolName(state.contentMeta.tool || tool))} · ${escapeHtml(state.contentMeta.provider || "")} · ${state.contentMeta.tokens_charged || cost} ${t("studio.tokens", { n: "" }).trim()}</p>` : ""}
+          ${state.contentMeta ? `<p class="result-meta">${escapeHtml(contentToolName(state.contentMeta.tool || tool))} · ${escapeHtml(state.contentMeta.provider || "")} · ${state.contentMeta.tokens_charged ?? cost} ${t("studio.tokens", { n: "" }).trim()}</p>` : ""}
         </section>
       </div>
     </section>
@@ -5719,7 +5717,11 @@ function selectContentTool(slug) {
   if (state.contentToolSlug === slug) return;
   if (activeContentFormMode() !== "wizard") syncContentFromForm(document.querySelector("#copy-form"));
   state.contentToolSlug = slug;
+  state.contentOutput = "";
+  state.contentVariations = [];
+  state.contentMeta = null;
   state.contentNotice = "";
+  state.contentAdjustInstruction = "";
   state.contentWizardStep = 0;
   render({ motion: false });
 }

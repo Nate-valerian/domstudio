@@ -523,3 +523,22 @@ Technical boundary:
 
 Next product task remains Smart Crop & Rotate: show its workspace design first,
 then implement and commit it separately after approval.
+
+## July 23, 2026 Unified AdPilot Workspace Continuation Note
+
+All 19 AdPilot generators now continue in the same visual format as the main
+Marketplace product-card desk.
+
+- Every detailed tool uses one joined cream input and dark result workspace.
+- Tool-specific fields and result labels remain intact.
+- Wizard, advanced form, product-photo context, empty result, completed result,
+  copy/save actions, and mobile layouts are verified.
+- Opening a different tool clears the previous tool's output.
+- The frontend is marked with PWA cache `domstudio-shell-v23`.
+
+The local branch contains the catalog shell, AdPilot image uploader, and unified
+AdPilot workspace commits. None of these frontend changes should be described
+as live until they are intentionally pushed, packaged, uploaded, and verified.
+
+Next product task remains Smart Crop & Rotate, with its design shown before
+implementation.
