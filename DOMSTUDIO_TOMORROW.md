@@ -40,7 +40,7 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `c0c777b` (`Restore compact desktop product pages`), including the
+- `origin/main` is at `c111dd4` (`Fit product pages to primary viewport`), including the
   complete AdPilot/Tools rollout, backend provider chain, compact mobile
   product pages, and cleaned-up Tool result actions.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
@@ -54,7 +54,7 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v43`; its
+- The latest frontend source uses PWA cache `domstudio-shell-v44`; its
   production build and 20 focused frontend tests pass. Compact mobile layouts
   now cover Studio, the AdPilot landing/generators/chat, the Tools catalog, and
   every opened Tool workspace. Mobile Tool results use one horizontal transfer
@@ -63,7 +63,9 @@ For every project change:
   unchanged. A second viewport-fit pass further reduces the desktop AdPilot
   desk, Tools discovery/catalog, and Examples proof cards. AdPilot mobile now
   uses a shorter route header, a denser product desk, and no overlapping fixed
-  tab bar.
+  tab bar. The desktop AdPilot workflow row is now a compact 118 px horizontal
+  card layout so all three `Where should we start?` cards fit within the
+  supplied 2048 x 1148 primary viewport.
 - The backend suite passed with 78 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
@@ -91,7 +93,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v43 frontend and backend v10 AI provider chain
+### 2. Release the v44 frontend and backend v10 AI provider chain
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -101,7 +103,7 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v43`;
+   - service worker cache `domstudio-shell-v44`;
    - all 16 Tools workspaces;
    - compact mobile Tools catalog rows, filters, and quick workflow at common
      360 px, 390 px, and 430 px viewport widths;
@@ -121,7 +123,7 @@ must be verified.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The tighter desktop/mobile primary-viewport correction is implemented and
+The compact AdPilot desktop workflow-card correction is implemented and
 validated locally but not pushed. Packaging, hosting changes, remote
 environment configuration, and production deployment still require the user's
 explicit approval or direct participation.

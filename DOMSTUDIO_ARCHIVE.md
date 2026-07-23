@@ -9319,3 +9319,66 @@ Files changed:
 This viewport correction is committed locally but not pushed. The verified
 live SpaceWeb frontend remains v19 until a v43 package is intentionally
 deployed and visually verified.
+
+---
+
+## July 23, 2026 - AdPilot Desktop Workflow Cards Fit The Fold
+
+Corrected the remaining cut-off row in the supplied 2048 x 1148 AdPilot
+screenshot. The campaign desk already fit, but the three `Where should we
+start?` cards retained their original 214 px desktop minimum height and were
+only partially visible.
+
+Changes:
+
+- Reduced the desktop gap above the workflow section from 50 px to 28 px.
+- Rebuilt the three workflow cards as compact horizontal cards with an icon,
+  title/description, and tool count arranged across the available width.
+- Reduced their desktop minimum height from 214 px to 118 px while preserving
+  the existing click targets, content, and three-column layout.
+- Limited workflow descriptions to two lines at desktop width so every card
+  remains complete and aligned.
+- Left Home and the existing narrow-mobile card treatment unchanged.
+- Bumped the PWA cache from `domstudio-shell-v43` to
+  `domstudio-shell-v44`.
+
+Coverage and validation:
+
+- Extended the desktop AdPilot layout contract to cover the 28 px section gap,
+  horizontal card structure, and 118 px card height.
+- `npm test` passed: 20 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 503,404 bytes; its gzip size is 136.35 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser bootstrap remains unavailable, so the fit is validated
+  from the supplied screenshot dimensions, source layout contracts, and
+  production build rather than a new live screenshot.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `91F54CF4E6BF3745DFBCDFA0C9E6B13B01D2BC3616F8571CB3FE98F9ADD093E7`.
+- Route application asset: `assets/index-DqY29Qf7.js`, 82,031 bytes,
+  SHA-256
+  `CB57F18EA7ADD9D2B4ED3E1511171AC5E7E579890C20A18DAF985C1FE2351929`.
+- Main application asset: `assets/index-CQDi-DrF.js`, 503,404 bytes,
+  SHA-256
+  `3A84742698F47EEA3B019CF947833E8D1F80BE398C3F04D08AD8C511DCF06DC2`.
+- Stylesheet: `assets/index-7KdxOeQU.css`, 163,731 bytes, SHA-256
+  `CE20FCB627661D601D5D4EF565077C635C571F0B7D356126494FBFD7EFAFB2D3`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `1F6F18F23C79D28449A271D44142740C497EBE9D630DAAED1219D5D7F34DD2FB`.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/desktop-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This focused fold correction is committed locally but not pushed. The verified
+live SpaceWeb frontend remains v19 until a v44 package is intentionally
+deployed and visually verified.
