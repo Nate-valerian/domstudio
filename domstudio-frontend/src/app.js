@@ -3230,6 +3230,30 @@ function authModal() {
   </div>`;
 }
 
+const IMAGE_TOOL_TRANSFER_TARGETS = [
+  ["removebg", "tools.removeBg.h2"],
+  ["collage", "tools.collage.h2"],
+  ["watermark", "tools.watermark.h2"],
+  ["promo", "tools.promo.h2"],
+  ["resizer", "tools.resizer.h2"],
+  ["compressor", "tools.compressor.h2"],
+  ["checker", "tools.checker.h2"],
+];
+
+function toolTransferMarkup(sourceId) {
+  const toolButtons = IMAGE_TOOL_TRANSFER_TARGETS
+    .filter(([id]) => id !== sourceId)
+    .map(([id, labelKey]) => `<button class="chip" type="button" data-send-to="${id}" data-send-from="${sourceId}">${t(labelKey)}</button>`)
+    .join("");
+
+  return `<div class="tool-send-row">
+    <span class="tool-send-label">${t("tools.sendTo")}</span>
+    ${toolButtons}
+    <button class="chip chip-studio" type="button" data-send-to="studio" data-send-from="${sourceId}">${t("tools.transfer.studio")}</button>
+    <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="${sourceId}">${t("tools.transfer.adpilot")}</button>
+  </div>`;
+}
+
 function toolsPage() {
   const rawHash = location.hash.slice(1);
   const query = rawHash.includes("?") ? rawHash.slice(rawHash.indexOf("?") + 1) : "";
@@ -3361,19 +3385,7 @@ function toolsPage() {
               <a class="button" href="${state.removeBgComposed || state.removeBgResult}" download="${state.removeBgBgColor ? "product.jpg" : "no-bg.png"}">${t(state.removeBgBgColor ? "tools.removeBg.downloadJpg" : "tools.removeBg.download")}</a>
               <button class="button secondary" type="button" data-removebg-reset>${t("tools.removeBg.again")}</button>
             </div>
-            <div class="tool-send-row">
-              <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="collage" data-send-from="removebg">${t("tools.collage.h2")}</button>
-              <button class="chip" type="button" data-send-to="watermark" data-send-from="removebg">${t("tools.watermark.h2")}</button>
-              <button class="chip" type="button" data-send-to="promo" data-send-from="removebg">${t("tools.promo.h2")}</button>
-              <button class="chip" type="button" data-send-to="resizer" data-send-from="removebg">${t("tools.resizer.h2")}</button>
-              <button class="chip" type="button" data-send-to="compressor" data-send-from="removebg">${t("tools.compressor.h2")}</button>
-              <button class="chip" type="button" data-send-to="checker" data-send-from="removebg">${t("tools.checker.h2")}</button>
-              <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="removebg">${t("tools.sendToAdpilot")}</button>
-            </div>
-            <button class="button gold block" type="button" data-use-in-studio style="margin-top:6px">
-              ${t("tools.useInStudio")}
-            </button>
+            ${toolTransferMarkup("removebg")}
           </div>
         ` : `
           <label class="removebg-upload ${state.removeBgLoading ? "loading" : ""}" for="removebg-file">
@@ -3411,15 +3423,7 @@ function toolsPage() {
             <a class="button" href="${state.collageResult}" download="collage.jpg">${t("tools.collage.download")}</a>
             <button class="button secondary" type="button" data-collage-reset>${t("tools.collage.again")}</button>
           </div>
-          <div class="tool-send-row">
-            <span class="tool-send-label">${t("tools.sendTo")}</span>
-            <button class="chip" type="button" data-send-to="watermark" data-send-from="collage">${t("tools.watermark.h2")}</button>
-            <button class="chip" type="button" data-send-to="promo" data-send-from="collage">${t("tools.promo.h2")}</button>
-            <button class="chip" type="button" data-send-to="resizer" data-send-from="collage">${t("tools.resizer.h2")}</button>
-            <button class="chip" type="button" data-send-to="compressor" data-send-from="collage">${t("tools.compressor.h2")}</button>
-            <button class="chip" type="button" data-send-to="checker" data-send-from="collage">${t("tools.checker.h2")}</button>
-            <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="collage">${t("tools.sendToAdpilot")}</button>
-          </div>
+          ${toolTransferMarkup("collage")}
         ` : `
           <div class="collage-upload-grid">
             ${[0,1,2,3].map(i => {
@@ -3450,15 +3454,7 @@ function toolsPage() {
             <a class="button" href="${state.watermarkResult}" download="product-watermark.jpg">${t("tools.watermark.download")}</a>
             <button class="button secondary" type="button" data-wm-edit>${t("tools.watermark.edit")}</button>
           </div>
-          <div class="tool-send-row">
-            <span class="tool-send-label">${t("tools.sendTo")}</span>
-            <button class="chip" type="button" data-send-to="collage" data-send-from="watermark">${t("tools.collage.h2")}</button>
-            <button class="chip" type="button" data-send-to="promo" data-send-from="watermark">${t("tools.promo.h2")}</button>
-            <button class="chip" type="button" data-send-to="resizer" data-send-from="watermark">${t("tools.resizer.h2")}</button>
-            <button class="chip" type="button" data-send-to="compressor" data-send-from="watermark">${t("tools.compressor.h2")}</button>
-            <button class="chip" type="button" data-send-to="checker" data-send-from="watermark">${t("tools.checker.h2")}</button>
-            <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="watermark">${t("tools.sendToAdpilot")}</button>
-          </div>
+          ${toolTransferMarkup("watermark")}
           <button class="button secondary block" type="button" data-wm-reset style="margin-top:8px">${t("tools.watermark.again")}</button>
         ` : state.watermarkPreview ? `
           <canvas id="wm-preview-canvas" style="width:100%;border-radius:12px;margin-bottom:14px;display:block"></canvas>
@@ -3544,15 +3540,7 @@ function toolsPage() {
               <button class="button secondary" type="button" data-promo-reset>${t("tools.promo.again")}</button>
             </div>
             ${state.promoResult ? `
-            <div class="tool-send-row">
-              <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="collage" data-send-from="promo">${t("tools.collage.h2")}</button>
-              <button class="chip" type="button" data-send-to="watermark" data-send-from="promo">${t("tools.watermark.h2")}</button>
-              <button class="chip" type="button" data-send-to="resizer" data-send-from="promo">${t("tools.resizer.h2")}</button>
-              <button class="chip" type="button" data-send-to="compressor" data-send-from="promo">${t("tools.compressor.h2")}</button>
-              <button class="chip" type="button" data-send-to="checker" data-send-from="promo">${t("tools.checker.h2")}</button>
-              <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="promo">${t("tools.sendToAdpilot")}</button>
-            </div>` : ""}
+            ${toolTransferMarkup("promo")}` : ""}
           </div>
         ` : `
           <label class="removebg-upload" for="promo-file">
@@ -3583,15 +3571,7 @@ function toolsPage() {
               <a class="button" href="${state.resizerResult}" download="product-${state.resizerFormat}.jpg">${t("tools.resizer.download")}</a>
               <button class="button secondary" type="button" data-resizer-reset>${t("tools.resizer.again")}</button>
             </div>
-            <div class="tool-send-row">
-              <span class="tool-send-label">${t("tools.sendTo")}</span>
-              <button class="chip" type="button" data-send-to="collage" data-send-from="resizer">${t("tools.collage.h2")}</button>
-              <button class="chip" type="button" data-send-to="watermark" data-send-from="resizer">${t("tools.watermark.h2")}</button>
-              <button class="chip" type="button" data-send-to="promo" data-send-from="resizer">${t("tools.promo.h2")}</button>
-              <button class="chip" type="button" data-send-to="compressor" data-send-from="resizer">${t("tools.compressor.h2")}</button>
-              <button class="chip" type="button" data-send-to="checker" data-send-from="resizer">${t("tools.checker.h2")}</button>
-              <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="resizer">${t("tools.sendToAdpilot")}</button>
-            </div>
+            ${toolTransferMarkup("resizer")}
           </div>
         ` : `
           <label class="removebg-upload" for="resizer-file">
@@ -3664,6 +3644,7 @@ function toolsPage() {
                     </div>`).join("")}
                 </div>`).join("")}
             </div>
+            ${toolTransferMarkup("checker")}
             <button class="button secondary block" type="button" data-checker-reset style="margin-top:12px">${t("tools.checker.again")}</button>
           `;
         })() : `
@@ -3705,6 +3686,7 @@ function toolsPage() {
               <a class="button" href="${state.compressorResult}" download="compressed.jpg">${t("tools.compressor.download")}</a>
               <button class="button secondary" type="button" data-compressor-edit>${t("tools.compressor.edit")}</button>
             </div>
+            ${toolTransferMarkup("compressor")}
             <button class="button secondary block" type="button" data-compressor-reset style="margin-top:8px">${t("tools.compressor.again")}</button>
           ` : `
             <img class="removebg-preview" src="${state.compressorPreview}" alt="" style="width:100%;border-radius:12px;margin-bottom:12px" />
@@ -4082,24 +4064,15 @@ function bind() {
   document.querySelector("#overlay-input")?.addEventListener("input", (e) => { state.overlayInputValue = e.target.value; });
   document.querySelector("[data-removebg-input]")?.addEventListener("change", onRemoveBgFileSelect);
   document.querySelector("[data-removebg-submit]")?.addEventListener("click", submitRemoveBg);
-  document.querySelectorAll("[data-send-to]").forEach(el => el.addEventListener("click", () => {
+  document.querySelectorAll("[data-send-to]").forEach(el => el.addEventListener("click", async () => {
     const from = el.dataset.sendFrom;
-    let src = null;
-    if (from === "removebg") src = state.removeBgComposed || state.removeBgResult;
-    else if (from === "resizer") src = state.resizerResult;
-    else if (from === "collage") src = state.collageResult;
-    else if (from === "watermark") src = state.watermarkResult;
-    else if (from === "promo") src = state.promoResult;
-    else if (from === "compressor") src = state.compressorResult;
+    const src = toolTransferSource(from);
     if (!src) return;
-    if (el.dataset.sendTo === "adpilot") {
-      state.adpilotContextImage = src;
-      state.adpilotContextImageName = "";
-      state.contentToolSlug = null;
-      navigate("adpilot");
-      toast(t("adpilotLink.toast"));
-    } else {
-      sendToTool(el.dataset.sendTo, src);
+    el.disabled = true;
+    try {
+      await sendToTool(el.dataset.sendTo, src, from);
+    } finally {
+      if (el.isConnected) el.disabled = false;
     }
   }));
   document.querySelectorAll("[data-quick-adpilot]").forEach(el => el.addEventListener("click", () => {
@@ -4247,15 +4220,6 @@ function bind() {
   document.querySelector("[data-toggle-shadow]")?.addEventListener("click", () => {
     state.removeBgShadow = !state.removeBgShadow;
     recomposeRemoveBg();
-  });
-  document.querySelector("[data-use-in-studio]")?.addEventListener("click", () => {
-    const dataUrl = state.removeBgComposed || state.removeBgResult;
-    if (!dataUrl) return;
-    state.selectedImage = dataUrl.split(",")[1];
-    state.selectedImageName = state.removeBgBgColor ? "product-bg.jpg" : "product-no-bg.png";
-    state.batchQueue = [];
-    navigate("studio");
-    toast(t("tools.useInStudioToast"));
   });
   document.querySelectorAll("[data-bg-preset]").forEach(el => el.addEventListener("click", () => {
     const color = el.dataset.bgPreset === "none" ? null : el.dataset.bgPreset;
@@ -4646,19 +4610,77 @@ function resetCompressor() {
   render({ motion: false });
 }
 
-async function sendToTool(toolId, dataUrl) {
-  if (toolId === "resizer") {
-    state.resizerPreview = dataUrl; state.resizerResult = null;
-    render({ motion: false }); applyResizer();
+function toolTransferSource(sourceId) {
+  if (sourceId === "removebg") return state.removeBgComposed || state.removeBgResult;
+  if (sourceId === "resizer") return state.resizerResult;
+  if (sourceId === "collage") return state.collageResult;
+  if (sourceId === "watermark") return state.watermarkResult;
+  if (sourceId === "promo") return state.promoResult;
+  if (sourceId === "compressor") return state.compressorResult;
+  if (sourceId === "checker") return state.checkerPreview;
+  return null;
+}
+
+function transferImageName(sourceId, dataUrl) {
+  const mime = /^data:([^;,]+)/.exec(dataUrl)?.[1] || "image/jpeg";
+  const extension = mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg";
+  return `${sourceId || "domstudio"}-image.${extension}`;
+}
+
+async function transferImageFile(sourceId, dataUrl) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return new File([blob], transferImageName(sourceId, dataUrl), { type: blob.type || "image/jpeg" });
+}
+
+async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
+  const imageName = transferImageName(sourceId, dataUrl);
+
+  if (toolId === "studio") {
+    state.selectedImage = dataUrl.split(",")[1];
+    state.selectedImageName = imageName;
+    state.batchQueue = [];
+    state.generationKind = "photo";
+    state.studioResultView = "before";
+    navigate("studio");
+    toast(t("tools.useInStudioToast"));
+    return;
+  }
+
+  if (toolId === "adpilot") {
+    state.adpilotContextImage = dataUrl;
+    state.adpilotContextImageName = imageName;
+    state.contentToolSlug = null;
+    state.adpilotView = "tools";
+    navigate("adpilot");
+    toast(t("adpilotLink.toast"));
+    return;
+  }
+
+  let afterNavigate = null;
+  if (toolId === "removebg") {
+    state.removeBgFile = await transferImageFile(sourceId, dataUrl);
+    state.removeBgPreview = dataUrl;
+    state.removeBgResult = null;
+    state.removeBgBgColor = null;
+    state.removeBgShadow = false;
+    state.removeBgComposed = null;
+    state.removeBgError = "";
+    state.removeBgProgress = "";
+    sessionStorage.removeItem("domstudio_removebg_result");
+  } else if (toolId === "resizer") {
+    state.resizerPreview = dataUrl;
+    state.resizerResult = null;
+    afterNavigate = () => applyResizer();
   } else if (toolId === "watermark") {
-    state.watermarkPreview = dataUrl; state.watermarkResult = null;
-    render({ motion: false });
+    state.watermarkPreview = dataUrl;
+    state.watermarkResult = null;
   } else if (toolId === "checker") {
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    const fakeFile = new File([blob], "image.jpg", { type: blob.type || "image/jpeg" });
-    state.checkerPreview = dataUrl; state.checkerResult = null;
-    analyzeChecker(fakeFile, dataUrl);
+    const file = await transferImageFile(sourceId, dataUrl);
+    state.checkerFile = file;
+    state.checkerPreview = dataUrl;
+    state.checkerResult = null;
+    afterNavigate = () => analyzeChecker(file, dataUrl);
   } else if (toolId === "collage") {
     const maxSlots = state.collageLayout === "2x1" ? 2 : state.collageLayout === "1+2" ? 3 : 4;
     if (state.collagePreviews.length < maxSlots) {
@@ -4669,17 +4691,25 @@ async function sendToTool(toolId, dataUrl) {
       state.collageFiles = [null];
     }
     state.collageResult = null;
-    render({ motion: false });
   } else if (toolId === "promo") {
-    state.promoPreview = dataUrl; state.promoResult = null;
-    render({ motion: false });
+    state.promoPreview = dataUrl;
+    state.promoResult = null;
   } else if (toolId === "compressor") {
-    state.compressorPreview = dataUrl; state.compressorResult = null;
-    const res = await fetch(dataUrl); const blob = await res.blob();
-    state.compressorOrigSize = blob.size;
-    render({ motion: false });
+    const file = await transferImageFile(sourceId, dataUrl);
+    state.compressorFile = file;
+    state.compressorPreview = dataUrl;
+    state.compressorResult = null;
+    state.compressorOrigSize = file.size;
+    state.compressorEditing = false;
+  } else {
+    return;
   }
-  setTimeout(() => document.getElementById(`tool-${toolId}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+
+  navigate(`tools?tool=${encodeURIComponent(toolId)}`);
+  if (afterNavigate) await afterNavigate();
+  const target = IMAGE_TOOL_TRANSFER_TARGETS.find(([id]) => id === toolId);
+  toast(t("tools.transfer.toast", { name: target ? t(target[1]) : toolId }));
+  setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 80);
 }
 
 async function analyzeChecker(file, dataUrl) {
