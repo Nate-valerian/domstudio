@@ -8573,3 +8573,24 @@ Commit: `23364fb Add Groq photo analyzer to Tools`
   files, and verify the custom domain, service worker v34, all Tools routes,
   Groq health/analyze behavior, transfers, and PWA offline shell in a fresh
   browser context.
+
+---
+
+## July 23, 2026 - Active Handoff Compacted After Completed Rollout
+
+Archived the completed dated continuation notes from `DOMSTUDIO_TOMORROW.md`
+after the AdPilot, Groq Vision, shared image transfer, and 16-tool rollout was
+consolidated in the permanent archive.
+
+- Preserved the required change workflow and the durable product, identity,
+  video-honesty, GPU-cost, and deployment-verification rules.
+- Replaced stale implementation checklists and superseded Coming-soon plans
+  with a concise statement of the verified repository and production state.
+- Kept only work that is not yet recorded as complete: uploading and verifying
+  the canonical SpaceWeb redirect, then packaging and deploying frontend shell
+  v34 with the remote Groq Vision configuration.
+- Recorded that the last pushed product state is `b14b2e6`, the v34 source is
+  pushed, the verified live frontend remains v19, and production behavior must
+  not be inferred from local validation.
+- Left all existing untracked preview media, temporary output, deployment ZIPs,
+  and unrelated helper scripts untouched.
