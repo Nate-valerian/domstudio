@@ -40,7 +40,7 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `12b6aff` (`Add AdPilot workflow fold clearance`), including the
+- `origin/main` is at `8a9d15a` (`Compact opened Tools and AdPilot workspaces`), including the
   complete AdPilot/Tools rollout, backend provider chain, compact mobile
   product pages, and cleaned-up Tool result actions.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
@@ -63,20 +63,18 @@ For every project change:
   unchanged. A second viewport-fit pass further reduces the desktop AdPilot
   desk, Tools discovery/catalog, and Examples proof cards. AdPilot mobile now
   uses a shorter route header, a denser product desk, and no overlapping fixed
-  tab bar. The desktop AdPilot workflow row is now a compact 118 px horizontal
-  card layout so all three `Where should we start?` cards fit within the
-  supplied 2048 x 1148 primary viewport. The mobile PWA navigation remains
-  visible on AdPilot with a compact 52 px route treatment and reserved content
-  clearance. A follow-up screenshot showed the card borders still landed on
-  the exact bottom edge, so the current source uses 96 px cards and a 16 px
-  section gap to provide roughly 35 px of fold safety. Opened desktop
+  tab bar. The desktop AdPilot workflow row now uses 96 px horizontal cards
+  and a 16 px section gap, providing roughly 35 px of fold safety in the
+  supplied 2048 x 1152 viewport. The mobile PWA navigation remains visible on
+  AdPilot with a compact 52 px route treatment and reserved content clearance.
+  Opened desktop
   workspaces are now compact too: all 16 Tools share a 520 px stage with
   bounded upload areas, and AdPilot generators use a 500 px output stage with
   a 320 px empty preview.
 - The backend suite passed with 78 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
-  describe the v42 AdPilot/Tools source as live until it is packaged, uploaded,
+  describe the v47 AdPilot/Tools source as live until it is packaged, uploaded,
   and checked on the custom domain.
 - The canonical HTTPS/`www` `.htaccess` change is committed and locally
   validated, but its production upload and redirect matrix have not been
@@ -120,6 +118,8 @@ must be verified.
      tab bar obscuring the open workspace;
    - compact desktop AdPilot introduction, Tools discovery/catalog, and
      Examples proof cards at common laptop and 2K desktop viewport sizes;
+   - compact opened desktop workspaces for all 16 Tools and the AdPilot copy
+     generators, including empty, editing, and finished-result states;
    - English Examples captions when the interface language is English;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
@@ -130,7 +130,6 @@ must be verified.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The compact opened Tools and AdPilot desktop workspaces are implemented and
-validated locally but not pushed. Packaging, hosting changes, remote
-environment configuration, and production deployment still require the user's
-explicit approval or direct participation.
+All source changes through PWA v47 are committed and pushed at `8a9d15a`.
+Packaging, hosting changes, remote environment configuration, and production
+deployment still require the user's explicit approval or direct participation.

@@ -9580,3 +9580,75 @@ Files changed:
 This shared workspace correction is committed locally but not pushed. The
 verified live SpaceWeb frontend remains v19 until a v47 package is
 intentionally deployed and visually verified.
+
+---
+
+## July 23, 2026 - AdPilot And Tools Change Ledger Consolidated
+
+Consolidated the full completed AdPilot/Tools correction sequence into one
+recovery ledger. The detailed design decisions, validations, and build
+fingerprints remain in the individual archive entries above.
+
+Product correctness and AI:
+
+- `23ae362` - fixed the AdPilot photo/preview mismatch so an attached product
+  no longer leaves the unrelated leather-bag example visible.
+- `4ad718b` - fixed the analyzed-product state so Groq photo facts feed the
+  selected channel preview instead of stale sample content.
+- `bf81321` - added the AdPilot backend provider chain: Groq first, DeepSeek V4
+  Flash second, optional custom OpenAI-compatible provider third, with local
+  templates retained where supported.
+
+Tools catalog and workspaces:
+
+- `80343e4` - made each available Tool card fully clickable instead of
+  requiring the small `Open` control.
+- `eeedc94` - redesigned the shared Free Tools workspace with the cream input
+  side and dark live-result side used across all 16 Tools.
+- `2f4c6f8` - compacted the mobile Tools catalog into productive rows with
+  denser discovery and workflow controls.
+- `ecd11ba` - compacted mobile Studio, AdPilot, and opened Tool workspaces.
+- `59dfc67` - cleaned up finished Tool results with one swipeable transfer row
+  and unobstructed mobile workspace navigation.
+
+Desktop and mobile viewport corrections:
+
+- `c0c777b` - restored separate compact desktop treatments for AdPilot, Tools,
+  and Examples without changing Home.
+- `c111dd4` - tightened primary desktop/mobile viewports, added route-scoped
+  navigation sizing, and bumped the PWA shell to v43.
+- `8948853` - converted the three AdPilot workflow cards to a compact
+  horizontal layout.
+- `438f1a5` - restored the mobile PWA navigation on AdPilot with a compact
+  route-specific bar and reserved bottom clearance.
+- `12b6aff` - added final desktop fold safety: 96 px workflow cards, a 16 px
+  section gap, and approximately 35 px clearance in the supplied viewport.
+- `8a9d15a` - compacted all 16 opened Tool workspaces and all opened AdPilot
+  generators; this is the current source head and `origin/main` state.
+
+Current verified source state:
+
+- Git source head and `origin/main`: `8a9d15a`.
+- PWA cache: `domstudio-shell-v47`.
+- Frontend focused suite: 22 tests passed, 0 failures.
+- Production frontend build: passed with Vite 7.3.5 and only the existing
+  main-chunk size advisory.
+- Backend suite: 78 tests and 11 subtests passed, with one existing
+  Starlette/httpx deprecation warning.
+- Home remains on its approved layout; responsive corrections were scoped to
+  Studio, AdPilot, Tools, and Examples as recorded above.
+- The live SpaceWeb site remains the separately verified v19 deployment. PWA
+  v47 has not been packaged, uploaded, or visually verified in production.
+- Existing untracked preview media, ZIPs, temporary output, and helper scripts
+  were not modified.
+
+Documentation validation:
+
+- Confirmed `HEAD`, `origin/main`, and `origin/HEAD` all pointed to `8a9d15a`
+  before this documentation-only update.
+- Reviewed the active handoff and the complete recent archive sequence for
+  stale version, push-state, validation, and release wording.
+- No application source or production artifact changed in this consolidation.
+
+This consolidation is committed locally as documentation only and is not
+pushed automatically.
