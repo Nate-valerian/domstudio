@@ -8352,3 +8352,224 @@ Files changed:
 
 This is a visual-consistency and state-isolation change. Existing content API
 contracts and tool-specific prompts are unchanged.
+
+---
+
+## July 23, 2026 - Shared Image Workflow, Groq Vision, and Complete Tools Rollout
+
+Completed the full image-tools rollout that supersedes the earlier catalog
+entry where eight cards were intentionally marked Coming soon. The Tools page
+now contains 16 implemented cards, 16 available-now cards, and zero planned or
+Coming-next placeholders.
+
+### Complete AdPilot and Tools commit sequence for today
+
+This is the consolidated index for all AdPilot and Tools work completed on
+July 23. The detailed design records for the first four items remain in their
+earlier archive sections; this index connects them to the later vision and tool
+rollout as one continuous product session.
+
+1. `2099dc9 Redesign AdPilot AI workspace`
+   - Replaced the sparse AdPilot landing with the approved product-first
+     campaign desk, live channel examples, three workflow cards, and the
+     complete 19-tool index.
+2. `bd37282 Build free tools catalog shell`
+   - Reorganized Tools into a searchable four-category catalog with individual
+     hash workspaces, initially keeping unfinished cards visibly inactive.
+3. `bedddd8 Add product image upload to AdPilot`
+   - Added the missing optional photo uploader, real thumbnail/filename,
+     replace/remove controls, validation, and image continuity into detailed
+     generators.
+4. `4dc97f5 Unify AdPilot generator workspaces`
+   - Applied the joined cream-input/dark-result format to all 19 AdPilot tools,
+     kept each tool's own fields and outputs, and isolated result state when
+     switching tools.
+5. `b7e6c3f Connect image tools with shared transfer flow`
+   - Connected image results between compatible Tools, Studio, and AdPilot.
+6. `0f43f59 Connect AdPilot to Groq vision`
+   - Added the backend Groq/Qwen vision route and connected factual product
+     photo analysis to the AdPilot brief.
+7. `23364fb Add Groq photo analyzer to Tools`
+   - Exposed the same Groq vision capability as a direct Tools workspace.
+8. `564b98f Add smart crop and rotate tool`.
+9. `f068e2b Add image format converter`.
+10. `c9388f3 Add blur and redaction tool`.
+11. `1dc5424 Add marketplace safe-zone previews`.
+12. `80b43b8 Add before and after creator`.
+13. `71f1662 Add brand color extractor`.
+14. `1fc887d Add local QR code generator`.
+15. `10d6388 Add batch image processor`.
+
+### AdPilot final state from today's work
+
+- The landing and all detailed generators now follow the approved product-card
+  format rather than falling back to the earlier disconnected layout.
+- WB/Ozon, Avito, VK, and Yandex preview tabs preserve the seller's typed
+  product description and drive the matching generator.
+- AdPilot retains the full 19-tool set, AI chat, marketplace drafts, wizard and
+  advanced modes, save/copy actions, and tool-specific questions.
+- A product photo can be uploaded inside AdPilot or received from an image
+  Tool. The seller explicitly clicks Analyze before any image is sent to Groq.
+- Groq Qwen 3.6 Vision supplies factual image observations; the observations
+  are combined with the user's manual description and passed to the existing
+  text-copy workflow. DeepSeek remains the text provider.
+- Replacing or removing a photo clears stale analysis, and in-flight analysis
+  cannot be attached to a newly selected photo.
+
+### Tools catalog final state from today's work
+
+- The initial catalog shell grew from 15 cards with 7 working and 8 planned to
+  16 cards with all 16 working after the direct Groq analyzer was added.
+- Search, category filters, dedicated `#tools?tool=<id>` workspaces, Russian and
+  English copy, and mobile layouts remain intact.
+- The catalog summary now reads `16 available now`; it has zero Coming-soon
+  cards and zero planned labels.
+- Compatible image results move between Tools without a download/re-upload
+  cycle, and can also move into Studio or AdPilot. QR output and the selected
+  Batch result can join the same workflow.
+
+### Shared image-transfer workflow
+
+Commit: `b7e6c3f Connect image tools with shared transfer flow`
+
+- Connected the original Background Removal, Collage, Watermark, Promo Badge,
+  Resizer, Compressor, and Image Checker workspaces through one transfer flow.
+- A generated or analyzed image can continue directly into another compatible
+  image workspace, Studio, or AdPilot without downloading and uploading again.
+- Checker transfers the inspected original image; Background Removal receives
+  a real browser `File`; Studio receives base64 input; AdPilot receives its
+  product-photo attachment state.
+- Compressor gained the same onward-transfer controls as the other result
+  tools.
+- PWA cache advanced to `domstudio-shell-v24`.
+
+### Groq Qwen 3.6 Vision backend and AdPilot connection
+
+Commit: `0f43f59 Connect AdPilot to Groq vision`
+
+- Added the FastAPI `vision` router with `GET /vision/health` and
+  `POST /vision/analyze`.
+- Configured the default multimodal model as `qwen/qwen3.6-27b` through Groq's
+  OpenAI-compatible API.
+- The Groq key is backend-only. The real key remains in the ignored
+  `domstudio-backend/.env` and was not logged or committed.
+- Added documented environment settings for base URL, model, timeout, output
+  length, maximum image bytes, and daily limit.
+- Accepted image inputs are JPG, PNG, and WebP data URLs. Backend input is
+  limited to 8 MiB and the application adds a per-IP limit of 20 analyses per
+  day.
+- AdPilot resizes an attached image to a maximum 1600-pixel side and JPEG
+  quality 0.86 before the user-triggered analysis request.
+- The factual photo observations are combined with, rather than replacing,
+  the seller's typed product description for the existing text generator.
+- Replacing or removing the photo clears stale observations, and a request
+  cannot attach its result to a different photo if the image changes while the
+  request is running.
+- DeepSeek remains the text-copy provider. Groq Vision analyzes the image; it
+  does not edit or generate an image.
+- Added focused backend coverage in `domstudio-backend/tests/test_vision.py`,
+  the `/vision` Vite development proxy, backend health metadata, and PWA cache
+  `domstudio-shell-v25`.
+- A real generated-product-image call succeeded with the configured Groq key,
+  returned the requested Qwen model, produced a non-empty factual brief, and
+  kept internal reasoning hidden.
+
+### AI Product Photo Analyzer in Tools
+
+Commit: `23364fb Add Groq photo analyzer to Tools`
+
+- Added a real AI Product Photo Analyzer card directly to Tools rather than
+  requiring an indirect transfer through AdPilot.
+- Supports upload or incoming image transfer, optional product context,
+  explicit Analyze action, Groq observations, errors, reset, and onward image
+  transfer.
+- The interface explains when the image is sent and the 20-analysis daily
+  limit.
+- PWA cache advanced to `domstudio-shell-v26`.
+
+### Previously planned Tools implemented one by one
+
+1. `564b98f Add smart crop and rotate tool`
+   - Six ratios, original ratio, 90-degree rotation, 100-200% zoom,
+     horizontal/vertical positioning, center-crop canvas output, JPG download,
+     and transfer support.
+   - Cache: `domstudio-shell-v27`.
+2. `f068e2b Add image format converter`
+   - JPG, PNG, and WebP output, adjustable lossy quality, lossless PNG,
+     transparency handling, before/after byte sizes, download, and transfer.
+   - Cache: `domstudio-shell-v28`.
+3. `c9388f3 Add blur and redaction tool`
+   - Browser-only drag selections, multiple regions, blur, pixelate, and solid
+     cover modes, undo/clear, PNG export, and transfer.
+   - Fixed an intermittent pointer-capture race found during browser testing by
+     making the drag preview synchronous and waiting for the canvas-ready
+     state.
+   - Cache: `domstudio-shell-v29`.
+4. `1dc5424 Add marketplace safe-zone previews`
+   - Wildberries, Ozon, Avito, and VK format previews; exact target canvas
+     dimensions; safe/risk overlays; clean and guide downloads; and clean-image
+     transfer.
+   - The UI explicitly says to confirm the marketplace's current rules before
+     publishing because platform crop/interface behavior can change.
+   - Cache: `domstudio-shell-v30`.
+5. `80b43b8 Add before and after creator`
+   - Two replaceable inputs; square, story, and wide output; left/right or
+     top/bottom layouts; custom Before/After labels; JPG download; and finished
+     comparison transfer.
+   - Cache: `domstudio-shell-v31`.
+6. `71f1662 Add brand color extractor`
+   - Local dominant-color sampling, six HEX colors, individual HEX copy, CSS
+     variable copy, a 1200x800 downloadable palette board, and palette-board
+     transfer.
+   - Cache: `domstudio-shell-v32`.
+7. `1fc887d Add local QR code generator`
+   - Local 1024x1024 PNG generation, high error correction, configurable code
+     and background colors, no external QR service, and onward transfer of the
+     generated QR image.
+   - Added `qrcode` 1.5.4 and loads it dynamically so the main application
+     bundle stays below the Vite warning threshold.
+   - Cache: `domstudio-shell-v33`.
+8. `10d6388 Add batch image processor`
+   - Up to 20 images, JPG/WebP/PNG conversion, maximum-side resizing, lossy
+     quality, safe filename prefixes, individual downloads, selectable onward
+     transfer, and one real ZIP archive.
+   - Added `fflate` 0.8.3 and loads it dynamically.
+   - Fixed a field-blur lifecycle error found during testing by invalidating
+     completed results without replacing the form during its own event.
+   - Replaced the catalog's Coming-next statistic with `16 available now`.
+   - Cache: `domstudio-shell-v34`.
+
+### Final validation
+
+- Frontend `npm run build` passed with Vite 7.3.5.
+- Backend suite passed: 74 tests, 11 subtests, and one Starlette/httpx
+  deprecation warning.
+- All 16 Tools routes rendered at a 390x844 mobile viewport with zero
+  horizontal overflow and no page errors.
+- Catalog validation found 16 cards, all 16 available, zero Coming-soon cards,
+  zero planned labels, and `16 / 16` catalog statistics.
+- Focused browser checks covered Groq request composition, transferred image
+  continuity, crop output ratios, converter MIME types, redacted pixel output,
+  safe-zone dimensions, before/after output dimensions, palette colors, QR PNG
+  dimensions/colors, batch dimensions/naming, ZIP signature, and selected
+  batch-result transfer.
+- `npm audit --omit=dev` still reports one existing moderate `protobufjs`
+  advisory through ONNX/background-removal dependencies; it reports no high or
+  critical production vulnerabilities. This was not introduced by the QR or
+  ZIP tools.
+- `main` and `origin/main` are aligned at `10d6388`.
+- Existing untracked preview media, temporary output, ZIP artifacts, and helper
+  scripts remain intentionally untouched.
+
+### Deployment boundary and next release action
+
+- Source is pushed, but this complete `domstudio-shell-v34` frontend has not
+  been recorded as packaged, uploaded to SpaceWeb, or verified on
+  `domstudio.site`.
+- Production backend hosting must receive `GROQ_API_KEY`; a local ignored
+  `.env` value does not configure Amvera or another remote host automatically.
+- Before describing these changes as live, build the current frontend, prepare
+  a new versioned SpaceWeb package, upload it without deleting preserved host
+  files, and verify the custom domain, service worker v34, all Tools routes,
+  Groq health/analyze behavior, transfers, and PWA offline shell in a fresh
+  browser context.
