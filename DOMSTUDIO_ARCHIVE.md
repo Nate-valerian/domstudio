@@ -9099,3 +9099,69 @@ Files changed:
 This mobile redesign is committed locally but not pushed. The verified live
 SpaceWeb frontend remains v19 until a v40 package is intentionally deployed and
 visually verified.
+
+---
+
+## July 23, 2026 - Mobile Tool Result Actions Cleaned Up
+
+Cleaned up the finished-result state shown in the mobile Background Removal
+screenshot and shared by compatible Tools.
+
+Changes:
+
+- Replaced the multi-row `Send to` pill cloud with one horizontally swipeable
+  destination row below 640 px.
+- Moved Studio and AdPilot to the beginning of the row so the two primary
+  cross-product destinations are immediately visible; all compatible Tools
+  remain available by swiping.
+- Added a dedicated transfer-row wrapper and accessible group label without
+  changing the existing transfer event behavior.
+- Reduced compounded gaps around the background, shadow, Download, and Another
+  photo controls and tightened the mobile action buttons.
+- Marked opened Tools with a detail-page class and hide the fixed mobile tab bar
+  only on that route. The existing Back to all tools control remains available,
+  and the result image is no longer covered by navigation.
+- Reduced now-unused bottom padding inside the open Tool workspace.
+- Desktop, the Tools catalog, Home, Examples, Studio, and AdPilot layouts remain
+  unchanged by this follow-up.
+- Bumped the PWA cache from `domstudio-shell-v40` to
+  `domstudio-shell-v41`.
+
+Coverage and validation:
+
+- Extended the mobile product-page contracts to cover transfer destination
+  ordering, horizontal overflow, the detail-page marker, and tab-bar removal.
+- `npm test` passed: 16 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 502,494 bytes; its gzip size is 136.08 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser connection still fails during its required bootstrap, so
+  no live responsive screenshot verification is claimed. Visual checks remain
+  on the release checklist.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `2F8DE8E05159CBF0F0B8BFD4F64E2DBDF092A9EDEA1305B26D06092FAB1CC348`.
+- Main application asset: `assets/index-4LGoGMZk.js`, 502,494 bytes,
+  SHA-256
+  `5008A0E5701586D6960E483894658BA5BD224B59F321F1E551F594A31F2BC406`.
+- Stylesheet: `assets/index-pi600pTm.css`, 158,454 bytes, SHA-256
+  `5D61844DE10EB30B8310CED49D44F4149235EF185535B70EA0065EE08998A4E2`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `725D38FD022D802B1F61B3FD05317357D1087A1AB56C30ED1E0F096F82B8D76E`.
+
+Files changed:
+
+- `domstudio-frontend/src/app.js`
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/mobile-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This cleanup is committed locally but not pushed. The verified live SpaceWeb
+frontend remains v19 until a v41 package is intentionally deployed and
+visually verified.

@@ -40,9 +40,9 @@ For every project change:
 
 ## Current Verified State
 
-- `origin/main` is at `2f4c6f8` (`Compact mobile Tools catalog`), including the
-  complete AdPilot/Tools rollout, backend provider chain, and compact Tools
-  catalog.
+- `origin/main` is at `ecd11ba` (`Compact mobile product workspaces`),
+  including the complete AdPilot/Tools rollout, backend provider chain, and
+  compact mobile Studio, AdPilot, Tools catalog, and opened Tool workspaces.
 - The complete July 23 AdPilot and Tools sequence is committed and pushed.
 - AdPilot has the product-first campaign desk, optional product photo, Groq
   Qwen 3.6 Vision analysis, all 19 detailed copy generators, and the unified
@@ -54,14 +54,16 @@ For every project change:
 - Tools has 16 implemented cards, 16 available-now cards, and no Coming-soon
   placeholders. Image results can transfer between compatible Tools, Studio,
   and AdPilot.
-- The latest frontend source uses PWA cache `domstudio-shell-v40`; its
-  production build and 15 focused frontend tests pass. Compact mobile layouts
+- The latest frontend source uses PWA cache `domstudio-shell-v41`; its
+  production build and 16 focused frontend tests pass. Compact mobile layouts
   now cover Studio, the AdPilot landing/generators/chat, the Tools catalog, and
-  every opened Tool workspace. Home and Examples remain unchanged.
+  every opened Tool workspace. Mobile Tool results use one horizontal transfer
+  row and hide the obstructive bottom tab bar. Home and Examples remain
+  unchanged.
 - The backend suite passed with 78 tests, 11 subtests, and one existing
   Starlette/httpx deprecation warning.
 - The currently verified live SpaceWeb frontend is still release v19. Do not
-  describe the v39 AdPilot/Tools source as live until it is packaged, uploaded,
+  describe the v41 AdPilot/Tools source as live until it is packaged, uploaded,
   and checked on the custom domain.
 - The canonical HTTPS/`www` `.htaccess` change is committed and locally
   validated, but its production upload and redirect matrix have not been
@@ -85,7 +87,7 @@ If the prepared one-file redirect package has not yet been uploaded:
 Do not mark this complete from the local Apache test alone; production behavior
 must be verified.
 
-### 2. Release the v40 frontend and backend v10 AI provider chain
+### 2. Release the v41 frontend and backend v10 AI provider chain
 
 1. Rebuild the current frontend with `VITE_IMGLY_PUBLIC_PATH=cdn`.
 2. Prepare a new versioned SpaceWeb package; do not reuse the verified v19 ZIP.
@@ -95,12 +97,14 @@ must be verified.
 4. Upload the approved frontend package without deleting preserved SpaceWeb
    host files.
 5. Verify `https://domstudio.site` in a fresh browser context:
-   - service worker cache `domstudio-shell-v40`;
+   - service worker cache `domstudio-shell-v41`;
    - all 16 Tools workspaces;
    - compact mobile Tools catalog rows, filters, and quick workflow at common
      360 px, 390 px, and 430 px viewport widths;
    - compact mobile Studio controls/canvas, AdPilot landing/generators/chat,
      and opened Tool editor/result stages at the same viewport widths;
+   - one-row swipe transfer navigation on finished Tool results and no bottom
+     tab bar obscuring the open workspace;
    - AdPilot photo analysis and all key generator transitions;
    - `/vision/health` and one real `/vision/analyze` request;
    - `/content/text-ai/health` reports provider order `groq`, `deepseek`, then
@@ -110,7 +114,7 @@ must be verified.
 6. Record exact deployed asset fingerprints and production results in
    `DOMSTUDIO_ARCHIVE.md`.
 
-The compact mobile Studio, AdPilot, and opened Tool workspaces are implemented
-and validated locally but not pushed. Packaging, hosting changes, remote
-environment configuration, and production deployment still require the user's
-explicit approval or direct participation.
+The final mobile Tool result cleanup is implemented and validated locally but
+not pushed. Packaging, hosting changes, remote environment configuration, and
+production deployment still require the user's explicit approval or direct
+participation.

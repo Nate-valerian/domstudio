@@ -2699,6 +2699,22 @@ h1 em { color: var(--gold); font-style: normal; }
   .free-tool-v2-shell .removebg-upload { min-height: 132px; }
   .free-tool-v2-shell .before-after-slot { min-height: 108px; }
   .free-tool-v2-shell .before-after-slot.filled img { height: 130px; }
+  .free-tool-v2-shell .removebg-result { gap: 9px; }
+  .free-tool-v2-shell .shadow-toggle { min-height: 38px; margin-bottom: 0; padding: 5px 11px; font-size: 11px; }
+  .free-tool-v2-shell .removebg-actions, .free-tool-v2-shell .tool-actions { gap: 7px; margin-top: 0 !important; }
+  .free-tool-v2-shell .removebg-actions .button, .free-tool-v2-shell .tool-actions .button { min-height: 42px; padding-inline: 10px; font-size: 12px; }
+  .free-tool-v2-shell .tool-send-row {
+    display: grid; grid-template-columns: 1fr; gap: 6px; margin: 4px 0 0; padding-top: 10px;
+    overflow: hidden; border-top: 1px solid var(--line);
+  }
+  .free-tool-v2-shell .tool-send-label { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+  .free-tool-v2-shell .tool-send-label::after { content: "→"; }
+  .free-tool-v2-shell .tool-send-scroll {
+    flex-wrap: nowrap; gap: 6px; overflow-x: auto; margin-right: -14px; padding: 0 14px 3px 0;
+    scroll-snap-type: x proximity; scrollbar-width: none;
+  }
+  .free-tool-v2-shell .tool-send-scroll::-webkit-scrollbar { display: none; }
+  .free-tool-v2-shell .tool-send-scroll .chip { flex: 0 0 auto; min-height: 34px; padding: 0 10px; font-size: 10px; scroll-snap-align: start; }
   .free-tool-stage { min-height: 300px; }
   .free-tool-stage-head { font-size: 10px; }
   .free-tool-stage-preview { min-height: 140px; margin: 14px 0 12px; border-radius: 14px; }
@@ -2709,6 +2725,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .free-tool-stage-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding-top: 14px; }
   .free-tool-stage-steps li { display: block; padding-top: 7px; }
   .free-tool-stage-steps span { margin-top: 3px; font-size: 8px; }
+  .tools-detail-page ~ .mobile-tabbar { display: none; }
+  .tools-detail-page .tools-detail-inner { padding-bottom: 24px; }
 }
 .tool-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .tool-card-head h2 { margin: 0; font-size: 18px; }
@@ -2750,8 +2768,9 @@ h1 em { color: var(--gold); font-style: normal; }
 .bg-chip-swatch { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
 .transparent-swatch { background: repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 12px 12px; }
 .custom-swatch { background: linear-gradient(135deg, #f06,#fc0,#0cf); font-size: 11px; }
-.tool-send-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
+.tool-send-row { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 4px; }
 .tool-send-label { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.tool-send-scroll { display: flex; min-width: 0; flex-wrap: wrap; gap: 8px; }
 .checker-preview-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .checker-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
 .checker-meta { display: flex; flex-direction: column; gap: 2px; }

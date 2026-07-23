@@ -3351,9 +3351,11 @@ function toolTransferMarkup(sourceId) {
 
   return `<div class="tool-send-row">
     <span class="tool-send-label">${t("tools.sendTo")}</span>
-    ${toolButtons}
-    <button class="chip chip-studio" type="button" data-send-to="studio" data-send-from="${sourceId}">${t("tools.transfer.studio")}</button>
-    <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="${sourceId}">${t("tools.transfer.adpilot")}</button>
+    <div class="tool-send-scroll" role="group" aria-label="${t("tools.sendTo")}">
+      <button class="chip chip-studio" type="button" data-send-to="studio" data-send-from="${sourceId}">${t("tools.transfer.studio")}</button>
+      <button class="chip chip-adpilot" type="button" data-send-to="adpilot" data-send-from="${sourceId}">${t("tools.transfer.adpilot")}</button>
+      ${toolButtons}
+    </div>
   </div>`;
 }
 
@@ -3459,7 +3461,7 @@ function toolsPage() {
       stepExport: t("tools.workspace.stepExport"),
     },
   });
-  return `<main class="page tools-page">
+  return `<main class="page tools-page tools-detail-page">
     <div class="page-inner tools-inner tools-detail-inner">
       <header class="free-tool-detail-head">
         <button type="button" data-tools-home>← ${t("tools.catalog.back")}</button>
