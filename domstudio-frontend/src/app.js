@@ -813,6 +813,12 @@ const state = {
   palettePreview: null,
   paletteColors: [],
   paletteResult: null,
+  qrValue: "https://domstudio.site",
+  qrDark: "#111111",
+  qrLight: "#FFFFFF",
+  qrResult: null,
+  qrGenerating: false,
+  qrError: "",
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3327,7 +3333,7 @@ function toolsPage() {
     { id: "collage", category: "brand", icon: "▦", titleKey: "tools.collage.h2", descKey: "tools.collage.desc", available: true },
     { id: "before-after", category: "brand", icon: "◐", titleKey: "tools.beforeAfter.h2", descKey: "tools.beforeAfter.desc", available: true },
     { id: "palette", category: "brand", icon: "●", titleKey: "tools.palette.h2", descKey: "tools.palette.desc", available: true },
-    { id: "qr", category: "business", icon: "▩", titleKey: "tools.qr.h2", descKey: "tools.qr.desc", available: false },
+    { id: "qr", category: "business", icon: "▩", titleKey: "tools.qr.h2", descKey: "tools.qr.desc", available: true },
     { id: "batch", category: "business", icon: "≡", titleKey: "tools.batch.h2", descKey: "tools.batch.desc", available: false },
   ];
   const categories = [
@@ -3933,6 +3939,34 @@ function toolsPage() {
         `}
       </div>
 
+      <div class="tool-card" id="tool-qr">
+        <div class="tool-card-head">
+          <h2>${t("tools.qr.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.qr.desc")}</p>
+        <div class="field">
+          <label>${t("tools.qr.valueLabel")}</label>
+          <textarea class="textarea qr-value-input" maxlength="2000" data-qr-value placeholder="${t("tools.qr.valuePlaceholder")}">${escapeHtml(state.qrValue)}</textarea>
+          <small>${t("tools.qr.valueHint")}</small>
+        </div>
+        <div class="qr-color-grid">
+          <label><span>${t("tools.qr.foreground")}</span><input type="color" value="${state.qrDark}" data-qr-dark /><b>${state.qrDark}</b></label>
+          <label><span>${t("tools.qr.background")}</span><input type="color" value="${state.qrLight}" data-qr-light /><b>${state.qrLight}</b></label>
+        </div>
+        ${state.qrError ? `<p class="field-error">${escapeHtml(state.qrError)}</p>` : ""}
+        ${state.qrResult ? `
+          <div class="qr-result-wrap"><img src="${state.qrResult}" alt="${t("tools.qr.previewAlt")}" /></div>
+          <p class="tool-hint">${t("tools.qr.scanHint")}</p>
+          <div class="tool-actions">
+            <a class="button" href="${state.qrResult}" download="domstudio-qr.png">${t("tools.qr.download")}</a>
+            <button class="button secondary" type="button" data-qr-generate>${t("tools.qr.update")}</button>
+          </div>
+          ${toolTransferMarkup("qr")}
+        ` : `<button class="button gold block" type="button" data-qr-generate ${state.qrGenerating ? "disabled" : ""}>${state.qrGenerating ? t("tools.qr.generating") : t("tools.qr.generate")}</button>`}
+        <p class="tool-privacy-note">${t("tools.qr.privacy")}</p>
+      </div>
+
       <div class="tool-card" id="tool-compressor">
         <div class="tool-card-head">
           <h2>${t("tools.compressor.h2")}</h2>
@@ -4501,6 +4535,12 @@ function bind() {
   document.querySelector("[data-palette-copy-all]")?.addEventListener("click", () => copyPaletteText(state.paletteColors.map((color, index) => `--brand-color-${index + 1}: ${color};`).join("\n")));
   document.querySelector("[data-palette-reset]")?.addEventListener("click", resetPaletteTool);
 
+  // QR code generator
+  document.querySelector("[data-qr-value]")?.addEventListener("input", event => { state.qrValue = event.target.value; });
+  document.querySelector("[data-qr-dark]")?.addEventListener("input", event => { state.qrDark = event.target.value.toUpperCase(); });
+  document.querySelector("[data-qr-light]")?.addEventListener("input", event => { state.qrLight = event.target.value.toUpperCase(); });
+  document.querySelector("[data-qr-generate]")?.addEventListener("click", generateQrTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -5004,6 +5044,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "safe-zone") return state.safeZoneResult || state.safeZonePreview;
   if (sourceId === "before-after") return state.beforeAfterResult;
   if (sourceId === "palette") return state.paletteResult || state.palettePreview;
+  if (sourceId === "qr") return state.qrResult;
   return null;
 }
 
@@ -5701,6 +5742,38 @@ function resetPaletteTool() {
   state.paletteColors = [];
   state.paletteResult = null;
   render({ motion: false });
+}
+
+async function generateQrTool() {
+  if (state.qrGenerating) return;
+  state.qrValue = document.querySelector("[data-qr-value]")?.value.trim() || "";
+  state.qrDark = document.querySelector("[data-qr-dark]")?.value.toUpperCase() || state.qrDark;
+  state.qrLight = document.querySelector("[data-qr-light]")?.value.toUpperCase() || state.qrLight;
+  if (!state.qrValue) {
+    state.qrError = t("tools.qr.empty");
+    render({ motion: false });
+    return;
+  }
+  state.qrGenerating = true;
+  state.qrError = "";
+  render({ motion: false });
+  try {
+    const { default: QRCode } = await import("qrcode");
+    state.qrResult = await QRCode.toDataURL(state.qrValue, {
+      type: "image/png",
+      width: 1024,
+      margin: 4,
+      errorCorrectionLevel: "H",
+      color: { dark: state.qrDark, light: state.qrLight },
+    });
+    toast(t("tools.qr.done"));
+  } catch (error) {
+    state.qrError = error.message;
+    toast(error.message);
+  } finally {
+    state.qrGenerating = false;
+    render({ motion: false });
+  }
 }
 
 function resetChecker() {
