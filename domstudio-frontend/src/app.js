@@ -803,6 +803,12 @@ const state = {
   safeZoneResult: null,
   safeZoneGuideResult: null,
   safeZoneMarket: "wb",
+  beforeAfterFiles: [null, null],
+  beforeAfterPreviews: [null, null],
+  beforeAfterResult: null,
+  beforeAfterFormat: "square",
+  beforeAfterDirection: "vertical",
+  beforeAfterLabels: ["", ""],
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3274,6 +3280,7 @@ const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["converter", "tools.converter.h2"],
   ["redact", "tools.redact.h2"],
   ["safe-zone", "tools.safeZone.h2"],
+  ["before-after", "tools.beforeAfter.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3313,7 +3320,7 @@ function toolsPage() {
     { id: "promo", category: "market", icon: "%", titleKey: "tools.promo.h2", descKey: "tools.promo.desc", available: true },
     { id: "watermark", category: "brand", icon: "©", titleKey: "tools.watermark.h2", descKey: "tools.watermark.desc", available: true },
     { id: "collage", category: "brand", icon: "▦", titleKey: "tools.collage.h2", descKey: "tools.collage.desc", available: true },
-    { id: "before-after", category: "brand", icon: "◐", titleKey: "tools.beforeAfter.h2", descKey: "tools.beforeAfter.desc", available: false },
+    { id: "before-after", category: "brand", icon: "◐", titleKey: "tools.beforeAfter.h2", descKey: "tools.beforeAfter.desc", available: true },
     { id: "palette", category: "brand", icon: "●", titleKey: "tools.palette.h2", descKey: "tools.palette.desc", available: false },
     { id: "qr", category: "business", icon: "▩", titleKey: "tools.qr.h2", descKey: "tools.qr.desc", available: false },
     { id: "batch", category: "business", icon: "≡", titleKey: "tools.batch.h2", descKey: "tools.batch.desc", available: false },
@@ -3857,6 +3864,39 @@ function toolsPage() {
           </label>
           <input id="safe-zone-file" type="file" accept="image/*" style="display:none" data-safe-zone-input />
         `}
+      </div>
+
+      <div class="tool-card" id="tool-before-after">
+        <div class="tool-card-head">
+          <h2>${t("tools.beforeAfter.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.beforeAfter.desc")}</p>
+        <div class="before-after-upload-grid">
+          ${[0, 1].map(index => state.beforeAfterPreviews[index]
+            ? `<label class="before-after-slot filled" for="before-after-file-${index}"><img src="${state.beforeAfterPreviews[index]}" alt="" /><span>${t(index === 0 ? "tools.beforeAfter.before" : "tools.beforeAfter.after")}</span></label>`
+            : `<label class="before-after-slot" for="before-after-file-${index}"><b>${index + 1}</b><span>${t(index === 0 ? "tools.beforeAfter.addBefore" : "tools.beforeAfter.addAfter")}</span></label>`
+          ).join("")}
+          <input id="before-after-file-0" type="file" accept="image/*" style="display:none" data-before-after-input="0" />
+          <input id="before-after-file-1" type="file" accept="image/*" style="display:none" data-before-after-input="1" />
+        </div>
+        ${state.beforeAfterPreviews.every(Boolean) ? `
+          <div class="tool-option-grid before-after-options">
+            ${[["square","1:1"],["story","9:16"],["wide","1.91:1"]].map(([id,label]) => `<button class="chip ${state.beforeAfterFormat === id ? "active" : ""}" type="button" data-before-after-format="${id}">${label}</button>`).join("")}
+            <button class="chip ${state.beforeAfterDirection === "vertical" ? "active" : ""}" type="button" data-before-after-direction="vertical">${t("tools.beforeAfter.leftRight")}</button>
+            <button class="chip ${state.beforeAfterDirection === "horizontal" ? "active" : ""}" type="button" data-before-after-direction="horizontal">${t("tools.beforeAfter.topBottom")}</button>
+          </div>
+          <div class="before-after-labels">
+            <input class="input" type="text" maxlength="24" data-before-after-label="0" value="${escapeHtml(state.beforeAfterLabels[0])}" placeholder="${t("tools.beforeAfter.before")}" />
+            <input class="input" type="text" maxlength="24" data-before-after-label="1" value="${escapeHtml(state.beforeAfterLabels[1])}" placeholder="${t("tools.beforeAfter.after")}" />
+          </div>
+          ${state.beforeAfterResult ? `<img class="tool-result-img before-after-result" src="${state.beforeAfterResult}" alt="${t("tools.beforeAfter.previewAlt")}" />` : ""}
+          <div class="tool-actions">
+            ${state.beforeAfterResult ? `<a class="button" href="${state.beforeAfterResult}" download="before-after.jpg">${t("tools.beforeAfter.download")}</a>` : `<button class="button gold" type="button" data-before-after-build>${t("tools.beforeAfter.build")}</button>`}
+            <button class="button secondary" type="button" data-before-after-reset>${t("tools.beforeAfter.reset")}</button>
+          </div>
+          ${state.beforeAfterResult ? toolTransferMarkup("before-after") : ""}
+        ` : `<p class="tool-hint">${t("tools.beforeAfter.hint")}</p>`}
       </div>
 
       <div class="tool-card" id="tool-compressor">
@@ -4412,6 +4452,15 @@ function bind() {
   document.querySelectorAll("[data-safe-zone-market]").forEach(el => el.addEventListener("click", () => { state.safeZoneMarket = el.dataset.safeZoneMarket; applySafeZoneTool(); }));
   document.querySelector("[data-safe-zone-reset]")?.addEventListener("click", resetSafeZoneTool);
 
+  // Before / after creator
+  document.querySelectorAll("[data-before-after-input]").forEach(el => el.addEventListener("change", event => onBeforeAfterFileSelect(event, Number(el.dataset.beforeAfterInput))));
+  document.querySelectorAll("[data-before-after-format]").forEach(el => el.addEventListener("click", () => { state.beforeAfterFormat = el.dataset.beforeAfterFormat; applyBeforeAfterTool(); }));
+  document.querySelectorAll("[data-before-after-direction]").forEach(el => el.addEventListener("click", () => { state.beforeAfterDirection = el.dataset.beforeAfterDirection; applyBeforeAfterTool(); }));
+  document.querySelectorAll("[data-before-after-label]").forEach(el => el.addEventListener("input", event => { state.beforeAfterLabels[Number(el.dataset.beforeAfterLabel)] = event.target.value; }));
+  document.querySelectorAll("[data-before-after-label]").forEach(el => el.addEventListener("change", applyBeforeAfterTool));
+  document.querySelector("[data-before-after-build]")?.addEventListener("click", applyBeforeAfterTool);
+  document.querySelector("[data-before-after-reset]")?.addEventListener("click", resetBeforeAfterTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -4913,6 +4962,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "converter") return state.converterResult || state.converterPreview;
   if (sourceId === "redact") return state.redactResult;
   if (sourceId === "safe-zone") return state.safeZoneResult || state.safeZonePreview;
+  if (sourceId === "before-after") return state.beforeAfterResult;
   return null;
 }
 
@@ -5003,6 +5053,17 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.safeZoneResult = null;
     state.safeZoneGuideResult = null;
     afterNavigate = () => applySafeZoneTool();
+  } else if (toolId === "before-after") {
+    let emptyIndex = state.beforeAfterPreviews.findIndex(item => !item);
+    if (emptyIndex === -1) {
+      state.beforeAfterFiles = [null, null];
+      state.beforeAfterPreviews = [null, null];
+      emptyIndex = 0;
+    }
+    state.beforeAfterFiles[emptyIndex] = await transferImageFile(sourceId, dataUrl);
+    state.beforeAfterPreviews[emptyIndex] = dataUrl;
+    state.beforeAfterResult = null;
+    if (state.beforeAfterPreviews.every(Boolean)) afterNavigate = () => applyBeforeAfterTool();
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -5418,6 +5479,83 @@ function resetSafeZoneTool() {
   state.safeZonePreview = null;
   state.safeZoneResult = null;
   state.safeZoneGuideResult = null;
+  render({ motion: false });
+}
+
+function onBeforeAfterFileSelect(event, index) {
+  const file = event.target.files?.[0];
+  if (!file || ![0, 1].includes(index)) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.beforeAfterFiles[index] = file;
+    state.beforeAfterPreviews[index] = String(reader.result || "");
+    state.beforeAfterResult = null;
+    if (state.beforeAfterPreviews.every(Boolean)) applyBeforeAfterTool();
+    else render({ motion: false });
+  };
+  reader.readAsDataURL(file);
+}
+
+async function applyBeforeAfterTool() {
+  if (!state.beforeAfterPreviews.every(Boolean)) return;
+  const sizes = { square: [1080, 1080], story: [1080, 1920], wide: [1200, 628] };
+  const [width, height] = sizes[state.beforeAfterFormat] || sizes.square;
+  const images = await Promise.all(state.beforeAfterPreviews.map(src => new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  })));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  const vertical = state.beforeAfterDirection === "vertical";
+  const regions = vertical
+    ? [[0, 0, width / 2, height], [width / 2, 0, width / 2, height]]
+    : [[0, 0, width, height / 2], [0, height / 2, width, height / 2]];
+  const drawCover = (image, [x, y, w, h]) => {
+    const scale = Math.max(w / image.naturalWidth, h / image.naturalHeight);
+    const dw = image.naturalWidth * scale;
+    const dh = image.naturalHeight * scale;
+    context.save();
+    context.beginPath();
+    context.rect(x, y, w, h);
+    context.clip();
+    context.drawImage(image, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+    context.restore();
+  };
+  images.forEach((image, index) => drawCover(image, regions[index]));
+  context.fillStyle = "#ffffff";
+  if (vertical) context.fillRect(width / 2 - 3, 0, 6, height);
+  else context.fillRect(0, height / 2 - 3, width, 6);
+  const labels = [state.beforeAfterLabels[0].trim() || t("tools.beforeAfter.before"), state.beforeAfterLabels[1].trim() || t("tools.beforeAfter.after")];
+  context.font = `bold ${Math.max(24, Math.round(width * 0.032))}px Arial, sans-serif`;
+  context.textBaseline = "middle";
+  labels.forEach((label, index) => {
+    const region = regions[index];
+    const padding = Math.round(width * 0.018);
+    const boxHeight = Math.round(width * 0.065);
+    const boxWidth = context.measureText(label).width + padding * 2;
+    const x = region[0] + padding;
+    const y = region[1] + region[3] - boxHeight - padding;
+    context.fillStyle = "rgba(17,17,17,.82)";
+    canvasRoundRect(context, x, y, boxWidth, boxHeight, boxHeight / 2);
+    context.fill();
+    context.fillStyle = "#ffffff";
+    context.fillText(label, x + padding, y + boxHeight / 2);
+  });
+  state.beforeAfterResult = canvas.toDataURL("image/jpeg", 0.93);
+  render({ motion: false });
+}
+
+function resetBeforeAfterTool() {
+  state.beforeAfterFiles = [null, null];
+  state.beforeAfterPreviews = [null, null];
+  state.beforeAfterResult = null;
+  state.beforeAfterLabels = ["", ""];
   render({ motion: false });
 }
 
