@@ -793,6 +793,11 @@ const state = {
   converterQuality: 88,
   converterOriginalSize: 0,
   converterResultSize: 0,
+  redactFile: null,
+  redactPreview: null,
+  redactResult: null,
+  redactMode: "blur",
+  redactRegions: [],
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3262,6 +3267,7 @@ const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["vision", "tools.vision.h2"],
   ["crop", "tools.crop.h2"],
   ["converter", "tools.converter.h2"],
+  ["redact", "tools.redact.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3294,7 +3300,7 @@ function toolsPage() {
     { id: "resizer", category: "prep", icon: "↔", titleKey: "tools.resizer.h2", descKey: "tools.resizer.desc", available: true },
     { id: "compressor", category: "prep", icon: "⇣", titleKey: "tools.compressor.h2", descKey: "tools.compressor.desc", available: true },
     { id: "converter", category: "prep", icon: "◫", titleKey: "tools.converter.h2", descKey: "tools.converter.desc", available: true },
-    { id: "redact", category: "prep", icon: "▒", titleKey: "tools.redact.h2", descKey: "tools.redact.desc", available: false },
+    { id: "redact", category: "prep", icon: "▒", titleKey: "tools.redact.h2", descKey: "tools.redact.desc", available: true },
     { id: "checker", category: "market", icon: "✓", titleKey: "tools.checker.h2", descKey: "tools.checker.desc", available: true },
     { id: "vision", category: "market", icon: "✦", titleKey: "tools.vision.h2", descKey: "tools.vision.desc", available: true },
     { id: "safe-zone", category: "market", icon: "▣", titleKey: "tools.safeZone.h2", descKey: "tools.safeZone.desc", available: false },
@@ -3756,6 +3762,33 @@ function toolsPage() {
             <span class="removebg-placeholder"><span class="removebg-icon">◫</span><b>${t("tools.converter.upload")}</b><small>${t("tools.converter.uploadHint")}</small></span>
           </label>
           <input id="converter-file" type="file" accept="image/*" style="display:none" data-converter-input />
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-redact">
+        <div class="tool-card-head">
+          <h2>${t("tools.redact.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.redact.desc")}</p>
+        ${state.redactPreview ? `
+          <canvas id="redact-canvas" class="redact-canvas loading" aria-label="${t("tools.redact.canvasLabel")}" aria-busy="true"></canvas>
+          <p class="tool-hint redact-hint">${t("tools.redact.dragHint")}</p>
+          <div class="tool-option-grid redact-modes">
+            ${[["blur","tools.redact.blur"],["pixelate","tools.redact.pixelate"],["black","tools.redact.black"]].map(([id,key]) => `<button class="chip ${state.redactMode === id ? "active" : ""}" type="button" data-redact-mode="${id}">${t(key)}</button>`).join("")}
+          </div>
+          <div class="redact-status"><span>${t("tools.redact.areas", { n: state.redactRegions.length })}</span><div><button class="text-button" type="button" data-redact-undo ${state.redactRegions.length ? "" : "disabled"}>${t("tools.redact.undo")}</button><button class="text-button" type="button" data-redact-clear ${state.redactRegions.length ? "" : "disabled"}>${t("tools.redact.clear")}</button></div></div>
+          <div class="tool-actions">
+            <a class="button ${state.redactRegions.length ? "" : "disabled"}" data-redact-download href="${state.redactResult || state.redactPreview}" download="redacted-photo.png" ${state.redactRegions.length ? "" : "aria-disabled=\"true\""}>${t("tools.redact.download")}</a>
+            <button class="button secondary" type="button" data-redact-reset>${t("tools.redact.again")}</button>
+          </div>
+          ${state.redactRegions.length ? toolTransferMarkup("redact") : ""}
+        ` : `
+          <label class="removebg-upload" for="redact-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">▒</span><b>${t("tools.redact.upload")}</b><small>${t("tools.redact.uploadHint")}</small></span>
+          </label>
+          <input id="redact-file" type="file" accept="image/*" style="display:none" data-redact-input />
+          <p class="tool-privacy-note">${t("tools.redact.privacy")}</p>
         `}
       </div>
 
@@ -4292,6 +4325,52 @@ function bind() {
   document.querySelector("[data-converter-apply]")?.addEventListener("click", applyConverterTool);
   document.querySelector("[data-converter-reset]")?.addEventListener("click", resetConverterTool);
 
+  // Blur and redact
+  document.querySelector("[data-redact-input]")?.addEventListener("change", onRedactFileSelect);
+  document.querySelectorAll("[data-redact-mode]").forEach(el => el.addEventListener("click", () => { state.redactMode = el.dataset.redactMode; render({ motion: false }); }));
+  document.querySelector("[data-redact-undo]")?.addEventListener("click", () => { state.redactRegions.pop(); state.redactResult = null; render({ motion: false }); });
+  document.querySelector("[data-redact-clear]")?.addEventListener("click", () => { state.redactRegions = []; state.redactResult = null; render({ motion: false }); });
+  document.querySelector("[data-redact-reset]")?.addEventListener("click", resetRedactTool);
+  const redactCanvas = document.querySelector("#redact-canvas");
+  if (redactCanvas) {
+    let startPoint = null;
+    let dragSnapshot = null;
+    const normalizedPoint = event => {
+      const rect = redactCanvas.getBoundingClientRect();
+      return { x: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) };
+    };
+    redactCanvas.addEventListener("pointerdown", event => {
+      if (redactCanvas.dataset.redactReady !== "true") return;
+      startPoint = normalizedPoint(event);
+      dragSnapshot = redactCanvas.getContext("2d").getImageData(0, 0, redactCanvas.width, redactCanvas.height);
+      redactCanvas.setPointerCapture(event.pointerId);
+    });
+    redactCanvas.addEventListener("pointermove", event => {
+      if (!startPoint || !dragSnapshot) return;
+      const end = normalizedPoint(event);
+      const region = { x: Math.min(startPoint.x, end.x), y: Math.min(startPoint.y, end.y), w: Math.abs(end.x - startPoint.x), h: Math.abs(end.y - startPoint.y) };
+      const context = redactCanvas.getContext("2d");
+      context.putImageData(dragSnapshot, 0, 0);
+      context.save();
+      context.strokeStyle = "#ff633e";
+      context.lineWidth = Math.max(2, redactCanvas.width / 500);
+      context.setLineDash([10, 7]);
+      context.strokeRect(region.x * redactCanvas.width, region.y * redactCanvas.height, region.w * redactCanvas.width, region.h * redactCanvas.height);
+      context.restore();
+    });
+    redactCanvas.addEventListener("pointerup", event => {
+      if (!startPoint) return;
+      const end = normalizedPoint(event);
+      const region = { x: Math.min(startPoint.x, end.x), y: Math.min(startPoint.y, end.y), w: Math.abs(end.x - startPoint.x), h: Math.abs(end.y - startPoint.y), mode: state.redactMode };
+      startPoint = null;
+      dragSnapshot = null;
+      if (region.w > 0.015 && region.h > 0.015) state.redactRegions.push(region);
+      state.redactResult = null;
+      render({ motion: false });
+    });
+    drawRedactCanvas();
+  }
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -4791,6 +4870,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "vision") return state.visionPreview;
   if (sourceId === "crop") return state.cropResult || state.cropPreview;
   if (sourceId === "converter") return state.converterResult || state.converterPreview;
+  if (sourceId === "redact") return state.redactResult;
   return null;
 }
 
@@ -4870,6 +4950,11 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.converterResult = null;
     state.converterOriginalSize = file.size;
     state.converterResultSize = 0;
+  } else if (toolId === "redact") {
+    state.redactFile = await transferImageFile(sourceId, dataUrl);
+    state.redactPreview = dataUrl;
+    state.redactResult = null;
+    state.redactRegions = [];
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -5128,6 +5213,89 @@ function resetConverterTool() {
   state.converterResult = null;
   state.converterOriginalSize = 0;
   state.converterResultSize = 0;
+  render({ motion: false });
+}
+
+function onRedactFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.redactFile = file;
+    state.redactPreview = String(reader.result || "");
+    state.redactResult = null;
+    state.redactRegions = [];
+    render({ motion: false });
+  };
+  reader.readAsDataURL(file);
+}
+
+async function drawRedactCanvas(draftRegion = null) {
+  const canvas = document.querySelector("#redact-canvas");
+  if (!canvas || !state.redactPreview) return;
+  const source = state.redactPreview;
+  const image = new Image();
+  image.src = source;
+  await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; });
+  if (!canvas.isConnected || state.redactPreview !== source) return;
+  const scale = Math.min(1, 1400 / Math.max(image.naturalWidth, image.naturalHeight));
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const applyRegion = region => {
+    const x = Math.round(region.x * canvas.width);
+    const y = Math.round(region.y * canvas.height);
+    const w = Math.max(1, Math.round(region.w * canvas.width));
+    const h = Math.max(1, Math.round(region.h * canvas.height));
+    if (region.mode === "black") {
+      context.fillStyle = "#111111";
+      context.fillRect(x, y, w, h);
+    } else if (region.mode === "pixelate") {
+      const tiny = document.createElement("canvas");
+      tiny.width = Math.max(1, Math.round(w / 16));
+      tiny.height = Math.max(1, Math.round(h / 16));
+      tiny.getContext("2d").drawImage(canvas, x, y, w, h, 0, 0, tiny.width, tiny.height);
+      context.save();
+      context.imageSmoothingEnabled = false;
+      context.drawImage(tiny, 0, 0, tiny.width, tiny.height, x, y, w, h);
+      context.restore();
+    } else {
+      context.save();
+      context.beginPath();
+      context.rect(x, y, w, h);
+      context.clip();
+      context.filter = `blur(${Math.max(10, Math.round(Math.min(canvas.width, canvas.height) * 0.018))}px)`;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      context.restore();
+    }
+  };
+
+  state.redactRegions.forEach(applyRegion);
+  state.redactResult = canvas.toDataURL("image/png");
+  const download = document.querySelector("[data-redact-download]");
+  if (download) download.href = state.redactResult;
+  const outlineRegions = draftRegion ? [draftRegion] : state.redactRegions;
+  outlineRegions.forEach(region => {
+    context.save();
+    context.strokeStyle = "#ff633e";
+    context.lineWidth = Math.max(2, canvas.width / 500);
+    context.setLineDash([10, 7]);
+    context.strokeRect(region.x * canvas.width, region.y * canvas.height, region.w * canvas.width, region.h * canvas.height);
+    context.restore();
+  });
+  canvas.dataset.redactReady = "true";
+  canvas.classList.remove("loading");
+  canvas.setAttribute("aria-busy", "false");
+}
+
+function resetRedactTool() {
+  state.redactFile = null;
+  state.redactPreview = null;
+  state.redactResult = null;
+  state.redactMode = "blur";
+  state.redactRegions = [];
   render({ motion: false });
 }
 
