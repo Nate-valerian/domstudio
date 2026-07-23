@@ -2587,17 +2587,57 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 
 @media (max-width: 640px) {
-  .free-tools-catalog { padding: 28px 14px 116px; }
-  .free-tools-hero h1 { margin-top: 10px; font-size: clamp(39px, 12vw, 48px); }
-  .free-tools-hero p { font-size: 15px; }
-  .free-tools-stats div { padding: 16px; }
-  .free-tools-discovery { margin-top: 25px; }
+  .free-tools-catalog { padding: 18px 14px 108px; }
+  .free-tools-hero { gap: 18px; }
+  .free-tools-hero h1 { margin: 8px 0 12px; font-size: clamp(32px, 10vw, 40px); line-height: .98; }
+  .free-tools-hero p { font-size: 13px; line-height: 1.48; }
+  .free-tools-stats { width: 100%; max-width: none; gap: 7px; }
+  .free-tools-stats div { padding: 10px 12px; border-radius: 14px; }
+  .free-tools-stats b { font-size: 22px; line-height: 1; }
+  .free-tools-stats span { margin-top: 5px; font-size: 9px; }
+  .free-tools-discovery { gap: 8px; margin: 18px 0 14px; }
+  .free-tools-search { min-height: 46px; padding: 0 13px; border-radius: 12px; }
   .free-tools-filters { margin-right: -14px; padding-right: 14px; }
-  .free-tools-filters button { min-height: 42px; }
-  .free-tools-route { margin-bottom: 40px; border-radius: 18px; }
-  .free-tools-grid { grid-template-columns: 1fr; }
-  .free-tool-card { min-height: 164px; }
-  .free-tools-section > header { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .free-tools-filters button { min-height: 38px; padding: 0 12px; }
+  .free-tools-route { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 16px 0 24px; border-radius: 15px; }
+  .free-tools-route > div {
+    grid-column: 1 / -1; min-height: 0; flex-direction: row; align-items: center; gap: 12px; padding: 12px 14px;
+  }
+  .free-tools-route > div strong { font-size: 14px; }
+  .free-tools-route > button {
+    min-height: 64px; grid-template-columns: 24px minmax(0, 1fr); align-content: center; gap: 7px; padding: 10px 8px;
+    border-right: 1px solid var(--line); border-bottom: 0;
+  }
+  .free-tools-route > button:last-child { border-right: 0; }
+  .free-tools-route > button > b { width: 24px; height: 24px; font-size: 10px; }
+  .free-tools-route > button strong { display: -webkit-box; overflow: hidden; font-size: 10px; line-height: 1.22; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .free-tools-route > button small, .free-tools-route > button i { display: none; }
+  .free-tools-grid { grid-template-columns: 1fr; gap: 8px; }
+  .free-tools-section { margin-top: 24px; }
+  .free-tools-section > header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; margin-bottom: 9px; }
+  .free-tools-section > header h2 { font-size: 21px; }
+  .free-tools-section > header p { display: none; }
+  .free-tool-card {
+    display: grid; grid-template-columns: 42px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    grid-template-areas: "tool-icon tool-title tool-status" "tool-icon tool-description tool-open";
+    min-height: 86px; padding: 13px 14px; column-gap: 11px; row-gap: 4px; border-radius: 15px;
+  }
+  .free-tool-card-top { display: contents; }
+  .free-tool-icon {
+    grid-area: tool-icon; display: grid; place-items: center; width: 38px; height: 38px; align-self: start;
+    border-radius: 10px; background: #f2ece2; font-size: 21px;
+  }
+  .free-tool-card.featured .free-tool-icon { background: #2a2824; }
+  .free-tool-status { grid-area: tool-status; align-self: center; font-size: 8px; }
+  .free-tool-card h3 { grid-area: tool-title; align-self: center; margin: 0; font-size: 15px; line-height: 1.18; }
+  .free-tool-card p {
+    grid-area: tool-description; display: -webkit-box; overflow: hidden; align-self: start; font-size: 10.5px; line-height: 1.35;
+    -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  }
+  .free-tool-open { grid-area: tool-open; align-self: end; margin: 0; padding: 0; font-size: 0; line-height: 1; }
+  .free-tool-open > span { font-size: 17px; }
+  .free-tool-open.pending { align-self: center; font-size: 9px; }
   .free-tools-footnote { flex-direction: column; gap: 5px; }
   .tools-detail-inner { padding: 16px 14px 116px; }
   .free-tool-detail-head { align-items: flex-start; }

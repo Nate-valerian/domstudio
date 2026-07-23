@@ -8946,3 +8946,71 @@ Files changed:
 This backend change is committed locally but not pushed. Production must
 receive both provider keys and be checked through the health endpoint before
 the fallback is described as live.
+
+---
+
+## July 23, 2026 - Mobile Tools Catalog Density Fixed
+
+Redesigned the Tools catalog below 640 px so mobile users can scan and open
+tools without each card consuming most of the screen.
+
+Mobile layout changes:
+
+- Replaced the 164+ px stacked catalog cards with compact horizontal rows using
+  an 86 px minimum height.
+- Each row now places the icon, title, two-line description, `FREE` status, and
+  arrow in a compact grid while preserving the full-card native button and
+  keyboard/touch accessibility.
+- Removed the redundant visible `Open` word on mobile; the arrow remains as the
+  visual action cue and the complete accessible label remains unchanged.
+- Reduced card gaps, padding, corner radii, icon size, title size, and
+  description size without changing desktop or tablet cards.
+- Kept the featured Background Removal treatment but moved its icon into a
+  smaller dark tile consistent with the other compact rows.
+- Put the category name and tool count on one line and hide the redundant
+  category description on small screens.
+- Reduced the Tools hero heading, paragraph, stat cards, search field, filter
+  pills, and page spacing.
+- Converted the three-step Quick Workflow into one compact three-column strip
+  with two-line titles, eliminating the tall stacked mobile block.
+- Preserved the existing bottom-navigation clearance and full-card click
+  behavior.
+- Bumped the PWA cache from `domstudio-shell-v38` to
+  `domstudio-shell-v39`.
+
+Coverage and validation:
+
+- Added focused CSS contract tests for the mobile card grid, 86 px minimum,
+  compact arrow treatment, compressed search/stats, and three-column workflow.
+- `npm test` passed: 12 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 502,377 bytes; its gzip size remains 136.06 kB. No build failure or
+  runtime error was reported.
+- `git diff --check` passed.
+- The in-app browser connection could not be established in this session. No
+  live responsive screenshot verification is claimed; 360 px, 390 px, and
+  430 px visual checks remain on the release checklist.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `66105BA1AA39BE6BBB0C1AFD9C21AEF4534FE689D09FBCD63B7DE2D5AFED22A0`.
+- Main application asset: `assets/index-DV1Jmuij.js`, 502,377 bytes, SHA-256
+  `D37B0A60F50AB244CDB263F9B93A0F30D10A74FCC6C6BFA6D43FC9A8F6E03480`.
+- Stylesheet: `assets/index-DyVRfUjL.css`, 152,288 bytes, SHA-256
+  `CE23E1AAD574C09652F642DDBEBB8D2967C076B6B5C3A27EAAD01F36602FEDE0`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `24A828527752DB104B0ABD64D7AB44D7FADE7D725D85A78D412304736F19C9B2`.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/mobile-tools-catalog.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This mobile redesign is committed locally but not pushed. The verified live
+SpaceWeb frontend remains v19 until a v39 package is intentionally deployed and
+visually verified.
