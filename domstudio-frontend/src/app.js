@@ -772,6 +772,12 @@ const state = {
   checkerFile: null,
   checkerPreview: null,
   checkerResult: null,
+  visionFile: null,
+  visionPreview: null,
+  visionContext: "",
+  visionAnalysis: "",
+  visionAnalyzing: false,
+  visionError: "",
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3238,6 +3244,7 @@ function authModal() {
 
 const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["removebg", "tools.removeBg.h2"],
+  ["vision", "tools.vision.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3272,6 +3279,7 @@ function toolsPage() {
     { id: "converter", category: "prep", icon: "◫", titleKey: "tools.converter.h2", descKey: "tools.converter.desc", available: false },
     { id: "redact", category: "prep", icon: "▒", titleKey: "tools.redact.h2", descKey: "tools.redact.desc", available: false },
     { id: "checker", category: "market", icon: "✓", titleKey: "tools.checker.h2", descKey: "tools.checker.desc", available: true },
+    { id: "vision", category: "market", icon: "✦", titleKey: "tools.vision.h2", descKey: "tools.vision.desc", available: true },
     { id: "safe-zone", category: "market", icon: "▣", titleKey: "tools.safeZone.h2", descKey: "tools.safeZone.desc", available: false },
     { id: "promo", category: "market", icon: "%", titleKey: "tools.promo.h2", descKey: "tools.promo.desc", available: true },
     { id: "watermark", category: "brand", icon: "©", titleKey: "tools.watermark.h2", descKey: "tools.watermark.desc", available: true },
@@ -3664,6 +3672,37 @@ function toolsPage() {
                 </span>`}
           </label>
           <input id="checker-file" type="file" accept="image/*" style="display:none" data-checker-input />
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-vision">
+        <div class="tool-card-head">
+          <h2>${t("tools.vision.h2")}</h2>
+          <span class="tool-card-badge">Groq Vision</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.vision.desc")}</p>
+        ${state.visionPreview ? `
+          <div class="vision-tool-layout">
+            <img class="tool-result-img vision-tool-image" src="${state.visionPreview}" alt="${t("tools.vision.previewAlt")}" />
+            <div class="field">
+              <label>${t("tools.vision.contextLabel")}</label>
+              <input class="input" type="text" value="${escapeHtml(state.visionContext)}" data-vision-context placeholder="${t("tools.vision.contextPlaceholder")}" />
+            </div>
+            ${state.visionAnalysis ? `<div class="vision-tool-result"><span>${t("tools.vision.resultLabel")}</span><p>${escapeHtml(state.visionAnalysis)}</p></div>` : ""}
+            ${state.visionError ? `<p class="field-error">${escapeHtml(state.visionError)}</p>` : ""}
+            <div class="tool-actions">
+              <button class="button gold" type="button" data-vision-analyze ${state.visionAnalyzing ? "disabled" : ""}>${state.visionAnalyzing ? t("tools.vision.analyzing") : t("tools.vision.analyze")}</button>
+              <button class="button secondary" type="button" data-vision-reset>${t("tools.vision.again")}</button>
+            </div>
+            <p class="tool-privacy-note">${t("tools.vision.privacy")}</p>
+            ${toolTransferMarkup("vision")}
+          </div>
+        ` : `
+          <label class="removebg-upload" for="vision-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">✦</span><b>${t("tools.vision.upload")}</b><small>${t("tools.vision.uploadHint")}</small></span>
+          </label>
+          <input id="vision-file" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" data-vision-input />
+          <p class="tool-privacy-note">${t("tools.vision.privacy")}</p>
         `}
       </div>
 
@@ -4128,6 +4167,12 @@ function bind() {
     reader.readAsDataURL(file);
   });
   document.querySelector("[data-checker-reset]")?.addEventListener("click", resetChecker);
+
+  // Groq product photo analyzer
+  document.querySelector("[data-vision-input]")?.addEventListener("change", onVisionFileSelect);
+  document.querySelector("[data-vision-context]")?.addEventListener("input", event => { state.visionContext = event.target.value; });
+  document.querySelector("[data-vision-analyze]")?.addEventListener("click", analyzeToolsVisionImage);
+  document.querySelector("[data-vision-reset]")?.addEventListener("click", resetVisionTool);
 
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
@@ -4625,6 +4670,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "promo") return state.promoResult;
   if (sourceId === "compressor") return state.compressorResult;
   if (sourceId === "checker") return state.checkerPreview;
+  if (sourceId === "vision") return state.visionPreview;
   return null;
 }
 
@@ -4682,6 +4728,12 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.resizerPreview = dataUrl;
     state.resizerResult = null;
     afterNavigate = () => applyResizer();
+  } else if (toolId === "vision") {
+    state.visionPreview = dataUrl;
+    state.visionFile = await transferImageFile(sourceId, dataUrl);
+    state.visionAnalysis = "";
+    state.visionError = "";
+    state.visionAnalyzing = false;
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -4750,6 +4802,75 @@ async function analyzeChecker(file, dataUrl) {
   const avg = sampleCorners(6);
   const bgLight = avg.r > 215 && avg.g > 215 && avg.b > 215;
   state.checkerResult = { width: w, height: h, fileSize: file.size, format: file.type || "image/jpeg", ratio, isSquare, bgLight };
+  render({ motion: false });
+}
+
+function onVisionFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    toast(t("toast.fileTooBig", { name: file.name }));
+    event.target.value = "";
+    return;
+  }
+  if (file.type && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    toast(t("tools.vision.invalid"));
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.visionFile = file;
+    state.visionPreview = String(reader.result || "");
+    state.visionAnalysis = "";
+    state.visionError = "";
+    state.visionAnalyzing = false;
+    render({ motion: false });
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeToolsVisionImage() {
+  if (!state.visionPreview || state.visionAnalyzing) return;
+  const sourceImage = state.visionPreview;
+  state.visionContext = document.querySelector("[data-vision-context]")?.value || state.visionContext;
+  state.visionAnalyzing = true;
+  state.visionError = "";
+  render({ motion: false });
+  try {
+    const imageData = await prepareVisionImage(sourceImage);
+    const result = await api("/vision/analyze", {
+      method: "POST",
+      body: JSON.stringify({
+        image_data: imageData,
+        language: getLang() === "ru" ? "ru" : "en",
+        product_context: state.visionContext.trim(),
+      }),
+    });
+    if (state.visionPreview !== sourceImage) return;
+    state.visionAnalysis = result.analysis || "";
+    if (!state.visionAnalysis) throw new Error(t("adpilot.vision.empty"));
+    toast(t("tools.vision.done"));
+  } catch (error) {
+    if (state.visionPreview === sourceImage) {
+      state.visionError = error.message;
+      toast(error.message);
+    }
+  } finally {
+    if (state.visionPreview === sourceImage) {
+      state.visionAnalyzing = false;
+      render({ motion: false });
+    }
+  }
+}
+
+function resetVisionTool() {
+  state.visionFile = null;
+  state.visionPreview = null;
+  state.visionContext = "";
+  state.visionAnalysis = "";
+  state.visionAnalyzing = false;
+  state.visionError = "";
   render({ motion: false });
 }
 
