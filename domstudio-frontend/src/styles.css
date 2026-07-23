@@ -2005,7 +2005,7 @@ h1 em { color: var(--gold); font-style: normal; }
 }
 
 @media (max-width: 640px) {
-  .workspace.adpilot-landing { padding: 10px 10px 24px; }
+  .workspace.adpilot-landing { padding: 10px 10px 88px; }
   .adpilot-landing-head { margin-bottom: 10px; }
   .adpilot-landing-head h1 { margin: 5px 0 7px; font-size: clamp(26px, 7.8vw, 32px); letter-spacing: -.048em; }
   .adpilot-landing-head p { font-size: 11px; line-height: 1.38; }
@@ -2064,7 +2064,6 @@ h1 em { color: var(--gold); font-style: normal; }
   .adpilot-tool-groups { grid-template-columns: 1fr; }
   .adpilot-tool-groups > section { padding: 12px; border-radius: 13px; }
   .adpilot-marketplace-link { margin-top: 14px; padding: 12px; }
-  .adpilot-page ~ .mobile-tabbar { display: none; }
 }
 .adpilot-chat-page { display: flex; flex-direction: column; align-items: center; }
 .adpilot-chat-page > * { width: 100%; max-width: 980px; }
@@ -3700,4 +3699,8 @@ h1 em { color: var(--gold); font-style: normal; }
   .route-adpilot .nav-actions { top: 5px; right: 5px; gap: 4px; }
   .route-adpilot .nav-actions .nav-register,
   .route-adpilot .nav-cta { padding-inline: 10px; font-size: 11px; }
+  .route-adpilot .mobile-tabbar { min-height: 52px; padding: 5px; border-radius: 18px; }
+  .route-adpilot .mobile-tabbar button { min-height: 42px; padding-block: 2px; border-radius: 13px; }
+  .route-adpilot .mobile-tabbar span { width: 20px; height: 20px; font-size: 9px; }
+  .route-adpilot .mobile-tabbar b { font-size: 9px; }
 }

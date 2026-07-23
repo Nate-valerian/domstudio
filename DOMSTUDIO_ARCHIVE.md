@@ -9382,3 +9382,64 @@ Files changed:
 This focused fold correction is committed locally but not pushed. The verified
 live SpaceWeb frontend remains v19 until a v44 package is intentionally
 deployed and visually verified.
+
+---
+
+## July 23, 2026 - AdPilot Mobile PWA Navigation Restored
+
+Fixed the mobile PWA navigation disappearing when the user opened AdPilot. A
+previous overlap workaround explicitly hid the shared bottom bar on the entire
+AdPilot route.
+
+Changes:
+
+- Removed the AdPilot-specific `display: none` rule so the five-destination PWA
+  navigation remains available while browsing AdPilot.
+- Added an AdPilot-specific compact bar treatment: 52 px shell, 42 px buttons,
+  smaller route icons and labels, and tighter radii.
+- Increased the AdPilot mobile workspace bottom clearance from 24 px to 88 px
+  so the fixed bar does not block the final content and actions.
+- Kept the compact AdPilot header and desktop layout unchanged.
+- Bumped the PWA cache from `domstudio-shell-v44` to
+  `domstudio-shell-v45`.
+
+Coverage and validation:
+
+- Replaced the former hidden-navigation assertion with contracts confirming
+  that the hide rule is absent, the compact PWA bar exists, and the workspace
+  reserves bottom clearance.
+- `npm test` passed: 20 tests, 0 failures.
+- `VITE_IMGLY_PUBLIC_PATH=cdn npm run build` completed with Vite 7.3.5.
+- The build reports the existing chunk-size advisory because the main bundle
+  is 503,404 bytes; its gzip size is 136.35 kB. No build failure or runtime
+  error was reported.
+- `git diff --check` passed.
+- The in-app browser bootstrap remains unavailable, so no new live mobile
+  screenshot verification is claimed.
+
+Final build fingerprints:
+
+- `index.html`: 1,892 bytes, SHA-256
+  `B405B316A67F6CF202BCF22C376C2F904F83B05B61AECCC42FF24ED087733A56`.
+- Route application asset: `assets/index-D1ujhROS.js`, 82,031 bytes,
+  SHA-256
+  `9F5E169C39874272EEFDE2323AD70A732FE086FA08E87D0E3AA2C55CF45569ED`.
+- Main application asset: `assets/index-COQN3uzb.js`, 503,404 bytes,
+  SHA-256
+  `AD324EA760C1BF38EF692766E0272C949B3D8F64B9815109F8B06CB2652AB207`.
+- Stylesheet: `assets/index-BKluYniH.css`, 163,974 bytes, SHA-256
+  `8D31AD392C06722A21DDBE36433E0E206BF2443CCA63758777A747184139BC69`.
+- `sw.js`: 2,093 bytes, SHA-256
+  `D87D8790151831DDFE21FEA14A595D3F53CDF269A68207973AAF508945FC5553`.
+
+Files changed:
+
+- `domstudio-frontend/src/styles.css`
+- `domstudio-frontend/tests/mobile-product-pages.test.js`
+- `domstudio-frontend/public/sw.js`
+- `DOMSTUDIO_ARCHIVE.md`
+- `DOMSTUDIO_TOMORROW.md`
+
+This navigation correction is committed locally but not pushed. The verified
+live SpaceWeb frontend remains v19 until a v45 package is intentionally
+deployed and visually verified.
