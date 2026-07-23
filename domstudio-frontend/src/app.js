@@ -798,6 +798,11 @@ const state = {
   redactResult: null,
   redactMode: "blur",
   redactRegions: [],
+  safeZoneFile: null,
+  safeZonePreview: null,
+  safeZoneResult: null,
+  safeZoneGuideResult: null,
+  safeZoneMarket: "wb",
   collageFiles: [],
   collagePreviews: [],
   collageLayout: "2x1",
@@ -3268,6 +3273,7 @@ const IMAGE_TOOL_TRANSFER_TARGETS = [
   ["crop", "tools.crop.h2"],
   ["converter", "tools.converter.h2"],
   ["redact", "tools.redact.h2"],
+  ["safe-zone", "tools.safeZone.h2"],
   ["collage", "tools.collage.h2"],
   ["watermark", "tools.watermark.h2"],
   ["promo", "tools.promo.h2"],
@@ -3303,7 +3309,7 @@ function toolsPage() {
     { id: "redact", category: "prep", icon: "▒", titleKey: "tools.redact.h2", descKey: "tools.redact.desc", available: true },
     { id: "checker", category: "market", icon: "✓", titleKey: "tools.checker.h2", descKey: "tools.checker.desc", available: true },
     { id: "vision", category: "market", icon: "✦", titleKey: "tools.vision.h2", descKey: "tools.vision.desc", available: true },
-    { id: "safe-zone", category: "market", icon: "▣", titleKey: "tools.safeZone.h2", descKey: "tools.safeZone.desc", available: false },
+    { id: "safe-zone", category: "market", icon: "▣", titleKey: "tools.safeZone.h2", descKey: "tools.safeZone.desc", available: true },
     { id: "promo", category: "market", icon: "%", titleKey: "tools.promo.h2", descKey: "tools.promo.desc", available: true },
     { id: "watermark", category: "brand", icon: "©", titleKey: "tools.watermark.h2", descKey: "tools.watermark.desc", available: true },
     { id: "collage", category: "brand", icon: "▦", titleKey: "tools.collage.h2", descKey: "tools.collage.desc", available: true },
@@ -3820,6 +3826,36 @@ function toolsPage() {
           </label>
           <input id="vision-file" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" data-vision-input />
           <p class="tool-privacy-note">${t("tools.vision.privacy")}</p>
+        `}
+      </div>
+
+      <div class="tool-card" id="tool-safe-zone">
+        <div class="tool-card-head">
+          <h2>${t("tools.safeZone.h2")}</h2>
+          <span class="eyebrow">${t("tools.catalog.free")}</span>
+        </div>
+        <p class="tool-card-desc">${t("tools.safeZone.desc")}</p>
+        ${state.safeZonePreview ? (() => {
+          const preset = SAFE_ZONE_PRESETS.find(item => item.id === state.safeZoneMarket) || SAFE_ZONE_PRESETS[0];
+          return `
+            <div class="tool-option-grid safe-zone-presets">
+              ${SAFE_ZONE_PRESETS.map(item => `<button class="resizer-fmt-chip ${item.id === state.safeZoneMarket ? "active" : ""}" type="button" data-safe-zone-market="${item.id}"><b>${item.label}</b><span>${item.w}×${item.h}</span></button>`).join("")}
+            </div>
+            <img class="tool-result-img safe-zone-preview" src="${state.safeZoneGuideResult || state.safeZonePreview}" alt="${t("tools.safeZone.previewAlt")}" />
+            <div class="safe-zone-legend"><span><i class="safe-zone-safe"></i>${t("tools.safeZone.safe")}</span><span><i class="safe-zone-risk"></i>${t("tools.safeZone.risk")}</span><b>${preset.label} · ${preset.ratio}</b></div>
+            <p class="tool-hint">${t("tools.safeZone.hint")}</p>
+            <div class="tool-actions">
+              <a class="button" href="${state.safeZoneResult || state.safeZonePreview}" download="${preset.id}-ready.jpg">${t("tools.safeZone.downloadClean")}</a>
+              <a class="button secondary" href="${state.safeZoneGuideResult || state.safeZonePreview}" download="${preset.id}-safe-zone.jpg">${t("tools.safeZone.downloadGuide")}</a>
+            </div>
+            ${state.safeZoneResult ? toolTransferMarkup("safe-zone") : ""}
+            <button class="button secondary block" type="button" data-safe-zone-reset>${t("tools.safeZone.again")}</button>
+          `;
+        })() : `
+          <label class="removebg-upload" for="safe-zone-file">
+            <span class="removebg-placeholder"><span class="removebg-icon">▣</span><b>${t("tools.safeZone.upload")}</b><small>${t("tools.safeZone.uploadHint")}</small></span>
+          </label>
+          <input id="safe-zone-file" type="file" accept="image/*" style="display:none" data-safe-zone-input />
         `}
       </div>
 
@@ -4371,6 +4407,11 @@ function bind() {
     drawRedactCanvas();
   }
 
+  // Marketplace safe-zone preview
+  document.querySelector("[data-safe-zone-input]")?.addEventListener("change", onSafeZoneFileSelect);
+  document.querySelectorAll("[data-safe-zone-market]").forEach(el => el.addEventListener("click", () => { state.safeZoneMarket = el.dataset.safeZoneMarket; applySafeZoneTool(); }));
+  document.querySelector("[data-safe-zone-reset]")?.addEventListener("click", resetSafeZoneTool);
+
   // Collage
   document.querySelectorAll("[data-collage-layout]").forEach(el => el.addEventListener("click", () => {
     state.collageLayout = el.dataset.collageLayout;
@@ -4871,6 +4912,7 @@ function toolTransferSource(sourceId) {
   if (sourceId === "crop") return state.cropResult || state.cropPreview;
   if (sourceId === "converter") return state.converterResult || state.converterPreview;
   if (sourceId === "redact") return state.redactResult;
+  if (sourceId === "safe-zone") return state.safeZoneResult || state.safeZonePreview;
   return null;
 }
 
@@ -4955,6 +4997,12 @@ async function sendToTool(toolId, dataUrl, sourceId = "domstudio") {
     state.redactPreview = dataUrl;
     state.redactResult = null;
     state.redactRegions = [];
+  } else if (toolId === "safe-zone") {
+    state.safeZoneFile = await transferImageFile(sourceId, dataUrl);
+    state.safeZonePreview = dataUrl;
+    state.safeZoneResult = null;
+    state.safeZoneGuideResult = null;
+    afterNavigate = () => applySafeZoneTool();
   } else if (toolId === "watermark") {
     state.watermarkPreview = dataUrl;
     state.watermarkResult = null;
@@ -5296,6 +5344,80 @@ function resetRedactTool() {
   state.redactResult = null;
   state.redactMode = "blur";
   state.redactRegions = [];
+  render({ motion: false });
+}
+
+const SAFE_ZONE_PRESETS = [
+  { id: "wb", label: "Wildberries", w: 900, h: 1200, ratio: "3:4", marginX: 0.06, marginTop: 0.06, marginBottom: 0.11 },
+  { id: "ozon", label: "Ozon", w: 900, h: 1200, ratio: "3:4", marginX: 0.06, marginTop: 0.07, marginBottom: 0.12 },
+  { id: "avito", label: "Avito", w: 1200, h: 900, ratio: "4:3", marginX: 0.05, marginTop: 0.06, marginBottom: 0.14 },
+  { id: "vk", label: "VK", w: 1080, h: 1080, ratio: "1:1", marginX: 0.07, marginTop: 0.07, marginBottom: 0.14 },
+];
+
+function onSafeZoneFileSelect(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.safeZoneFile = file;
+    state.safeZonePreview = String(reader.result || "");
+    state.safeZoneResult = null;
+    state.safeZoneGuideResult = null;
+    applySafeZoneTool();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function applySafeZoneTool() {
+  if (!state.safeZonePreview) return;
+  const preset = SAFE_ZONE_PRESETS.find(item => item.id === state.safeZoneMarket) || SAFE_ZONE_PRESETS[0];
+  const image = new Image();
+  image.src = state.safeZonePreview;
+  await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; });
+  const clean = document.createElement("canvas");
+  clean.width = preset.w;
+  clean.height = preset.h;
+  const context = clean.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, clean.width, clean.height);
+  const scale = Math.max(clean.width / image.naturalWidth, clean.height / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  context.drawImage(image, (clean.width - width) / 2, (clean.height - height) / 2, width, height);
+  state.safeZoneResult = clean.toDataURL("image/jpeg", 0.93);
+
+  const guide = document.createElement("canvas");
+  guide.width = clean.width;
+  guide.height = clean.height;
+  const guideContext = guide.getContext("2d");
+  guideContext.drawImage(clean, 0, 0);
+  const left = Math.round(clean.width * preset.marginX);
+  const top = Math.round(clean.height * preset.marginTop);
+  const right = clean.width - left;
+  const bottom = Math.round(clean.height * (1 - preset.marginBottom));
+  guideContext.fillStyle = "rgba(255, 64, 64, .22)";
+  guideContext.fillRect(0, 0, clean.width, top);
+  guideContext.fillRect(0, bottom, clean.width, clean.height - bottom);
+  guideContext.fillRect(0, top, left, bottom - top);
+  guideContext.fillRect(right, top, clean.width - right, bottom - top);
+  guideContext.strokeStyle = "#b9ff38";
+  guideContext.lineWidth = Math.max(4, clean.width / 200);
+  guideContext.setLineDash([18, 12]);
+  guideContext.strokeRect(left, top, right - left, bottom - top);
+  guideContext.setLineDash([]);
+  guideContext.fillStyle = "rgba(17,17,17,.82)";
+  guideContext.font = `bold ${Math.round(clean.width * 0.025)}px Arial, sans-serif`;
+  guideContext.textAlign = "center";
+  guideContext.fillText(t("tools.safeZone.safeLabel"), clean.width / 2, top + Math.round(clean.width * 0.04));
+  state.safeZoneGuideResult = guide.toDataURL("image/jpeg", 0.92);
+  render({ motion: false });
+}
+
+function resetSafeZoneTool() {
+  state.safeZoneFile = null;
+  state.safeZonePreview = null;
+  state.safeZoneResult = null;
+  state.safeZoneGuideResult = null;
   render({ motion: false });
 }
 
